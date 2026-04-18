@@ -52,6 +52,8 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddScoped<IMealPlanService, MealPlanService>();
 builder.Services.AddScoped<IRecipesService, RecipesService>();
 builder.Services.AddScoped<IIngredientService, IngredientService>();
+builder.Services.AddScoped<IFoodCategoryService, FoodCategoryService>();
+builder.Services.AddScoped<IIngredientResolverService, IngredientResolverService>();
 builder.Services.AddScoped<IAdminControllerModelService, AdminControllerModelService>();
 builder.Services.AddScoped<IBlobAzureService, BlobAzureService>();
 builder.Services.AddScoped<IQueryService, QueryService>();

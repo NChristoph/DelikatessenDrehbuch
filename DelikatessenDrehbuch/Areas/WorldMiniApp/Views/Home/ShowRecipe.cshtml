@@ -414,6 +414,35 @@
         text-transform: uppercase;
         opacity: 0.78;
         font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .ai-upgrade-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.68rem;
+        letter-spacing: 0.5px;
+        text-transform: none;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(6px);
+        padding: 3px 10px;
+        border-radius: 20px;
+        opacity: 1;
+        animation: aiUpgradePulse 1.8s ease-in-out infinite;
+    }
+
+    .ai-upgrade-pill .spinner-border {
+        width: 12px;
+        height: 12px;
+        border-width: 2px;
+    }
+
+    @@keyframes aiUpgradePulse {
+        0%, 100% { opacity: 0.7; }
+        50% { opacity: 1; }
     }
 
     .ai-preview-title {
@@ -464,6 +493,61 @@
         padding: 18px;
         box-shadow: var(--shadow-sm);
         margin-bottom: 14px;
+    }
+
+    .ai-suggestion-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 10px;
+    }
+
+    .ai-suggestion-card {
+        border: 1px solid rgba(45,79,30,0.12);
+        border-radius: 18px;
+        padding: 14px;
+        background: #f8faf4;
+        cursor: pointer;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+    }
+
+    .ai-suggestion-card:hover,
+    .ai-suggestion-card:focus-visible {
+        transform: translateY(-1px);
+        box-shadow: var(--shadow-sm);
+        border-color: rgba(45,79,30,0.28);
+    }
+
+    .ai-suggestion-card.is-selected {
+        border-color: rgba(45,79,30,0.45);
+        background: #eef7e7;
+        box-shadow: 0 0 0 4px rgba(45,79,30,0.08);
+    }
+
+    .ai-suggestion-category {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        border-radius: 999px;
+        padding: 5px 9px;
+        background: rgba(45,79,30,0.08);
+        color: var(--deli-primary);
+        font-size: 0.72rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+    }
+
+    .ai-suggestion-macros {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 10px;
+        font-size: 0.78rem;
+        color: #66705f;
+    }
+
+    .ai-suggestion-empty {
+        font-size: 0.9rem;
+        color: #66705f;
     }
 
     .ai-preview-block h6 {
@@ -576,6 +660,12 @@
         display: inline-flex;
     }
 
+    .ai-reset-btn {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.7rem;
+        margin-top: 14px;
+    }
+
     @@media (max-width: 576px) {
         .ai-fan-grid {
             grid-template-columns: 1fr;
@@ -662,9 +752,14 @@
                     <p class="ai-fan-title">Varianten aus diesem Rezept bauen</p>
                     <p class="ai-fan-sub">Vorschau mit bis zu 2 Änderungswünschen, ohne den Originaleintrag direkt kaputt zu machen.</p>
                 </div>
-                <span class="premium-badge recipe-ai-badge" id="recipeAiAppliedBadge">
-                    <i class="bi bi-stars text-warning"></i> AI-Vorschau aktiv
-                </span>
+                <div class="d-flex align-items-center gap-2">
+                    <span class="premium-badge recipe-ai-badge" id="recipeAiAppliedBadge">
+                        <i class="bi bi-stars text-warning"></i> AI-Vorschau aktiv
+                    </span>
+                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ai-reset-btn" id="aiResetBtn" style="display:none;" onclick="resetAiPreview()">
+                        <i class="bi bi-arrow-counterclockwise"></i> Original
+                    </button>
+                </div>
             </div>
             <div class="ai-fan-grid">
                 <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('vegan')"><i class="bi bi-flower1"></i> Vegan</button>
@@ -768,7 +863,11 @@
             <div class="ai-preview-head">
                 <div class="d-flex justify-content-between align-items-start gap-3">
                     <div>
-                        <div class="ai-preview-mode" id="aiPreviewModeLabel">AI Vorschau</div>
+                        <div class="ai-preview-mode" id="aiPreviewModeLabel">AI Vorschau
+                            <span class="ai-upgrade-pill" id="aiUpgradePill" style="display:none">
+                                <span class="spinner-border spinner-border-sm"></span> AI optimiert...
+                            </span>
+                        </div>
                         <div class="ai-preview-title" id="aiPreviewTitle">Neue Rezeptidee wird geladen...</div>
                         <p class="ai-preview-summary" id="aiPreviewSummary">Wir bauen gerade eine stimmige Variante aus deinem Rezept.</p>
                     </div>
@@ -784,6 +883,16 @@
                 </div>
 
                 <div id="aiPreviewContent" style="display:none;">
+                    <div class="ai-preview-block">
+                        <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
+                            <h6 class="mb-0">Zutat wählen</h6>
+                            <span class="small text-muted" id="aiSuggestionStrategyLabel"></span>
+                        </div>
+                        <div class="small text-muted mb-3" id="aiSuggestionReasoning">Wir suchen drei passende Zutaten aus deiner Datenbank.</div>
+                        <div class="ai-suggestion-grid" id="aiSuggestionList"></div>
+                    </div>
+
+                    <div id="aiPreviewDetails" style="display:none;">
                     <div class="ai-preview-meta" id="aiPreviewMeta"></div>
 
                     <div class="ai-preview-block">
@@ -814,6 +923,7 @@
                         <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="aiPreviewRegenerateBtn">Änderung anwenden</button>
                         <button type="button" class="btn btn-success rounded-pill px-4" id="aiPreviewApplyBtn">Vorschau übernehmen</button>
                     </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -832,6 +942,9 @@
         variantType: '',
         appliedChangeCount: 0,
         latestUserNote: '',
+        suggestionResponse: null,
+        suggestions: [],
+        selectedIngredientIds: [],
         preview: null,
         saveInFlight: false
     };
@@ -887,22 +1000,59 @@
         aiPreviewState.variantType = variantType;
         aiPreviewState.appliedChangeCount = 0;
         aiPreviewState.latestUserNote = '';
+        aiPreviewState.suggestionResponse = null;
+        aiPreviewState.suggestions = [];
+        aiPreviewState.selectedIngredientIds = [];
         aiPreviewState.preview = null;
         aiPreviewState.saveInFlight = false;
 
         const noteInput = document.getElementById('aiPreviewUserNote');
         if (noteInput) noteInput.value = '';
 
+        document.getElementById('aiPreviewModeLabel').textContent = 'AI Vorschau';
+        document.getElementById('aiPreviewTitle').textContent = 'Passende Zutaten werden gesucht...';
+        document.getElementById('aiPreviewSummary').textContent = 'Wähle gleich eine von drei echten Zutaten aus deiner Datenbank.';
+        renderAiIngredientSuggestions(null);
+        setAiPreviewDetailsVisible(false);
         getAiTransformModal().show();
-        requestAiPreview().catch(error => {
-            setAiPreviewError(error.message || 'AI-Vorschau konnte nicht geladen werden.');
+        requestAiIngredientSuggestions().catch(error => {
+            setAiPreviewError(error.message || 'AI-Zutatenvorschläge konnten nicht geladen werden.');
         });
     }
 
-    async function requestAiPreview(userNote = '') {
+    async function requestAiIngredientSuggestions() {
         setAiPreviewLoading(true);
         setAiPreviewError('');
 
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const response = await fetch('@Url.Action("SuggestAiVariantIngredients", "Home", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify({
+                recipeId,
+                variantType: aiPreviewState.variantType,
+                userNote: aiPreviewState.latestUserNote || null
+            })
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error(payload?.message || 'AI-Zutatenvorschläge konnten nicht geladen werden.');
+        }
+
+        aiPreviewState.suggestionResponse = payload;
+        aiPreviewState.suggestions = payload?.suggestions || [];
+        aiPreviewState.selectedIngredientIds = [];
+        aiPreviewState.preview = null;
+        renderAiIngredientSuggestions(payload);
+        setAiPreviewDetailsVisible(false);
+        setAiPreviewLoading(false);
+    }
+
+    async function fetchPreview(options = {}) {
         const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
         const response = await fetch('@Url.Action("PreviewAiRecipeVariant", "Home", new { area = "WorldMiniApp" })', {
             method: 'POST',
@@ -913,8 +1063,10 @@
             body: JSON.stringify({
                 recipeId,
                 variantType: aiPreviewState.variantType,
-                userNote,
-                appliedChangeCount: aiPreviewState.appliedChangeCount
+                userNote: options.userNote || '',
+                selectedIngredientIds: aiPreviewState.selectedIngredientIds,
+                appliedChangeCount: aiPreviewState.appliedChangeCount,
+                forceFallback: !!options.forceFallback
             })
         });
 
@@ -922,20 +1074,71 @@
         if (!response.ok) {
             throw new Error(payload?.message || 'AI-Vorschau konnte nicht geladen werden.');
         }
+        return payload;
+    }
+
+    function showAiUpgradeIndicator() {
+        const pill = document.getElementById('aiUpgradePill');
+        if (pill) pill.style.display = '';
+    }
+
+    function hideAiUpgradeIndicator() {
+        const pill = document.getElementById('aiUpgradePill');
+        if (pill) pill.style.display = 'none';
+    }
+
+    async function requestAiPreview(userNote = '') {
+        if (!aiPreviewState.selectedIngredientIds.length) {
+            throw new Error('Wähle zuerst mindestens eine Zutat aus.');
+        }
+
+        setAiPreviewLoading(true, true);
+        setAiPreviewError('');
+
+        // Phase 1: Fallback sofort holen (~50ms)
+        const fallbackPayload = await fetchPreview({ forceFallback: true, userNote });
+        renderAiPreview(fallbackPayload);
+        setAiPreviewLoading(false);
+        aiPreviewState.preview = fallbackPayload;
 
         if (userNote) {
             aiPreviewState.latestUserNote = userNote;
         }
 
-        aiPreviewState.preview = payload;
-        renderAiPreview(payload);
-        setAiPreviewLoading(false);
+        // Wenn Fallback schon AI war (cached) oder kein AI-Key vorhanden, fertig
+        if (!fallbackPayload.usedFallback) {
+            return;
+        }
+
+        // Phase 2: AI im Hintergrund nachladen
+        showAiUpgradeIndicator();
+        try {
+            const aiPayload = await fetchPreview({ forceFallback: false, userNote });
+            if (!aiPayload.usedFallback) {
+                renderAiPreview(aiPayload);
+                aiPreviewState.preview = aiPayload;
+            }
+        } catch (e) {
+            // Fallback bleibt stehen — kein sichtbarer Fehler
+            console.warn('AI upgrade failed, keeping fallback:', e);
+        } finally {
+            hideAiUpgradeIndicator();
+        }
     }
 
-    function setAiPreviewLoading(isLoading) {
+    function setAiPreviewLoading(isLoading, keepContentVisible = false) {
         document.getElementById('aiPreviewLoading')?.classList.toggle('is-visible', isLoading);
         const content = document.getElementById('aiPreviewContent');
-        if (content) content.style.display = isLoading ? 'none' : '';
+        if (!content) return;
+
+        if (isLoading && !keepContentVisible) {
+            content.style.display = 'none';
+            return;
+        }
+
+        if (!isLoading) {
+            content.style.display = '';
+        }
     }
 
     function setAiPreviewError(message) {
@@ -947,11 +1150,96 @@
         if (message) {
             setAiPreviewLoading(false);
             const content = document.getElementById('aiPreviewContent');
-            if (content) content.style.display = 'none';
+            if (content) content.style.display = aiPreviewState.suggestions.length > 0 ? '' : 'none';
+        }
+    }
+
+    function setAiPreviewDetailsVisible(isVisible) {
+        const details = document.getElementById('aiPreviewDetails');
+        if (details) {
+            details.style.display = isVisible ? '' : 'none';
+        }
+    }
+
+    function renderAiIngredientSuggestions(payload) {
+        const list = document.getElementById('aiSuggestionList');
+        const strategyLabel = document.getElementById('aiSuggestionStrategyLabel');
+        const reasoning = document.getElementById('aiSuggestionReasoning');
+
+        if (!list || !strategyLabel || !reasoning) return;
+
+        if (!payload) {
+            strategyLabel.textContent = '';
+            reasoning.textContent = 'Wir suchen drei passende Zutaten aus deiner Datenbank.';
+            list.innerHTML = '';
+            return;
+        }
+
+        document.getElementById('aiPreviewModeLabel').textContent = payload.variantLabel || 'AI Vorschau';
+        document.getElementById('aiPreviewTitle').textContent = 'Wähle deine Zutat für die Variante';
+        document.getElementById('aiPreviewSummary').textContent = 'Die Vorschläge kommen aus deiner Datenbank. Danach bauen wir daraus die eigentliche Rezeptvorschau.';
+
+        strategyLabel.textContent = payload.strategy === 'replace' ? 'AI empfiehlt eher ersetzen' : 'AI empfiehlt eher ergänzen';
+        reasoning.textContent = payload.reasoning || 'Wähle eine der drei Zutaten aus.';
+
+        const suggestions = payload.suggestions || [];
+        if (!suggestions.length) {
+            list.innerHTML = '<div class="ai-suggestion-empty">Keine passende Zutat gefunden.</div>';
+            return;
+        }
+
+        list.innerHTML = suggestions.map(item => {
+            const isSelected = aiPreviewState.selectedIngredientIds.includes(item.ingredientId);
+            return `
+                <button type="button" class="ai-suggestion-card${isSelected ? ' is-selected' : ''}" onclick="selectAiIngredient(${item.ingredientId})">
+                    <span class="ai-suggestion-category"><i class="bi bi-box2-heart"></i>${escapeHtml(item.categoryLabel || item.categoryKey || 'Zutat')}</span>
+                    <div class="fw-bold">${escapeHtml(item.name || '')}</div>
+                    <div class="small text-muted mt-1">${escapeHtml(item.aiReason || '')}</div>
+                    <div class="ai-suggestion-macros">
+                        <span><strong>${formatMacro(item.proteinPer100g)}</strong> Protein</span>
+                        <span><strong>${formatMacro(item.carbsPer100g)}</strong> Carbs</span>
+                        <span><strong>${formatMacro(item.fatPer100g)}</strong> Fett</span>
+                        <span><strong>${formatMacro(item.caloriesPer100g)}</strong> kcal</span>
+                    </div>
+                </button>`;
+        }).join('');
+    }
+
+    async function selectAiIngredient(ingredientId) {
+        if (!ingredientId) {
+            return;
+        }
+
+        const selected = new Set(aiPreviewState.selectedIngredientIds || []);
+        if (selected.has(ingredientId)) {
+            selected.delete(ingredientId);
+        } else {
+            if (selected.size >= 2) {
+                setAiPreviewError('Du kannst aktuell maximal 2 Zutaten gleichzeitig auswählen.');
+                return;
+            }
+
+            selected.add(ingredientId);
+        }
+
+        aiPreviewState.selectedIngredientIds = Array.from(selected);
+        aiPreviewState.preview = null;
+        renderAiIngredientSuggestions(aiPreviewState.suggestionResponse);
+
+        if (!aiPreviewState.selectedIngredientIds.length) {
+            setAiPreviewDetailsVisible(false);
+            return;
+        }
+
+        try {
+            await requestAiPreview();
+        } catch (error) {
+            setAiPreviewError(error.message || 'AI-Vorschau konnte nicht geladen werden.');
         }
     }
 
     function renderAiPreview(preview) {
+        setAiPreviewDetailsVisible(true);
         document.getElementById('aiPreviewModeLabel').textContent = preview.variantLabel || 'AI Vorschau';
         document.getElementById('aiPreviewTitle').textContent = preview.title || originalRecipeState.title;
         document.getElementById('aiPreviewSummary').textContent = preview.summary || 'Neue Variante bereit.';
@@ -993,6 +1281,12 @@
             : `Noch ${preview.remainingChanges} Änderungen`;
         document.getElementById('aiPreviewChangesLeft').textContent = changesText;
         document.getElementById('aiPreviewRegenerateBtn').disabled = preview.remainingChanges <= 0;
+    }
+
+    function formatMacro(value) {
+        const number = Number(value || 0);
+        if (!Number.isFinite(number)) return '0';
+        return Number.isInteger(number) ? number.toString() : number.toFixed(1).replace(/\\.0$/, '');
     }
 
     async function saveAiPreview() {
@@ -1065,7 +1359,22 @@
             .join('');
 
         document.getElementById('recipeAiAppliedBadge')?.classList.add('is-visible');
+        const resetBtn = document.getElementById('aiResetBtn');
+        if (resetBtn) resetBtn.style.display = '';
         getAiTransformModal().hide();
+    }
+
+    function resetAiPreview() {
+        document.getElementById('recipeTitleValue').textContent = originalRecipeState.title;
+        document.getElementById('ingredientListContainer').innerHTML = originalRecipeState.ingredientMarkup;
+        document.getElementById('preparationListContainer').innerHTML = originalRecipeState.stepMarkup;
+        document.getElementById('recipeAiAppliedBadge')?.classList.remove('is-visible');
+        const resetBtn = document.getElementById('aiResetBtn');
+        if (resetBtn) resetBtn.style.display = 'none';
+        aiPreviewState.suggestionResponse = null;
+        aiPreviewState.suggestions = [];
+        aiPreviewState.selectedIngredientIds = [];
+        aiPreviewState.preview = null;
     }
 
     function escapeHtml(value) {

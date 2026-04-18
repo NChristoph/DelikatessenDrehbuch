@@ -28,6 +28,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<Nutrients> Nutrients { get; set; }
         public DbSet<NutrienHandler> NutrienHandler { get; set; }
         public DbSet<Group> Group { get; set; }
+        public DbSet<FoodCategory> FoodCategories { get; set; }
         public DbSet<IngredientMeasureQuantity> IngredientMeasureQuantity { get; set; }
         public DbSet<RecipeBaseData> RecipeBaseData { get; set; }
         public DbSet<RecipeBaseDataImage> RecipeBaseDataImage { get; set; }
@@ -79,6 +80,10 @@ namespace DelikatessenDrehbuch.Data
                 .HasOne(link => link.Keyword)
                 .WithMany(keyword => keyword.RecipeLinks)
                 .HasForeignKey(link => link.KeywordId);
+
+            builder.Entity<FoodCategory>()
+                .HasIndex(x => x.CategoryKey)
+                .IsUnique();
 
             builder.Entity<WorldClipWatchSession>()
                 .HasOne(x => x.Posting)
@@ -216,6 +221,34 @@ namespace DelikatessenDrehbuch.Data
                 e.Property(x => x.MasterStepKey).IsRequired().HasMaxLength(128);
                 e.Property(x => x.VariablesJson).IsRequired();
                 e.Property(x => x.Equipment).HasMaxLength(256);
+            });
+
+            builder.Entity<FoodCategory>(e =>
+            {
+                e.ToTable("food_categories");
+                e.Property(x => x.CategoryKey)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .HasColumnName("Category_Key");
+                e.Property(x => x.Name_DE).HasMaxLength(255);
+                e.Property(x => x.Name_EN).HasMaxLength(255);
+                e.Property(x => x.Name_PRT).HasMaxLength(255);
+                e.Property(x => x.Name_ESP).HasMaxLength(255);
+                e.Property(x => x.Name_ID).HasMaxLength(255);
+                e.Property(x => x.Name_NL).HasMaxLength(255);
+                e.Property(x => x.Name_SE).HasMaxLength(255);
+                e.Property(x => x.Name_DK).HasMaxLength(255);
+                e.Property(x => x.Name_NO).HasMaxLength(255);
+                e.Property(x => x.Name_MS).HasMaxLength(255);
+            });
+
+            builder.Entity<IngredientsAndNutrients>(e =>
+            {
+                e.HasOne(x => x.FoodCategory)
+                    .WithMany(x => x.Ingredients)
+                    .HasForeignKey(x => x.FoodCategoryId)
+                    .OnDelete(DeleteBehavior.SetNull)
+                    .HasConstraintName("FK_Ingredients_FoodCategories");
             });
 
             builder.Entity<RecipeJoinSmartStep>(e =>

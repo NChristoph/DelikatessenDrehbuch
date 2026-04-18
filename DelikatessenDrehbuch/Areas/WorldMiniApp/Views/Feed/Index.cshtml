@@ -1,4 +1,4 @@
-﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 @model List<WorldUserPosting>
 @using System.Globalization
 @{
@@ -1675,6 +1675,17 @@
             color: #ffffff;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.04);
         }
+        .quick-peek-chip .chip-qty {
+            opacity: 0.6;
+            margin-right: 4px;
+            font-size: 0.72rem;
+        }
+        .quick-peek-macros .macro-donut-row { gap: 14px; }
+        .quick-peek-macros .macro-donut { width: 82px; height: 82px; }
+        .quick-peek-macros .macro-donut-kcal { font-size: 16px; }
+        .quick-peek-macros .macro-donut-label { font-size: 9px; }
+        .quick-peek-macros .macro-legend-row { color: #f6f8ff; }
+        .quick-peek-macros .macro-donut-bg { stroke: rgba(255,255,255,0.12); }
         .quick-peek-backdrop {
             position: fixed;
             inset: 0;
@@ -1793,6 +1804,24 @@
         <div class="quick-peek-meta" id="quickPeekMeta"></div>
         <div class="quick-peek-section">Zutaten</div>
         <div class="quick-peek-ingredients" id="quickPeekIngredients"></div>
+        <div class="quick-peek-section" style="margin-top:16px">Nährwerte</div>
+        <div class="quick-peek-macros" id="quickPeekMacros">
+            <div class="macro-donut-row">
+                <svg class="macro-donut" viewBox="0 0 120 120" id="qpMacroDonut">
+                    <circle class="macro-donut-bg" cx="60" cy="60" r="50" />
+                    <circle class="macro-donut-ring macro-protein" id="qpRingProtein" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                    <circle class="macro-donut-ring macro-fat" id="qpRingFat" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                    <circle class="macro-donut-ring macro-carbs" id="qpRingCarbs" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                    <text x="60" y="55" class="macro-donut-kcal" id="qpDonutKcal">–</text>
+                    <text x="60" y="70" class="macro-donut-label">kcal</text>
+                </svg>
+                <div class="macro-donut-legend">
+                    <div class="macro-legend-row"><span class="macro-dot macro-protein"></span><span>Protein</span><b id="qpProteinPct">0</b>%</div>
+                    <div class="macro-legend-row"><span class="macro-dot macro-fat"></span><span>Fett</span><b id="qpFatPct">0</b>%</div>
+                    <div class="macro-legend-row"><span class="macro-dot macro-carbs"></span><span>KH</span><b id="qpCarbsPct">0</b>%</div>
+                </div>
+            </div>
+        </div>
     </div>
     <div class="pull-refresh-indicator" id="pullRefreshIndicator" aria-hidden="true">
         <i class="bi bi-arrow-down"></i>
@@ -1870,7 +1899,7 @@
                         <span class="action-label">Info</span>
                     </div>
 
-                    <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" role="button" aria-label="GefÃ¤llt mir" data-recipe-id="@item.Recipe.Id">
+                    <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" role="button" aria-label="Gefällt mir" data-recipe-id="@item.Recipe.Id">
                         <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                         <span class="action-label like-count">@(likeCounts.TryGetValue(item.Recipe.Id, out var lc) ? lc : 0)</span>
                     </div>
@@ -1884,7 +1913,7 @@
                         <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
                     </div>
 
-                    <div class="action-btn" role="button" aria-label="Zum Plan hinzufÃ¼gen" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
+                    <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
                         <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
                         <span class="action-label">Planen</span>
                     </div>
@@ -1912,14 +1941,14 @@
                     {
                         <div class="marketplace-empty">
                             <i class="bi bi-shop fs-3"></i>
-                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "AÃºn no hay ofertas.", "Ainda sem ofertas.")</div>
+                            <div class="mt-2">@T("Noch keine Angebote.", "No listings yet.", "Aún no hay ofertas.", "Ainda sem ofertas.")</div>
                         </div>
                     }
                     else
                     {
                         <div id="marketplaceFilteredEmpty" class="marketplace-empty" style="display:none;">
                             <i class="bi bi-shop fs-3"></i>
-                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador nÃ£o tem ofertas no momento.")</div>
+                            <div class="mt-2">@T("Dieser Creator hat aktuell keine Angebote.", "This creator currently has no listings.", "Este creador no tiene ofertas actualmente.", "Este criador não tem ofertas no momento.")</div>
                         </div>
                         @foreach (var card in creatorShopCards)
                         {
@@ -1967,7 +1996,7 @@
                         <div id="pendingRecipeCard" class="pending-recipe">
                             <div class="pending-media" id="pendingRecipeMedia"></div>
                             <div class="pending-info">
-                                <div class="pending-label">Wird hinzugefÃ¼gt</div>
+                                <div class="pending-label">Wird hinzugefügt</div>
                                 <div class="pending-title" id="pendingRecipeTitle"></div>
                             </div>
                         </div>
@@ -1975,7 +2004,7 @@
                             <button type="button" class="plan-nutrition-toggle" id="planNutritionToggle" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
-                                    <span>NÃ¤hrwerte gesamt</span>
+                                    <span>Nährwerte gesamt</span>
                                 </span>
                                 <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
                             </button>
@@ -2042,7 +2071,7 @@
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
-                                        <span>GesÃ¤ttigt</span>
+                                        <span>Gesättigt</span>
                                         <div class="plan-nutrition-value" id="planNutritionSaturatedFat">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
@@ -2084,7 +2113,7 @@
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
                                     <div class="plan-nutrition-item">
-                                        <span>GesÃ¤ttigt</span>
+                                        <span>Gesättigt</span>
                                         <div class="plan-nutrition-value" id="planNutritionPerPortionSaturatedFat">â€”</div>
                                         <div class="plan-nutrition-unit">g</div>
                                     </div>
@@ -2109,7 +2138,7 @@
                                 <div class="person-stepper">
                                     <button type="button" class="person-stepper-btn" id="personStepperDec" aria-label="Personenzahl verringern">âˆ’</button>
                                     <input id="planPersonCount" type="number" min="1" max="99" step="1" value="1" class="person-stepper-input" inputmode="numeric" pattern="[0-9]*" />
-                                    <button type="button" class="person-stepper-btn" id="personStepperInc" aria-label="Personenzahl erhÃ¶hen">+</button>
+                                    <button type="button" class="person-stepper-btn" id="personStepperInc" aria-label="Personenzahl erhöhen">+</button>
                                 </div>
                                 <div class="person-presets" role="group" aria-label="Schnellauswahl Personen">
                                     <button type="button" class="person-preset" data-value="1">1</button>
@@ -2135,7 +2164,7 @@
                                 <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="exportPlanAsIcs()" aria-label="Kalender-Export">
                                     <i class="bi bi-calendar-event me-1"></i> .ics Export
                                 </button>
-                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, shufflePlanFromLikes)" aria-label="ZufÃ¤llig befÃ¼llen">
+                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, shufflePlanFromLikes)" aria-label="Zufällig befüllen">
                                     <i class="bi bi-shuffle me-1"></i> Shuffle
                                 </button>
                             </div>
@@ -2151,7 +2180,7 @@
                     </div>
 
                     <div id="viewModeHeader" class="plan-text-muted small mb-2 text-center">
-                        Dein aktueller Plan fÃ¼r die Woche
+                        Dein aktueller Plan für die Woche
                     </div>
 
                     <div id="planContainer"></div>
@@ -2199,15 +2228,15 @@
                         <input type="hidden" name="filter" value="@ViewData["CurrentFilter"]" />
                         <input type="hidden" name="userHash" value="@ViewData["UserHash"]" />
                         <div class="mb-3">
-                            <label class="form-label">@T("Suchbegriff", "Search term", "TÃ©rmino de bÃºsqueda", "Termo de pesquisa")</label>
+                            <label class="form-label">@T("Suchbegriff", "Search term", "Término de búsqueda", "Termo de pesquisa")</label>
                             <input type="text" name="searchTerm" class="form-control"
                                    placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
                                    value="@ViewData["SearchTerm"]" />
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">@T("Kategorie", "Category", "CategorÃ­a", "Categoria")</label>
+                            <label class="form-label">@T("Kategorie", "Category", "Categoría", "Categoria")</label>
                             <select name="category" class="form-select">
-                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorÃ­as", "Todas as categorias")</option>
+                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorías", "Todas as categorias")</option>
                                 <option value="appetizer" selected="@(selectedCategory == "appetizer")">@T("Vorspeise", "Appetizer", "Entrada", "Entrada")</option>
                                 <option value="main" selected="@(selectedCategory == "main")">@T("Hauptspeise", "Main course", "Plato principal", "Prato principal")</option>
                                 <option value="dessert" selected="@(selectedCategory == "dessert")">@T("Dessert", "Dessert", "Postre", "Sobremesa")</option>
@@ -2388,7 +2417,7 @@
             } catch (error) {
                 if (error?.name === 'AbortError') return;
                 console.error('Share failed', error);
-                showToast('Teilen gerade nicht verfÃ¼gbar.', 'warn');
+                showToast('Teilen gerade nicht verfügbar.', 'warn');
             }
         }
 
@@ -2840,7 +2869,7 @@
             if (duplicateSourceDayIndex === null) {
                 duplicateSourceDayIndex = dayIndex;
                 renderPlan();
-                showToast(`Quelle gewÃ¤hlt: ${days[dayIndex]}. Tippe jetzt auf den Zieltag.`, 'info', 2200);
+                showToast(`Quelle gewählt: ${days[dayIndex]}. Tippe jetzt auf den Zieltag.`, 'info', 2200);
                 return;
             }
 
@@ -2941,7 +2970,7 @@
 
                         dayHtml += `
                             <div class="filled-slot ${replaceMode}" data-slot-kind="filled" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
-                                <div class="slot-swipe-delete-bg"><i class="bi bi-trash3-fill"></i><span>&nbsp;LÃ¶schen</span></div>
+                                <div class="slot-swipe-delete-bg"><i class="bi bi-trash3-fill"></i><span>&nbsp;Löschen</span></div>
                                 ${media}
                                 <div class="mini-content">
                                     <div class="mini-title" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</div>
@@ -2971,7 +3000,7 @@
                             <button type="button" class="day-nutrition-toggle" data-day-index="${dayIndex}" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
-                                    <span>Tages-NÃ¤hrwerte</span>
+                                    <span>Tages-Nährwerte</span>
                                 </span>
                                 <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
                             </button>
@@ -3029,7 +3058,7 @@
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
-                                        <span>GesÃ¤ttigt</span>
+                                        <span>Gesättigt</span>
                                         <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
@@ -3071,7 +3100,7 @@
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
                                     <div class="day-nutrition-item">
-                                        <span>GesÃ¤ttigt</span>
+                                        <span>Gesättigt</span>
                                         <div class="day-nutrition-value" id="dayNutritionPerPortionSaturatedFat-${dayIndex}">â€”</div>
                                         <div class="day-nutrition-unit">g</div>
                                     </div>
@@ -3094,7 +3123,7 @@
             if (!pendingRecipe) return;
             setSlotItem(key, pendingRecipe, {
                 haptic: true,
-                toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefÃ¼gt`
+                toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefügt`
             });
         }
 
@@ -3107,7 +3136,7 @@
             const modalEl = document.getElementById('planModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             if (modalInstance) modalInstance.hide();
-            showToast('WÃ¤hle jetzt im Feed ein Rezept zum Ersetzen.', 'info');
+            showToast('Wähle jetzt im Feed ein Rezept zum Ersetzen.', 'info');
         }
 
         function buildMealPlanPayload() {
@@ -3233,7 +3262,7 @@
             renderPlan();
             saveDraft();
             scheduleNutritionUpdate();
-            showToast(`${emptySlots.length} Slots zufÃ¤llig befÃ¼llt!`, 'success');
+            showToast(`${emptySlots.length} Slots zufällig befüllt!`, 'success');
             triggerHaptic();
         }
 
@@ -3511,7 +3540,7 @@
                 setSlotItem(filledSlot.dataset.slotKey, pendingRecipe, {
                     save: true,
                     haptic: true,
-                    toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefÃ¼gt`
+                    toastMessage: `"${pendingRecipe.title || 'Rezept'}" hinzugefügt`
                 });
             }
         }
@@ -3542,7 +3571,7 @@
             if (!userHash) { showToast("Bitte erst einloggen!", "warn"); return; }
 
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswÃ¤hlen.", "warn"); return; }
+            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -3557,7 +3586,7 @@
 
         async function shareWeeklyPlan() {
             const payload = buildMealPlanPayload();
-            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswÃ¤hlen.", "warn"); return; }
+            if (payload.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
 
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
@@ -3596,7 +3625,7 @@
                     if (navigator.share) await navigator.share({ title: title, url: data.shareUrl });
                     else if (navigator.clipboard) { await navigator.clipboard.writeText(data.shareUrl); showToast("Link kopiert!", "success"); }
                 } catch (shareError) {
-                    console.warn("Teilen nicht verfÃ¼gbar:", shareError);
+                    console.warn("Teilen nicht verfügbar:", shareError);
                 }
             } catch (error) {
                 console.error("Teilen fehlgeschlagen:", error);
@@ -3695,7 +3724,7 @@
         async function prepareShoppingList() {
             const payload = buildMealPlanPayload();
             const recipeIds = getPlanRecipeIds(payload);
-            if (recipeIds.length === 0) { showToast("Bitte mindestens ein Rezept auswÃ¤hlen.", "warn"); return; }
+            if (recipeIds.length === 0) { showToast("Bitte mindestens ein Rezept auswählen.", "warn"); return; }
 
             const personCountInput = document.getElementById('planPersonCount');
             const personCount = Math.max(1, parseInt(personCountInput?.value || "1", 10) || 1);
@@ -3999,7 +4028,7 @@
                 return;
             }
 
-            if (titleEl) titleEl.textContent = 'LÃ¤dt...';
+            if (titleEl) titleEl.textContent = 'Lädt...';
             if (metaEl) metaEl.textContent = '';
             if (ingredientsEl) ingredientsEl.innerHTML = '';
 
@@ -4020,13 +4049,49 @@
             if (data.category) parts.push(data.category);
             if (data.prepTime) parts.push(`${data.prepTime} Min`);
             if (data.personCount) parts.push(`${data.personCount} Pers.`);
-            if (metaEl) metaEl.textContent = parts.join(' Â· ');
+            if (metaEl) metaEl.textContent = parts.join(' · ');
             if (ingredientsEl) {
                 ingredientsEl.innerHTML = (data.ingredients || []).map(ing => {
-                    const qty = ing.quantity ? `${ing.quantity} ${ing.unit} `.trim() : '';
-                    return `<span class="quick-peek-chip">${escapeHtml(qty + ing.name)}</span>`;
+                    const qtyStr = ing.quantity ? `${ing.quantity} ${ing.unit || ''}`.trim() : '';
+                    if (qtyStr) {
+                        return `<span class="quick-peek-chip"><span class="chip-qty">${escapeHtml(qtyStr)}</span>${escapeHtml(ing.name)}</span>`;
+                    }
+                    return `<span class="quick-peek-chip">${escapeHtml(ing.name)}</span>`;
                 }).join('');
             }
+            renderQuickPeekMacros(data);
+        }
+
+        function renderQuickPeekMacros(data) {
+            const wrap = document.getElementById('quickPeekMacros');
+            if (!wrap) return;
+            const p = Number(data.protein) || 0;
+            const f = Number(data.fat) || 0;
+            const c = Number(data.carbs) || 0;
+            const cal = Number(data.calories) || 0;
+            if (p + f + c === 0) { wrap.style.display = 'none'; return; }
+            wrap.style.display = '';
+            const C = 314.16;
+            const total = p + f + c;
+            const pPct = total > 0 ? Math.round(p / total * 100) : 0;
+            const fPct = total > 0 ? Math.round(f / total * 100) : 0;
+            const cPct = total > 0 ? 100 - pPct - fPct : 0;
+            const pLen = C * pPct / 100;
+            const fLen = C * fPct / 100;
+            const cLen = C * cPct / 100;
+            const gap = total > 0 ? 4 : 0;
+            const ringP = document.getElementById('qpRingProtein');
+            const ringF = document.getElementById('qpRingFat');
+            const ringC = document.getElementById('qpRingCarbs');
+            if (ringP) { ringP.setAttribute('stroke-dasharray', `${Math.max(0, pLen - gap)} ${C}`); ringP.setAttribute('stroke-dashoffset', '0'); }
+            if (ringF) { ringF.setAttribute('stroke-dasharray', `${Math.max(0, fLen - gap)} ${C}`); ringF.setAttribute('stroke-dashoffset', `${-pLen}`); }
+            if (ringC) { ringC.setAttribute('stroke-dasharray', `${Math.max(0, cLen - gap)} ${C}`); ringC.setAttribute('stroke-dashoffset', `${-(pLen + fLen)}`); }
+            const kcalEl = document.getElementById('qpDonutKcal');
+            if (kcalEl) kcalEl.textContent = Math.round(cal);
+            const txt = (id, v) => { const e = document.getElementById(id); if (e) e.textContent = v; };
+            txt('qpProteinPct', pPct);
+            txt('qpFatPct', fPct);
+            txt('qpCarbsPct', cPct);
         }
 
         function closeQuickPeek() {
@@ -4137,7 +4202,7 @@
                     return;
                 }
 
-                if (statusEl) statusEl.textContent = 'LÃ¤dt...';
+                if (statusEl) statusEl.textContent = 'Lädt...';
 
                 const params = new URLSearchParams(paramsBase);
                 recipeIds.forEach(id => params.append('recipeIds', id));
@@ -4150,7 +4215,7 @@
                     _dayKcalCache[dayIndex] = Number.isFinite(data?.calories) ? data.calories : 0;
                     if (statusEl) statusEl.textContent = 'Aktuell';
                 } catch (error) {
-                    console.error("TagesnÃ¤hrwerte konnten nicht geladen werden.", error);
+                    console.error("Tagesnährwerte konnten nicht geladen werden.", error);
                     setDayNutritionTotals(dayIndex, null);
                     _dayKcalCache[dayIndex] = 0;
                     if (statusEl) statusEl.textContent = 'Fehler';
@@ -4172,7 +4237,7 @@
                 return;
             }
 
-            if (statusEl) statusEl.textContent = 'LÃ¤dt...';
+            if (statusEl) statusEl.textContent = 'Lädt...';
 
             const params = new URLSearchParams();
             recipeIds.forEach(id => params.append('recipeIds', id));
@@ -4185,7 +4250,7 @@
                 setNutritionTotals(data);
                 if (statusEl) statusEl.textContent = 'Aktuell';
             } catch (error) {
-                console.error("NÃ¤hrwerte konnten nicht geladen werden.", error);
+                console.error("Nährwerte konnten nicht geladen werden.", error);
                 setNutritionTotals(null);
                 if (statusEl) statusEl.textContent = 'Fehler';
             }
@@ -4770,7 +4835,7 @@
 
         async function buyFeedListing(listingId, title, priceWld, sellerWallet) {
             if (!FEED_USER_HASH) { showToast('Bitte zuerst einloggen.', 'warn'); return; }
-            if (!sellerWallet) { showToast('VerkÃ¤ufer-Wallet fehlt.', 'error'); return; }
+            if (!sellerWallet) { showToast('Verkäufer-Wallet fehlt.', 'error'); return; }
             const token = feedSelectedPaymentToken;
             const actualPrice = token === 'USDCE' && feedWldPriceUsd ? parseFloat((priceWld * feedWldPriceUsd).toFixed(2)) : priceWld;
             if (token === 'USDCE' && !feedWldPriceUsd) { showToast('WLD/USD Kurs fehlt.', 'error'); return; }
@@ -4789,7 +4854,7 @@
                     showToast(data.error || 'Kauf konnte nicht finalisiert werden.', 'error');
                     return;
                 }
-                showToast('Kein Zahlungsweg verfÃ¼gbar.', 'error');
+                showToast('Kein Zahlungsweg verfügbar.', 'error');
             } catch (e) {
                 showToast(e?.message || 'Kauf fehlgeschlagen.', 'error');
             }
@@ -4807,14 +4872,14 @@
             try {
                 const resp = await fetch(`/WorldMiniApp/Marketplace/GetListingPreview?listingId=${listingId}`);
                 const data = await resp.json();
-                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfÃ¼gbar.</p>'; return; }
+                if (!data.success) { bodyEl.innerHTML = '<p class="small text-danger">Vorschau nicht verfügbar.</p>'; return; }
                 if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
                 let html = '';
                 if (data.description) {
                     html += `<p class="small mb-2">${data.description}</p>`;
                 }
                 if (data.nutrition) {
-                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} Â· Protein: ${data.nutrition.protein}g Â· Fett: ${data.nutrition.fat}g Â· KH: ${data.nutrition.carbs}g</p>`;
+                    html += `<p class="small mb-2">kcal: ${Math.round(data.nutrition.calories)} · Protein: ${data.nutrition.protein}g · Fett: ${data.nutrition.fat}g · KH: ${data.nutrition.carbs}g</p>`;
                 }
                 if (data.days?.length) {
                     data.days.forEach(day => {
@@ -4824,7 +4889,7 @@
                         });
                     });
                 }
-                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfÃ¼gbar.</p>';
+                bodyEl.innerHTML = html || '<p class="small">Keine Vorschau verfügbar.</p>';
             } catch (e) {
                 bodyEl.innerHTML = '<p class="small text-danger">Vorschau konnte nicht geladen werden.</p>';
             }
@@ -4891,7 +4956,7 @@
                             <div class="icon-circle"><i class="bi bi-info-lg"></i></div>
                             <span class="action-label">Info</span>
                         </div>
-                        <div class="action-btn heart-btn${isLikedCls}" role="button" aria-label="GefÃ¤llt mir" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
+                        <div class="action-btn heart-btn${isLikedCls}" role="button" aria-label="Gefällt mir" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));">
                             <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                             <span class="action-label like-count">${item.likeCount || 0}</span>
                         </div>
@@ -4902,7 +4967,7 @@
                             <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
                             <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
                         </div>
-                        <div class="action-btn" role="button" aria-label="Zum Plan hinzufÃ¼gen" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
+                        <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
                             <div class="icon-circle"><i class="bi bi-plus-lg"></i></div>
                             <span class="action-label">Plan</span>
                         </div>

@@ -110,7 +110,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (recipe == null) return NotFound();
 
-            var ingredients = recipe.Ingredients?
+            var ingredientLinks = recipe.Ingredients?
+                .Where(ri => ri.Ingredient?.IngredientsAndNutrients != null)
+                .ToList() ?? new();
+
+            var ingredients = ingredientLinks
                 .Select(ri => new
                 {
                     name = ri.Ingredient?.IngredientsAndNutrients?.Name_DE ?? "",
@@ -118,7 +122,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     unit = ri.Ingredient?.Measure?.Metrics_DE ?? ""
                 })
                 .Where(x => !string.IsNullOrWhiteSpace(x.name))
-                .ToList() ?? new();
+                .ToList();
+
+            double totalProtein = 0, totalFat = 0, totalCarbs = 0, totalCalories = 0;
+            foreach (var ri in ingredientLinks)
+            {
+                var n = ri.Ingredient!.IngredientsAndNutrients!;
+                var qty = ri.Ingredient.Quantity?.Quantitys ?? 100;
+                var factor = qty / 100.0;
+                totalProtein += (double)n.Protein_a_100g * factor;
+                totalFat += (double)n.Fat_a_100g * factor;
+                totalCarbs += (double)n.Carbohydrates_a_100g * factor;
+                totalCalories += n.Calories_a_100g * factor;
+            }
 
             return Json(new
             {
@@ -126,7 +142,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 category = recipe.Category,
                 prepTime = recipe.PreparationTime,
                 personCount = recipe.PersonCount,
-                ingredients
+                ingredients,
+                protein = Math.Round(totalProtein, 1),
+                fat = Math.Round(totalFat, 1),
+                carbs = Math.Round(totalCarbs, 1),
+                calories = Math.Round(totalCalories, 0)
             });
         }
 
@@ -189,15 +209,81 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             try
             {
                 var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+                var selectedIngredientIds = (request.SelectedIngredientIds ?? new List<int>())
+                    .Where(x => x > 0)
+                    .Distinct()
+                    .Take(2)
+                    .ToList();
+
+                if (selectedIngredientIds.Count == 0 && request.SelectedIngredientId.GetValueOrDefault() > 0)
+                {
+                    selectedIngredientIds.Add(request.SelectedIngredientId.Value);
+                }
+
+                List<RecipeAiIngredientSuggestionItem>? selectedIngredients = null;
+                if (selectedIngredientIds.Count > 0)
+                {
+                    var ingredients = await _context.IngredientsAndNutrients
+                        .AsNoTracking()
+                        .Include(x => x.FoodCategory)
+                        .Where(x => selectedIngredientIds.Contains(x.Id))
+                        .ToListAsync(cancellationToken);
+
+                    if (ingredients.Count != selectedIngredientIds.Count)
+                    {
+                        return NotFound(new { message = "Mindestens eine gewählte Zutat wurde nicht gefunden." });
+                    }
+
+                    selectedIngredients = ingredients
+                        .OrderBy(x => selectedIngredientIds.IndexOf(x.Id))
+                        .Select(ingredient =>
+                        {
+                            var ingredientName = language switch
+                            {
+                                "en" => ingredient.Name_EN,
+                                "pt" => ingredient.Name_PRT,
+                                "es" => ingredient.Name_ESP,
+                                _ => ingredient.Name_DE
+                            };
+
+                            var categoryLabel = language switch
+                            {
+                                "en" => ingredient.FoodCategory?.Name_EN,
+                                "pt" => ingredient.FoodCategory?.Name_PRT,
+                                "es" => ingredient.FoodCategory?.Name_ESP,
+                                _ => ingredient.FoodCategory?.Name_DE
+                            };
+
+                            return new RecipeAiIngredientSuggestionItem
+                            {
+                                IngredientId = ingredient.Id,
+                                Name = ingredientName ?? ingredient.Name_DE ?? ingredient.Name_EN ?? "Zutat",
+                                CategoryKey = ingredient.FoodCategory?.CategoryKey ?? string.Empty,
+                                CategoryLabel = categoryLabel ?? ingredient.FoodCategory?.Name_DE ?? string.Empty,
+                                ProteinPer100g = ingredient.Protein_a_100g,
+                                CarbsPer100g = ingredient.Carbohydrates_a_100g,
+                                FatPer100g = ingredient.Fat_a_100g,
+                                FiberPer100g = ingredient.Fiber_a_100g,
+                                CaloriesPer100g = ingredient.Calories_a_100g,
+                                AiReason = "user-selected"
+                            };
+                        })
+                        .ToList();
+                }
+
                 var resolvedUserHash = ResolveUserHash(string.Empty);
-                var cachedVariant = await TryGetCachedAiVariantAsync(
-                    request.RecipeId,
-                    request.VariantType,
-                    language,
-                    request.AppliedChangeCount,
-                    request.UserNote,
-                    resolvedUserHash,
-                    cancellationToken);
+                RecipeAiTransformPreview? cachedVariant = null;
+                if (selectedIngredients == null || selectedIngredients.Count == 0)
+                {
+                    cachedVariant = await TryGetCachedAiVariantAsync(
+                        request.RecipeId,
+                        request.VariantType,
+                        language,
+                        request.AppliedChangeCount,
+                        request.UserNote,
+                        resolvedUserHash,
+                        cancellationToken);
+                }
 
                 if (cachedVariant != null)
                 {
@@ -210,6 +296,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     language,
                     request.UserNote,
                     request.AppliedChangeCount,
+                    selectedIngredients,
+                    request.ForceFallback,
                     cancellationToken);
 
                 return Json(preview);
@@ -217,6 +305,49 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning(ex, "AI recipe preview failed for RecipeId={RecipeId}", request.RecipeId);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected AI recipe preview failure for RecipeId={RecipeId}", request.RecipeId);
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SuggestAiVariantIngredients([FromBody] RecipeAiIngredientSuggestionRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null || request.RecipeId <= 0 || string.IsNullOrWhiteSpace(request.VariantType))
+            {
+                return BadRequest(new { message = "Rezept oder AI-Variante fehlt." });
+            }
+
+            var recipe = await _context.RecipeBaseData
+                .AsNoTracking()
+                .IncludeFullRecipeDetails()
+                .FirstOrDefaultAsync(r => r.Id == request.RecipeId, cancellationToken);
+
+            if (recipe == null)
+            {
+                return NotFound(new { message = "Rezept wurde nicht gefunden." });
+            }
+
+            try
+            {
+                var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+                var suggestions = await _recipeAiTransformService.BuildIngredientSuggestionsAsync(
+                    recipe,
+                    request.VariantType,
+                    language,
+                    request.UserNote,
+                    cancellationToken);
+
+                return Json(suggestions);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "AI ingredient suggestions failed for RecipeId={RecipeId}", request.RecipeId);
                 return BadRequest(new { message = ex.Message });
             }
         }

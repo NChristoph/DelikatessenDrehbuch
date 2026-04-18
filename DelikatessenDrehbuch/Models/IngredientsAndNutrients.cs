@@ -32,11 +32,13 @@ namespace DelikatessenDrehbuch.Models
         public int Calories_a_100g { get; set; }
         public int Weight_per_piece { get; set; }
         public int? GroupId { get; set; }
+        public int? FoodCategoryId { get; set; }
 
         [NotMapped]
         public string Groupe { get; set; }
 
         public Group? Group { get; set; }
+        public FoodCategory? FoodCategory { get; set; }
 
         public decimal Fat_a_100g { get; set; }
         public decimal Saturated_fat_a_100g { get; set; }

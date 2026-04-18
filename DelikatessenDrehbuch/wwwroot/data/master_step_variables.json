@@ -603,6 +603,46 @@
           ]
         },
         {
+          "key": "koche",
+          "labels": {
+            "de": "koche",
+            "en": "boil",
+            "esp": "cuece",
+            "prt": "cozinhe",
+            "id": "rebus",
+            "nl": "kook",
+            "sv": "koka",
+            "da": "kog",
+            "no": "kok",
+            "ms": "rebus"
+          },
+          "tags": [
+            "variable:action",
+            "value:koche",
+            "technique:boil"
+          ]
+        },
+        {
+          "key": "k_chle",
+          "labels": {
+            "de": "köchle",
+            "en": "simmer",
+            "esp": "cuece a fuego lento",
+            "prt": "cozinhe em lume brando",
+            "id": "didihkan perlahan",
+            "nl": "laat zachtjes sudderen",
+            "sv": "låt sjuda",
+            "da": "lad det simre",
+            "no": "la det småkoke",
+            "ms": "renehkan perlahan"
+          },
+          "tags": [
+            "variable:action",
+            "value:k_chle",
+            "technique:simmer"
+          ]
+        },
+        {
           "key": "mische",
           "labels": {
             "de": "mische",
@@ -2379,6 +2419,28 @@
           "tags": [
             "variable:state",
             "value:fest"
+          ]
+        },
+        {
+          "key": "gestockt",
+          "labels": {
+            "de": "gestockt",
+            "en": "set",
+            "esp": "cuajado",
+            "prt": "coalhado",
+            "id": "set",
+            "nl": "gestold",
+            "sv": "stannat",
+            "da": "størknet",
+            "no": "stivnet",
+            "ms": "telah memejal"
+          },
+          "tags": [
+            "variable:state",
+            "value:gestockt",
+            "family:egg",
+            "technique:poach",
+            "technique:boil"
           ]
         },
         {
