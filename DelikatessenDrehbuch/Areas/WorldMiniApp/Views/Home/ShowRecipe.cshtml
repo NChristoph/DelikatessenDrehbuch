@@ -831,7 +831,9 @@
     const aiPreviewState = {
         variantType: '',
         appliedChangeCount: 0,
-        preview: null
+        latestUserNote: '',
+        preview: null,
+        saveInFlight: false
     };
 
     let aiTransformModalInstance = null;
@@ -884,7 +886,9 @@
     function openAiTransformModal(variantType) {
         aiPreviewState.variantType = variantType;
         aiPreviewState.appliedChangeCount = 0;
+        aiPreviewState.latestUserNote = '';
         aiPreviewState.preview = null;
+        aiPreviewState.saveInFlight = false;
 
         const noteInput = document.getElementById('aiPreviewUserNote');
         if (noteInput) noteInput.value = '';
@@ -917,6 +921,10 @@
         const payload = await response.json().catch(() => null);
         if (!response.ok) {
             throw new Error(payload?.message || 'AI-Vorschau konnte nicht geladen werden.');
+        }
+
+        if (userNote) {
+            aiPreviewState.latestUserNote = userNote;
         }
 
         aiPreviewState.preview = payload;
@@ -987,8 +995,51 @@
         document.getElementById('aiPreviewRegenerateBtn').disabled = preview.remainingChanges <= 0;
     }
 
-    function applyAiPreviewToPage() {
+    async function saveAiPreview() {
+        if (!aiPreviewState.preview || aiPreviewState.saveInFlight) {
+            return;
+        }
+
+        aiPreviewState.saveInFlight = true;
+        const applyButton = document.getElementById('aiPreviewApplyBtn');
+        const originalButtonText = applyButton?.textContent || 'Vorschau übernehmen';
+        if (applyButton) {
+            applyButton.disabled = true;
+            applyButton.textContent = 'Speichert...';
+        }
+
+        try {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const response = await fetch('@Url.Action("SaveAiRecipeVariant", "Home", new { area = "WorldMiniApp" })', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': token
+                },
+                body: JSON.stringify({
+                    baseRecipeId: recipeId,
+                    latestUserNote: aiPreviewState.latestUserNote || null,
+                    preview: aiPreviewState.preview
+                })
+            });
+
+            const payload = await response.json().catch(() => null);
+            if (!response.ok || !payload?.success) {
+                throw new Error(payload?.message || 'AI-Variante konnte nicht gespeichert werden.');
+            }
+        } finally {
+            aiPreviewState.saveInFlight = false;
+            if (applyButton) {
+                applyButton.disabled = false;
+                applyButton.textContent = originalButtonText;
+            }
+        }
+    }
+
+    async function applyAiPreviewToPage() {
         if (!aiPreviewState.preview) return;
+
+        await saveAiPreview();
 
         document.getElementById('recipeTitleValue').textContent = aiPreviewState.preview.title || originalRecipeState.title;
         document.getElementById('ingredientListContainer').innerHTML = (aiPreviewState.preview.ingredients || [])
@@ -1047,5 +1098,11 @@
         }
     });
 
-    document.getElementById('aiPreviewApplyBtn')?.addEventListener('click', applyAiPreviewToPage);
+    document.getElementById('aiPreviewApplyBtn')?.addEventListener('click', async () => {
+        try {
+            await applyAiPreviewToPage();
+        } catch (error) {
+            setAiPreviewError(error.message || 'AI-Variante konnte nicht gespeichert werden.');
+        }
+    });
 </script>

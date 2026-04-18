@@ -93,12 +93,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogError("OpenAI recipe transform failed: {StatusCode} {Body}", response.StatusCode, responseContent);
-                if (_environment.IsDevelopment())
-                {
-                    return BuildFallbackPreview(recipe, normalizedVariantType, normalizedLanguage, trimmedUserNote, safeChangeCount, sourceStepPlan);
-                }
-
-                throw new InvalidOperationException("AI-Vorschau konnte nicht geladen werden.");
+                throw new InvalidOperationException(BuildApiErrorMessage(response.StatusCode, responseContent));
             }
 
             using var document = JsonDocument.Parse(responseContent);
@@ -106,12 +101,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             if (string.IsNullOrWhiteSpace(outputText))
             {
                 _logger.LogError("OpenAI recipe transform returned no output_text. Response: {Body}", responseContent);
-                if (_environment.IsDevelopment())
-                {
-                    return BuildFallbackPreview(recipe, normalizedVariantType, normalizedLanguage, trimmedUserNote, safeChangeCount, sourceStepPlan);
-                }
-
-                throw new InvalidOperationException("AI hat keine verwertbare Vorschau geliefert.");
+                throw new InvalidOperationException(BuildApiErrorMessage(response.StatusCode, responseContent, "AI hat keine verwertbare Vorschau geliefert."));
             }
 
             var preview = JsonSerializer.Deserialize<RecipeAiTransformPreview>(outputText, new JsonSerializerOptions
@@ -249,8 +239,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                                 masterStepKey = new { type = "string" },
                                 variables = new
                                 {
-                                    type = "object",
-                                    additionalProperties = new { type = "string" }
+                                    type = "array",
+                                    items = new
+                                    {
+                                        type = "object",
+                                        additionalProperties = false,
+                                        required = new[] { "key", "value" },
+                                        properties = new
+                                        {
+                                            key = new { type = "string" },
+                                            value = new { type = "string" }
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -434,7 +434,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 MasterStepKey = normalizedKey,
                 Phase = phase ?? definition.Phase,
-                Variables = new Dictionary<string, string>(mergedVariables, StringComparer.OrdinalIgnoreCase),
+                Variables = ToVariableItems(mergedVariables),
                 RenderedText = RenderMasterStep(definition, mergedVariables, language)
             };
         }
@@ -472,10 +472,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 }
 
                 var mergedVariables = sourceByKey.TryGetValue(masterStepKey, out var sourceItem)
-                    ? new Dictionary<string, string>(sourceItem.Variables, StringComparer.OrdinalIgnoreCase)
+                    ? ToVariableDictionary(sourceItem.Variables)
                     : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 
-                foreach (var pair in item.Variables ?? new Dictionary<string, string>())
+                foreach (var pair in ToVariableDictionary(item.Variables))
                 {
                     var trimmedValue = (pair.Value ?? string.Empty).Trim();
                     if (!string.IsNullOrWhiteSpace(trimmedValue))
@@ -488,7 +488,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 {
                     MasterStepKey = masterStepKey,
                     Phase = item.Phase > 0 ? item.Phase : (sourceItem?.Phase ?? definition.Phase),
-                    Variables = mergedVariables,
+                    Variables = ToVariableItems(mergedVariables),
                     RenderedText = RenderMasterStep(definition, mergedVariables, language)
                 });
             }
@@ -611,9 +611,56 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 MasterStepKey = item.MasterStepKey,
                 Phase = item.Phase,
-                Variables = new Dictionary<string, string>(item.Variables, StringComparer.OrdinalIgnoreCase),
+                Variables = ToVariableItems(ToVariableDictionary(item.Variables)),
                 RenderedText = item.RenderedText
             };
+
+        private static Dictionary<string, string> ToVariableDictionary(IEnumerable<RecipeAiTransformStepVariableItem>? variables)
+        {
+            var result = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+            if (variables == null)
+            {
+                return result;
+            }
+
+            foreach (var item in variables)
+            {
+                var key = (item?.Key ?? string.Empty).Trim();
+                var value = (item?.Value ?? string.Empty).Trim();
+                if (string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(value))
+                {
+                    continue;
+                }
+
+                result[key] = value;
+            }
+
+            return result;
+        }
+
+        private static List<RecipeAiTransformStepVariableItem> ToVariableItems(IEnumerable<KeyValuePair<string, string>> variables)
+        {
+            return variables
+                .Where(x => !string.IsNullOrWhiteSpace(x.Key) && !string.IsNullOrWhiteSpace(x.Value))
+                .Select(x => new RecipeAiTransformStepVariableItem
+                {
+                    Key = x.Key.Trim(),
+                    Value = x.Value.Trim()
+                })
+                .ToList();
+        }
+
+        private static void SetVariableValue(RecipeAiTransformStepPlanItem item, string key, string value)
+        {
+            var existing = item.Variables.FirstOrDefault(x => string.Equals(x.Key, key, StringComparison.OrdinalIgnoreCase));
+            if (existing != null)
+            {
+                existing.Value = value;
+                return;
+            }
+
+            item.Variables.Add(new RecipeAiTransformStepVariableItem { Key = key, Value = value });
+        }
 
         private static List<RecipeAiTransformIngredientPreview> BuildIngredientPreview(RecipeBaseData recipe, string language)
         {
@@ -665,13 +712,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         {
             foreach (var item in stepPlan)
             {
-                var keys = item.Variables.Keys.ToList();
-                foreach (var key in keys)
+                foreach (var variable in item.Variables)
                 {
-                    var current = item.Variables[key];
+                    var current = variable.Value ?? string.Empty;
                     if (searchTerms.Any(term => current.Contains(term, StringComparison.OrdinalIgnoreCase)))
                     {
-                        item.Variables[key] = replacement;
+                        variable.Value = replacement;
                     }
                 }
             }
@@ -818,6 +864,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private static string LocalizedHint(string language, string de, string en, string es, string pt)
             => LocalizedWord(language, de, en, es, pt);
 
+        private static string BuildApiErrorMessage(System.Net.HttpStatusCode statusCode, string? responseContent, string? fallbackMessage = null)
+        {
+            var prefix = string.IsNullOrWhiteSpace(fallbackMessage)
+                ? "AI-Vorschau konnte nicht geladen werden."
+                : fallbackMessage;
+
+            var compactBody = (responseContent ?? string.Empty).Trim();
+            if (compactBody.Length > 400)
+            {
+                compactBody = compactBody[..400] + "...";
+            }
+
+            compactBody = compactBody
+                .Replace("\r", " ")
+                .Replace("\n", " ")
+                .Trim();
+
+            return string.IsNullOrWhiteSpace(compactBody)
+                ? $"{prefix} (HTTP {(int)statusCode})"
+                : $"{prefix} (HTTP {(int)statusCode}): {compactBody}";
+        }
+
         private string GetLocalizedTemplate(MasterStepTemplateDefinition definition, string language)
         {
             var key = language switch
@@ -888,3 +956,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         }
     }
 }
+
+
+
+
+
+

@@ -771,5 +771,78 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         #endregion
+
+        #region Shared Shopping List
+
+        public class SharedShoppingListRequest
+        {
+            public string ItemsJson { get; set; }
+            public string UserHash { get; set; }
+        }
+
+        public class UpdateCheckedRequest
+        {
+            public string Token { get; set; }
+            public List<int> Checked { get; set; }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SaveSharedShoppingList([FromBody] SharedShoppingListRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.ItemsJson))
+            {
+                return BadRequest("Einkaufsliste fehlt.");
+            }
+
+            var shareToken = Guid.NewGuid().ToString("N");
+            var sharedList = new WorldSharedShoppingList
+            {
+                ShareToken = shareToken,
+                UserHash = request.UserHash,
+                ItemsJson = request.ItemsJson,
+                CheckedJson = "[]"
+            };
+
+            await _context.WorldSharedShoppingList.AddAsync(sharedList);
+            await _context.SaveChangesAsync();
+
+            var shareUrl = Url.Action("SharedShoppingList", "Home", new { area = "WorldMiniApp", token = shareToken }, Request.Scheme);
+            return Ok(new { shareUrl, token = shareToken });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetSharedListState(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return BadRequest();
+
+            var list = await _context.WorldSharedShoppingList.FirstOrDefaultAsync(x => x.ShareToken == token);
+            if (list == null)
+                return NotFound();
+
+            return Ok(new
+            {
+                items = list.ItemsJson,
+                @checked = list.CheckedJson
+            });
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> UpdateSharedListChecked([FromBody] UpdateCheckedRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.Token))
+                return BadRequest();
+
+            var list = await _context.WorldSharedShoppingList.FirstOrDefaultAsync(x => x.ShareToken == request.Token);
+            if (list == null)
+                return NotFound();
+
+            list.CheckedJson = JsonConvert.SerializeObject(request.Checked ?? new List<int>());
+            await _context.SaveChangesAsync();
+
+            return Ok(new { ok = true });
+        }
+
+        #endregion
     }
 }

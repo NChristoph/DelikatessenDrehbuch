@@ -1,0 +1,240 @@
+@{
+    Layout = "_MiniAppLayout";
+    ViewData["Title"] = "Geteilte Einkaufsliste";
+    var token = ViewData["Token"] as string ?? "";
+    var itemsJson = ViewData["Items"] as string ?? "[]";
+    var checkedJson = ViewData["Checked"] as string ?? "[]";
+}
+
+<div class="px-4 pt-4 pb-2">
+    <h2 class="fw-bold mb-1" style="color: #2c3e50;">Geteilte Einkaufsliste</h2>
+    <p class="text-muted small mb-0">Echtzeit-Sync &mdash; Haken werden automatisch geteilt.</p>
+</div>
+
+<div class="container px-4 pb-5" id="sharedListContainer">
+</div>
+
+<style>
+    body {
+        background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);
+        min-height: 100vh;
+    }
+    .sl-group-header {
+        font-weight: 700;
+        font-size: 0.95rem;
+        margin-top: 1rem;
+        margin-bottom: 0.4rem;
+        color: #2c3e50;
+    }
+    .sl-group-header:first-child {
+        margin-top: 0;
+    }
+    .sl-item {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        padding: 0.5rem 0;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+        transition: opacity 0.2s;
+    }
+    .sl-item:active {
+        opacity: 0.7;
+    }
+    .sl-item input[type="checkbox"] {
+        width: 1.25rem;
+        height: 1.25rem;
+        accent-color: #6c63ff;
+        flex-shrink: 0;
+    }
+    .sl-item.is-checked .sl-label {
+        text-decoration: line-through;
+        opacity: 0.5;
+    }
+    .sl-label {
+        flex: 1;
+        font-size: 0.93rem;
+    }
+    .sl-qty {
+        font-size: 0.82rem;
+        color: #888;
+        white-space: nowrap;
+    }
+    .sl-sync-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #4caf50;
+        margin-right: 6px;
+        vertical-align: middle;
+        transition: background 0.3s;
+    }
+    .sl-sync-dot.syncing {
+        background: #ff9800;
+    }
+    .sl-status {
+        font-size: 0.78rem;
+        color: #999;
+        text-align: center;
+        padding: 0.5rem 0;
+    }
+</style>
+
+<script>
+(function () {
+    // Block back-navigation
+    history.pushState(null, '', location.href);
+    window.addEventListener('popstate', function () {
+        history.pushState(null, '', location.href);
+    });
+
+    var token = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(token));
+    var items = @Html.Raw(itemsJson);
+    var localChecked = new Set(@Html.Raw(checkedJson));
+    var dirty = false;
+    var polling = true;
+
+    var container = document.getElementById('sharedListContainer');
+
+    function escapeHtml(s) {
+        var d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    function renderList() {
+        // Group items by their group field
+        var groups = {};
+        var groupOrder = [];
+        for (var i = 0; i < items.length; i++) {
+            var item = items[i];
+            var g = item.group || 'Sonstiges';
+            if (!groups[g]) {
+                groups[g] = [];
+                groupOrder.push(g);
+            }
+            groups[g].push({ item: item, idx: i });
+        }
+
+        var html = '<div class="card border-0 shadow-sm rounded-4"><div class="card-body p-4">';
+        html += '<div class="d-flex align-items-center justify-content-between mb-2">';
+        html += '<span class="fw-bold" style="font-size:0.9rem;"><span class="sl-sync-dot" id="syncDot"></span>Live-Sync aktiv</span>';
+        html += '<span class="sl-status" id="syncStatus"></span>';
+        html += '</div>';
+
+        for (var gi = 0; gi < groupOrder.length; gi++) {
+            var gName = groupOrder[gi];
+            html += '<div class="sl-group-header">' + escapeHtml(gName) + '</div>';
+            var gItems = groups[gName];
+            for (var j = 0; j < gItems.length; j++) {
+                var entry = gItems[j];
+                var checked = localChecked.has(entry.idx);
+                var cls = checked ? 'sl-item is-checked' : 'sl-item';
+                var qtyStr = '';
+                if (entry.item.qty && entry.item.unit) {
+                    qtyStr = '<span class="sl-qty">' + escapeHtml(entry.item.qty + ' ' + entry.item.unit) + '</span>';
+                } else if (entry.item.qty) {
+                    qtyStr = '<span class="sl-qty">' + escapeHtml(String(entry.item.qty)) + '</span>';
+                }
+                html += '<label class="' + cls + '" data-idx="' + entry.idx + '">';
+                html += '<input type="checkbox"' + (checked ? ' checked' : '') + ' />';
+                html += '<span class="sl-label">' + escapeHtml(entry.item.name) + '</span>';
+                html += qtyStr;
+                html += '</label>';
+            }
+        }
+
+        // Progress
+        var total = items.length;
+        var done = localChecked.size;
+        html += '<div class="sl-status mt-3">' + done + ' / ' + total + ' erledigt</div>';
+        html += '</div></div>';
+        container.innerHTML = html;
+
+        // Bind checkbox events
+        container.querySelectorAll('.sl-item input[type="checkbox"]').forEach(function (cb) {
+            cb.addEventListener('change', function () {
+                var idx = parseInt(cb.closest('.sl-item').dataset.idx, 10);
+                toggleItem(idx);
+            });
+        });
+    }
+
+    function toggleItem(idx) {
+        if (localChecked.has(idx)) {
+            localChecked.delete(idx);
+        } else {
+            localChecked.add(idx);
+        }
+        dirty = true;
+        renderList();
+    }
+
+    function setSyncStatus(text) {
+        var el = document.getElementById('syncStatus');
+        if (el) el.textContent = text;
+    }
+
+    function setSyncing(active) {
+        var dot = document.getElementById('syncDot');
+        if (dot) {
+            if (active) dot.classList.add('syncing');
+            else dot.classList.remove('syncing');
+        }
+    }
+
+    async function pollLoop() {
+        if (!polling) return;
+
+        try {
+            setSyncing(true);
+
+            if (dirty) {
+                await fetch('/WorldMiniApp/Home/UpdateSharedListChecked', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ token: token, checked: Array.from(localChecked) })
+                });
+                dirty = false;
+            }
+
+            var resp = await fetch('/WorldMiniApp/Home/GetSharedListState?token=' + encodeURIComponent(token));
+            if (resp.ok) {
+                var data = await resp.json();
+                var serverChecked = JSON.parse(data.checked || '[]');
+                var newSet = new Set(serverChecked);
+
+                // Only re-render if server state differs from local
+                if (!setsEqual(localChecked, newSet)) {
+                    localChecked = newSet;
+                    renderList();
+                }
+            }
+
+            setSyncing(false);
+        } catch (e) {
+            setSyncing(false);
+            setSyncStatus('Sync-Fehler');
+        }
+
+        setTimeout(pollLoop, 4000);
+    }
+
+    function setsEqual(a, b) {
+        if (a.size !== b.size) return false;
+        for (var v of a) {
+            if (!b.has(v)) return false;
+        }
+        return true;
+    }
+
+    // Initial render
+    renderList();
+
+    // Start polling after a short delay
+    setTimeout(pollLoop, 4000);
+})();
+</script>

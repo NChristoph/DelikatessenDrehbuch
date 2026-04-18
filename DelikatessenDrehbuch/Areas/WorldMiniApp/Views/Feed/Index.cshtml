@@ -2164,7 +2164,7 @@
                         <div id="shoppingChecklistWrap" class="shopping-checklist" style="display:none;"></div>
                         <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..." style="display:none;"></textarea>
                         <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="generateShareLink()">
+                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, generateShareLink)">
                                 <i class="bi bi-link-45deg me-1"></i> Link erstellen
                             </button>
                             <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="withButtonSpinner(this, copyShareLink)">
@@ -4191,17 +4191,53 @@
             }
         }
 
-        function generateShareLink() {
-            const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
-            if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden oder einfÃ¼gen.", "warn"); return; }
+        function parseShoppingListText(text) {
+            const lines = text.split('\n');
+            const items = [];
+            let currentGroup = 'Sonstiges';
+            for (const line of lines) {
+                const trimmed = line.trim();
+                if (!trimmed) continue;
+                if (!trimmed.startsWith('-') && !trimmed.startsWith('\u2022') && !trimmed.match(/^\d/)) {
+                    currentGroup = trimmed.replace(/:$/, '');
+                    continue;
+                }
+                const content = trimmed.replace(/^[-\u2022]\s*/, '');
+                const match = content.match(/^(\d+[.,]?\d*)\s+(\S+)\s+(.+)$/);
+                if (match) {
+                    items.push({ group: currentGroup, qty: match[1], unit: match[2], name: match[3].trim() });
+                } else {
+                    items.push({ group: currentGroup, name: content.trim(), qty: '', unit: '' });
+                }
+            }
+            return items;
+        }
 
-            const shareLink = `${window.location.origin}/WorldMiniApp/Home/ShareShoppingList?list=${encodeURIComponent(text)}`;
-            document.getElementById('shoppingShareLink').value = shareLink;
+        async function generateShareLink() {
+            const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
+            if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden.", "warn"); return; }
+
+            const items = parseShoppingListText(text);
+            const resp = await fetch('/WorldMiniApp/Home/SaveSharedShoppingList', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ itemsJson: JSON.stringify(items), userHash: window.worldUserHash || '' })
+            });
+            if (!resp.ok) { showToast("Fehler beim Erstellen des Links.", "error"); return; }
+            const data = await resp.json();
+            document.getElementById('shoppingShareLink').value = data.shareUrl;
+
+            if (navigator.share) {
+                try { await navigator.share({ title: 'Einkaufsliste', url: data.shareUrl }); } catch (_) {}
+            } else {
+                await navigator.clipboard.writeText(data.shareUrl);
+                showToast("Link kopiert!", "success");
+            }
         }
 
         async function copyShareLink() {
             const linkInput = document.getElementById('shoppingShareLink');
-            if (!linkInput.value) generateShareLink();
+            if (!linkInput.value) await generateShareLink();
             if (linkInput.value) {
                 await navigator.clipboard.writeText(linkInput.value);
                 showToast("Link kopiert!", "success");

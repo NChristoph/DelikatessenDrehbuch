@@ -5,6 +5,7 @@ using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -188,6 +189,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             try
             {
                 var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+                var resolvedUserHash = ResolveUserHash(string.Empty);
+                var cachedVariant = await TryGetCachedAiVariantAsync(
+                    request.RecipeId,
+                    request.VariantType,
+                    language,
+                    request.AppliedChangeCount,
+                    request.UserNote,
+                    resolvedUserHash,
+                    cancellationToken);
+
+                if (cachedVariant != null)
+                {
+                    return Json(cachedVariant);
+                }
+
                 var preview = await _recipeAiTransformService.BuildPreviewAsync(
                     recipe,
                     request.VariantType,
@@ -203,6 +219,96 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 _logger.LogWarning(ex, "AI recipe preview failed for RecipeId={RecipeId}", request.RecipeId);
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveAiRecipeVariant([FromBody] SaveAiRecipeVariantRequest request, CancellationToken cancellationToken)
+        {
+            if (request?.Preview == null || request.BaseRecipeId <= 0)
+            {
+                return BadRequest(new { message = "AI-Vorschau fehlt." });
+            }
+
+            var recipeExists = await _context.RecipeBaseData
+                .AsNoTracking()
+                .AnyAsync(r => r.Id == request.BaseRecipeId, cancellationToken);
+
+            if (!recipeExists)
+            {
+                return NotFound(new { message = "Basisrezept wurde nicht gefunden." });
+            }
+
+            var preview = request.Preview;
+            preview.StepPlan ??= new List<RecipeAiTransformStepPlanItem>();
+            preview.Steps ??= new List<RecipeAiTransformStepPreview>();
+            preview.Ingredients ??= new List<RecipeAiTransformIngredientPreview>();
+            preview.Highlights ??= new List<string>();
+
+            var userHash = ResolveUserHash(string.Empty);
+            var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+            var appliedChangeCount = Math.Max(0, 2 - preview.RemainingChanges);
+            var isSharedCanonical = appliedChangeCount <= 0 && !preview.UserNoteApplied;
+
+            RecipeAiVariant entity;
+            if (isSharedCanonical)
+            {
+                entity = await _context.RecipeAiVariants
+                    .FirstOrDefaultAsync(x =>
+                        x.BaseRecipeId == request.BaseRecipeId &&
+                        x.VariantType == preview.VariantType &&
+                        x.Language == language &&
+                        x.IsSharedCanonical,
+                        cancellationToken)
+                    ?? new RecipeAiVariant
+                    {
+                        BaseRecipeId = request.BaseRecipeId,
+                        VariantType = preview.VariantType,
+                        Language = language,
+                        IsSharedCanonical = true,
+                        CreatedAtUtc = DateTime.UtcNow
+                    };
+            }
+            else
+            {
+                entity = new RecipeAiVariant
+                {
+                    BaseRecipeId = request.BaseRecipeId,
+                    VariantType = preview.VariantType,
+                    Language = language,
+                    IsSharedCanonical = false,
+                    CreatedAtUtc = DateTime.UtcNow
+                };
+            }
+
+            entity.CreatedByUserHash = string.IsNullOrWhiteSpace(userHash) ? null : userHash;
+            entity.AppliedChangeCount = appliedChangeCount;
+            entity.LatestUserNote = preview.UserNoteApplied
+                ? string.IsNullOrWhiteSpace(request.LatestUserNote)
+                    ? null
+                    : request.LatestUserNote.Trim()
+                : null;
+            entity.RenderedTitle = preview.Title ?? string.Empty;
+            entity.RenderedSummary = preview.Summary ?? string.Empty;
+            entity.StepPlanJson = JsonSerializer.Serialize(preview.StepPlan);
+            entity.RenderedStepsJson = JsonSerializer.Serialize(preview.Steps);
+            entity.RenderedIngredientsJson = JsonSerializer.Serialize(preview.Ingredients);
+            entity.RenderedHighlightsJson = JsonSerializer.Serialize(preview.Highlights);
+            entity.UpdatedAtUtc = DateTime.UtcNow;
+
+            if (entity.Id == 0)
+            {
+                await _context.RecipeAiVariants.AddAsync(entity, cancellationToken);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return Json(new
+            {
+                success = true,
+                variantId = entity.Id,
+                isSharedCanonical = entity.IsSharedCanonical
+            });
         }
 
         [HttpPost]
@@ -250,6 +356,120 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction("EditRecipe", "Recipe", new { area = "WorldMiniApp", postingId = posting.Id, userHash });
+        }
+
+        private async Task<RecipeAiTransformPreview?> TryGetCachedAiVariantAsync(
+            int baseRecipeId,
+            string variantType,
+            string language,
+            int appliedChangeCount,
+            string? userNote,
+            string? userHash,
+            CancellationToken cancellationToken)
+        {
+            if (appliedChangeCount > 0 || !string.IsNullOrWhiteSpace(userNote))
+            {
+                return null;
+            }
+
+            var normalizedVariantType = (variantType ?? string.Empty).Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(normalizedVariantType))
+            {
+                return null;
+            }
+
+            RecipeAiVariant? cached = null;
+            if (!string.IsNullOrWhiteSpace(userHash))
+            {
+                cached = await _context.RecipeAiVariants
+                    .AsNoTracking()
+                    .Where(x =>
+                        x.BaseRecipeId == baseRecipeId &&
+                        x.VariantType == normalizedVariantType &&
+                        x.Language == language &&
+                        x.CreatedByUserHash == userHash &&
+                        !x.IsSharedCanonical)
+                    .OrderByDescending(x => x.UpdatedAtUtc)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+
+            cached ??= await _context.RecipeAiVariants
+                .AsNoTracking()
+                .Where(x =>
+                    x.BaseRecipeId == baseRecipeId &&
+                    x.VariantType == normalizedVariantType &&
+                    x.Language == language &&
+                    x.IsSharedCanonical)
+                .OrderByDescending(x => x.UpdatedAtUtc)
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return cached == null ? null : MapAiVariantToPreview(cached);
+        }
+
+        private static RecipeAiTransformPreview MapAiVariantToPreview(RecipeAiVariant variant)
+        {
+            return new RecipeAiTransformPreview
+            {
+                VariantType = variant.VariantType,
+                VariantLabel = GetVariantLabel(variant.VariantType),
+                Title = variant.RenderedTitle,
+                Summary = variant.RenderedSummary,
+                UsedFallback = false,
+                UserNoteApplied = variant.AppliedChangeCount > 0,
+                RemainingChanges = Math.Max(0, 2 - variant.AppliedChangeCount),
+                StepPlan = DeserializeJson<List<RecipeAiTransformStepPlanItem>>(variant.StepPlanJson) ?? new List<RecipeAiTransformStepPlanItem>(),
+                Steps = DeserializeJson<List<RecipeAiTransformStepPreview>>(variant.RenderedStepsJson) ?? new List<RecipeAiTransformStepPreview>(),
+                Ingredients = DeserializeJson<List<RecipeAiTransformIngredientPreview>>(variant.RenderedIngredientsJson) ?? new List<RecipeAiTransformIngredientPreview>(),
+                Highlights = DeserializeJson<List<string>>(variant.RenderedHighlightsJson) ?? new List<string>()
+            };
+        }
+
+        private static T? DeserializeJson<T>(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return default;
+            }
+
+            try
+            {
+                return JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
+        private static string GetVariantLabel(string? variantType)
+        {
+            return (variantType ?? string.Empty).Trim().ToLowerInvariant() switch
+            {
+                "vegan" => "Vegan",
+                "mealprep" => "Meal Prep",
+                "lowcarb" => "Low Carb",
+                "highprotein" => "Mehr Protein",
+                _ => "AI Vorschau"
+            };
+        }
+        [HttpGet]
+        public async Task<IActionResult> SharedShoppingList(string token)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return NotFound();
+
+            var list = await _context.WorldSharedShoppingList.FirstOrDefaultAsync(x => x.ShareToken == token);
+            if (list == null)
+                return NotFound();
+
+            ViewData["Token"] = list.ShareToken;
+            ViewData["Items"] = list.ItemsJson;
+            ViewData["Checked"] = list.CheckedJson;
+
+            return View("~/Areas/WorldMiniApp/Views/Home/SharedShoppingList.cshtml");
         }
     }
 }

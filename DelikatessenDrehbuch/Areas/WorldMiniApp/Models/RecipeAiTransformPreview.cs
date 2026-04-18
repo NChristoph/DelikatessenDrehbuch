@@ -33,7 +33,13 @@
     {
         public string MasterStepKey { get; set; } = string.Empty;
         public int Phase { get; set; }
-        public Dictionary<string, string> Variables { get; set; } = new();
+        public List<RecipeAiTransformStepVariableItem> Variables { get; set; } = new();
         public string RenderedText { get; set; } = string.Empty;
+    }
+
+    public sealed class RecipeAiTransformStepVariableItem
+    {
+        public string Key { get; set; } = string.Empty;
+        public string Value { get; set; } = string.Empty;
     }
 }

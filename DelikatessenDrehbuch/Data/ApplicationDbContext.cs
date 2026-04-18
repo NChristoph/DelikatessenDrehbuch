@@ -49,12 +49,14 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldClipWatchSession> WorldClipWatchSessions { get; set; }
         public DbSet<WorldAdPreferenceProfile> WorldAdPreferenceProfiles { get; set; }
         public DbSet<WorldAdPreferenceInterest> WorldAdPreferenceInterests { get; set; }
+        public DbSet<RecipeAiVariant> RecipeAiVariants { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
         public DbSet<JoinIngredientPreparationStep> JoinIngredientPreparationStep { get; set; }
         public DbSet<MealPlanListing> MealPlanListings { get; set; }
         public DbSet<WildCoinTransaction> WildCoinTransactions { get; set; }
         public DbSet<MealPlanPurchase> MealPlanPurchases { get; set; }
+        public DbSet<WorldSharedShoppingList> WorldSharedShoppingList { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -157,6 +159,12 @@ namespace DelikatessenDrehbuch.Data
             builder.Entity<SmartRecipeStep>()
                 .HasIndex(x => new { x.MasterStepKey, x.Phase, x.Equipment });
 
+            builder.Entity<RecipeAiVariant>()
+                .HasIndex(x => new { x.BaseRecipeId, x.VariantType, x.Language, x.IsSharedCanonical });
+
+            builder.Entity<RecipeAiVariant>()
+                .HasIndex(x => new { x.BaseRecipeId, x.CreatedByUserHash, x.VariantType, x.Language });
+
             // MealPlanPurchase — Duplikatschutz via TxHash
             builder.Entity<MealPlanPurchase>()
                 .HasIndex(x => x.ReferenceTxHash)
@@ -181,6 +189,10 @@ namespace DelikatessenDrehbuch.Data
             // WildCoinTransaction — User-History
             builder.Entity<WildCoinTransaction>()
                 .HasIndex(x => new { x.UserHash, x.CreatedAt });
+
+            // WorldSharedShoppingList — Token-Lookup
+            builder.Entity<WorldSharedShoppingList>()
+                .HasIndex(x => x.ShareToken);
 
             // Legacy/production table name mapping (typo kept for compatibility):
             // Model MealPlanPurchase -> dbo.WorldMealplanPurcase
@@ -220,6 +232,31 @@ namespace DelikatessenDrehbuch.Data
                     .OnDelete(DeleteBehavior.Cascade);
 
                 e.HasIndex(x => new { x.RecipeId, x.StepIndex });
+            });
+
+            builder.Entity<RecipeAiVariant>(e =>
+            {
+                e.ToTable("RecipeAiVariants");
+                e.Property(x => x.VariantType).IsRequired().HasMaxLength(64);
+                e.Property(x => x.Language).IsRequired().HasMaxLength(12);
+                e.Property(x => x.CreatedByUserHash).HasMaxLength(256);
+                e.Property(x => x.LatestUserNote).HasMaxLength(1000);
+                e.Property(x => x.RenderedTitle).IsRequired().HasMaxLength(256);
+                e.Property(x => x.RenderedSummary).HasMaxLength(4000);
+                e.Property(x => x.StepPlanJson).IsRequired();
+                e.Property(x => x.RenderedStepsJson).IsRequired();
+                e.Property(x => x.RenderedIngredientsJson).IsRequired();
+                e.Property(x => x.RenderedHighlightsJson).IsRequired();
+
+                e.HasOne(x => x.BaseRecipe)
+                    .WithMany()
+                    .HasForeignKey(x => x.BaseRecipeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(x => x.ParentVariant)
+                    .WithMany()
+                    .HasForeignKey(x => x.ParentVariantId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             builder.Entity<Queries>().ToTable("Querys");

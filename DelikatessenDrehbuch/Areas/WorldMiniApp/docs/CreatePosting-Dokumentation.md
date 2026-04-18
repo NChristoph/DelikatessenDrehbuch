@@ -2,9 +2,19 @@
 
 > **WorldMiniApp** · Rezept-Erstellungs-Modul
 > **Basispfad:** `DelikatessenDrehbuch/`
-> **Stand:** 2026-04-15 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps + Performance-Optimierung
+> **Stand:** 2026-04-18 · **REFACTORING:** Unified System + Draft-Engine Integration + Neue Steps + Performance-Optimierung
 >
-> **Letzte Änderungen (2026-04-15):**
+> **Letzte Änderungen (2026-04-18):**
+> - ✅ **Einkaufsliste Echtzeit-Teilen (Polling-basiert):**
+>   - Neues Entity `WorldSharedShoppingList` (ShareToken, ItemsJson, CheckedJson, UserHash, CreatedAt)
+>   - `ApplicationDbContext`: DbSet + Index auf ShareToken
+>   - `MealPlanController`: 3 neue Actions — `SaveSharedShoppingList` [POST], `GetSharedListState` [GET], `UpdateSharedListChecked` [POST]
+>   - `HomeController`: `SharedShoppingList` [GET] — Token-basierte View mit ViewData
+>   - Neue View `SharedShoppingList.cshtml`: Standalone-Seite mit `_MiniAppLayout`, kein Zurück-Button, Back-Navigation blockiert via `history.pushState`, Echtzeit-Polling (4 Sek), Checkbox-Sync mit Dirty-Flag, Live-Sync-Statusanzeige, gruppierte Items mit Emoji-Headers
+>   - `Feed/Index.cshtml`: `generateShareLink()` umgebaut von URL-Param auf POST → Token-basierte Share-URL, neue `parseShoppingListText()` Hilfsfunktion, Button auf `withButtonSpinner` umgestellt, `navigator.share()` Fallback
+>   - EF-Migration `AddWorldSharedShoppingList` erstellt
+>
+> **Vorherige Änderungen (2026-04-15):**
 > - ✅ **Neue Kategorie `smoothie` (20. Kategorie) in `recipe_category_scoring.json` v8.0:**
 >   - 3 Subtypes: `frucht_smoothie`, `green_smoothie`, `protein_smoothie`
 >   - 39 `ingredient_weights` (Obst, Milchbasis, Pflanzenmilch, Booster, Süßung/Extras)
