@@ -61,7 +61,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             string? userNote,
             int appliedChangeCount,
             IReadOnlyList<RecipeAiIngredientSuggestionItem>? selectedIngredients = null,
-            bool forceFallback = false,
             CancellationToken cancellationToken = default)
         {
             ArgumentNullException.ThrowIfNull(recipe);
@@ -82,17 +81,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             var selectedIngredientList = (selectedIngredients ?? Array.Empty<RecipeAiIngredientSuggestionItem>())
                 .Where(x => x != null)
-                .Take(2)
+                .Take(3)
                 .ToList();
             var primarySelectedIngredient = selectedIngredientList.FirstOrDefault();
 
             var sourceStepPlan = BuildSourceStepPlan(recipe, normalizedLanguage);
             var stepSelectionContext = BuildStepSelectionContext(sourceStepPlan, selectedIngredientList, normalizedVariantType);
-
-            if (forceFallback)
-            {
-                return BuildFallbackPreview(recipe, normalizedVariantType, normalizedLanguage, trimmedUserNote, safeChangeCount, sourceStepPlan, stepSelectionContext, selectedIngredientList);
-            }
 
             var apiKey = Environment.GetEnvironmentVariable("SecretKeyOpenAi") ?? _configuration["SecretKeyOpenAi"];
             if (string.IsNullOrWhiteSpace(apiKey))
@@ -122,11 +116,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
 
             using var document = JsonDocument.Parse(responseContent);
+
+            // Detect incomplete responses (e.g. max_output_tokens hit) and fall back
+            if (document.RootElement.TryGetProperty("status", out var transformStatusProp)
+                && transformStatusProp.GetString() == "incomplete")
+            {
+                var reason = document.RootElement.TryGetProperty("incomplete_details", out var incDetails)
+                    && incDetails.TryGetProperty("reason", out var incReason)
+                    ? incReason.GetString() ?? "unknown"
+                    : "unknown";
+                _logger.LogWarning("OpenAI recipe transform incomplete (reason={Reason}). Using fallback for RecipeId={RecipeId}.", reason, recipe.Id);
+                return BuildFallbackPreview(recipe, normalizedVariantType, normalizedLanguage, trimmedUserNote, safeChangeCount, sourceStepPlan, stepSelectionContext, selectedIngredientList);
+            }
+
             var outputText = TryExtractOutputText(document.RootElement);
             if (string.IsNullOrWhiteSpace(outputText))
             {
                 _logger.LogError("OpenAI recipe transform returned no output_text. Response: {Body}", responseContent);
-                throw new InvalidOperationException(BuildApiErrorMessage(response.StatusCode, responseContent, "AI hat keine verwertbare Vorschau geliefert."));
+                return BuildFallbackPreview(recipe, normalizedVariantType, normalizedLanguage, trimmedUserNote, safeChangeCount, sourceStepPlan, stepSelectionContext, selectedIngredientList);
             }
 
             var preview = JsonSerializer.Deserialize<RecipeAiTransformPreview>(outputText, new JsonSerializerOptions
@@ -170,28 +177,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             var ingredientSelectionContext = AnalyzeIngredientSelectionContext(recipe);
             var defaultCategoryKeys = GetDefaultCategoryKeysForVariant(normalizedVariantType, ingredientSelectionContext);
-            var recipeContext = BuildIngredientSelectionRecipeContext(recipe, normalizedLanguage, ingredientSelectionContext);
-
-            var categoryPlan = await SelectIngredientCategoriesAsync(
-                recipe,
-                normalizedVariantType,
-                normalizedLanguage,
-                trimmedUserNote,
-                defaultCategoryKeys,
-                recipeContext,
-                apiKey,
-                cancellationToken);
-
-            var preferredCategoryKeys = categoryPlan.PreferredCategoryKeys
-                .Select(NormalizeCategoryKey)
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
-            if (preferredCategoryKeys.Count == 0)
-            {
-                preferredCategoryKeys = defaultCategoryKeys;
-            }
 
             var existingIngredientIds = recipe.Ingredients?
                 .Select(x => x.Ingredient?.IngredientsAndNutrients?.Id ?? 0)
@@ -199,24 +184,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 .Distinct()
                 .ToList() ?? new List<int>();
 
+            // Fetch candidates from all default categories in one DB query
             var candidates = await _ingredientResolverService.GetCandidatesForGoalAsync(
                 normalizedVariantType,
                 normalizedLanguage,
-                preferredCategoryKeys,
+                defaultCategoryKeys,
                 existingIngredientIds,
                 take: 18,
                 cancellationToken: cancellationToken);
-
-            if (candidates.Count == 0 && !preferredCategoryKeys.SequenceEqual(defaultCategoryKeys, StringComparer.OrdinalIgnoreCase))
-            {
-                candidates = await _ingredientResolverService.GetCandidatesForGoalAsync(
-                    normalizedVariantType,
-                    normalizedLanguage,
-                    defaultCategoryKeys,
-                    existingIngredientIds,
-                    take: 18,
-                    cancellationToken: cancellationToken);
-            }
 
             if (candidates.Count == 0)
             {
@@ -229,6 +204,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 return await BuildIngredientSuggestionFallbackAsync(recipe, normalizedVariantType, normalizedLanguage, trimmedUserNote, cancellationToken);
             }
 
+            // Single merged AI call: pick categories + select 3 ingredients at once
             var selected = await SelectConcreteIngredientsAsync(
                 recipe,
                 normalizedVariantType,
@@ -242,12 +218,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 VariantType = normalizedVariantType,
                 VariantLabel = GetVariantLabel(normalizedVariantType, normalizedLanguage),
-                Strategy = string.IsNullOrWhiteSpace(categoryPlan.Strategy) ? "add" : categoryPlan.Strategy,
-                Reasoning = string.IsNullOrWhiteSpace(categoryPlan.Reasoning)
-                    ? LocalizedWord(normalizedLanguage, "Drei passende Zutaten aus deiner Datenbank wurden ausgewählt.", "Three suitable ingredients from your database were selected.", "Se seleccionaron tres ingredientes adecuados de tu base de datos.", "Foram selecionados três ingredientes adequados da tua base de dados.")
-                    : categoryPlan.Reasoning,
+                Strategy = "add",
+                Reasoning = LocalizedWord(normalizedLanguage, "Drei passende Zutaten aus deiner Datenbank wurden ausgewählt.", "Three suitable ingredients from your database were selected.", "Se seleccionaron tres ingredientes adecuados de tu base de datos.", "Foram selecionados três ingredientes adequados da tua base de dados."),
                 UsedFallback = false,
-                PreferredCategoryKeys = preferredCategoryKeys,
+                PreferredCategoryKeys = defaultCategoryKeys,
                 PreferredCategoryLabels = selected
                     .Select(x => x.CategoryLabel)
                     .Where(x => !string.IsNullOrWhiteSpace(x))
@@ -289,20 +263,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 {
                     id = selectedIngredient.IngredientId,
                     name = selectedIngredient.Name,
-                    categoryKey = selectedIngredient.CategoryKey,
-                    categoryLabel = selectedIngredient.CategoryLabel,
-                    proteinPer100g = selectedIngredient.ProteinPer100g,
-                    carbsPer100g = selectedIngredient.CarbsPer100g,
-                    fatPer100g = selectedIngredient.FatPer100g,
-                    fiberPer100g = selectedIngredient.FiberPer100g,
-                    caloriesPer100g = selectedIngredient.CaloriesPer100g
+                    cat = selectedIngredient.CategoryKey
                 })
                 .ToList();
             var serializedSourceStepPlan = sourceStepPlan.Select(x => new
             {
-                masterStepKey = x.MasterStepKey,
-                phase = x.Phase,
-                variables = x.Variables
+                key = x.MasterStepKey,
+                vars = x.Variables
             }).ToList();
 
             var stepTemplateContext = sourceStepPlan
@@ -337,6 +304,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return new
             {
                 model = ModelName,
+                max_output_tokens = 2000,
                 input = new object[]
                 {
                     new
@@ -348,11 +316,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                             {
                                 type = "input_text",
                                 text =
-                                    "Rezept-Transformation für eine Food-App. Antwort: valides JSON im Schema. " +
-                                    "stepPlan: NUR masterStepKeys aus der erlaubten Liste, keine Freitexte. Leeres stepPlan wenn keine Keys erlaubt. " +
-                                    "DB-Zutat wenn mitgegeben sichtbar einbauen. Variablenwerte bevorzugt aus mitgegebenen Optionen. " +
-                                    "Deutsch: {{ingredient}} mit Artikel ('die Eier', 'den Spinat'). " +
-                                    "Bei Zutatenwechsel auch stepPlan-Variablen anpassen (ingredient, base, item)."
+                                    "Rezept-Transformation für eine Food-App. Valides JSON im Schema. " +
+                                    "stepPlan: NUR masterStepKeys aus erlaubter Liste. Leeres stepPlan wenn keine Keys. " +
+                                    "DB-Zutat sichtbar einbauen. Variablenwerte aus Optionen bevorzugen. " +
+                                    "{{ingredient}} mit deutschem Artikel ('die Eier', 'den Spinat'). " +
+                                    "Bei Zutatenwechsel stepPlan-Variablen anpassen (ingredient, base, item). Kurze Strings."
                             }
                         }
                     },
@@ -365,18 +333,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                             {
                                 type = "input_text",
                                 text = $"Sprache: {languageLabel}\n" +
-                                       $"AI-Variante: {variantLabel} ({variantType})\n" +
-                                       $"Bisherige Änderungsrunden: {appliedChangeCount} von {MaxChangeRounds}\n" +
-                                       $"Rezepttitel: {recipe.Title}\n" +
-                                       $"Portionen: {recipe.PersonCount}\n" +
-                                       $"Zubereitungszeit: {recipe.PreparationTime} Minuten\n" +
+                                       $"Variante: {variantLabel} ({variantType})\n" +
+                                       $"Änderungsrunde: {appliedChangeCount}/{MaxChangeRounds}\n" +
+                                       $"Titel: {recipe.Title}\n" +
+                                       $"Portionen: {recipe.PersonCount}, Zeit: {recipe.PreparationTime}min\n" +
                                        $"Zutaten: {JsonSerializer.Serialize(sourceIngredients)}\n" +
-                                       $"Gewählte DB-Zutaten: {(selectedIngredientContext.Count == 0 ? "Keine feste Zutat ausgewählt" : JsonSerializer.Serialize(selectedIngredientContext))}\n" +
-                                       $"Erlaubte masterStepKeys: {JsonSerializer.Serialize(allowedStepKeys)}\n" +
-                                       $"Aktueller StepPlan: {JsonSerializer.Serialize(serializedSourceStepPlan)}\n" +
-                                       $"Step-Templates (zeigt verfügbare Variablen): {JsonSerializer.Serialize(stepTemplateContext)}\n" +
-                                       $"User-Hinweis: {(string.IsNullOrWhiteSpace(userNote) ? "Kein zusätzlicher Hinweis" : userNote)}\n" +
-                                       "Gib eine umgesetzte Rezeptvorschau zurück. stepPlan darf nur Keys aus der erlaubten Liste enthalten. Variablenwerte sollen konkrete, kurze Strings sein. Wenn eine DB-Zutat ausgewählt wurde, integriere genau diese Zutat sichtbar."
+                                       $"DB-Zutaten: {(selectedIngredientContext.Count == 0 ? "keine" : JsonSerializer.Serialize(selectedIngredientContext))}\n" +
+                                       $"Erlaubte Steps: {JsonSerializer.Serialize(allowedStepKeys)}\n" +
+                                       $"StepPlan: {JsonSerializer.Serialize(serializedSourceStepPlan)}\n" +
+                                       $"Step-Templates: {JsonSerializer.Serialize(stepTemplateContext)}\n" +
+                                       (string.IsNullOrWhiteSpace(userNote) ? "" : $"User-Hinweis: {userNote}\n") +
+                                       "Rezeptvorschau zurückgeben. Nur erlaubte stepKeys. DB-Zutat sichtbar integrieren."
                             }
                         }
                     }
@@ -576,13 +543,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 id = x.IngredientId,
                 name = x.Name,
-                category = x.CategoryKey,
-                protein = x.ProteinPer100g,
-                carbs = x.CarbsPer100g,
-                fat = x.FatPer100g,
-                fiber = x.FiberPer100g,
-                calories = x.CaloriesPer100g,
-                score = x.Score
+                cat = x.CategoryKey,
+                p = x.ProteinPer100g,
+                c = x.CarbsPer100g,
+                f = x.FatPer100g,
+                kcal = x.CaloriesPer100g
             }).ToList();
 
             var requestBody = new
@@ -599,9 +564,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                             {
                                 type = "input_text",
                                 text =
-                                    "Du wählst aus bestehenden Zutaten-Kandidaten die geschmacklich passendsten 3 aus. " +
-                                    "Du darfst nur IDs zurückgeben, die in der Kandidatenliste enthalten sind. " +
-                                    "Antworte ausschließlich als valides JSON."
+                                    "Wähle 3 geschmacklich passende Zutaten aus der Kandidatenliste. Nur IDs aus der Liste. " +
+                                    "Bestimme auch ob eher ergänzen oder ersetzen sinnvoll ist. Valides JSON."
                             }
                         }
                     },
@@ -625,6 +589,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                         }
                     }
                 },
+                max_output_tokens = 600,
                 text = new
                 {
                     format = new
@@ -759,11 +724,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
 
             using var document = JsonDocument.Parse(responseContent);
+
+            // Detect incomplete responses (e.g. max_output_tokens hit)
+            if (document.RootElement.TryGetProperty("status", out var statusProp)
+                && statusProp.GetString() == "incomplete")
+            {
+                var reason = document.RootElement.TryGetProperty("incomplete_details", out var details)
+                    && details.TryGetProperty("reason", out var reasonProp)
+                    ? reasonProp.GetString() ?? "unknown"
+                    : "unknown";
+                _logger.LogWarning("OpenAI structured call incomplete (reason={Reason}). Returning null for fallback.", reason);
+                return default;
+            }
+
             var outputText = TryExtractOutputText(document.RootElement);
             if (string.IsNullOrWhiteSpace(outputText))
             {
                 _logger.LogError("OpenAI structured ingredient call returned no output_text. Response: {Body}", responseContent);
-                throw new InvalidOperationException(BuildApiErrorMessage(response.StatusCode, responseContent, "AI hat keine verwertbaren Zutatenvorschläge geliefert."));
+                return default;
             }
 
             return JsonSerializer.Deserialize<T>(outputText, new JsonSerializerOptions
@@ -1173,14 +1151,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return new
             {
                 masterStepKey = definition.MasterId,
-                phase = definition.Phase,
                 action = definition.Action,
                 template = GetLocalizedTemplate(definition, language),
-                requiredVariables = definition.RequiredVariables,
-                optionalVariables = definition.OptionalVariables,
-                availableVariables = variableNames,
-                variableOptions = BuildVariableOptionContext(variableNames, language),
-                ingredientArticleHint = GetIngredientArticleHint(language)
+                vars = variableNames,
+                options = BuildVariableOptionContextCompact(variableNames, language)
             };
         }
 
@@ -1353,6 +1327,38 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                         label = GetLocalizedVariableOptionLabel(option, language),
                         tags = option.Tags
                     }).ToList()
+                });
+            }
+
+            return result;
+        }
+
+        private List<object> BuildVariableOptionContextCompact(IEnumerable<string> variableNames, string language)
+        {
+            var normalizedNames = variableNames
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Select(x => x.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            if (normalizedNames.Contains("ingredient", StringComparer.OrdinalIgnoreCase)
+                && !normalizedNames.Contains("articles", StringComparer.OrdinalIgnoreCase))
+            {
+                normalizedNames.Add("articles");
+            }
+
+            var result = new List<object>();
+            foreach (var variableName in normalizedNames)
+            {
+                if (!_masterStepVariablesByName.Value.TryGetValue(variableName, out var definition))
+                {
+                    continue;
+                }
+
+                result.Add(new
+                {
+                    v = variableName,
+                    o = definition.Options.Select(option => GetLocalizedVariableOptionLabel(option, language)).ToList()
                 });
             }
 

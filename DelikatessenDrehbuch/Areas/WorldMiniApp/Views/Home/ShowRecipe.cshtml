@@ -419,32 +419,6 @@
         gap: 8px;
     }
 
-    .ai-upgrade-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-size: 0.68rem;
-        letter-spacing: 0.5px;
-        text-transform: none;
-        background: rgba(255,255,255,0.15);
-        backdrop-filter: blur(6px);
-        padding: 3px 10px;
-        border-radius: 20px;
-        opacity: 1;
-        animation: aiUpgradePulse 1.8s ease-in-out infinite;
-    }
-
-    .ai-upgrade-pill .spinner-border {
-        width: 12px;
-        height: 12px;
-        border-width: 2px;
-    }
-
-    @@keyframes aiUpgradePulse {
-        0%, 100% { opacity: 0.7; }
-        50% { opacity: 1; }
-    }
-
     .ai-preview-title {
         font-family: 'Playfair Display', serif;
         font-size: 1.5rem;
@@ -666,6 +640,55 @@
         margin-top: 14px;
     }
 
+    .ai-bottom-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        z-index: 1040;
+        background: linear-gradient(135deg, #1a2e13 0%, #2d4f1e 100%);
+        color: white;
+        padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+        box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
+        transform: translateY(100%);
+        animation: aiBarSlideUp 0.35s cubic-bezier(0.4,0,0.2,1) forwards;
+    }
+
+    @@keyframes aiBarSlideUp {
+        to { transform: translateY(0); }
+    }
+
+    .ai-bottom-bar-content {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 14px 20px;
+    }
+
+    .ai-bottom-bar-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 0.88rem;
+        font-weight: 600;
+        min-width: 0;
+    }
+
+    .ai-bottom-bar-left .spinner-border {
+        width: 18px;
+        height: 18px;
+        border-width: 2px;
+        flex-shrink: 0;
+    }
+
+    .ai-bottom-bar-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+    }
+
     @@media (max-width: 576px) {
         .ai-fan-grid {
             grid-template-columns: 1fr;
@@ -750,7 +773,7 @@
                 <div>
                     <div class="ai-fan-kicker">AI Fächer</div>
                     <p class="ai-fan-title">Varianten aus diesem Rezept bauen</p>
-                    <p class="ai-fan-sub">Vorschau mit bis zu 2 Änderungswünschen, ohne den Originaleintrag direkt kaputt zu machen.</p>
+                    <p class="ai-fan-sub">Vorschau mit bis zu 3 Zutaten, ohne den Originaleintrag direkt kaputt zu machen.</p>
                 </div>
                 <div class="d-flex align-items-center gap-2">
                     <span class="premium-badge recipe-ai-badge" id="recipeAiAppliedBadge">
@@ -863,11 +886,7 @@
             <div class="ai-preview-head">
                 <div class="d-flex justify-content-between align-items-start gap-3">
                     <div>
-                        <div class="ai-preview-mode" id="aiPreviewModeLabel">AI Vorschau
-                            <span class="ai-upgrade-pill" id="aiUpgradePill" style="display:none">
-                                <span class="spinner-border spinner-border-sm"></span> AI optimiert...
-                            </span>
-                        </div>
+                        <div class="ai-preview-mode" id="aiPreviewModeLabel">AI Vorschau</div>
                         <div class="ai-preview-title" id="aiPreviewTitle">Neue Rezeptidee wird geladen...</div>
                         <p class="ai-preview-summary" id="aiPreviewSummary">Wir bauen gerade eine stimmige Variante aus deinem Rezept.</p>
                     </div>
@@ -926,6 +945,22 @@
                     </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="ai-bottom-bar" id="aiBottomBar" style="display:none">
+    <div class="ai-bottom-bar-content">
+        <div class="ai-bottom-bar-left" id="aiBottomBarStatus">
+            <span class="spinner-border spinner-border-sm text-light"></span>
+            <span>AI transformiert...</span>
+        </div>
+        <div class="ai-bottom-bar-actions">
+            <button class="btn btn-sm btn-light rounded-pill" id="aiBottomBarOpenBtn"
+                    onclick="openAiPreviewFromBar()">Vorschau öffnen</button>
+            <button class="btn btn-sm btn-outline-light rounded-pill" onclick="dismissAiBottomBar()">
+                <i class="bi bi-x-lg"></i>
+            </button>
         </div>
     </div>
 </div>
@@ -1052,7 +1087,7 @@
         setAiPreviewLoading(false);
     }
 
-    async function fetchPreview(options = {}) {
+    async function fetchPreview(userNote = '') {
         const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
         const response = await fetch('@Url.Action("PreviewAiRecipeVariant", "Home", new { area = "WorldMiniApp" })', {
             method: 'POST',
@@ -1063,10 +1098,9 @@
             body: JSON.stringify({
                 recipeId,
                 variantType: aiPreviewState.variantType,
-                userNote: options.userNote || '',
+                userNote: userNote || '',
                 selectedIngredientIds: aiPreviewState.selectedIngredientIds,
-                appliedChangeCount: aiPreviewState.appliedChangeCount,
-                forceFallback: !!options.forceFallback
+                appliedChangeCount: aiPreviewState.appliedChangeCount
             })
         });
 
@@ -1077,16 +1111,6 @@
         return payload;
     }
 
-    function showAiUpgradeIndicator() {
-        const pill = document.getElementById('aiUpgradePill');
-        if (pill) pill.style.display = '';
-    }
-
-    function hideAiUpgradeIndicator() {
-        const pill = document.getElementById('aiUpgradePill');
-        if (pill) pill.style.display = 'none';
-    }
-
     async function requestAiPreview(userNote = '') {
         if (!aiPreviewState.selectedIngredientIds.length) {
             throw new Error('Wähle zuerst mindestens eine Zutat aus.');
@@ -1095,34 +1119,29 @@
         setAiPreviewLoading(true, true);
         setAiPreviewError('');
 
-        // Phase 1: Fallback sofort holen (~50ms)
-        const fallbackPayload = await fetchPreview({ forceFallback: true, userNote });
-        renderAiPreview(fallbackPayload);
+        const payload = await fetchPreview(userNote);
+        renderAiPreview(payload);
         setAiPreviewLoading(false);
-        aiPreviewState.preview = fallbackPayload;
+        aiPreviewState.preview = payload;
 
         if (userNote) {
             aiPreviewState.latestUserNote = userNote;
         }
+    }
 
-        // Wenn Fallback schon AI war (cached) oder kein AI-Key vorhanden, fertig
-        if (!fallbackPayload.usedFallback) {
-            return;
-        }
-
-        // Phase 2: AI im Hintergrund nachladen
-        showAiUpgradeIndicator();
+    async function requestAiPreviewInBackground(userNote = '') {
         try {
-            const aiPayload = await fetchPreview({ forceFallback: false, userNote });
-            if (!aiPayload.usedFallback) {
-                renderAiPreview(aiPayload);
-                aiPreviewState.preview = aiPayload;
-            }
-        } catch (e) {
-            // Fallback bleibt stehen — kein sichtbarer Fehler
-            console.warn('AI upgrade failed, keeping fallback:', e);
-        } finally {
-            hideAiUpgradeIndicator();
+            const payload = await fetchPreview(userNote);
+            renderAiPreview(payload);
+            setAiPreviewLoading(false);
+            aiPreviewState.preview = payload;
+            if (userNote) aiPreviewState.latestUserNote = userNote;
+            showAiBottomBar('ready');
+        } catch (error) {
+            console.warn('AI background preview failed:', error);
+            setAiPreviewLoading(false);
+            setAiPreviewError('AI-Vorschau konnte nicht geladen werden.');
+            showAiBottomBar('error');
         }
     }
 
@@ -1205,20 +1224,17 @@
         }).join('');
     }
 
-    async function selectAiIngredient(ingredientId) {
-        if (!ingredientId) {
-            return;
-        }
+    function selectAiIngredient(ingredientId) {
+        if (!ingredientId) return;
 
         const selected = new Set(aiPreviewState.selectedIngredientIds || []);
         if (selected.has(ingredientId)) {
             selected.delete(ingredientId);
         } else {
-            if (selected.size >= 2) {
-                setAiPreviewError('Du kannst aktuell maximal 2 Zutaten gleichzeitig auswählen.');
+            if (selected.size >= 3) {
+                setAiPreviewError('Du kannst maximal 3 Zutaten gleichzeitig auswählen.');
                 return;
             }
-
             selected.add(ingredientId);
         }
 
@@ -1228,14 +1244,14 @@
 
         if (!aiPreviewState.selectedIngredientIds.length) {
             setAiPreviewDetailsVisible(false);
+            hideAiBottomBar();
             return;
         }
 
-        try {
-            await requestAiPreview();
-        } catch (error) {
-            setAiPreviewError(error.message || 'AI-Vorschau konnte nicht geladen werden.');
-        }
+        // Close modal, show bottom bar, start background preview
+        getAiTransformModal().hide();
+        showAiBottomBar('pending');
+        requestAiPreviewInBackground().catch(() => {});
     }
 
     function renderAiPreview(preview) {
@@ -1362,6 +1378,68 @@
         const resetBtn = document.getElementById('aiResetBtn');
         if (resetBtn) resetBtn.style.display = '';
         getAiTransformModal().hide();
+        hideAiBottomBar();
+    }
+
+    // --- Bottom-Bar Functions ---
+    function showAiBottomBar(state) {
+        const bar = document.getElementById('aiBottomBar');
+        const status = document.getElementById('aiBottomBarStatus');
+        const openBtn = document.getElementById('aiBottomBarOpenBtn');
+        if (!bar || !status) return;
+
+        if (state === 'pending') {
+            status.innerHTML = '<span class="spinner-border spinner-border-sm text-light"></span><span>AI transformiert...</span>';
+            if (openBtn) openBtn.textContent = 'Vorschau öffnen';
+        } else if (state === 'ready') {
+            status.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>AI-Vorschau bereit</span>';
+            if (openBtn) openBtn.textContent = 'Vorschau öffnen';
+        } else if (state === 'error') {
+            status.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i><span>AI fehlgeschlagen</span>';
+            if (openBtn) openBtn.textContent = 'Erneut versuchen';
+        }
+
+        bar.dataset.state = state;
+        bar.style.display = '';
+        // Re-trigger slide-up animation
+        bar.style.animation = 'none';
+        bar.offsetHeight; // reflow
+        bar.style.animation = '';
+    }
+
+    function hideAiBottomBar() {
+        const bar = document.getElementById('aiBottomBar');
+        if (bar) bar.style.display = 'none';
+    }
+
+    function dismissAiBottomBar() {
+        hideAiBottomBar();
+        resetAiPreview();
+    }
+
+    function openAiPreviewFromBar() {
+        const bar = document.getElementById('aiBottomBar');
+        const state = bar?.dataset.state;
+
+        if (state === 'error') {
+            showAiBottomBar('pending');
+            requestAiPreviewInBackground().catch(() => {});
+            return;
+        }
+
+        if (state === 'ready') {
+            // Preview already rendered — ensure loading is off and content visible
+            setAiPreviewLoading(false);
+            const content = document.getElementById('aiPreviewContent');
+            if (content) content.style.display = '';
+        } else if (state === 'pending') {
+            // Still loading — show spinner inside modal
+            setAiPreviewLoading(true);
+            const content = document.getElementById('aiPreviewContent');
+            if (content) content.style.display = '';
+        }
+
+        getAiTransformModal().show();
     }
 
     function resetAiPreview() {
@@ -1375,6 +1453,7 @@
         aiPreviewState.suggestions = [];
         aiPreviewState.selectedIngredientIds = [];
         aiPreviewState.preview = null;
+        hideAiBottomBar();
     }
 
     function escapeHtml(value) {

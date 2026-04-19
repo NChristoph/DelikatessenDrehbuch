@@ -12,7 +12,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             string? userNote,
             int appliedChangeCount,
             IReadOnlyList<RecipeAiIngredientSuggestionItem>? selectedIngredients = null,
-            bool forceFallback = false,
             CancellationToken cancellationToken = default);
 
         Task<RecipeAiIngredientSuggestionResponse> BuildIngredientSuggestionsAsync(

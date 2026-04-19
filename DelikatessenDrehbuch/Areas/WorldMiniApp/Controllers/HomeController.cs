@@ -212,7 +212,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 var selectedIngredientIds = (request.SelectedIngredientIds ?? new List<int>())
                     .Where(x => x > 0)
                     .Distinct()
-                    .Take(2)
+                    .Take(3)
                     .ToList();
 
                 if (selectedIngredientIds.Count == 0 && request.SelectedIngredientId.GetValueOrDefault() > 0)
@@ -297,8 +297,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     request.UserNote,
                     request.AppliedChangeCount,
                     selectedIngredients,
-                    request.ForceFallback,
-                    cancellationToken);
+                    cancellationToken: cancellationToken);
 
                 return Json(preview);
             }
