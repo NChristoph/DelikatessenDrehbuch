@@ -305,6 +305,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         {
             try
             {
+                // First try a deterministic fix: if ingredientsText mentions an ingredient (with a quantity),
+                // but ingredients[] missed it, we patch it locally. This avoids an extra AI call and prevents
+                // "Zutat im Text, aber nicht in der Liste" failures.
+                PatchMissingIngredientsFromIngredientsText(draft, recipe, language, availableVariantIngredients);
+
                 var missing = FindMissingPantryIngredients(draft, availableVariantIngredients, language);
                 if (missing.Count == 0)
                 {
@@ -397,7 +402,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     continue;
                 }
 
-                if (prep.Contains(name, StringComparison.OrdinalIgnoreCase))
+                if (ContainsIngredientReference(prep, name))
                 {
                     result.Add(item);
                 }
@@ -426,6 +431,200 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
 
             return result;
+        }
+
+        private static void PatchMissingIngredientsFromIngredientsText(
+            RecipeAiTransformPreview draft,
+            RecipeBaseData recipe,
+            string language,
+            IReadOnlyList<RecipeAiIngredientSuggestionItem> availableVariantIngredients)
+        {
+            if (draft == null)
+            {
+                return;
+            }
+
+            var ingredientsText = (draft.IngredientsText ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(ingredientsText))
+            {
+                return;
+            }
+
+            draft.Ingredients ??= new List<RecipeAiTransformIngredientPreview>();
+
+            var existingIds = draft.Ingredients
+                .Where(x => x != null && x.IngredientId > 0)
+                .Select(x => x.IngredientId)
+                .ToHashSet();
+
+            // Build a stable id->name map (prefer candidate list naming, fall back to base recipe names).
+            var candidateNameById = (availableVariantIngredients ?? Array.Empty<RecipeAiIngredientSuggestionItem>())
+                .Where(x => x != null && x.IngredientId > 0 && !string.IsNullOrWhiteSpace(x.Name))
+                .GroupBy(x => x.IngredientId)
+                .ToDictionary(g => g.Key, g => (g.First().Name ?? string.Empty).Trim(), EqualityComparer<int>.Default);
+
+            var baseNameById = recipe?.Ingredients?
+                .Where(x => x?.Ingredient?.IngredientsAndNutrients != null)
+                .Select(x => x!.Ingredient!.IngredientsAndNutrients!)
+                .GroupBy(x => x.Id)
+                .ToDictionary(g => g.Key, g => GetIngredientName(g.First(), language), EqualityComparer<int>.Default)
+                ?? new Dictionary<int, string>();
+
+            var idNamePairs = candidateNameById
+                .Select(kv => (id: kv.Key, name: kv.Value))
+                .Concat(baseNameById.Select(kv => (id: kv.Key, name: kv.Value)))
+                .Where(x => x.id > 0 && !string.IsNullOrWhiteSpace(x.name))
+                .GroupBy(x => x.id)
+                .Select(g => (id: g.Key, name: g.First().name))
+                .OrderByDescending(x => x.name.Length)
+                .ToList();
+
+            // Parse each line and add missing entries only if the ingredient is also referenced in the preparation.
+            // Rationale: The model may list "nice-to-have" pantry items in ingredientsText that are never used in steps.
+            // We only auto-add when the cooking instructions actually need it.
+            var preparationHaystack = string.Join("\n",
+                new[] { draft.PreparationText ?? string.Empty }
+                .Concat((draft.Steps ?? new List<RecipeAiTransformStepPreview>()).Select(s => s?.Text ?? string.Empty)))
+                .Trim();
+
+            foreach (var rawLine in ingredientsText.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var line = rawLine.Trim().TrimStart('-', '•').Trim();
+                if (string.IsNullOrWhiteSpace(line))
+                {
+                    continue;
+                }
+
+                // Find the best matching ingredient name for this line.
+                var match = idNamePairs.FirstOrDefault(p => ContainsIngredientReference(line, p.name));
+                if (match.id <= 0 || string.IsNullOrWhiteSpace(match.name))
+                {
+                    continue;
+                }
+
+                if (existingIds.Contains(match.id))
+                {
+                    continue;
+                }
+
+                // Only auto-add if it is actually needed by the instructions.
+                if (string.IsNullOrWhiteSpace(preparationHaystack) || !ContainsIngredientReference(preparationHaystack, match.name))
+                {
+                    continue;
+                }
+
+                if (!TryParseLeadingQuantityAndMeasure(line, out var qty, out var measure))
+                {
+                    continue;
+                }
+
+                draft.Ingredients.Add(new RecipeAiTransformIngredientPreview
+                {
+                    IngredientId = match.id,
+                    Name = match.name,
+                    Quantity = qty,
+                    Measure = measure,
+                    ChangeHint = "Aus Zutatenliste ergänzt",
+                    IsModified = true
+                });
+
+                existingIds.Add(match.id);
+            }
+
+            // Keep ingredientsText canonical, so UI and saving use the same truth.
+            draft.IngredientsText = BuildIngredientsText(draft.Ingredients);
+        }
+
+        private static bool TryParseLeadingQuantityAndMeasure(string line, out string quantity, out string measure)
+        {
+            quantity = string.Empty;
+            measure = string.Empty;
+
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return false;
+            }
+
+            // Examples:
+            // "600 g Grüne Linsen"
+            // "1 Prise Salz"
+            // "0,5 TL Limettensaft"
+            // "4 EL Sojasauce"
+            var m = Regex.Match(line.Trim(), @"^(?<qty>\d+(?:[.,]\d+)?)(?:\s*)(?<unit>[A-Za-zÄÖÜäöü\.\-]+)\b");
+            if (!m.Success)
+            {
+                return false;
+            }
+
+            quantity = (m.Groups["qty"].Value ?? string.Empty).Trim().Replace(',', '.');
+            measure = (m.Groups["unit"].Value ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(quantity) || string.IsNullOrWhiteSpace(measure))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        private static bool ContainsIngredientReference(string haystack, string needle)
+        {
+            if (string.IsNullOrWhiteSpace(haystack) || string.IsNullOrWhiteSpace(needle))
+            {
+                return false;
+            }
+
+            // Fast path
+            if (haystack.Contains(needle, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // Normalize umlauts + punctuation so we match "Öl" vs "Oel" and similar DB naming differences.
+            var normalizedHaystack = NormalizeForContains(haystack);
+            var normalizedNeedle = NormalizeForContains(needle);
+            if (!string.IsNullOrWhiteSpace(normalizedNeedle) && normalizedHaystack.Contains(normalizedNeedle, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            // Token fallback: allow matching on meaningful sub-words (e.g. "Öl" inside "Olivenöl").
+            var tokens = Regex.Split(normalizedNeedle, "[^a-z0-9]+")
+                .Select(x => x.Trim())
+                .Where(x => x.Length >= 3)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            foreach (var token in tokens)
+            {
+                if (normalizedHaystack.Contains(token, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private static string NormalizeForContains(string input)
+        {
+            var value = (input ?? string.Empty).Trim().ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return string.Empty;
+            }
+
+            // German umlauts
+            value = value
+                .Replace("ä", "ae", StringComparison.OrdinalIgnoreCase)
+                .Replace("ö", "oe", StringComparison.OrdinalIgnoreCase)
+                .Replace("ü", "ue", StringComparison.OrdinalIgnoreCase)
+                .Replace("ß", "ss", StringComparison.OrdinalIgnoreCase);
+
+            // Strip common punctuation
+            value = Regex.Replace(value, "[\\u2019\\u2018\\u201c\\u201d\"'`´]", string.Empty);
+            value = value.Replace("(", " ").Replace(")", " ").Replace(",", " ").Replace(";", " ").Replace(":", " ").Replace(".", " ").Replace("/", " ");
+            value = Regex.Replace(value, "\\s+", " ").Trim();
+            return value;
         }
 
         private static bool ImpliesFatUsage(string preparationText, string language)
@@ -658,7 +857,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     $"Original-Zutaten: {JsonSerializer.Serialize(sourceIngredients)}\n" +
                     $"Erlaubte Zutaten (id->name): {(allowedVariantIngredientContext.Count == 0 ? "keine" : JsonSerializer.Serialize(allowedVariantIngredientContext))}\n" +
                     (selectedConceptContext == null ? string.Empty : $"Gewaehltes Konzept: {JsonSerializer.Serialize(selectedConceptContext)}\n") +
-                    (selectedConceptContext == null || (selectedConcept?.ConceptIngredientPlan?.Count ?? 0) == 0 ? string.Empty : "Wichtig: Wenn ein ingredientPlan im Konzept enthalten ist, verwende exakt diesen Plan (ids + Mengen + Einheiten + add/replace/remove) als Grundlage und erfinde keine zusaetzlichen Protein-Hebel ausserhalb dieses Plans.\n") +
+                    (selectedConceptContext == null || (selectedConcept?.ConceptIngredientPlan?.Count ?? 0) == 0
+                        ? string.Empty
+                        : "Wichtig: Wenn ein ingredientPlan im Konzept enthalten ist, ist dieser Plan verbindlich: " +
+                          "Du darfst KEINE weiteren Zutaten hinzufuegen oder erfinden. " +
+                          "Alle Zutaten im finalen Rezept muessen entweder Original-Zutaten sein oder im ingredientPlan stehen oder aus den vom User gewaehlten DB-Zutaten stammen.\n") +
                     $"Gewaehlte DB-Zutaten: {(selectedIngredientContext.Count == 0 ? "keine" : JsonSerializer.Serialize(selectedIngredientContext))}\n" +
                     $"Pflicht: Wenn du eine dieser gewaehlten DB-Zutaten in der Zubereitung verwendest, muss der Text auch erklaeren, wie sie vorbereitet/gekocht wird (kein stilles 'gekocht' ohne Kochschritt).\n" +
                     (cookingNotes.Count == 0 ? string.Empty : $"Kochhinweise zu den gewaehlten Zutaten: {JsonSerializer.Serialize(cookingNotes)}\n") +
@@ -804,7 +1007,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                                     ingredients = new
                                     {
                                         type = "array",
-                                        minItems = 1,
+                                        minItems = 2,
                                         maxItems = 12,
                                         items = new
                                         {
@@ -875,7 +1078,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 "Arbeite mit den vorhandenen DB-Kandidaten als Inspiration fuer Richtung, Austausch und Stil. " +
                 "Sehr wichtig: Erfinde keine Zutaten, die nicht vorhanden sind. Wenn du im title/summary/approach ein Lebensmittel nennst (z.B. Quinoa), muss es entweder in den Original-Zutaten vorkommen oder als ingredientId in ingredients[] geplant sein. " +
                 "Sehr wichtig: Erfinde keine unueblichen Zuschnitte oder Produktnamen. Schreibe z.B. NICHT 'Haehnchenschulter'. Wenn du Schweineschulter ersetzen willst, nimm realistische Cuts wie Haehnchenoberkeule/Haehnchenkeule/Haehnchenbrustfilet oder einen Fisch aus der Kandidatenliste. Wenn du konkrete Zutaten nennst, verwende nach Moeglichkeit die Kandidaten-Namen exakt so wie sie in der Liste stehen. " +
-                "Liefere zu JEDEM Konzept eine konkrete Zutaten-Planung als ingredients[]: verwende nur ingredientId aus der Kandidatenliste, setze action=add|replace|remove, quantity als reine Zahl (Punkt als Dezimaltrenner), measure als reine Einheit (z.B. g, ml, Stk.), und reason als kurzer Grund. Wenn du etwas ersetzt, setze replacesIngredientId auf die alte ingredientId. ";
+                "Liefere zu JEDEM Konzept eine konkrete Zutaten-Planung als ingredients[]: verwende ingredientId aus der Kandidatenliste ODER aus Zutaten, die du ueber get_ingredients geladen hast. " +
+                "Setze action=add|replace|remove, quantity als reine Zahl (Punkt als Dezimaltrenner), measure als reine Einheit (z.B. g, ml, Stk.), und reason als kurzer Grund. Wenn du etwas ersetzt, setze replacesIngredientId auf die alte ingredientId. " +
+                "Qualitaetsregel: Ein Konzept muss als Gerichtsidee komplett wirken. Vermeide 'nur eine Zutat dazu' ohne kulinarische Ausarbeitung. " +
+                "Wenn du z.B. Linsen/Bohohnen/Tofu als Baustein vorschlaegst, plane auch 1-3 passende Stuetzzutaten (z.B. Oel/Fett + 1-2 Gewuerze/Kraeuter/Sauce/Bruhee) in ingredients[] ein, damit daraus wirklich ein gutes Rezept wird. " +
+                "Wichtig: Keine Zutat im finalen Rezept darf spaeter aus dem Nichts auftauchen. Alles, was du in title/summary/approach als Zutat benennst oder fuer die Logik brauchst, muss als ingredientId in ingredients[] stehen (oder bereits Original-Zutat sein). ";
 
             var variantConceptPick = normalizedVariantType switch
             {
@@ -3281,6 +3488,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 preview.Ingredients = NormalizePreviewIngredients(preview.Ingredients, recipe, language, availableVariantIngredients);
             }
 
+            // We operate in "free text" mode for AI output: stepPlan should be empty and steps are derived from preparationText.
+            // Keep stepPlan only for local fallback.
+            if (!usedFallback)
+            {
+                preview.StepPlan = new List<RecipeAiTransformStepPlanItem>();
+            }
+
+            // Ensure ingredients[] covers what the user sees in ingredientsText/preparationText.
+            PatchMissingIngredientsFromIngredientsText(preview, recipe, language, availableVariantIngredients);
+
             var validatedPlan = ValidateAndRenderStepPlan(preview.StepPlan, language, sourceStepPlan, additionalAllowedStepKeys, allowOnlySourceKeys);
             preview.StepPlan = validatedPlan;
             var renderedSteps = validatedPlan.Count > 0
@@ -3309,10 +3526,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             preview.Steps = renderedSteps;
 
-            if (string.IsNullOrWhiteSpace(preview.IngredientsText))
-            {
-                preview.IngredientsText = BuildIngredientsText(preview.Ingredients);
-            }
+            // Always keep ingredientsText in sync with the canonical ingredient rows (prevents "missing rows" in UI/saving).
+            preview.IngredientsText = BuildIngredientsText(preview.Ingredients);
 
             if (string.IsNullOrWhiteSpace(preview.PreparationText))
             {
@@ -3341,14 +3556,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             IReadOnlyList<RecipeAiIngredientSuggestionItem> availableVariantIngredients)
         {
             var allowedIds = new HashSet<int>();
+            var hasConceptPlan = (selectedConcept?.ConceptIngredientPlan?.Count ?? 0) > 0;
 
-            // Always allow pantry/balance items that we resolved from the DB.
-            // This prevents "Zitronensaft/Essig/Öl" showing up in preparationText without being selectable as an ingredientId.
-            foreach (var pantry in (availableVariantIngredients ?? Array.Empty<RecipeAiIngredientSuggestionItem>())
-                         .Where(x => x?.IngredientId > 0 && (x.AiReason ?? string.Empty).StartsWith("pantry", StringComparison.OrdinalIgnoreCase))
-                         .Take(80))
+            // If the user picked a concept with an ingredientPlan, we keep the allowed ingredient universe tight:
+            // only base recipe + the plan + explicitly selected DB ingredients. This avoids "random extra spices"
+            // that were never visible in the concept suggestion.
+            if (!hasConceptPlan)
             {
-                allowedIds.Add(pantry.IngredientId);
+                // Always allow pantry/balance items that we resolved from the DB.
+                // This prevents "Zitronensaft/Essig/Oel" showing up in preparationText without being selectable as an ingredientId.
+                foreach (var pantry in (availableVariantIngredients ?? Array.Empty<RecipeAiIngredientSuggestionItem>())
+                             .Where(x => x?.IngredientId > 0 && (x.AiReason ?? string.Empty).StartsWith("pantry", StringComparison.OrdinalIgnoreCase))
+                             .Take(80))
+                {
+                    allowedIds.Add(pantry.IngredientId);
+                }
             }
 
             if (selectedConcept?.ConceptIngredientPlan != null)

@@ -1966,8 +1966,11 @@
         <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="nav-item text-decoration-none" aria-label="Startseite">
             <i class="bi bi-house-door-fill"></i>
         </a>
-        <div class="nav-item" role="button" aria-label="Wochenplan" onclick="openPlanModal(null, null, null)">
-            <i class="bi bi-calendar-week"></i>
+        <div class="nav-item position-relative" id="wmNotifyBtn" role="button" aria-label="Benachrichtigungen">
+            <i class="bi bi-bell"></i>
+            <span id="wmNotifyBadge" class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="display:none; font-size:0.7rem; line-height:1; padding:0.35em 0.5em; margin-top:2px;">
+                0
+            </span>
         </div>
         <div class="add-btn-wrapper">
             <a href="@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })" class="add-btn text-decoration-none" aria-label="Rezept hochladen">
@@ -1979,6 +1982,39 @@
         </div>
         <div class="nav-item" role="button" aria-label="Profil" onclick="goToProfile()" style="cursor: pointer;">
             <i class="bi bi-person-fill"></i>
+        </div>
+    </div>
+
+    <!-- NOTIFICATIONS (lightweight, client-only) -->
+    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="wmNotifyCanvas" aria-labelledby="wmNotifyCanvasLabel" style="height: 70vh; border-top-left-radius: 22px; border-top-right-radius: 22px;">
+        <div class="offcanvas-header" style="padding-bottom: 8px;">
+            <div class="d-flex align-items-center justify-content-between w-100 gap-2">
+                <div>
+                    <div class="fw-semibold" id="wmNotifyCanvasLabel">Benachrichtigungen</div>
+                    <div class="small text-muted">AI und wichtige Hinweise</div>
+                </div>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Schlie&szlig;en"></button>
+            </div>
+        </div>
+        <div class="offcanvas-body" style="padding-top: 6px;">
+            <div class="d-flex gap-2 mb-2">
+                <button type="button" class="btn btn-sm btn-outline-secondary" id="wmNotifyMarkAll">Alles gelesen</button>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="wmNotifyClear">Leeren</button>
+                <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="wmNotifyOpenPlanBtn">
+                    <i class="bi bi-calendar-week me-1"></i>Plan
+                </button>
+            </div>
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <div class="btn-group btn-group-sm" role="group" aria-label="Filter">
+                    <button type="button" class="btn btn-outline-dark" id="wmNotifyFilterAll">Alle</button>
+                    <button type="button" class="btn btn-outline-dark" id="wmNotifyFilterAi">Nur AI</button>
+                </div>
+                <div class="form-check form-switch m-0">
+                    <input class="form-check-input" type="checkbox" role="switch" id="wmNotifyGroupBySender" checked>
+                    <label class="form-check-label small" for="wmNotifyGroupBySender">Gruppieren</label>
+                </div>
+            </div>
+            <div id="wmNotifyList"></div>
         </div>
     </div>
 
@@ -2252,6 +2288,12 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/worldminiapp-notifications.js"></script>
+    <form id="wmAntiForgeryForm" style="display:none;">@Html.AntiForgeryToken()</form>
+
+    @* Feed: show only a toast/notice (no bottom bar) *@
+    @await Html.PartialAsync("_AiResumeBar", new ViewDataDictionary(ViewData) { ["AiResumeMode"] = "toast" })
+
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
     <script src="~/js/worldchain-marketplace.js"></script>
     <script type="module" src="~/js/minikitt.js"></script>
@@ -2272,6 +2314,39 @@
         const feedRefreshThresholdPx = 84;
         window.likedRecipeIds = new Set(@Html.Raw(Json.Serialize(likedRecipeIds)));
         window.bookmarkedRecipeIds = new Set(@Html.Raw(Json.Serialize(bookmarkedRecipeIds)));
+
+        // Lightweight notifications overlay (client-only).
+        try {
+            window.WorldMiniAppNotify?.initFeedOverlay?.({
+                buttonId: 'wmNotifyBtn',
+                badgeId: 'wmNotifyBadge',
+                canvasId: 'wmNotifyCanvas',
+                listId: 'wmNotifyList',
+                markAllId: 'wmNotifyMarkAll',
+                clearId: 'wmNotifyClear',
+                filterAllId: 'wmNotifyFilterAll',
+                filterAiId: 'wmNotifyFilterAi',
+                groupToggleId: 'wmNotifyGroupBySender',
+                pollMs: 8000,
+                // Server-backed notifications
+                listUrl: '/WorldMiniApp/Home/GetWorldUserNotifications?take=30&includeSeen=true',
+                unreadUrl: '/WorldMiniApp/Home/GetWorldUserNotifications?take=50&includeSeen=false',
+                markSeenUrl: '/WorldMiniApp/Home/MarkWorldUserNotificationSeen',
+                markAllSeenUrl: '/WorldMiniApp/Home/MarkAllWorldUserNotificationsSeen',
+                clearAllUrl: '/WorldMiniApp/Home/ClearWorldUserNotifications',
+                antiforgeryFormId: 'wmAntiForgeryForm'
+            });
+
+            const openPlanBtn = document.getElementById('wmNotifyOpenPlanBtn');
+            openPlanBtn && openPlanBtn.addEventListener('click', () => {
+                try {
+                    const el = document.getElementById('wmNotifyCanvas');
+                    const c = el && window.bootstrap ? bootstrap.Offcanvas.getInstance(el) : null;
+                    c && c.hide();
+                } catch { /* ignore */ }
+                openPlanModal(null, null, null);
+            });
+        } catch { /* ignore */ }
 
         // ----------------- feed state restore (back from recipe detail) -----------------
         const FEED_STATE_KEY = 'worldminiapp.feed.state.v1';

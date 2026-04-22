@@ -88,6 +88,10 @@ builder.Services.AddHttpClient<IRecipeAiTransformService, RecipeAiTransformServi
 {
     client.Timeout = TimeSpan.FromSeconds(120);
 });
+builder.Services.AddSingleton<IBackgroundTaskQueue>(_ => new BackgroundTaskQueue(capacity: 300));
+builder.Services.AddHostedService<WorldMiniAppQueuedHostedService>();
+builder.Services.AddSingleton<IRecipeAiVariantJobService, RecipeAiVariantJobService>();
+builder.Services.AddScoped<IRecipeAiNutritionService, RecipeAiNutritionService>();
 
 
 builder.Services.AddHttpContextAccessor();

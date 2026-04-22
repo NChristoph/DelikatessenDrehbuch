@@ -1,0 +1,318 @@
+@* Global AI resume UI used across WorldMiniApp pages (including Feed where Layout=null).
+   Mode:
+   - ViewData["AiResumeMode"] == "toast"  -> toast + modal only (no bottom bar)
+   - default -> bottom bar + toast + modal
+*@
+
+@{
+    var mode = (ViewData["AiResumeMode"]?.ToString() ?? "").Trim().ToLowerInvariant();
+    var toastOnly = mode == "toast";
+}
+
+<style>
+    /* When the bar is visible, we temporarily hide the bottom nav so the bar can sit flush at the very bottom. */
+    body.wm-ai-resume-bar-visible .bottom-nav { display: none !important; }
+</style>
+
+@if (!toastOnly)
+{
+    <div id="wmAiResumeBar" class="position-fixed start-0 end-0" style="bottom: 0; z-index: 1061; display:none;">
+        <div class="d-flex align-items-center justify-content-between" style="background:#2D4F1E; color:white; padding:10px 14px; border-top: 1px solid rgba(255,255,255,.18);">
+            <div class="d-flex align-items-center gap-2" id="wmAiResumeBarStatus">
+                <span class="spinner-border spinner-border-sm text-light" id="wmAiResumeSpinner" style="display:none;"></span>
+                <span id="wmAiResumeText">AI Vorschau bereit.</span>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <button type="button" class="btn btn-sm btn-light rounded-pill" id="wmAiResumeOpenBtn">Oeffnen</button>
+                <button type="button" class="btn btn-sm btn-outline-light rounded-pill" id="wmAiResumeDismissBtn" aria-label="Schliessen">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="toast-container position-fixed bottom-0 end-0 p-0" style="z-index: 2000; right:0; bottom:0;">
+    <div id="wmAiToast" class="toast text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="wmAiToastBody">
+                <span id="wmAiToastText">AI Vorschau ist fertig.</span>
+            <button type="button" class="btn btn-sm btn-light ms-2" id="wmAiToastOpenBtn" style="display:none;">&Ouml;ffnen</button>
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Schlie&szlig;en"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Global modal for AI result preview (so we do NOT need to navigate to ShowRecipe) -->
+<div class="modal fade" id="wmAiResultModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="wmAiResultTitle">AI Vorschau</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="wmAiResultLoading" class="text-center py-4" style="display:none;">
+                    <div class="spinner-border" role="status"></div>
+                    <div class="mt-2 small text-muted">Laedt...</div>
+                </div>
+                <div id="wmAiResultError" class="alert alert-danger" style="display:none;"></div>
+
+                <div id="wmAiResultContent" style="display:none;">
+                    <p class="text-muted" id="wmAiResultSummary" style="white-space:pre-wrap;"></p>
+                    <hr />
+                    <h6>Zutaten</h6>
+                    <pre id="wmAiResultIngredientsText" class="mb-3" style="white-space:pre-wrap; font-family:inherit;"></pre>
+                    <h6>Zubereitung</h6>
+                    <pre id="wmAiResultPreparationText" style="white-space:pre-wrap; font-family:inherit;"></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function worldMiniAppAiResume() {
+        if (window.WorldMiniAppAiResume) return; // don't double-register if multiple partials render
+
+        const KEY = 'worldminiapp.ai.resume.v2';
+        const bar = document.getElementById('wmAiResumeBar');
+        const statusText = document.getElementById('wmAiResumeText');
+        const spinner = document.getElementById('wmAiResumeSpinner');
+        const openBtn = document.getElementById('wmAiResumeOpenBtn');
+        const dismissBtn = document.getElementById('wmAiResumeDismissBtn');
+        const toastEl = document.getElementById('wmAiToast');
+        const toastBody = document.getElementById('wmAiToastBody');
+        const toastText = document.getElementById('wmAiToastText');
+        const toastOpenBtn = document.getElementById('wmAiToastOpenBtn');
+        let toastInstance = null;
+
+        const modalEl = document.getElementById('wmAiResultModal');
+        const modalTitle = document.getElementById('wmAiResultTitle');
+        const modalLoading = document.getElementById('wmAiResultLoading');
+        const modalError = document.getElementById('wmAiResultError');
+        const modalContent = document.getElementById('wmAiResultContent');
+        const modalSummary = document.getElementById('wmAiResultSummary');
+        const modalIngredientsText = document.getElementById('wmAiResultIngredientsText');
+        const modalPreparationText = document.getElementById('wmAiResultPreparationText');
+        let modalInstance = null;
+
+        function anyAiModalOpen() {
+            // Bootstrap sets this reliably even when the modal hasn't applied `.show` yet.
+            if (document.body.classList.contains('modal-open')) return true;
+            if (document.querySelector('.modal-backdrop')) return true;
+
+            // Our global result modal (feed) + the recipe page transform modal.
+            const ids = ['wmAiResultModal', 'aiTransformModal'];
+            for (const id of ids) {
+                const el = document.getElementById(id);
+                if (el && el.classList.contains('show')) return true;
+            }
+            return false;
+        }
+
+        function read() {
+            try {
+                const raw = sessionStorage.getItem(KEY);
+                return raw ? JSON.parse(raw) : null;
+            } catch {
+                return null;
+            }
+        }
+
+        function write(state) {
+            try {
+                sessionStorage.setItem(KEY, JSON.stringify({ ...state, updatedAt: Date.now() }));
+            } catch {
+                // ignore
+            }
+            render();
+        }
+
+        function clear() {
+            try { sessionStorage.removeItem(KEY); } catch { /* ignore */ }
+            render();
+        }
+
+        function showToast(message) {
+            if (!toastEl || !toastBody || !window.bootstrap) return;
+            // Only pop a notice when no AI overlay is currently open.
+            if (anyAiModalOpen()) return;
+            if (toastText) toastText.textContent = message || 'AI Vorschau ist fertig.';
+            else toastBody.textContent = message || 'AI Vorschau ist fertig.';
+            toastInstance = toastInstance || new bootstrap.Toast(toastEl, { delay: 4500 });
+            toastInstance.show();
+        }
+
+        function render() {
+            const state = read();
+            if (!state || !state.recipeId || !state.variantType) {
+                if (bar) bar.style.display = 'none';
+                document.body.classList.remove('wm-ai-resume-bar-visible');
+                return;
+            }
+
+            const stage = (state.stage || '').toString();
+            const title = (state.title || '').toString();
+            const label = title ? `AI: ${title}` : 'AI Vorschau';
+
+            if (bar && statusText && spinner) {
+                if (stage === 'queued' || stage === 'running') {
+                    spinner.style.display = '';
+                    statusText.textContent = `${label} wird erstellt...`;
+                } else if (stage === 'ready') {
+                    spinner.style.display = 'none';
+                    statusText.textContent = `${label} ist bereit.`;
+                } else if (stage === 'error') {
+                    spinner.style.display = 'none';
+                    statusText.textContent = `${label}: Fehler (erneut oeffnen).`;
+                } else {
+                    spinner.style.display = 'none';
+                    statusText.textContent = `${label}.`;
+                }
+
+                if (stage === 'queued' || stage === 'running' || stage === 'ready' || stage === 'error') {
+                    bar.style.display = '';
+                    document.body.classList.add('wm-ai-resume-bar-visible');
+                } else {
+                    bar.style.display = 'none';
+                    document.body.classList.remove('wm-ai-resume-bar-visible');
+                }
+            }
+        }
+
+        async function openOverlayFromState() {
+            const state = read();
+            if (!state) return;
+
+            // Prefer the recipe page overlay when available (no navigation / no reload).
+            if (typeof window.openAiJobResult === 'function' && state.jobId) {
+                window.openAiJobResult(state.jobId, state.variantType, state.aiProvider || 'openai');
+                return;
+            }
+
+            // If we don't have a job id yet (queued before the response came back), reopen the selection overlay.
+            if (!state.jobId && typeof window.openAiTransformModal === 'function' && state.variantType) {
+                window.openAiTransformModal(state.variantType, state.aiProvider || 'openai');
+                return;
+            }
+
+            if (!state.jobId) {
+                showToast('AI laeuft noch. Bitte kurz warten.');
+                return;
+            }
+
+            if (!modalEl || !window.bootstrap) return;
+            modalInstance = modalInstance || new bootstrap.Modal(modalEl);
+            modalInstance.show();
+
+            if (modalTitle) modalTitle.textContent = state.title ? `AI: ${state.title}` : 'AI Vorschau';
+            if (modalError) { modalError.style.display = 'none'; modalError.textContent = ''; }
+            if (modalContent) modalContent.style.display = 'none';
+            if (modalLoading) modalLoading.style.display = '';
+
+            try {
+                const url = `/WorldMiniApp/Home/GetAiRecipeVariantJobResult?jobId=${encodeURIComponent(state.jobId)}`;
+                const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                const text = await res.text().catch(() => '');
+                let payload = null;
+                try { payload = text ? JSON.parse(text) : null; } catch { payload = null; }
+                if (!res.ok || !payload) {
+                    throw new Error(payload?.message || text || 'AI-Ergebnis ist noch nicht bereit.');
+                }
+
+                if (modalTitle) modalTitle.textContent = payload.title || (state.title ? `AI: ${state.title}` : 'AI Vorschau');
+                if (modalSummary) modalSummary.textContent = payload.summary || '';
+                if (modalIngredientsText) modalIngredientsText.textContent = payload.ingredientsText || '';
+                if (modalPreparationText) modalPreparationText.textContent = payload.preparationText || '';
+                if (modalLoading) modalLoading.style.display = 'none';
+                if (modalContent) modalContent.style.display = '';
+            } catch (e) {
+                if (modalLoading) modalLoading.style.display = 'none';
+                if (modalContent) modalContent.style.display = 'none';
+                if (modalError) {
+                    modalError.textContent = (e && e.message) ? e.message : 'AI-Ergebnis konnte nicht geladen werden.';
+                    modalError.style.display = '';
+                }
+            }
+        }
+
+        openBtn?.addEventListener('click', openOverlayFromState);
+        dismissBtn?.addEventListener('click', clear);
+        toastOpenBtn?.addEventListener('click', openOverlayFromState);
+
+        window.WorldMiniAppAiResume = {
+            setState: write,
+            clearState: clear,
+            toast: showToast,
+            readState: read,
+            openOverlay: openOverlayFromState
+        };
+
+        async function pollOnce() {
+            const state = read();
+            if (!state || !state.jobId) return;
+            const stage = (state.stage || '').toString();
+            if (stage !== 'queued' && stage !== 'running') return;
+
+            try {
+                const url = `/WorldMiniApp/Home/GetAiRecipeVariantJobStatus?jobId=${encodeURIComponent(state.jobId)}`;
+                const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+                if (!res.ok) {
+                    if (res.status === 404 && state.updatedAt && (Date.now() - Number(state.updatedAt)) < 15000) {
+                        return;
+                    }
+                    const err = await res.json().catch(() => null);
+                    const msg = (err && (err.message || err.error)) ? (err.message || err.error) : `HTTP ${res.status}`;
+                    write({ ...state, stage: 'error', message: msg });
+                    if (toastOpenBtn) toastOpenBtn.style.display = '';
+                    showToast(`AI Vorschau: Fehler (${msg}).`);
+                    return;
+                }
+                const payload = await res.json().catch(() => null);
+                if (!payload) return;
+
+                const nextStage = (payload.state || '').toString();
+                const nextTitle = (payload.title || state.title || '').toString();
+                const msg = (payload.message || '').toString();
+                write({ ...state, stage: nextStage, title: nextTitle, message: msg });
+
+                // Create a lightweight notification entry once the job reaches a final state.
+                // This is client-only and safe even when the feed has no layout.
+                if ((nextStage === 'ready' || nextStage === 'error') && nextStage !== stage) {
+                    try {
+                        // If notifications are server-backed, just refresh badge/list.
+                        if (window.WorldMiniAppNotify?.__isServerMode?.()) {
+                            window.WorldMiniAppNotify?.refresh?.();
+                        } else {
+                            window.WorldMiniAppNotify?.addAiJobNotice?.({
+                                recipeId: state.recipeId,
+                                variantType: state.variantType,
+                                aiProvider: state.aiProvider || 'openai',
+                                jobId: state.jobId,
+                                stage: nextStage,
+                                title: nextTitle
+                            });
+                        }
+                    } catch { /* ignore */ }
+                }
+
+                if (nextStage === 'ready') {
+                    if (toastOpenBtn) toastOpenBtn.style.display = '';
+                    showToast('AI Vorschau ist fertig.');
+                } else if (nextStage === 'error') {
+                    if (toastOpenBtn) toastOpenBtn.style.display = '';
+                    showToast('AI Vorschau ist fehlgeschlagen.');
+                } else {
+                    if (toastOpenBtn) toastOpenBtn.style.display = 'none';
+                }
+            } catch {
+                // ignore polling errors
+            }
+        }
+
+        setInterval(pollOnce, 1500);
+        render();
+    })();
+</script>

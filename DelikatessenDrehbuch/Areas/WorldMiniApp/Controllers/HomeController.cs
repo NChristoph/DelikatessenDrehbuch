@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Globalization;
 using System.Text.Json;
+using System.Threading;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -16,19 +17,49 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IWorldClipWatchService _worldClipWatchService;
         private readonly IWorldAdPreferenceService _worldAdPreferenceService;
         private readonly IRecipeAiTransformService _recipeAiTransformService;
+        private readonly IRecipeAiVariantJobService _recipeAiVariantJobService;
+        private readonly IRecipeAiNutritionService _recipeAiNutritionService;
         private readonly ILogger<HomeController> _logger;
+
+        private static readonly SemaphoreSlim EnsureNotificationsSchemaLock = new(1, 1);
+        private static volatile bool NotificationsSchemaEnsured = false;
+
+        // Azure-safe SQL (no GO). Creates the lightweight notifications table if missing.
+        private const string EnsureWorldUserNotificationsSchemaSql = @"
+IF OBJECT_ID(N'[dbo].[WorldUserNotifications]', N'U') IS NULL
+BEGIN
+    CREATE TABLE [dbo].[WorldUserNotifications](
+        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_WorldUserNotifications] PRIMARY KEY,
+        [UserHash] NVARCHAR(256) NOT NULL,
+        [Icon] NVARCHAR(64) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Icon] DEFAULT (N'bi-bell'),
+        [Sender] NVARCHAR(128) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Sender] DEFAULT (N'system'),
+        [Description] NVARCHAR(1000) NOT NULL,
+        [Href] NVARCHAR(600) NULL,
+        [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserNotifications_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
+        [IsSeen] BIT NOT NULL CONSTRAINT [DF_WorldUserNotifications_IsSeen] DEFAULT (0),
+        [SeenAtUtc] DATETIME2 NULL
+    );
+
+    CREATE INDEX [IX_WorldUserNotifications_UserHash_IsSeen_CreatedAtUtc]
+        ON [dbo].[WorldUserNotifications]([UserHash], [IsSeen], [CreatedAtUtc]);
+END;
+";
 
         public HomeController(
             ApplicationDbContext context,
             IWorldClipWatchService worldClipWatchService,
             IWorldAdPreferenceService worldAdPreferenceService,
             IRecipeAiTransformService recipeAiTransformService,
+            IRecipeAiVariantJobService recipeAiVariantJobService,
+            IRecipeAiNutritionService recipeAiNutritionService,
             ILogger<HomeController> logger)
         {
             _context = context;
             _worldClipWatchService = worldClipWatchService;
             _worldAdPreferenceService = worldAdPreferenceService;
             _recipeAiTransformService = recipeAiTransformService;
+            _recipeAiVariantJobService = recipeAiVariantJobService;
+            _recipeAiNutritionService = recipeAiNutritionService;
             _logger = logger;
         }
 
@@ -552,7 +583,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 preview.AiProvider = string.IsNullOrWhiteSpace(request.AiProvider) ? "openai" : request.AiProvider.Trim().ToLowerInvariant();
                 preview.LanguageCode = language;
                 preview.SelectedIngredientKey = selectedIngredientKey;
-                preview.Nutrition = await BuildAiPreviewNutritionAsync(preview, cancellationToken);
+                preview.Nutrition = await _recipeAiNutritionService.BuildAiPreviewNutritionAsync(preview, language, cancellationToken);
 
                 // Hard requirement: high-protein must actually hit +7% protein per portion.
                 // If the first result doesn't, we do one internal repair pass (without consuming a user "change round").
@@ -592,7 +623,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         repaired.AiProvider = preview.AiProvider;
                         repaired.LanguageCode = language;
                         repaired.SelectedIngredientKey = selectedIngredientKey;
-                        repaired.Nutrition = await BuildAiPreviewNutritionAsync(repaired, cancellationToken);
+                        repaired.Nutrition = await _recipeAiNutritionService.BuildAiPreviewNutritionAsync(repaired, language, cancellationToken);
 
                         // Keep UX honest: don't show "User-Wunsch drin" when the user didn't type anything.
                         if (!userProvidedNote)
@@ -673,6 +704,245 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 _logger.LogError(ex, "Unexpected AI ingredient suggestions failure for RecipeId={RecipeId}", request.RecipeId);
                 return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> StartAiRecipeVariantJob([FromBody] RecipeAiTransformRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null || request.RecipeId <= 0 || string.IsNullOrWhiteSpace(request.VariantType))
+            {
+                return BadRequest(new { message = "Rezept oder AI-Variante fehlt." });
+            }
+
+            try
+            {
+                var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+                var userHash = ResolveUserHash(string.Empty);
+                var response = await _recipeAiVariantJobService.StartJobAsync(request, language, userHash, cancellationToken);
+                return Json(response);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "AI job start failed for RecipeId={RecipeId}", request?.RecipeId);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected AI job start failure for RecipeId={RecipeId}", request?.RecipeId);
+                return StatusCode(500, new { message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAiRecipeVariantJobStatus(string jobId, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+            {
+                return BadRequest(new { message = "jobId fehlt." });
+            }
+
+            try
+            {
+                var status = await _recipeAiVariantJobService.GetStatusAsync(jobId.Trim(), cancellationToken);
+                if (status == null)
+                {
+                    return NotFound(new { message = "Job nicht gefunden (abgelaufen)." });
+                }
+
+                return Json(status);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "AI job status failed for JobId={JobId}", jobId);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetAiRecipeVariantJobResult(string jobId, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(jobId))
+            {
+                return BadRequest(new { message = "jobId fehlt." });
+            }
+
+            try
+            {
+                var result = await _recipeAiVariantJobService.GetResultAsync(jobId.Trim(), cancellationToken);
+                if (result == null)
+                {
+                    return NotFound(new { message = "Ergebnis nicht bereit (oder Job abgelaufen)." });
+                }
+
+                return Json(result);
+            }
+            catch (InvalidOperationException ex)
+            {
+                _logger.LogWarning(ex, "AI job result failed for JobId={JobId}", jobId);
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        public sealed class WorldUserNotificationListItemDto
+        {
+            public int Id { get; set; }
+            public string Icon { get; set; } = "bi-bell";
+            public string Sender { get; set; } = "system";
+            public string Description { get; set; } = string.Empty;
+            public string? Href { get; set; }
+            public DateTime CreatedAtUtc { get; set; }
+            public bool IsSeen { get; set; }
+            public DateTime? SeenAtUtc { get; set; }
+            public string Kind { get; set; } = "info";
+            public string Title { get; set; } = "Info";
+        }
+
+        public sealed class WorldUserNotificationIdRequest
+        {
+            public int Id { get; set; }
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetWorldUserNotifications(int take = 30, bool includeSeen = true, CancellationToken cancellationToken = default)
+        {
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Json(new { items = Array.Empty<WorldUserNotificationListItemDto>() });
+            }
+
+            take = Math.Clamp(take, 1, 100);
+            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+            var query = _context.WorldUserNotifications.AsNoTracking().Where(x => x.UserHash == userHash);
+            if (!includeSeen)
+            {
+                query = query.Where(x => !x.IsSeen);
+            }
+
+            var items = await query
+                .OrderBy(x => x.IsSeen)
+                .ThenByDescending(x => x.CreatedAtUtc)
+                .Take(take)
+                .Select(x => new WorldUserNotificationListItemDto
+                {
+                    Id = x.Id,
+                    Icon = x.Icon,
+                    Sender = x.Sender,
+                    Description = x.Description,
+                    Href = x.Href,
+                    CreatedAtUtc = x.CreatedAtUtc,
+                    IsSeen = x.IsSeen,
+                    SeenAtUtc = x.SeenAtUtc,
+                    Kind = x.Sender == "ai" ? (x.Description.Contains("fehlgeschlagen") ? "error" : "success") : "info",
+                    Title = x.Sender == "ai" ? "AI" : (string.IsNullOrWhiteSpace(x.Sender) ? "Info" : x.Sender)
+                })
+                .ToListAsync(cancellationToken);
+
+            return Json(new { items });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkWorldUserNotificationSeen([FromBody] WorldUserNotificationIdRequest request, CancellationToken cancellationToken)
+        {
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Unauthorized(new { message = "Nicht eingeloggt." });
+            }
+
+            if (request == null || request.Id <= 0)
+            {
+                return BadRequest(new { message = "Id fehlt." });
+            }
+
+            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+            var item = await _context.WorldUserNotifications.FirstOrDefaultAsync(x => x.Id == request.Id && x.UserHash == userHash, cancellationToken);
+            if (item == null)
+            {
+                return NotFound(new { message = "Benachrichtigung nicht gefunden." });
+            }
+
+            if (!item.IsSeen)
+            {
+                item.IsSeen = true;
+                item.SeenAtUtc = DateTime.UtcNow;
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            return Json(new { ok = true });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllWorldUserNotificationsSeen(CancellationToken cancellationToken)
+        {
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Unauthorized(new { message = "Nicht eingeloggt." });
+            }
+
+            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+            var items = await _context.WorldUserNotifications
+                .Where(x => x.UserHash == userHash && !x.IsSeen)
+                .ToListAsync(cancellationToken);
+
+            if (items.Count > 0)
+            {
+                var now = DateTime.UtcNow;
+                foreach (var it in items)
+                {
+                    it.IsSeen = true;
+                    it.SeenAtUtc = now;
+                }
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            return Json(new { ok = true });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClearWorldUserNotifications(CancellationToken cancellationToken)
+        {
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Unauthorized(new { message = "Nicht eingeloggt." });
+            }
+
+            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+            var items = await _context.WorldUserNotifications.Where(x => x.UserHash == userHash).ToListAsync(cancellationToken);
+            if (items.Count > 0)
+            {
+                _context.WorldUserNotifications.RemoveRange(items);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            return Json(new { ok = true });
+        }
+
+        private async Task EnsureWorldUserNotificationsSchemaAsync(CancellationToken cancellationToken)
+        {
+            if (NotificationsSchemaEnsured) return;
+
+            await EnsureNotificationsSchemaLock.WaitAsync(cancellationToken);
+            try
+            {
+                if (NotificationsSchemaEnsured) return;
+                await _context.Database.ExecuteSqlRawAsync(EnsureWorldUserNotificationsSchemaSql, cancellationToken);
+                NotificationsSchemaEnsured = true;
+            }
+            finally
+            {
+                EnsureNotificationsSchemaLock.Release();
             }
         }
 

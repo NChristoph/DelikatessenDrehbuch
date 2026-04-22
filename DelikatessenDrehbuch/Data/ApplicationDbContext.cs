@@ -53,6 +53,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeAiVariant> RecipeAiVariants { get; set; }
         public DbSet<RecipeAiVariantSelectedIngredient> RecipeAiVariantSelectedIngredients { get; set; }
         public DbSet<RecipeAiVariantIngredientRow> RecipeAiVariantIngredientRows { get; set; }
+        public DbSet<RecipeAiVariantJob> RecipeAiVariantJobs { get; set; }
 
         // New canonical AI recipe storage (v2)
         public DbSet<RecipeAiBaseRecipe> RecipeAiBaseRecipes { get; set; }
@@ -66,6 +67,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WildCoinTransaction> WildCoinTransactions { get; set; }
         public DbSet<MealPlanPurchase> MealPlanPurchases { get; set; }
         public DbSet<WorldSharedShoppingList> WorldSharedShoppingList { get; set; }
+        public DbSet<WorldUserNotification> WorldUserNotifications { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -204,6 +206,32 @@ namespace DelikatessenDrehbuch.Data
                 .HasIndex(x => new { x.UserHash, x.CreatedAt });
 
             // WorldSharedShoppingList — Token-Lookup
+            builder.Entity<WorldUserNotification>()
+                .ToTable("WorldUserNotifications");
+
+            builder.Entity<WorldUserNotification>()
+                .HasIndex(x => new { x.UserHash, x.IsSeen, x.CreatedAtUtc });
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.UserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.Icon)
+                .HasMaxLength(64);
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.Sender)
+                .HasMaxLength(128);
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.Description)
+                .HasMaxLength(1000);
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.Href)
+                .HasMaxLength(600);
+
             builder.Entity<WorldSharedShoppingList>()
                 .HasIndex(x => x.ShareToken);
 
@@ -421,6 +449,27 @@ namespace DelikatessenDrehbuch.Data
                     .WithMany()
                     .HasForeignKey(x => x.IngredientId)
                     .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            builder.Entity<RecipeAiVariantJob>(e =>
+            {
+                e.ToTable("RecipeAiVariantJobs");
+                e.Property(x => x.JobId).IsRequired().HasMaxLength(64);
+                e.Property(x => x.VariantType).IsRequired().HasMaxLength(64);
+                e.Property(x => x.Language).IsRequired().HasMaxLength(12);
+                e.Property(x => x.AiProvider).IsRequired().HasMaxLength(32);
+                e.Property(x => x.State).IsRequired().HasMaxLength(32);
+                e.Property(x => x.Message).HasMaxLength(400);
+                e.Property(x => x.Title).HasMaxLength(256);
+                e.Property(x => x.CreatedByUserHash).HasMaxLength(256);
+
+                e.HasIndex(x => x.JobId).IsUnique();
+                e.HasIndex(x => new { x.BaseRecipeId, x.UpdatedAtUtc });
+
+                e.HasOne(x => x.BaseRecipe)
+                    .WithMany()
+                    .HasForeignKey(x => x.BaseRecipeId)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
             builder.Entity<Queries>().ToTable("Querys");

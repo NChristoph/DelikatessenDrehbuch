@@ -969,6 +969,7 @@
     </div>
 </div>
 
+<!-- Local AI Bottom-Bar removed (we use the global resume bar + toast in _MiniAppLayout.cshtml) -->
 <div class="ai-bottom-bar" id="aiBottomBar" style="display:none">
     <div class="ai-bottom-bar-content">
         <div class="ai-bottom-bar-left" id="aiBottomBarStatus">
@@ -989,6 +990,8 @@
     const basePortionCount = @basePortions;
     let savedAiVariants = @Html.Raw(savedAiVariantsJson);
     const recipeId = @Model.Id;
+    // Expose for the global AI resume bar (layout) so it can open the modal directly on this page.
+    window.recipeId = recipeId;
     const originalRecipeState = {
         title: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Title)),
         ingredientMarkup: document.getElementById('ingredientListContainer')?.innerHTML || '',
@@ -1006,6 +1009,7 @@
         selectedConcept: null,
         selectedIngredientIds: [],
         preview: null,
+        jobId: null,
         saveInFlight: false,
         suggestionInFlight: false,
         previewInFlight: false,
@@ -1018,6 +1022,30 @@
     };
 
     let aiTransformModalInstance = null;
+
+    const AI_RESUME_STAGE = {
+        queued: 'queued',
+        running: 'running',
+        ready: 'ready',
+        error: 'error'
+    };
+
+    function setGlobalAiResume(stage, titleOverride = '') {
+        const api = window.WorldMiniAppAiResume;
+        if (!api?.setState) return;
+        api.setState({
+            recipeId,
+            variantType: aiPreviewState.variantType || '',
+            aiProvider: aiPreviewState.aiProvider || 'openai',
+            stage,
+            jobId: aiPreviewState.jobId || null,
+            title: titleOverride || aiPreviewState.preview?.title || originalRecipeState.title || ''
+        });
+    }
+
+    function clearGlobalAiResume() {
+        window.WorldMiniAppAiResume?.clearState?.();
+    }
 
     function toggleCheck(element) {
         element.classList.toggle('checked');
@@ -1239,7 +1267,7 @@
     window.openAiTransformModal = function openAiTransformModal(variantType, aiProvider = 'openai') {
         aiPreviewState.modalSessionId += 1;
         aiPreviewState.variantType = variantType;
-        aiPreviewState.aiProvider = 'openai';
+        aiPreviewState.aiProvider = aiProvider || 'openai';
         aiPreviewState.appliedChangeCount = 0;
         aiPreviewState.latestUserNote = '';
         aiPreviewState.suggestionResponse = null;
@@ -1318,6 +1346,7 @@
 
         aiPreviewState.suggestionInFlight = true;
         aiPreviewState.lastErrorStage = null;
+        setGlobalAiResume(AI_RESUME_STAGE.suggestions);
         const requestId = ++aiPreviewState.suggestionRequestId;
         const sessionId = aiPreviewState.modalSessionId;
         setAiDebugStamp(`suggestions fetch start (req=${requestId})`);
@@ -1368,6 +1397,7 @@
             renderAiIngredientSuggestions(payload);
             setAiPreviewDetailsVisible(false);
             setAiPreviewLoading(false);
+            setGlobalAiResume(AI_RESUME_STAGE.selection);
         } catch (error) {
             if (error?.name === 'AbortError') {
                 return;
@@ -1381,6 +1411,7 @@
             aiPreviewState.selectedIngredientIds = [];
             aiPreviewState.preview = null;
             setAiDebugStamp(`suggestions failed (req=${requestId}): ${error && error.message ? error.message : error}`);
+            setGlobalAiResume(AI_RESUME_STAGE.error);
             throw error;
         } finally {
             if (requestId === aiPreviewState.suggestionRequestId) {
@@ -1421,6 +1452,36 @@
         return payload;
     }
 
+    async function startAiVariantJob(userNote = '') {
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+        const response = await fetch('@Url.Action("StartAiRecipeVariantJob", "Home", new { area = "WorldMiniApp" })', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'RequestVerificationToken': token
+            },
+            body: JSON.stringify({
+                recipeId,
+                variantType: aiPreviewState.variantType,
+                aiProvider: aiPreviewState.aiProvider,
+                userNote: userNote || '',
+                selectedConceptKey: aiPreviewState.selectedConcept?.conceptKey || null,
+                selectedConceptTitle: aiPreviewState.selectedConcept?.conceptTitle || null,
+                selectedConceptSummary: aiPreviewState.selectedConcept?.conceptSummary || null,
+                selectedConceptApproach: aiPreviewState.selectedConcept?.conceptApproach || null,
+                selectedConceptIngredientPlan: aiPreviewState.selectedConcept?.conceptIngredientPlan || null,
+                selectedIngredientIds: aiPreviewState.selectedIngredientIds,
+                appliedChangeCount: aiPreviewState.appliedChangeCount
+            })
+        });
+
+        const payload = await response.json().catch(() => null);
+        if (!response.ok) {
+            throw new Error(payload?.message || 'AI-Job konnte nicht gestartet werden.');
+        }
+        return payload;
+    }
+
     async function requestAiPreview(userNote = '') {
         if (!aiPreviewState.selectedConcept) {
             throw new Error('Wähle zuerst eine Rezeptidee aus.');
@@ -1446,6 +1507,7 @@
 
         aiPreviewState.previewInFlight = true;
         aiPreviewState.lastErrorStage = null;
+        setGlobalAiResume(AI_RESUME_STAGE.preview);
         const requestId = ++aiPreviewState.previewRequestId;
         const sessionId = aiPreviewState.modalSessionId;
         aiPreviewState.previewAbortController?.abort();
@@ -1462,6 +1524,13 @@
             aiPreviewState.preview = payload;
             if (userNote) aiPreviewState.latestUserNote = userNote;
             showAiBottomBar('ready');
+            setGlobalAiResume(AI_RESUME_STAGE.ready, payload?.title || '');
+
+            // If the user closed the modal while the request was running, show a toast when ready.
+            const modalVisible = document.getElementById('aiTransformModal')?.classList.contains('show') === true;
+            if (!modalVisible) {
+                window.WorldMiniAppAiResume?.toast?.('AI Vorschau ist fertig. Tippe unten auf „Öffnen“.');
+            }
         } catch (error) {
             if (error?.name === 'AbortError') {
                 return;
@@ -1471,6 +1540,7 @@
             setAiPreviewLoading(false);
             setAiPreviewError(error?.message || 'AI-Variante konnte nicht generiert werden.');
             showAiBottomBar('error');
+            setGlobalAiResume(AI_RESUME_STAGE.error);
         } finally {
             if (requestId === aiPreviewState.previewRequestId) {
                 aiPreviewState.previewInFlight = false;
@@ -1515,11 +1585,56 @@
         }
     }
 
+    window.openAiJobResult = async function openAiJobResult(jobId, variantType, aiProvider = 'openai') {
+        const id = (jobId || '').toString().trim();
+        if (!id) return;
+
+        aiPreviewState.variantType = (variantType || aiPreviewState.variantType || '').toString();
+        aiPreviewState.aiProvider = (aiProvider || 'openai').toString();
+        aiPreviewState.jobId = id;
+        setGlobalAiResume(AI_RESUME_STAGE.running);
+
+        setAiPreviewError('');
+        setAiPreviewDetailsVisible(false);
+        setAiPreviewLoading(true);
+        getAiTransformModal().show();
+
+        try {
+            const url = '@Url.Action("GetAiRecipeVariantJobResult", "Home", new { area = "WorldMiniApp" })' + '?jobId=' + encodeURIComponent(id);
+            const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
+            const payload = await readJsonOrText(res);
+            if (!res.ok) {
+                throw new Error(payload?.message || payload?.rawText || 'AI-Ergebnis ist noch nicht bereit.');
+            }
+
+            renderAiPreview(payload);
+            aiPreviewState.preview = payload;
+            setAiPreviewLoading(false);
+            setGlobalAiResume(AI_RESUME_STAGE.ready, payload?.title || '');
+        } catch (err) {
+            setAiPreviewLoading(false);
+            setAiPreviewError(err?.message || 'AI-Ergebnis konnte nicht geladen werden.');
+            setGlobalAiResume(AI_RESUME_STAGE.error);
+        }
+    };
+
     function renderAiPreview(preview) {
         setAiPreviewDetailsVisible(true);
         document.getElementById('aiPreviewModeLabel').textContent = preview.variantLabel || 'AI Vorschau';
         document.getElementById('aiPreviewTitle').textContent = preview.title || originalRecipeState.title;
         document.getElementById('aiPreviewSummary').textContent = preview.summary || 'Neue Variante bereit.';
+
+        // Once we have a real preview, the concept cards are no longer needed.
+        aiPreviewState.suggestionResponse = null;
+        aiPreviewState.suggestions = [];
+        const suggestionGrid = document.getElementById('aiSuggestionList');
+        if (suggestionGrid) suggestionGrid.innerHTML = '';
+        const reasoning = document.getElementById('aiSuggestionReasoning');
+        if (reasoning) reasoning.style.display = 'none';
+        const strategyLabel = document.getElementById('aiSuggestionStrategyLabel');
+        if (strategyLabel) strategyLabel.style.display = 'none';
+        const selectionStatus = document.getElementById('aiSelectionStatus');
+        if (selectionStatus) selectionStatus.style.display = 'none';
 
         const meta = [];
         meta.push(`<span class="ai-preview-pill"><i class="bi bi-stars"></i>${escapeHtml(preview.variantLabel || 'AI')}</span>`);
@@ -1656,6 +1771,13 @@
 
     // --- Bottom-Bar Functions ---
     function showAiBottomBar(state) {
+        // Use only the global resume bar (layout). Keep local bar hidden to avoid duplicates.
+        // For any in-flight UI state we show "running" globally.
+        if (state === 'ready') setGlobalAiResume(AI_RESUME_STAGE.ready, aiPreviewState.preview?.title || '');
+        else if (state === 'error') setGlobalAiResume(AI_RESUME_STAGE.error);
+        else setGlobalAiResume(AI_RESUME_STAGE.running);
+        return;
+
         const bar = document.getElementById('aiBottomBar');
         const status = document.getElementById('aiBottomBarStatus');
         const openBtn = document.getElementById('aiBottomBarOpenBtn');
@@ -1684,19 +1806,30 @@
         bar.style.animation = 'none';
         bar.offsetHeight; // reflow
         bar.style.animation = '';
+
+        // Mirror into the global resume bar (layout), so users can reopen even after closing the modal.
+        if (state === 'pending') setGlobalAiResume(AI_RESUME_STAGE.pending);
+        else if (state === 'suggestions') setGlobalAiResume(AI_RESUME_STAGE.suggestions);
+        else if (state === 'selection') setGlobalAiResume(AI_RESUME_STAGE.selection);
+        else if (state === 'ready') setGlobalAiResume(AI_RESUME_STAGE.ready, aiPreviewState.preview?.title || '');
+        else if (state === 'error') setGlobalAiResume(AI_RESUME_STAGE.error);
     }
 
     function hideAiBottomBar() {
-        const bar = document.getElementById('aiBottomBar');
-        if (bar) bar.style.display = 'none';
+        // Local bar is kept hidden; global resume bar is controlled via sessionStorage.
     }
 
     window.dismissAiBottomBar = function dismissAiBottomBar() {
-        hideAiBottomBar();
         resetAiPreview();
+        clearGlobalAiResume();
     };
 
     window.openAiPreviewFromBar = function openAiPreviewFromBar() {
+        // Global bar open button is handled in _MiniAppLayout.cshtml.
+        // Fallback: just open the modal on this page.
+        getAiTransformModal().show();
+        return;
+
         const bar = document.getElementById('aiBottomBar');
         const state = bar?.dataset.state;
 
@@ -1896,8 +2029,25 @@
         setAiPreviewDetailsVisible(false);
         aiPreviewState.suppressResumeBarOnce = true;
         getAiTransformModal().hide();
-        showAiBottomBar('pending');
-        requestAiPreviewInBackground().catch(() => {});
+
+        // Start async background job: user can continue browsing immediately.
+        (async () => {
+            try {
+                aiPreviewState.previewInFlight = true;
+                aiPreviewState.jobId = null;
+                setGlobalAiResume(AI_RESUME_STAGE.queued);
+                window.WorldMiniAppAiResume?.toast?.('AI läuft im Hintergrund. Du kannst weiter scrollen.');
+
+                const started = await startAiVariantJob(aiPreviewState.latestUserNote || '');
+                aiPreviewState.jobId = started?.jobId || null;
+                setGlobalAiResume(AI_RESUME_STAGE.running);
+                aiPreviewState.previewInFlight = false;
+            } catch (err) {
+                aiPreviewState.previewInFlight = false;
+                setAiPreviewError(err?.message || 'AI-Job konnte nicht gestartet werden.');
+                setGlobalAiResume(AI_RESUME_STAGE.error);
+            }
+        })();
     }
 
     document.getElementById('aiPreviewRegenerateBtn')?.addEventListener('click', async () => {
@@ -1941,6 +2091,29 @@
 
         syncAiBottomBarForCurrentState();
     });
+
+    // If we navigated here from the global resume bar, auto-open the modal.
+    (function autoResumeAiModal() {
+        try {
+            const params = new URLSearchParams(window.location.search || '');
+            if (params.get('aiResume') !== '1') return;
+
+            const resumeState = window.WorldMiniAppAiResume?.readState?.() || null;
+            const variant = ((params.get('variantType') || resumeState?.variantType || '') + '').trim();
+            const jobId = ((params.get('jobId') || resumeState?.jobId || '') + '').trim();
+            const provider = ((params.get('aiProvider') || resumeState?.aiProvider || 'openai') + '').trim() || 'openai';
+
+            if (jobId && variant && typeof window.openAiJobResult === 'function') {
+                window.openAiJobResult(jobId, variant, provider);
+                return;
+            }
+            if (variant && typeof window.openAiTransformModal === 'function') {
+                window.openAiTransformModal(variant, provider);
+            }
+        } catch {
+            // ignore
+        }
+    })();
 
     // ----------------- Back To Feed (restore scroll position) -----------------
     (function bindBackToFeedRestore() {
