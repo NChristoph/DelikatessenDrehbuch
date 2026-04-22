@@ -65,13 +65,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 return Json(new { success = false, error = "Nicht berechtigt." });
             }
+
+            // Idempotency check: prevent duplicate uploads on network retry
+            var idempotencyKey = Request.Headers["X-Idempotency-Key"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(idempotencyKey))
+            {
+                var cacheKey = $"worldminiapp:idempotency:{userHash}:{idempotencyKey}";
+                if (_memoryCache.TryGetValue<object>(cacheKey, out var cachedResult))
+                {
+                    _logger.LogInformation("Duplicate upload request detected for user {UserHash} with idempotency key {Key}.", userHash, idempotencyKey);
+                    return Json(cachedResult);
+                }
+            }
+
             if (!TryConsumeUploadSlot(userHash, out var retryAfter))
             {
                 if (retryAfter.HasValue)
                 {
                     Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
                 }
-                return Json(new { success = false, error = "Upload-Limit erreicht. Bitte spÃ¤ter erneut versuchen." });
+                return Json(new { success = false, error = "Upload-Limit erreicht. Bitte später erneut versuchen." });
             }
 
             var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
@@ -90,46 +103,76 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 RecipeJoinPreparationSteps = ExtractCreatePostingStepsFromRequest(Request.Form),
                 SmartStepReferences = ExtractCreatePostingSmartStepsFromRequest(Request.Form),
             };
-            await _saveNewRecipeService.SaveNewAsync(recipeModel, true);
-            var recipe = await _context.RecipeBaseData.FirstOrDefaultAsync(r => r.Title == posting.Title);
-            posting.CreationTime = DateTime.Now;
-            posting.CreatorName = "Avocado";
-            posting.CreatorId = userHash;
-            posting.Source = uploadResult.SourceUrl;
-            posting.ThumbnailUrl = uploadResult.ThumbnailUrl;
-            if (recipe != null)
+
+            var recipe = await _saveNewRecipeService.SaveNewAsync(recipeModel, true);
+
+            if (recipe == null)
             {
+                _logger.LogError("SaveNewAsync returned null recipe for title {Title} by user {UserHash}.", posting.Title, userHash);
+                return Json(new { success = false, error = "Rezept konnte nicht gespeichert werden." });
+            }
+
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
+            var creatorName = user?.UserName ?? "Avocado";
+
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                posting.CreationTime = DateTime.Now;
+                posting.CreatorName = creatorName;
+                posting.CreatorId = userHash;
+                posting.Source = uploadResult.SourceUrl;
+                posting.ThumbnailUrl = uploadResult.ThumbnailUrl;
                 posting.Recipe = recipe;
-            }
 
-            await _context.WorldUserPosting.AddAsync(posting);
-            await _context.SaveChangesAsync();
-
-            if (recipe != null && posting.SelectedKeywordIds != null && posting.SelectedKeywordIds.Any())
-            {
-                var keywordLinks = posting.SelectedKeywordIds
-                    .Distinct()
-                    .Select(keywordId => new RecipeBaseKeyword
-                    {
-                        RecipeBaseDataId = recipe.Id,
-                        KeywordId = keywordId
-                    })
-                    .ToList();
-
-                await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
+                await _context.WorldUserPosting.AddAsync(posting);
                 await _context.SaveChangesAsync();
+
+                if (posting.SelectedKeywordIds != null && posting.SelectedKeywordIds.Any())
+                {
+                    var keywordLinks = posting.SelectedKeywordIds
+                        .Distinct()
+                        .Select(keywordId => new RecipeBaseKeyword
+                        {
+                            RecipeBaseDataId = recipe.Id,
+                            KeywordId = keywordId
+                        })
+                        .ToList();
+
+                    await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
+                    await _context.SaveChangesAsync();
+                }
+
+                await transaction.CommitAsync();
+
+                Response.Cookies.Append("createPostingDraftReset", "1", new CookieOptions
+                {
+                    Path = "/",
+                    HttpOnly = false,
+                    IsEssential = true,
+                    SameSite = SameSiteMode.Lax,
+                    Expires = DateTimeOffset.UtcNow.AddHours(1)
+                });
+
+                _logger.LogInformation("Recipe {RecipeId} and posting {PostingId} successfully created by user {UserHash}.", recipe.Id, posting.Id, userHash);
+
+                var successResponse = new { success = true };
+
+                // Cache successful response for idempotency (10 minutes)
+                if (!string.IsNullOrWhiteSpace(idempotencyKey))
+                {
+                    var cacheKey = $"worldminiapp:idempotency:{userHash}:{idempotencyKey}";
+                    _memoryCache.Set(cacheKey, successResponse, TimeSpan.FromMinutes(10));
+                }
+
+                return Json(successResponse);
             }
-
-            Response.Cookies.Append("createPostingDraftReset", "1", new CookieOptions
+            catch (Exception ex)
             {
-                Path = "/",
-                HttpOnly = false,
-                IsEssential = true,
-                SameSite = SameSiteMode.Lax,
-                Expires = DateTimeOffset.UtcNow.AddHours(1)
-            });
-
-            return Json(new { success = true });
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to create posting for recipe {RecipeId} by user {UserHash}.", recipe.Id, userHash);
+                throw;
+            }
         }
 
         public async Task<IActionResult> EditRecipe(int postingId, string userHash)
@@ -236,7 +279,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (request == null || string.IsNullOrWhiteSpace(request.De) || string.IsNullOrWhiteSpace(request.En))
             {
-                return BadRequest(new { message = "UngÃ¼ltige Step-Daten." });
+                return BadRequest(new { message = "Ungültige Step-Daten." });
             }
 
             var de = request.De.Trim();
@@ -321,7 +364,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Fehler beim KI-Vorschlag fÃ¼r fehlende Zutat {IngredientName}.", trimmedIngredientName);
+                _logger.LogError(ex, "Fehler beim KI-Vorschlag für fehlende Zutat {IngredientName}.", trimmedIngredientName);
                 return Json(new MissingIngredientLookupResponse
                 {
                     Success = false,
@@ -344,7 +387,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Json(new MissingIngredientSaveResponse
                 {
                     Success = false,
-                    Message = "Im Debug-Fallback werden keine neuen Zutaten gespeichert. Setze SecretKeyOpenAi fÃ¼r echte Ãœbersetzungen."
+                    Message = "Im Debug-Fallback werden keine neuen Zutaten gespeichert. Setze SecretKeyOpenAi für echte Übersetzungen."
                 });
             }
 
@@ -353,7 +396,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Json(new MissingIngredientSaveResponse
                 {
                     Success = false,
-                    Message = "Die Sprachfelder sehen noch nicht sauber Ã¼bersetzt aus. Bitte Vorschlag prÃ¼fen oder echten OpenAI-Key setzen."
+                    Message = "Die Sprachfelder sehen noch nicht sauber übersetzt aus. Bitte Vorschlag prüfen oder echten OpenAI-Key setzen."
                 });
             }
 
@@ -420,7 +463,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             });
         }
 
-        private static List<RecipeJoinPreparationSteps> ExtractCreatePostingStepsFromRequest(IFormCollection form)
+        private List<RecipeJoinPreparationSteps> ExtractCreatePostingStepsFromRequest(IFormCollection form)
         {
             var result = new List<RecipeJoinPreparationSteps>();
 
@@ -444,10 +487,33 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     break;
                 }
 
-                _ = int.TryParse(form[stepIdKey].FirstOrDefault(), out var preparationStepId);
-                _ = int.TryParse(form[indexKey].FirstOrDefault(), out var stepIndex);
-                _ = int.TryParse(form[phaseKey].FirstOrDefault(), out var phase);
-                _ = int.TryParse(form[equipmentKey].FirstOrDefault(), out var equipment);
+                var preparationStepId = 0;
+                var stepIdRaw = form[stepIdKey].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(stepIdRaw) && !int.TryParse(stepIdRaw, out preparationStepId))
+                {
+                    _logger.LogWarning("Failed to parse PreparationStepId at index {Index}: {Value}", i, stepIdRaw);
+                }
+
+                var stepIndex = 0;
+                var stepIndexRaw = form[indexKey].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(stepIndexRaw) && !int.TryParse(stepIndexRaw, out stepIndex))
+                {
+                    _logger.LogWarning("Failed to parse StepIndex at index {Index}: {Value}", i, stepIndexRaw);
+                }
+
+                var phase = 0;
+                var phaseRaw = form[phaseKey].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(phaseRaw) && !int.TryParse(phaseRaw, out phase))
+                {
+                    _logger.LogWarning("Failed to parse Phase at index {Index}: {Value}", i, phaseRaw);
+                }
+
+                var equipment = 0;
+                var equipmentRaw = form[equipmentKey].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(equipmentRaw) && !int.TryParse(equipmentRaw, out equipment))
+                {
+                    _logger.LogWarning("Failed to parse Equipment at index {Index}: {Value}", i, equipmentRaw);
+                }
 
                 var recipeStep = new RecipePreparationSteps
                 {
@@ -481,7 +547,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return result;
         }
 
-        private static List<SmartStepReferenceInput> ExtractCreatePostingSmartStepsFromRequest(IFormCollection form)
+        private List<SmartStepReferenceInput> ExtractCreatePostingSmartStepsFromRequest(IFormCollection form)
         {
             var result = new List<SmartStepReferenceInput>();
 
@@ -498,11 +564,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 var masterKey = (form[masterKeyField].FirstOrDefault() ?? string.Empty).Trim();
                 var metadataJson = (form[metadataField].FirstOrDefault() ?? string.Empty).Trim();
-                _ = int.TryParse(form[stepIndexField].FirstOrDefault(), out var stepIndex);
+
+                var stepIndex = 0;
+                var stepIndexRaw = form[stepIndexField].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(stepIndexRaw) && !int.TryParse(stepIndexRaw, out stepIndex))
+                {
+                    _logger.LogWarning("Failed to parse SmartStep StepIndex at index {Index}: {Value}", i, stepIndexRaw);
+                }
 
                 if (string.IsNullOrWhiteSpace(masterKey))
                 {
+                    _logger.LogWarning("Empty MasterStepKey at SmartStep index {Index}, skipping.", i);
                     continue;
+                }
+
+                // Validate MasterStepKey format (should match pattern: CATEGORY_ACTION_XX)
+                if (!Regex.IsMatch(masterKey, @"^[A-Z_]+_\d{2}$"))
+                {
+                    _logger.LogWarning("MasterStepKey '{MasterKey}' at index {Index} does not match expected pattern (CATEGORY_ACTION_XX). Allowing but flagging for review.", masterKey, i);
                 }
 
                 result.Add(new SmartStepReferenceInput
@@ -516,21 +595,30 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return result;
         }
 
-        private static List<int> ExtractKeywordIdsFromRequest(IFormCollection form)
+        private List<int> ExtractKeywordIdsFromRequest(IFormCollection form)
         {
             var result = new List<int>();
             if (form.TryGetValue("SelectedKeywordIds", out var values))
             {
                 foreach (var val in values)
                 {
-                    if (int.TryParse(val, out var id) && id > 0)
-                        result.Add(id);
+                    if (int.TryParse(val, out var id))
+                    {
+                        if (id > 0)
+                        {
+                            result.Add(id);
+                        }
+                    }
+                    else if (!string.IsNullOrWhiteSpace(val))
+                    {
+                        _logger.LogWarning("Failed to parse keyword ID: {Value}", val);
+                    }
                 }
             }
             return result;
         }
 
-        private static (string variablesJson, int? phase, string? equipment) ParseSmartStepMetadata(string? metadataJson)
+        private (string variablesJson, int? phase, string? equipment) ParseSmartStepMetadata(string? metadataJson)
         {
             if (string.IsNullOrWhiteSpace(metadataJson))
                 return ("{}", null, null);
@@ -565,8 +653,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 return (variablesJson, phase, equipment);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to parse smart step metadata JSON. Metadata: {MetadataJson}", metadataJson);
                 return ("{}", null, null);
             }
         }
@@ -606,48 +695,69 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Forbid();
             }
 
-            // Update basic recipe properties
-            var newTitle = (posting.Title ?? "").Trim();
-            postingToEdit.Title = string.IsNullOrWhiteSpace(newTitle) ? postingToEdit.Title : newTitle;
-            postingToEdit.Recipe.Title = postingToEdit.Title;
-            postingToEdit.Recipe.Category = posting.Recipe?.Category ?? postingToEdit.Recipe.Category;
-            postingToEdit.Recipe.Preferences = posting.Recipe?.Preferences ?? postingToEdit.Recipe.Preferences;
-            postingToEdit.Recipe.PersonCount = posting.Recipe?.PersonCount ?? postingToEdit.Recipe.PersonCount;
-            postingToEdit.Recipe.PreparationTime = posting.Recipe?.PreparationTime ?? postingToEdit.Recipe.PreparationTime;
-
-            // Remove existing ingredients
-            var existingJoinEntries = postingToEdit.Recipe.Ingredients?.ToList() ?? new List<RecipeJoinIngredientMeasureQuantity>();
-            if (existingJoinEntries.Any())
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
             {
-                _context.RecipeJoinIngredientMeasureQuantity.RemoveRange(existingJoinEntries);
-                await _context.SaveChangesAsync();
-            }
+                // Update basic recipe properties
+                var newTitle = (posting.Title ?? "").Trim();
+                postingToEdit.Title = string.IsNullOrWhiteSpace(newTitle) ? postingToEdit.Title : newTitle;
+                postingToEdit.Recipe.Title = postingToEdit.Title;
+                postingToEdit.Recipe.Category = posting.Recipe?.Category ?? postingToEdit.Recipe.Category;
+                postingToEdit.Recipe.Preferences = posting.Recipe?.Preferences ?? postingToEdit.Recipe.Preferences;
+                postingToEdit.Recipe.PersonCount = posting.Recipe?.PersonCount ?? postingToEdit.Recipe.PersonCount;
+                postingToEdit.Recipe.PreparationTime = posting.Recipe?.PreparationTime ?? postingToEdit.Recipe.PreparationTime;
 
-            // Extract ingredients from CreatePosting format: IngredientMeasureQuantity[i]
-            var form = Request.Form;
-            for (var i = 0; ; i++)
-            {
-                var ingredientIdKey = $"IngredientMeasureQuantity[{i}].IngredientsAndNutrients.Id";
-                var quantityKey = $"IngredientMeasureQuantity[{i}].Quantity.Quantitys";
-                var measureDeKey = $"IngredientMeasureQuantity[{i}].Measure.Metrics_DE";
+                // Remove existing ingredients
+                var existingJoinEntries = postingToEdit.Recipe.Ingredients?.ToList() ?? new List<RecipeJoinIngredientMeasureQuantity>();
+                if (existingJoinEntries.Any())
+                {
+                    _context.RecipeJoinIngredientMeasureQuantity.RemoveRange(existingJoinEntries);
+                }
 
-                if (!form.ContainsKey(ingredientIdKey))
-                    break;
+                // Extract ingredients from CreatePosting format: IngredientMeasureQuantity[i]
+                var form = Request.Form;
+                var skippedIngredients = 0;
+                for (var i = 0; ; i++)
+                {
+                    var ingredientIdKey = $"IngredientMeasureQuantity[{i}].IngredientsAndNutrients.Id";
+                    var quantityKey = $"IngredientMeasureQuantity[{i}].Quantity.Quantitys";
+                    var measureDeKey = $"IngredientMeasureQuantity[{i}].Measure.Metrics_DE";
 
-                _ = int.TryParse(form[ingredientIdKey].FirstOrDefault(), out var ingredientId);
-                if (ingredientId <= 0) continue;
+                    if (!form.ContainsKey(ingredientIdKey))
+                        break;
 
-                var rawQty = (form[quantityKey].FirstOrDefault() ?? "0").Trim().Replace(",", ".");
-                _ = double.TryParse(rawQty, NumberStyles.Any, CultureInfo.InvariantCulture, out var qty);
-                if (qty <= 0) continue;
+                    if (!int.TryParse(form[ingredientIdKey].FirstOrDefault(), out var ingredientId) || ingredientId <= 0)
+                    {
+                        _logger.LogWarning("Invalid ingredient ID at index {Index} during recipe edit.", i);
+                        skippedIngredients++;
+                        continue;
+                    }
 
-                var measureDe = (form[measureDeKey].FirstOrDefault() ?? "").Trim();
+                    var rawQty = (form[quantityKey].FirstOrDefault() ?? "0").Trim().Replace(",", ".");
+                    if (!double.TryParse(rawQty, NumberStyles.Any, CultureInfo.InvariantCulture, out var qty) || qty <= 0)
+                    {
+                        _logger.LogWarning("Invalid quantity '{Quantity}' for ingredient {IngredientId} at index {Index}.", rawQty, ingredientId, i);
+                        skippedIngredients++;
+                        continue;
+                    }
 
-                var ingredient = await _context.IngredientsAndNutrients.FindAsync(ingredientId);
-                if (ingredient == null) continue;
+                    var measureDe = (form[measureDeKey].FirstOrDefault() ?? "").Trim();
 
-                var measure = await _context.Metrics.FirstOrDefaultAsync(m => m.Metrics_DE == measureDe);
-                if (measure == null) continue;
+                    var ingredient = await _context.IngredientsAndNutrients.FindAsync(ingredientId);
+                    if (ingredient == null)
+                    {
+                        _logger.LogWarning("Ingredient ID {IngredientId} not found in database at index {Index}.", ingredientId, i);
+                        skippedIngredients++;
+                        continue;
+                    }
+
+                    var measure = await _context.Metrics.FirstOrDefaultAsync(m => m.Metrics_DE == measureDe);
+                    if (measure == null)
+                    {
+                        _logger.LogWarning("Measure '{Measure}' not found in database for ingredient {IngredientId} at index {Index}.", measureDe, ingredientId, i);
+                        skippedIngredients++;
+                        continue;
+                    }
 
                 var quantity = new Quantity { Quantitys = qty };
                 var imq = new IngredientMeasureQuantity
@@ -662,12 +772,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     Ingredient = imq
                 };
 
-                await _context.Quantities.AddAsync(quantity);
-                await _context.IngredientMeasureQuantity.AddAsync(imq);
-                await _context.RecipeJoinIngredientMeasureQuantity.AddAsync(join);
-            }
+                    await _context.Quantities.AddAsync(quantity);
+                    await _context.IngredientMeasureQuantity.AddAsync(imq);
+                    await _context.RecipeJoinIngredientMeasureQuantity.AddAsync(join);
+                }
 
-            // Handle new content (image/video upload) - optional in edit mode
+                if (skippedIngredients > 0)
+                {
+                    _logger.LogWarning("Skipped {SkippedCount} invalid ingredients during recipe {RecipeId} edit.", skippedIngredients, postingToEdit.Recipe.Id);
+                }
+
+                // Handle new content (image/video upload) - optional in edit mode
             if (posting.Content != null && posting.Content.Length > 0)
             {
                 var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
@@ -796,9 +911,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
             }
 
-            await _context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-            return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+                _logger.LogInformation("Recipe {RecipeId} successfully updated by user {UserHash}.", postingToEdit.Recipe.Id, userHash);
+
+                return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                _logger.LogError(ex, "Failed to update recipe {RecipeId} for posting {PostingId} by user {UserHash}.", recipeId, postingId, userHash);
+                throw;
+            }
         }
 
         [HttpPost]

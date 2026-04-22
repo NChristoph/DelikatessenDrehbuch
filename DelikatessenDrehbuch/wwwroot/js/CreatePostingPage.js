@@ -4393,12 +4393,20 @@
             $('#selectedIngredients .ingredient-transformed-display').remove();
             $('#selectedIngredients .ingredient-row').each(function (i) {
                 $(this).find('input, select').each(function () {
-                    if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
+                    if (this.name) {
+                        // Robust reindexing: Replace first array index with new index
+                        // Handles: IngredientMeasureQuantity[old].Property.Subproperty
+                        this.name = this.name.replace(/\[(\d+)\]/, '[' + i + ']');
+                    }
                 });
             });
             $('.step-row').each(function (i) {
                 $(this).find('input, select').each(function () {
-                    if (this.name) this.name = this.name.replace(/\[.*?\]/, '[' + i + ']');
+                    if (this.name) {
+                        // Robust reindexing for steps
+                        // Handles: RecipePreperationSteps[old].Property or SmartStepReferences[old].Property
+                        this.name = this.name.replace(/\[(\d+)\]/, '[' + i + ']');
+                    }
                 });
             });
             $('input[name$=".Quantity.Quantitys"], .js-decimal-input').each(function () {
@@ -4414,10 +4422,27 @@
             const submitBtn = form.querySelector('[type="submit"]');
             if (submitBtn) submitBtn.disabled = true;
 
+            // Generate idempotency key for this upload (prevents duplicates on retry)
+            let idempotencyKey = sessionStorage.getItem('createPostingIdempotencyKey');
+            if (!idempotencyKey) {
+                idempotencyKey = crypto.randomUUID ? crypto.randomUUID() : Date.now() + '-' + Math.random().toString(36);
+                sessionStorage.setItem('createPostingIdempotencyKey', idempotencyKey);
+            }
+
             try {
-                const resp = await fetch(form.action, { method: 'POST', body: formData });
+                const resp = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Idempotency-Key': idempotencyKey
+                    }
+                });
                 const data = await resp.json();
                 if (data.success) {
+                    // Clear draft explicitly on client before redirect
+                    clearCreatePostingDraft();
+                    clearCreatePostingDraftResetCookie();
+                    sessionStorage.removeItem('createPostingIdempotencyKey');
                     window.location.href = '/WorldMiniApp/Home/Index?toast=published';
                 } else {
                     alert(data.error || 'Fehler beim Hochladen');

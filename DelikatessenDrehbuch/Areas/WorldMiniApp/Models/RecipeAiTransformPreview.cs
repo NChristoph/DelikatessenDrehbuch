@@ -4,8 +4,13 @@
     {
         public string VariantType { get; set; } = string.Empty;
         public string VariantLabel { get; set; } = string.Empty;
+        public string AiProvider { get; set; } = "openai";
+        public string LanguageCode { get; set; } = "de";
+        public string SelectedIngredientKey { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Summary { get; set; } = string.Empty;
+        public string PreparationText { get; set; } = string.Empty;
+        public string IngredientsText { get; set; } = string.Empty;
         public bool UsedFallback { get; set; }
         public bool UserNoteApplied { get; set; }
         public int RemainingChanges { get; set; }
@@ -13,12 +18,24 @@
         public List<RecipeAiTransformStepPlanItem> StepPlan { get; set; } = new();
         public List<RecipeAiTransformStepPreview> Steps { get; set; } = new();
         public List<string> Highlights { get; set; } = new();
+        public RecipeAiTransformNutritionPreview Nutrition { get; set; } = new();
+    }
+
+    public sealed class RecipeAiTransformNutritionPreview
+    {
+        public decimal Calories { get; set; }
+        public decimal Protein { get; set; }
+        public decimal Carbs { get; set; }
+        public decimal Fat { get; set; }
+        public decimal Sugar { get; set; }
     }
 
     public sealed class RecipeAiTransformIngredientPreview
     {
+        public int IngredientId { get; set; }
         public string Name { get; set; } = string.Empty;
         public string Quantity { get; set; } = string.Empty;
+        public string Measure { get; set; } = string.Empty;
         public string? ChangeHint { get; set; }
         public bool IsModified { get; set; }
     }

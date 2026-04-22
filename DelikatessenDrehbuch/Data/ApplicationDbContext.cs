@@ -51,6 +51,14 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldAdPreferenceProfile> WorldAdPreferenceProfiles { get; set; }
         public DbSet<WorldAdPreferenceInterest> WorldAdPreferenceInterests { get; set; }
         public DbSet<RecipeAiVariant> RecipeAiVariants { get; set; }
+        public DbSet<RecipeAiVariantSelectedIngredient> RecipeAiVariantSelectedIngredients { get; set; }
+        public DbSet<RecipeAiVariantIngredientRow> RecipeAiVariantIngredientRows { get; set; }
+
+        // New canonical AI recipe storage (v2)
+        public DbSet<RecipeAiBaseRecipe> RecipeAiBaseRecipes { get; set; }
+        public DbSet<RecipeAiBaseRecipeIngredient> RecipeAiBaseRecipeIngredients { get; set; }
+        public DbSet<RecipeAiBaseRecipeStep> RecipeAiBaseRecipeSteps { get; set; }
+        public DbSet<RecipeAiBaseRecipeSelectedIngredient> RecipeAiBaseRecipeSelectedIngredients { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
         public DbSet<JoinIngredientPreparationStep> JoinIngredientPreparationStep { get; set; }
@@ -165,10 +173,10 @@ namespace DelikatessenDrehbuch.Data
                 .HasIndex(x => new { x.MasterStepKey, x.Phase, x.Equipment });
 
             builder.Entity<RecipeAiVariant>()
-                .HasIndex(x => new { x.BaseRecipeId, x.VariantType, x.Language, x.IsSharedCanonical });
+                .HasIndex(x => new { x.BaseRecipeId, x.VariantType, x.Language, x.AiProvider, x.SelectedIngredientKey, x.IsSharedCanonical });
 
             builder.Entity<RecipeAiVariant>()
-                .HasIndex(x => new { x.BaseRecipeId, x.CreatedByUserHash, x.VariantType, x.Language });
+                .HasIndex(x => new { x.BaseRecipeId, x.CreatedByUserHash, x.VariantType, x.Language, x.AiProvider, x.SelectedIngredientKey });
 
             // MealPlanPurchase — Duplikatschutz via TxHash
             builder.Entity<MealPlanPurchase>()
@@ -272,10 +280,14 @@ namespace DelikatessenDrehbuch.Data
                 e.ToTable("RecipeAiVariants");
                 e.Property(x => x.VariantType).IsRequired().HasMaxLength(64);
                 e.Property(x => x.Language).IsRequired().HasMaxLength(12);
+                e.Property(x => x.AiProvider).IsRequired().HasMaxLength(32);
+                e.Property(x => x.SelectedIngredientKey).IsRequired().HasMaxLength(400);
                 e.Property(x => x.CreatedByUserHash).HasMaxLength(256);
                 e.Property(x => x.LatestUserNote).HasMaxLength(1000);
                 e.Property(x => x.RenderedTitle).IsRequired().HasMaxLength(256);
                 e.Property(x => x.RenderedSummary).HasMaxLength(4000);
+                e.Property(x => x.PreparationText).HasMaxLength(16000);
+                e.Property(x => x.IngredientsText).HasMaxLength(16000);
                 e.Property(x => x.StepPlanJson).IsRequired();
                 e.Property(x => x.RenderedStepsJson).IsRequired();
                 e.Property(x => x.RenderedIngredientsJson).IsRequired();
@@ -289,6 +301,125 @@ namespace DelikatessenDrehbuch.Data
                 e.HasOne(x => x.ParentVariant)
                     .WithMany()
                     .HasForeignKey(x => x.ParentVariantId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasMany(x => x.SelectedIngredients)
+                    .WithOne(x => x.RecipeAiVariant)
+                    .HasForeignKey(x => x.RecipeAiVariantId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasMany(x => x.IngredientRows)
+                    .WithOne(x => x.RecipeAiVariant)
+                    .HasForeignKey(x => x.RecipeAiVariantId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<RecipeAiVariantSelectedIngredient>(e =>
+            {
+                e.ToTable("RecipeAiVariantSelectedIngredients");
+                e.HasIndex(x => new { x.RecipeAiVariantId, x.SortOrder });
+                e.HasIndex(x => new { x.RecipeAiVariantId, x.IngredientId }).IsUnique();
+
+                e.HasOne(x => x.Ingredient)
+                    .WithMany()
+                    .HasForeignKey(x => x.IngredientId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            builder.Entity<RecipeAiVariantIngredientRow>(e =>
+            {
+                e.ToTable("RecipeAiVariantIngredientRows");
+                e.Property(x => x.DisplayName).IsRequired().HasMaxLength(256);
+                e.Property(x => x.QuantityText).HasMaxLength(128);
+                e.HasIndex(x => new { x.RecipeAiVariantId, x.SortOrder });
+                e.HasIndex(x => x.IngredientMeasureQuantityId);
+
+                e.HasOne(x => x.Ingredient)
+                    .WithMany()
+                    .HasForeignKey(x => x.IngredientId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasOne(x => x.Measure)
+                    .WithMany()
+                    .HasForeignKey(x => x.MeasureId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasOne(x => x.IngredientMeasureQuantity)
+                    .WithMany()
+                    .HasForeignKey(x => x.IngredientMeasureQuantityId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            builder.Entity<RecipeAiBaseRecipe>(e =>
+            {
+                e.ToTable("RecipeAiBaseRecipes");
+                e.Property(x => x.VariantType).IsRequired().HasMaxLength(64);
+                e.Property(x => x.Language).IsRequired().HasMaxLength(12);
+                e.Property(x => x.AiProvider).IsRequired().HasMaxLength(32);
+                e.Property(x => x.SelectedIngredientKey).IsRequired().HasMaxLength(400);
+                e.Property(x => x.CreatedByUserHash).HasMaxLength(256);
+                e.Property(x => x.LatestUserNote).HasMaxLength(1000);
+                e.Property(x => x.Title).IsRequired().HasMaxLength(256);
+                e.Property(x => x.Summary).HasMaxLength(4000);
+                e.Property(x => x.PreparationText).HasMaxLength(16000);
+
+                e.HasOne(x => x.BaseRecipe)
+                    .WithMany()
+                    .HasForeignKey(x => x.BaseRecipeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(x => x.ParentAiRecipe)
+                    .WithMany()
+                    .HasForeignKey(x => x.ParentAiRecipeId)
+                    .OnDelete(DeleteBehavior.NoAction);
+
+                e.HasMany(x => x.Ingredients)
+                    .WithOne(x => x.RecipeAiBaseRecipe)
+                    .HasForeignKey(x => x.RecipeAiBaseRecipeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasMany(x => x.Steps)
+                    .WithOne(x => x.RecipeAiBaseRecipe)
+                    .HasForeignKey(x => x.RecipeAiBaseRecipeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasMany(x => x.SelectedIngredients)
+                    .WithOne(x => x.RecipeAiBaseRecipe)
+                    .HasForeignKey(x => x.RecipeAiBaseRecipeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasIndex(x => new { x.BaseRecipeId, x.Language, x.VariantType, x.AiProvider, x.SelectedIngredientKey, x.IsSharedCanonical });
+                e.HasIndex(x => new { x.BaseRecipeId, x.Language, x.VariantType, x.AiProvider, x.SelectedIngredientKey, x.CreatedByUserHash });
+            });
+
+            builder.Entity<RecipeAiBaseRecipeIngredient>(e =>
+            {
+                e.ToTable("RecipeAiBaseRecipeIngredients");
+                e.Property(x => x.ChangeHint).HasMaxLength(256);
+                e.HasIndex(x => new { x.RecipeAiBaseRecipeId, x.SortOrder });
+
+                e.HasOne(x => x.IngredientMeasureQuantity)
+                    .WithMany()
+                    .HasForeignKey(x => x.IngredientMeasureQuantityId)
+                    .OnDelete(DeleteBehavior.NoAction);
+            });
+
+            builder.Entity<RecipeAiBaseRecipeStep>(e =>
+            {
+                e.ToTable("RecipeAiBaseRecipeSteps");
+                e.Property(x => x.Text).IsRequired().HasMaxLength(4000);
+                e.HasIndex(x => new { x.RecipeAiBaseRecipeId, x.StepIndex });
+            });
+
+            builder.Entity<RecipeAiBaseRecipeSelectedIngredient>(e =>
+            {
+                e.ToTable("RecipeAiBaseRecipeSelectedIngredients");
+                e.HasIndex(x => new { x.RecipeAiBaseRecipeId, x.SortOrder });
+                e.HasIndex(x => new { x.RecipeAiBaseRecipeId, x.IngredientId }).IsUnique();
+
+                e.HasOne(x => x.Ingredient)
+                    .WithMany()
+                    .HasForeignKey(x => x.IngredientId)
                     .OnDelete(DeleteBehavior.NoAction);
             });
 

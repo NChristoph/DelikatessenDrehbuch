@@ -5,6 +5,7 @@ using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Globalization;
 using System.Text.Json;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -164,6 +165,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var userHash = ResolveUserHash(string.Empty);
             var isSuperUser = userHash == SuperUserHash;
             ViewData["CanPublishToFeed"] = isSuperUser;
+            var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
 
             var posting = await _context.WorldUserPosting
                 .Where(x => x.Recipe != null && x.Recipe.Id == id)
@@ -179,12 +181,228 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
             }
 
+            // New canonical AI storage (v2)
+            var savedBaseRecipesQuery = _context.RecipeAiBaseRecipes
+                .AsNoTracking()
+                .Include(x => x.Ingredients)
+                    .ThenInclude(x => x.IngredientMeasureQuantity)
+                        .ThenInclude(x => x.IngredientsAndNutrients)
+                .Include(x => x.Ingredients)
+                    .ThenInclude(x => x.IngredientMeasureQuantity)
+                        .ThenInclude(x => x.Quantity)
+                .Include(x => x.Ingredients)
+                    .ThenInclude(x => x.IngredientMeasureQuantity)
+                        .ThenInclude(x => x.Measure)
+                .Include(x => x.Steps)
+                .Include(x => x.SelectedIngredients)
+                    .ThenInclude(x => x.Ingredient)
+                .Where(x => x.BaseRecipeId == id && x.Language == language);
+
+            if (!string.IsNullOrWhiteSpace(userHash))
+            {
+                savedBaseRecipesQuery = savedBaseRecipesQuery.Where(x => x.CreatedByUserHash == userHash || x.IsSharedCanonical);
+            }
+            else
+            {
+                savedBaseRecipesQuery = savedBaseRecipesQuery.Where(x => x.IsSharedCanonical);
+            }
+
+            var savedBaseRecipes = await savedBaseRecipesQuery
+                .OrderByDescending(x => x.UpdatedAtUtc)
+                .ToListAsync();
+
+            var savedVariantPayloadV2 = savedBaseRecipes
+                .GroupBy(x => new
+                {
+                    x.VariantType,
+                    x.AiProvider,
+                    x.SelectedIngredientKey,
+                    OwnerScope = !string.IsNullOrWhiteSpace(userHash) && x.CreatedByUserHash == userHash ? "user" : "shared"
+                })
+                .Select(g => g.OrderByDescending(x => x.UpdatedAtUtc).First())
+                .OrderByDescending(x => !string.IsNullOrWhiteSpace(userHash) && x.CreatedByUserHash == userHash)
+                .ThenByDescending(x => x.UpdatedAtUtc)
+                .Take(12)
+                .Select(x => new
+                {
+                    variantId = x.Id,
+                    variantType = x.VariantType,
+                    variantLabel = GetVariantLabel(x.VariantType),
+                    aiProvider = x.AiProvider,
+                    title = x.Title,
+                    summary = x.Summary,
+                    selectedIngredientKey = x.SelectedIngredientKey,
+                    updatedAtUtc = x.UpdatedAtUtc,
+                    isOwnedByCurrentUser = !string.IsNullOrWhiteSpace(userHash) && x.CreatedByUserHash == userHash,
+                    preview = MapAiBaseRecipeToPreview(x, model, language)
+                })
+                .ToList();
+
+            var savedVariantPayload = savedVariantPayloadV2
+                .OrderByDescending(x => x.isOwnedByCurrentUser)
+                .ThenByDescending(x => x.updatedAtUtc)
+                .Take(12)
+                .ToList();
+
+            ViewData["SavedAiVariantsJson"] = JsonSerializer.Serialize(savedVariantPayload, new JsonSerializerOptions
+            {
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+            });
+            ViewData["SavedAiVariantCount"] = savedVariantPayload.Count;
+
             return View(model);
+        }
+
+        private static RecipeAiTransformPreview MapAiBaseRecipeToPreview(RecipeAiBaseRecipe variant, RecipeBaseData baseRecipe, string language)
+        {
+            var normalizedLanguage = (language ?? "de").Trim().ToLowerInvariant();
+
+            var ingredients = (variant.Ingredients ?? new List<RecipeAiBaseRecipeIngredient>())
+                .OrderBy(x => x.SortOrder)
+                .Select(link =>
+                {
+                    var imq = link.IngredientMeasureQuantity;
+                    var nutrient = imq?.IngredientsAndNutrients;
+                    var qty = imq?.Quantity?.Quantitys ?? 0d;
+                    var measureLabel = imq?.Measure?.GetLocalized(normalizedLanguage) ?? (imq?.Measure?.Metrics_DE ?? string.Empty);
+
+                    var name = nutrient == null
+                        ? string.Empty
+                        : normalizedLanguage switch
+                        {
+                            "en" => nutrient.Name_EN ?? nutrient.Name_DE ?? string.Empty,
+                            "pt" => nutrient.Name_PRT ?? nutrient.Name_DE ?? string.Empty,
+                            "es" => nutrient.Name_ESP ?? nutrient.Name_DE ?? string.Empty,
+                            _ => nutrient.Name_DE ?? string.Empty
+                        };
+
+                    var quantityText = qty > 0
+                        ? $"{qty.ToString(CultureInfo.InvariantCulture)} {measureLabel}".Trim()
+                        : string.Empty;
+
+                    return new RecipeAiTransformIngredientPreview
+                    {
+                        IngredientId = nutrient?.Id ?? 0,
+                        Name = name,
+                        Quantity = quantityText,
+                        Measure = measureLabel,
+                        ChangeHint = link.ChangeHint,
+                        IsModified = link.IsModified
+                    };
+                })
+                .Where(x => x.IngredientId > 0 && !string.IsNullOrWhiteSpace(x.Name))
+                .ToList();
+
+            var steps = (variant.Steps ?? new List<RecipeAiBaseRecipeStep>())
+                .OrderBy(x => x.StepIndex)
+                .Select(x => new RecipeAiTransformStepPreview
+                {
+                    Index = x.StepIndex,
+                    Text = x.Text ?? string.Empty
+                })
+                .Where(x => x.Index > 0 && !string.IsNullOrWhiteSpace(x.Text))
+                .ToList();
+
+            var preview = new RecipeAiTransformPreview
+            {
+                VariantType = variant.VariantType,
+                VariantLabel = GetVariantLabel(variant.VariantType),
+                AiProvider = variant.AiProvider,
+                LanguageCode = variant.Language,
+                SelectedIngredientKey = variant.SelectedIngredientKey,
+                Title = variant.Title,
+                Summary = variant.Summary,
+                PreparationText = variant.PreparationText ?? string.Empty,
+                IngredientsText = string.Join("\n", ingredients.Select(x => $"{x.Quantity} {x.Name}".Trim())),
+                UsedFallback = false,
+                UserNoteApplied = variant.AppliedChangeCount > 0,
+                RemainingChanges = Math.Max(0, 2 - variant.AppliedChangeCount),
+                StepPlan = new List<RecipeAiTransformStepPlanItem>(),
+                Steps = steps,
+                Ingredients = ingredients,
+                Highlights = new List<string>(),
+                Nutrition = BuildNutritionFromAiBaseRecipeIngredients(variant.Ingredients ?? new List<RecipeAiBaseRecipeIngredient>(), normalizedLanguage)
+            };
+
+            return preview;
+        }
+
+        private static RecipeAiTransformNutritionPreview BuildNutritionFromAiBaseRecipeIngredients(
+            IReadOnlyList<RecipeAiBaseRecipeIngredient> ingredientLinks,
+            string language)
+        {
+            if (ingredientLinks == null || ingredientLinks.Count == 0)
+            {
+                return new RecipeAiTransformNutritionPreview();
+            }
+
+            var normalizedLanguage = (language ?? "de").Trim().ToLowerInvariant();
+
+            decimal totalCalories = 0m;
+            decimal totalProtein = 0m;
+            decimal totalCarbs = 0m;
+            decimal totalFat = 0m;
+            decimal totalSugar = 0m;
+
+            foreach (var link in ingredientLinks)
+            {
+                var imq = link.IngredientMeasureQuantity;
+                var nutrient = imq?.IngredientsAndNutrients;
+                if (nutrient == null)
+                {
+                    continue;
+                }
+
+                var amount = (decimal)(imq?.Quantity?.Quantitys ?? 0d);
+                if (amount <= 0m)
+                {
+                    continue;
+                }
+
+                var measureLabel = imq?.Measure?.GetLocalized(normalizedLanguage)
+                    ?? imq?.Measure?.Metrics_DE
+                    ?? string.Empty;
+
+                var quantityText = $"{amount.ToString(CultureInfo.InvariantCulture)} {measureLabel}".Trim();
+                var gramsOrMl = TryConvertToGramsOrMillilitersOrPieces(amount, measureLabel, quantityText, nutrient);
+                if (gramsOrMl <= 0m)
+                {
+                    continue;
+                }
+
+                var factor = gramsOrMl / 100m;
+                totalCalories += nutrient.Calories_a_100g * factor;
+                totalProtein += nutrient.Protein_a_100g * factor;
+                totalCarbs += nutrient.Carbohydrates_a_100g * factor;
+                totalFat += nutrient.Fat_a_100g * factor;
+                totalSugar += nutrient.Sugar_a_100g * factor;
+            }
+
+            return new RecipeAiTransformNutritionPreview
+            {
+                Calories = totalCalories,
+                Protein = totalProtein,
+                Carbs = totalCarbs,
+                Fat = totalFat,
+                Sugar = totalSugar
+            };
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> PreviewAiRecipeVariant([FromBody] RecipeAiTransformRequest request, CancellationToken cancellationToken)
+        {
+            return await GenerateAiRecipeVariantCoreAsync(request, cancellationToken);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerateAiRecipeVariant([FromBody] RecipeAiTransformRequest request, CancellationToken cancellationToken)
+        {
+            return await GenerateAiRecipeVariantCoreAsync(request, cancellationToken);
+        }
+
+        private async Task<IActionResult> GenerateAiRecipeVariantCoreAsync(RecipeAiTransformRequest request, CancellationToken cancellationToken)
         {
             if (request == null || request.RecipeId <= 0)
             {
@@ -212,7 +430,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 var selectedIngredientIds = (request.SelectedIngredientIds ?? new List<int>())
                     .Where(x => x > 0)
                     .Distinct()
-                    .Take(3)
+                    .Take(5)
                     .ToList();
 
                 if (selectedIngredientIds.Count == 0 && request.SelectedIngredientId.GetValueOrDefault() > 0)
@@ -272,6 +490,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
 
                 var resolvedUserHash = ResolveUserHash(string.Empty);
+                var selectedConcept = string.IsNullOrWhiteSpace(request.SelectedConceptKey)
+                    ? null
+                    : new RecipeAiIngredientSuggestionItem
+                    {
+                        ConceptKey = request.SelectedConceptKey?.Trim() ?? string.Empty,
+                        ConceptTitle = request.SelectedConceptTitle?.Trim() ?? string.Empty,
+                        ConceptSummary = request.SelectedConceptSummary?.Trim() ?? string.Empty,
+                        ConceptApproach = request.SelectedConceptApproach?.Trim() ?? string.Empty,
+                        ConceptIngredientPlan = request.SelectedConceptIngredientPlan ?? new List<RecipeAiConceptIngredientPlanItem>()
+                    };
+
+                var selectedIngredientKey = selectedConcept != null
+                    ? $"concept:{selectedConcept.ConceptKey}"
+                    : BuildSelectedIngredientKey(selectedIngredientIds);
                 RecipeAiTransformPreview? cachedVariant = null;
                 if (selectedIngredients == null || selectedIngredients.Count == 0)
                 {
@@ -279,6 +511,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         request.RecipeId,
                         request.VariantType,
                         language,
+                        request.AiProvider ?? string.Empty,
+                        selectedIngredientKey,
                         request.AppliedChangeCount,
                         request.UserNote,
                         resolvedUserHash,
@@ -287,17 +521,102 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 if (cachedVariant != null)
                 {
-                    return Json(cachedVariant);
+                    // Enforce high-protein minimum even for cached variants (older cached items may predate the rule).
+                    if (string.Equals(request.VariantType?.Trim(), "highprotein", StringComparison.OrdinalIgnoreCase))
+                    {
+                        cachedVariant.Nutrition = await BuildAiPreviewNutritionAsync(cachedVariant, cancellationToken);
+                        var baselineNutrition = BuildRecipeNutritionFromRecipe(recipe, language);
+                        if (!MeetsHighProteinMinimum(recipe.PersonCount, baselineNutrition.Protein, cachedVariant.Nutrition.Protein))
+                        {
+                            cachedVariant = null;
+                        }
+                    }
+
+                    if (cachedVariant != null)
+                    {
+                        return Json(cachedVariant);
+                    }
                 }
 
                 var preview = await _recipeAiTransformService.BuildPreviewAsync(
                     recipe,
                     request.VariantType,
+                    request.AiProvider ?? string.Empty,
                     language,
                     request.UserNote,
                     request.AppliedChangeCount,
-                    selectedIngredients,
+                    selectedConcept: selectedConcept,
+                    selectedIngredients: selectedIngredients,
                     cancellationToken: cancellationToken);
+
+                preview.AiProvider = string.IsNullOrWhiteSpace(request.AiProvider) ? "openai" : request.AiProvider.Trim().ToLowerInvariant();
+                preview.LanguageCode = language;
+                preview.SelectedIngredientKey = selectedIngredientKey;
+                preview.Nutrition = await BuildAiPreviewNutritionAsync(preview, cancellationToken);
+
+                // Hard requirement: high-protein must actually hit +7% protein per portion.
+                // If the first result doesn't, we do one internal repair pass (without consuming a user "change round").
+                var userProvidedNote = !string.IsNullOrWhiteSpace(request.UserNote);
+                if (string.Equals(request.VariantType?.Trim(), "highprotein", StringComparison.OrdinalIgnoreCase)
+                    && !preview.UsedFallback
+                    && selectedConcept != null)
+                {
+                    var baselineNutrition = BuildRecipeNutritionFromRecipe(recipe, language);
+                    if (!MeetsHighProteinMinimum(recipe.PersonCount, baselineNutrition.Protein, preview.Nutrition.Protein))
+                    {
+                        var portions = Math.Max(1, recipe.PersonCount);
+                        var baselinePer = baselineNutrition.Protein / portions;
+                        var currentPer = preview.Nutrition.Protein / portions;
+                        var targetMin = baselinePer * 1.15m;
+
+                        var proteinValidatorNote =
+                            $"INTERN: Protein-Ziel nicht erreicht. Aktuell ca. {currentPer:0.#} g Protein/Portion, Ziel mind. {targetMin:0.#} g. " +
+                            "Erhoehe Protein durch echte, mengenrelevante Anpassungen (keine Mini-Mengen wie 2 g Mehl). " +
+                            "Wenn du Huelsenfruechte/Mehl als Proteinhebel nutzt, nimm eine realistische Menge oder arbeite mit Eiern/Proteinbeilage; halte das Rezept kochbar.";
+
+                        var mergedNote = string.IsNullOrWhiteSpace(request.UserNote)
+                            ? proteinValidatorNote
+                            : (request.UserNote!.Trim() + "\n" + proteinValidatorNote);
+
+                        var repaired = await _recipeAiTransformService.BuildPreviewAsync(
+                            recipe,
+                            request.VariantType,
+                            request.AiProvider ?? string.Empty,
+                            language,
+                            mergedNote,
+                            request.AppliedChangeCount,
+                            selectedConcept: selectedConcept,
+                            selectedIngredients: selectedIngredients,
+                            cancellationToken: cancellationToken);
+
+                        repaired.AiProvider = preview.AiProvider;
+                        repaired.LanguageCode = language;
+                        repaired.SelectedIngredientKey = selectedIngredientKey;
+                        repaired.Nutrition = await BuildAiPreviewNutritionAsync(repaired, cancellationToken);
+
+                        // Keep UX honest: don't show "User-Wunsch drin" when the user didn't type anything.
+                        if (!userProvidedNote)
+                        {
+                            repaired.UserNoteApplied = false;
+                        }
+
+                        // Only accept repaired preview if it meets the minimum, otherwise keep the better one but add a hint.
+                        if (MeetsHighProteinMinimum(recipe.PersonCount, baselineNutrition.Protein, repaired.Nutrition.Protein))
+                        {
+                            preview = repaired;
+                        }
+                        else
+                        {
+                            preview.Highlights ??= new List<string>();
+                            preview.Highlights.Add($"Hinweis: Protein-Ziel (+7%) wurde nicht sicher erreicht ({currentPer:0.#} g/Portion).");
+                        }
+                    }
+                }
+
+                if (!userProvidedNote)
+                {
+                    preview.UserNoteApplied = false;
+                }
 
                 return Json(preview);
             }
@@ -338,6 +657,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 var suggestions = await _recipeAiTransformService.BuildIngredientSuggestionsAsync(
                     recipe,
                     request.VariantType,
+                    request.AiProvider ?? string.Empty,
                     language,
                     request.UserNote,
                     cancellationToken);
@@ -348,6 +668,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 _logger.LogWarning(ex, "AI ingredient suggestions failed for RecipeId={RecipeId}", request.RecipeId);
                 return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected AI ingredient suggestions failure for RecipeId={RecipeId}", request.RecipeId);
+                return StatusCode(500, new { message = ex.Message });
             }
         }
 
@@ -369,6 +694,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return NotFound(new { message = "Basisrezept wurde nicht gefunden." });
             }
 
+            var baseRecipeMeta = await _context.RecipeBaseData
+                .AsNoTracking()
+                .Where(r => r.Id == request.BaseRecipeId)
+                .Select(r => new { r.PersonCount, Prep = r.PreparationTime })
+                .FirstAsync(cancellationToken);
+
             var preview = request.Preview;
             preview.StepPlan ??= new List<RecipeAiTransformStepPlanItem>();
             preview.Steps ??= new List<RecipeAiTransformStepPreview>();
@@ -377,40 +708,63 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var userHash = ResolveUserHash(string.Empty);
             var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+            var normalizedProvider = string.IsNullOrWhiteSpace(request.AiProvider)
+                ? (string.IsNullOrWhiteSpace(preview.AiProvider) ? "openai" : preview.AiProvider.Trim().ToLowerInvariant())
+                : request.AiProvider.Trim().ToLowerInvariant();
+            var selectedIngredientIds = (request.SelectedIngredientIds ?? new List<int>())
+                .Where(x => x > 0)
+                .Distinct()
+                .OrderBy(x => x)
+                .ToList();
+            var selectedConceptKey = string.IsNullOrWhiteSpace(request.SelectedConceptKey)
+                ? string.Empty
+                : request.SelectedConceptKey.Trim();
+            var selectedIngredientKey = string.IsNullOrWhiteSpace(selectedConceptKey)
+                ? BuildSelectedIngredientKey(selectedIngredientIds)
+                : $"concept:{selectedConceptKey}";
             var appliedChangeCount = Math.Max(0, 2 - preview.RemainingChanges);
             var isSharedCanonical = appliedChangeCount <= 0 && !preview.UserNoteApplied;
 
-            RecipeAiVariant entity;
+            // === New canonical storage (v2): RecipeAiBaseRecipes + IngredientMeasureQuantity bridge ===
+            RecipeAiBaseRecipe entity;
             if (isSharedCanonical)
             {
-                entity = await _context.RecipeAiVariants
+                entity = await _context.RecipeAiBaseRecipes
                     .FirstOrDefaultAsync(x =>
                         x.BaseRecipeId == request.BaseRecipeId &&
                         x.VariantType == preview.VariantType &&
                         x.Language == language &&
+                        x.AiProvider == normalizedProvider &&
+                        x.SelectedIngredientKey == selectedIngredientKey &&
                         x.IsSharedCanonical,
                         cancellationToken)
-                    ?? new RecipeAiVariant
+                    ?? new RecipeAiBaseRecipe
                     {
                         BaseRecipeId = request.BaseRecipeId,
                         VariantType = preview.VariantType,
                         Language = language,
+                        AiProvider = normalizedProvider,
+                        SelectedIngredientKey = selectedIngredientKey,
                         IsSharedCanonical = true,
                         CreatedAtUtc = DateTime.UtcNow
                     };
             }
             else
             {
-                entity = new RecipeAiVariant
+                entity = new RecipeAiBaseRecipe
                 {
                     BaseRecipeId = request.BaseRecipeId,
                     VariantType = preview.VariantType,
                     Language = language,
+                    AiProvider = normalizedProvider,
+                    SelectedIngredientKey = selectedIngredientKey,
                     IsSharedCanonical = false,
                     CreatedAtUtc = DateTime.UtcNow
                 };
             }
 
+            entity.AiProvider = normalizedProvider;
+            entity.SelectedIngredientKey = selectedIngredientKey;
             entity.CreatedByUserHash = string.IsNullOrWhiteSpace(userHash) ? null : userHash;
             entity.AppliedChangeCount = appliedChangeCount;
             entity.LatestUserNote = preview.UserNoteApplied
@@ -418,17 +772,108 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     ? null
                     : request.LatestUserNote.Trim()
                 : null;
-            entity.RenderedTitle = preview.Title ?? string.Empty;
-            entity.RenderedSummary = preview.Summary ?? string.Empty;
-            entity.StepPlanJson = JsonSerializer.Serialize(preview.StepPlan);
-            entity.RenderedStepsJson = JsonSerializer.Serialize(preview.Steps);
-            entity.RenderedIngredientsJson = JsonSerializer.Serialize(preview.Ingredients);
-            entity.RenderedHighlightsJson = JsonSerializer.Serialize(preview.Highlights);
+            entity.Title = preview.Title ?? string.Empty;
+            entity.Summary = preview.Summary ?? string.Empty;
+            entity.PersonCount = Math.Max(1, baseRecipeMeta.PersonCount);
+            entity.PreparationTimeMinutes = Math.Max(0, baseRecipeMeta.Prep);
+            entity.PreparationText = string.IsNullOrWhiteSpace(preview.PreparationText)
+                ? string.Join("\n", preview.Steps.OrderBy(x => x.Index).Select(x => x.Text))
+                : preview.PreparationText;
             entity.UpdatedAtUtc = DateTime.UtcNow;
 
             if (entity.Id == 0)
             {
-                await _context.RecipeAiVariants.AddAsync(entity, cancellationToken);
+                await _context.RecipeAiBaseRecipes.AddAsync(entity, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            else
+            {
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            // Clear and recreate links for deterministic ordering.
+            var existingSelected = await _context.RecipeAiBaseRecipeSelectedIngredients
+                .Where(x => x.RecipeAiBaseRecipeId == entity.Id)
+                .ToListAsync(cancellationToken);
+            if (existingSelected.Count > 0)
+            {
+                _context.RecipeAiBaseRecipeSelectedIngredients.RemoveRange(existingSelected);
+            }
+
+            var existingSteps = await _context.RecipeAiBaseRecipeSteps
+                .Where(x => x.RecipeAiBaseRecipeId == entity.Id)
+                .ToListAsync(cancellationToken);
+            if (existingSteps.Count > 0)
+            {
+                _context.RecipeAiBaseRecipeSteps.RemoveRange(existingSteps);
+            }
+
+            var existingIngredients = await _context.RecipeAiBaseRecipeIngredients
+                .Where(x => x.RecipeAiBaseRecipeId == entity.Id)
+                .ToListAsync(cancellationToken);
+            if (existingIngredients.Count > 0)
+            {
+                _context.RecipeAiBaseRecipeIngredients.RemoveRange(existingIngredients);
+            }
+
+            if (selectedIngredientIds.Count > 0)
+            {
+                await _context.RecipeAiBaseRecipeSelectedIngredients.AddRangeAsync(
+                    selectedIngredientIds.Select((ingredientId, index) => new RecipeAiBaseRecipeSelectedIngredient
+                    {
+                        RecipeAiBaseRecipeId = entity.Id,
+                        IngredientId = ingredientId,
+                        SortOrder = index
+                    }),
+                    cancellationToken);
+            }
+
+            // IngredientMeasureQuantity bridge
+            var measureLookup2 = await LoadMeasureLookupAsync(language, cancellationToken);
+            var ingredientLinks = new List<RecipeAiBaseRecipeIngredient>();
+            for (var index = 0; index < preview.Ingredients.Count; index++)
+            {
+                var item = preview.Ingredients[index];
+                if (item == null)
+                {
+                    continue;
+                }
+
+                var imqId = await ResolveOrCreateIngredientMeasureQuantityId(item, measureLookup2, cancellationToken);
+                if (imqId == null)
+                {
+                    continue;
+                }
+
+                ingredientLinks.Add(new RecipeAiBaseRecipeIngredient
+                {
+                    RecipeAiBaseRecipeId = entity.Id,
+                    IngredientMeasureQuantityId = imqId.Value,
+                    SortOrder = index,
+                    IsModified = item.IsModified,
+                    ChangeHint = item.ChangeHint
+                });
+            }
+
+            if (ingredientLinks.Count > 0)
+            {
+                await _context.RecipeAiBaseRecipeIngredients.AddRangeAsync(ingredientLinks, cancellationToken);
+            }
+
+            // Steps
+            var stepRows = preview.Steps
+                .Where(x => x != null && x.Index > 0 && !string.IsNullOrWhiteSpace(x.Text))
+                .OrderBy(x => x.Index)
+                .Select(x => new RecipeAiBaseRecipeStep
+                {
+                    RecipeAiBaseRecipeId = entity.Id,
+                    StepIndex = x.Index,
+                    Text = x.Text ?? string.Empty
+                })
+                .ToList();
+            if (stepRows.Count > 0)
+            {
+                await _context.RecipeAiBaseRecipeSteps.AddRangeAsync(stepRows, cancellationToken);
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -439,6 +884,145 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 variantId = entity.Id,
                 isSharedCanonical = entity.IsSharedCanonical
             });
+        }
+
+        private static int? ResolveMeasureIdFromLookup(string? rawMeasure, IReadOnlyDictionary<string, int> lookup)
+        {
+            var key = NormalizeMeasureLookupKey(rawMeasure);
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                return null;
+            }
+
+            return lookup.TryGetValue(key, out var id) ? id : null;
+        }
+
+        private static string NormalizeMeasureLookupKey(string? rawMeasure)
+        {
+            return (rawMeasure ?? string.Empty)
+                .Trim()
+                .ToLowerInvariant()
+                .Replace(".", string.Empty)
+                .Replace(" ", string.Empty);
+        }
+
+        private async Task<Dictionary<string, int>> LoadMeasureLookupAsync(string language, CancellationToken cancellationToken)
+        {
+            // Build a lookup across all localized metric strings (e.g. "g", "ml", "stk") to Measure.Id.
+            // This keeps the AI output lightweight (it can just say "g") while we store normalized FK IDs.
+            var measures = await _context.Metrics
+                .AsNoTracking()
+                .ToListAsync(cancellationToken);
+
+            var lookup = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var m in measures)
+            {
+                if (m == null)
+                {
+                    continue;
+                }
+
+                foreach (var unit in new[]
+                {
+                    m.Metrics_DE, m.Metrics_EN, m.Metrics_ESP, m.Metrics_PRT,
+                    m.Metrics_ID, m.Metrics_MS, m.Metrics_NL, m.Metrics_SE,
+                    m.Metrics_DK, m.Metrics_NO
+                })
+                {
+                    var key = NormalizeMeasureLookupKey(unit);
+                    if (string.IsNullOrWhiteSpace(key))
+                    {
+                        continue;
+                    }
+
+                    if (!lookup.ContainsKey(key))
+                    {
+                        lookup[key] = m.Id;
+                    }
+                }
+            }
+
+            // Common user/AI variants.
+            if (!lookup.ContainsKey("stk") && lookup.TryGetValue("stuck", out var pieceId))
+            {
+                lookup["stk"] = pieceId;
+            }
+            if (!lookup.ContainsKey("stueck") && lookup.TryGetValue("stuck", out var pieceId2))
+            {
+                lookup["stueck"] = pieceId2;
+            }
+
+            return lookup;
+        }
+
+        private async Task<int?> ResolveOrCreateIngredientMeasureQuantityId(
+            RecipeAiTransformIngredientPreview item,
+            IReadOnlyDictionary<string, int> measureLookup,
+            CancellationToken cancellationToken)
+        {
+            if (item == null || item.IngredientId <= 0)
+            {
+                return null;
+            }
+
+            var quantity = TryParseLeadingQuantity(item.Quantity);
+            if (quantity <= 0m)
+            {
+                return null;
+            }
+
+            var measureId = ResolveMeasureIdFromLookup(item.Measure, measureLookup);
+            if (measureId == null)
+            {
+                return null;
+            }
+
+            // Reuse existing Quantity rows where possible (Quantity table is intentionally tiny).
+            var quantityValue = (double)quantity;
+            var existingQuantity = await _context.Quantities
+                .FirstOrDefaultAsync(x => Math.Abs(x.Quantitys - quantityValue) < 0.0001, cancellationToken);
+
+            if (existingQuantity == null)
+            {
+                existingQuantity = new Quantity { Quantitys = quantityValue };
+                await _context.Quantities.AddAsync(existingQuantity, cancellationToken);
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            // Reuse existing IngredientMeasureQuantity rows to avoid DB bloat.
+            var existingImq = await _context.IngredientMeasureQuantity
+                .FirstOrDefaultAsync(x =>
+                    EF.Property<int>(x, "IngredientsAndNutrientsId") == item.IngredientId
+                    && EF.Property<int>(x, "QuantityId") == existingQuantity.Id
+                    && EF.Property<int>(x, "MeasureId") == measureId.Value,
+                    cancellationToken);
+
+            if (existingImq != null)
+            {
+                return existingImq.Id;
+            }
+
+            var ingredient = await _context.IngredientsAndNutrients
+                .FirstOrDefaultAsync(x => x.Id == item.IngredientId, cancellationToken);
+            var measure = await _context.Metrics
+                .FirstOrDefaultAsync(x => x.Id == measureId.Value, cancellationToken);
+
+            if (ingredient == null || measure == null)
+            {
+                return null;
+            }
+
+            var created = new IngredientMeasureQuantity
+            {
+                IngredientsAndNutrients = ingredient,
+                Quantity = existingQuantity,
+                Measure = measure
+            };
+
+            await _context.IngredientMeasureQuantity.AddAsync(created, cancellationToken);
+            await _context.SaveChangesAsync(cancellationToken);
+            return created.Id;
         }
 
         [HttpPost]
@@ -492,6 +1076,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             int baseRecipeId,
             string variantType,
             string language,
+            string aiProvider,
+            string selectedIngredientKey,
             int appliedChangeCount,
             string? userNote,
             string? userHash,
@@ -503,54 +1089,406 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             var normalizedVariantType = (variantType ?? string.Empty).Trim().ToLowerInvariant();
+            var normalizedProvider = string.IsNullOrWhiteSpace(aiProvider) ? "openai" : aiProvider.Trim().ToLowerInvariant();
             if (string.IsNullOrWhiteSpace(normalizedVariantType))
             {
                 return null;
             }
 
-            RecipeAiVariant? cached = null;
+            RecipeAiBaseRecipe? cached = null;
             if (!string.IsNullOrWhiteSpace(userHash))
             {
-                cached = await _context.RecipeAiVariants
+                cached = await _context.RecipeAiBaseRecipes
                     .AsNoTracking()
+                    .Include(x => x.Ingredients)
+                        .ThenInclude(x => x.IngredientMeasureQuantity)
+                            .ThenInclude(x => x.IngredientsAndNutrients)
+                    .Include(x => x.Ingredients)
+                        .ThenInclude(x => x.IngredientMeasureQuantity)
+                            .ThenInclude(x => x.Quantity)
+                    .Include(x => x.Ingredients)
+                        .ThenInclude(x => x.IngredientMeasureQuantity)
+                            .ThenInclude(x => x.Measure)
+                    .Include(x => x.Steps)
+                    .Include(x => x.SelectedIngredients)
+                        .ThenInclude(x => x.Ingredient)
                     .Where(x =>
                         x.BaseRecipeId == baseRecipeId &&
                         x.VariantType == normalizedVariantType &&
                         x.Language == language &&
+                        x.AiProvider == normalizedProvider &&
+                        x.SelectedIngredientKey == selectedIngredientKey &&
                         x.CreatedByUserHash == userHash &&
                         !x.IsSharedCanonical)
                     .OrderByDescending(x => x.UpdatedAtUtc)
                     .FirstOrDefaultAsync(cancellationToken);
             }
 
-            cached ??= await _context.RecipeAiVariants
+            cached ??= await _context.RecipeAiBaseRecipes
                 .AsNoTracking()
+                .Include(x => x.Ingredients)
+                    .ThenInclude(x => x.IngredientMeasureQuantity)
+                        .ThenInclude(x => x.IngredientsAndNutrients)
+                .Include(x => x.Ingredients)
+                    .ThenInclude(x => x.IngredientMeasureQuantity)
+                        .ThenInclude(x => x.Quantity)
+                .Include(x => x.Ingredients)
+                    .ThenInclude(x => x.IngredientMeasureQuantity)
+                        .ThenInclude(x => x.Measure)
+                .Include(x => x.Steps)
+                .Include(x => x.SelectedIngredients)
+                    .ThenInclude(x => x.Ingredient)
                 .Where(x =>
                     x.BaseRecipeId == baseRecipeId &&
                     x.VariantType == normalizedVariantType &&
                     x.Language == language &&
+                    x.AiProvider == normalizedProvider &&
+                    x.SelectedIngredientKey == selectedIngredientKey &&
                     x.IsSharedCanonical)
                 .OrderByDescending(x => x.UpdatedAtUtc)
                 .FirstOrDefaultAsync(cancellationToken);
 
-            return cached == null ? null : MapAiVariantToPreview(cached);
+            var baseRecipe = await _context.RecipeBaseData
+                .AsNoTracking()
+                .Include(x => x.Ingredients)
+                    .ThenInclude(x => x.Ingredient)
+                        .ThenInclude(x => x.IngredientsAndNutrients)
+                .FirstOrDefaultAsync(x => x.Id == baseRecipeId, cancellationToken);
+
+            return cached == null || baseRecipe == null ? null : MapAiBaseRecipeToPreview(cached, baseRecipe, language);
+        }
+        private static IngredientsAndNutrients? FindMatchingIngredient(
+            int ingredientId,
+            string? displayName,
+            IReadOnlyList<IngredientMeasureQuantity> originalIngredients,
+            IReadOnlyList<IngredientsAndNutrients> selectedIngredients)
+        {
+            if (ingredientId > 0)
+            {
+                var selectedById = selectedIngredients.FirstOrDefault(x => x.Id == ingredientId);
+                if (selectedById != null)
+                {
+                    return selectedById;
+                }
+
+                var originalById = originalIngredients
+                    .Select(x => x.IngredientsAndNutrients)
+                    .FirstOrDefault(x => x != null && x.Id == ingredientId);
+                if (originalById != null)
+                {
+                    return originalById;
+                }
+            }
+
+            var normalizedDisplayName = NormalizeIngredientLookupName(displayName);
+            if (string.IsNullOrWhiteSpace(normalizedDisplayName))
+            {
+                return null;
+            }
+
+            var selectedMatch = selectedIngredients.FirstOrDefault(x => NormalizeIngredientLookupName(x.Name_DE) == normalizedDisplayName);
+            if (selectedMatch != null)
+            {
+                return selectedMatch;
+            }
+
+            var originalExactMatch = originalIngredients
+                .Select(x => x.IngredientsAndNutrients)
+                .FirstOrDefault(x => x != null && NormalizeIngredientLookupName(x.Name_DE) == normalizedDisplayName);
+
+            if (originalExactMatch != null)
+            {
+                return originalExactMatch;
+            }
+
+            return selectedIngredients.FirstOrDefault(x => NormalizeIngredientLookupName(x.Name_DE).Contains(normalizedDisplayName, StringComparison.OrdinalIgnoreCase))
+                ?? originalIngredients.Select(x => x.IngredientsAndNutrients)
+                    .FirstOrDefault(x => x != null && NormalizeIngredientLookupName(x.Name_DE).Contains(normalizedDisplayName, StringComparison.OrdinalIgnoreCase));
         }
 
-        private static RecipeAiTransformPreview MapAiVariantToPreview(RecipeAiVariant variant)
+        private static string NormalizeIngredientLookupName(string? value)
         {
-            return new RecipeAiTransformPreview
+            if (string.IsNullOrWhiteSpace(value))
             {
-                VariantType = variant.VariantType,
-                VariantLabel = GetVariantLabel(variant.VariantType),
-                Title = variant.RenderedTitle,
-                Summary = variant.RenderedSummary,
-                UsedFallback = false,
-                UserNoteApplied = variant.AppliedChangeCount > 0,
-                RemainingChanges = Math.Max(0, 2 - variant.AppliedChangeCount),
-                StepPlan = DeserializeJson<List<RecipeAiTransformStepPlanItem>>(variant.StepPlanJson) ?? new List<RecipeAiTransformStepPlanItem>(),
-                Steps = DeserializeJson<List<RecipeAiTransformStepPreview>>(variant.RenderedStepsJson) ?? new List<RecipeAiTransformStepPreview>(),
-                Ingredients = DeserializeJson<List<RecipeAiTransformIngredientPreview>>(variant.RenderedIngredientsJson) ?? new List<RecipeAiTransformIngredientPreview>(),
-                Highlights = DeserializeJson<List<string>>(variant.RenderedHighlightsJson) ?? new List<string>()
+                return string.Empty;
+            }
+
+            return value
+                .Trim()
+                .ToLowerInvariant()
+                .Replace("ä", "ae")
+                .Replace("ö", "oe")
+                .Replace("ü", "ue")
+                .Replace("ß", "ss")
+                .Replace("(gemahlen)", string.Empty)
+                .Replace("(in öl)", string.Empty)
+                .Replace("(in oel)", string.Empty)
+                .Replace("filets", "filet")
+                .Replace("zehen", "zehe")
+                .Replace(".", string.Empty)
+                .Replace(",", string.Empty)
+                .Trim();
+        }
+
+        private static decimal TryParseLeadingQuantity(string? quantityText)
+        {
+            var text = (quantityText ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(text))
+            {
+                return 0m;
+            }
+
+            var firstToken = text.Split(' ', StringSplitOptions.RemoveEmptyEntries).FirstOrDefault() ?? string.Empty;
+            var fractionParts = firstToken.Split('/');
+            if (fractionParts.Length == 2
+                && decimal.TryParse(fractionParts[0], NumberStyles.Number, CultureInfo.InvariantCulture, out var numerator)
+                && decimal.TryParse(fractionParts[1], NumberStyles.Number, CultureInfo.InvariantCulture, out var denominator)
+                && denominator != 0)
+            {
+                return numerator / denominator;
+            }
+
+            var numericToken = new string(text.TakeWhile(ch => char.IsDigit(ch) || ch is ',' or '.').ToArray());
+            if (string.IsNullOrWhiteSpace(numericToken))
+            {
+                return 0m;
+            }
+
+            return decimal.TryParse(numericToken.Replace(',', '.'), NumberStyles.Number, CultureInfo.InvariantCulture, out var result)
+                ? result
+                : 0m;
+        }
+
+        private async Task<RecipeAiTransformNutritionPreview> BuildAiPreviewNutritionAsync(
+            RecipeAiTransformPreview preview,
+            CancellationToken cancellationToken)
+        {
+            if (preview?.Ingredients == null || preview.Ingredients.Count == 0)
+            {
+                return new RecipeAiTransformNutritionPreview();
+            }
+
+            var ingredientIds = preview.Ingredients
+                .Select(x => x?.IngredientId ?? 0)
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            if (ingredientIds.Count == 0)
+            {
+                return new RecipeAiTransformNutritionPreview();
+            }
+
+            var nutrients = await _context.IngredientsAndNutrients
+                .AsNoTracking()
+                .Where(x => ingredientIds.Contains(x.Id))
+                .ToDictionaryAsync(x => x.Id, cancellationToken);
+
+            decimal totalCalories = 0m;
+            decimal totalProtein = 0m;
+            decimal totalCarbs = 0m;
+            decimal totalFat = 0m;
+            decimal totalSugar = 0m;
+
+            foreach (var item in preview.Ingredients)
+            {
+                if (item == null || item.IngredientId <= 0)
+                {
+                    continue;
+                }
+
+                if (!nutrients.TryGetValue(item.IngredientId, out var nutrient))
+                {
+                    continue;
+                }
+
+                var amount = TryParseLeadingQuantity(item.Quantity);
+                if (amount <= 0m)
+                {
+                    continue;
+                }
+
+                var gramsOrMl = TryConvertToGramsOrMillilitersOrPieces(amount, item.Measure, item.Quantity, nutrient);
+                if (gramsOrMl <= 0m)
+                {
+                    continue;
+                }
+
+                var factor = gramsOrMl / 100m;
+                totalCalories += nutrient.Calories_a_100g * factor;
+                totalProtein += nutrient.Protein_a_100g * factor;
+                totalCarbs += nutrient.Carbohydrates_a_100g * factor;
+                totalFat += nutrient.Fat_a_100g * factor;
+                totalSugar += nutrient.Sugar_a_100g * factor;
+            }
+
+            return new RecipeAiTransformNutritionPreview
+            {
+                Calories = totalCalories,
+                Protein = totalProtein,
+                Carbs = totalCarbs,
+                Fat = totalFat,
+                Sugar = totalSugar
+            };
+        }
+
+        private static bool MeetsHighProteinMinimum(int portions, decimal baselineProteinTotal, decimal candidateProteinTotal)
+        {
+            var safePortions = Math.Max(1, portions);
+            var baselinePerPortion = baselineProteinTotal / safePortions;
+            if (baselinePerPortion <= 0m)
+            {
+                return true;
+            }
+
+            var candidatePerPortion = candidateProteinTotal / safePortions;
+            return candidatePerPortion + 0.05m >= baselinePerPortion * 1.15m;
+        }
+
+        private RecipeAiTransformNutritionPreview BuildRecipeNutritionFromRecipe(RecipeBaseData recipe, string language)
+        {
+            if (recipe?.Ingredients == null || recipe.Ingredients.Count == 0)
+            {
+                return new RecipeAiTransformNutritionPreview();
+            }
+
+            var normalizedLanguage = (language ?? "de").Trim().ToLowerInvariant();
+
+            decimal totalCalories = 0m;
+            decimal totalProtein = 0m;
+            decimal totalCarbs = 0m;
+            decimal totalFat = 0m;
+            decimal totalSugar = 0m;
+
+            foreach (var link in recipe.Ingredients)
+            {
+                var imq = link?.Ingredient;
+                var nutrient = imq?.IngredientsAndNutrients;
+                if (imq == null || nutrient == null)
+                {
+                    continue;
+                }
+
+                var amount = (decimal)(imq.Quantity?.Quantitys ?? 0d);
+                if (amount <= 0m)
+                {
+                    continue;
+                }
+
+                var measureLabel = imq.Measure?.GetLocalized(normalizedLanguage)
+                    ?? imq.Measure?.Metrics_DE
+                    ?? string.Empty;
+
+                var quantityText = $"{amount.ToString(CultureInfo.InvariantCulture)} {measureLabel}".Trim();
+                var gramsOrMl = TryConvertToGramsOrMillilitersOrPieces(amount, measureLabel, quantityText, nutrient);
+                if (gramsOrMl <= 0m)
+                {
+                    continue;
+                }
+
+                var factor = gramsOrMl / 100m;
+                totalCalories += nutrient.Calories_a_100g * factor;
+                totalProtein += nutrient.Protein_a_100g * factor;
+                totalCarbs += nutrient.Carbohydrates_a_100g * factor;
+                totalFat += nutrient.Fat_a_100g * factor;
+                totalSugar += nutrient.Sugar_a_100g * factor;
+            }
+
+            return new RecipeAiTransformNutritionPreview
+            {
+                Calories = totalCalories,
+                Protein = totalProtein,
+                Carbs = totalCarbs,
+                Fat = totalFat,
+                Sugar = totalSugar
+            };
+        }
+
+        private static decimal TryConvertToGramsOrMillilitersOrPieces(
+            decimal amount,
+            string? measure,
+            string? quantityText,
+            IngredientsAndNutrients nutrientSource)
+        {
+            var unit = (measure ?? string.Empty).Trim().ToLowerInvariant();
+            unit = unit.Replace(".", string.Empty);
+
+            // If measure is missing, try to infer common units from the quantity text.
+            var q = (quantityText ?? string.Empty).Trim().ToLowerInvariant();
+
+            if (string.IsNullOrWhiteSpace(unit))
+            {
+                if (q.Contains("kg"))
+                {
+                    unit = "kg";
+                }
+                else if (q.Contains("ml"))
+                {
+                    unit = "ml";
+                }
+                else if (q.Contains(" l") || q.EndsWith("l") || q.Contains("liter"))
+                {
+                    unit = "l";
+                }
+                else if (q.Contains(" g") || q.EndsWith("g"))
+                {
+                    unit = "g";
+                }
+                else if (q.Contains("stk") || q.Contains("stück") || q.Contains("stueck") || q.Contains("piece") || q.Contains("pcs"))
+                {
+                    unit = "stk";
+                }
+            }
+
+            if (unit is "stk" or "stuck" or "stück" or "stueck" or "piece" or "pcs")
+            {
+                var weight = nutrientSource?.Weight_per_piece ?? 0m;
+                if (weight <= 0m)
+                {
+                    return 0m;
+                }
+
+                return amount * weight;
+            }
+
+            return TryConvertToGramsOrMilliliters(amount, unit, quantityText);
+        }
+
+        private static decimal TryConvertToGramsOrMilliliters(decimal amount, string? measure, string? quantityText)
+        {
+            var unit = (measure ?? string.Empty).Trim().ToLowerInvariant();
+            unit = unit.Replace(".", string.Empty);
+
+            // If measure is missing, try to infer common units from the quantity text.
+            var q = (quantityText ?? string.Empty).ToLowerInvariant();
+
+            if (string.IsNullOrWhiteSpace(unit))
+            {
+                if (q.Contains("kg"))
+                {
+                    unit = "kg";
+                }
+                else if (q.Contains(" g") || q.EndsWith("g"))
+                {
+                    unit = "g";
+                }
+                else if (q.Contains("ml"))
+                {
+                    unit = "ml";
+                }
+                else if (q.Contains(" l") || q.EndsWith("l") || q.Contains("liter"))
+                {
+                    unit = "l";
+                }
+            }
+
+            return unit switch
+            {
+                "g" or "gram" => amount,
+                "kg" or "kilogramm" => amount * 1000m,
+                "ml" or "milliliter" => amount,
+                "l" or "liter" => amount * 1000m,
+                _ => 0m
             };
         }
 
@@ -572,6 +1510,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 return default;
             }
+        }
+
+        private static string BuildSelectedIngredientKey(IEnumerable<int>? ingredientIds)
+        {
+            if (ingredientIds == null)
+            {
+                return string.Empty;
+            }
+
+            return string.Join(",",
+                ingredientIds
+                    .Where(x => x > 0)
+                    .Distinct()
+                    .OrderBy(x => x));
         }
 
         private static string GetVariantLabel(string? variantType)

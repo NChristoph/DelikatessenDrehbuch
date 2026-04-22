@@ -94,6 +94,81 @@ namespace DelikatessenDrehbuch.Services
                 .ToList();
         }
 
+        public async Task<List<IngredientResolutionCandidate>> GetCandidatesForCategoriesAsync(
+            string? language = null,
+            IEnumerable<string>? allowedCategoryKeys = null,
+            IEnumerable<int>? excludeIngredientIds = null,
+            int take = 200,
+            CancellationToken cancellationToken = default)
+        {
+            var resolvedLanguage = NormalizeLanguage(language);
+            var excludedIds = (excludeIngredientIds ?? Enumerable.Empty<int>())
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            // IMPORTANT: Don't load the full Ingredients table into memory.
+            // This method is used for "pantry pools" (spices, oils, herbs, broths, etc.) and can easily be huge.
+            var normalizedKeys = (allowedCategoryKeys ?? Enumerable.Empty<string>())
+                .Select(NormalizeCategoryKey)
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            var query = _context.IngredientsAndNutrients
+                .AsNoTracking()
+                .Include(x => x.Group)
+                .Include(x => x.FoodCategory)
+                .AsQueryable();
+
+            if (normalizedKeys.Count > 0)
+            {
+                query = query.Where(x => x.FoodCategory != null && normalizedKeys.Contains(x.FoodCategory.CategoryKey));
+            }
+
+            if (excludedIds.Count > 0)
+            {
+                query = query.Where(x => !excludedIds.Contains(x.Id));
+            }
+
+            var slice = await query
+                .OrderBy(x => x.Name_DE)
+                .Take(Math.Max(1, take))
+                .ToListAsync(cancellationToken);
+
+            return slice
+                .Select(x => MapCandidate(x, resolvedLanguage, "pantry_pool", score: 1m))
+                .ToList();
+        }
+
+        public async Task<List<IngredientResolutionCandidate>> GetCandidatesByIdsAsync(
+            IEnumerable<int> ingredientIds,
+            string? language = null,
+            CancellationToken cancellationToken = default)
+        {
+            var resolvedLanguage = NormalizeLanguage(language);
+            var ids = (ingredientIds ?? Enumerable.Empty<int>())
+                .Where(x => x > 0)
+                .Distinct()
+                .ToList();
+
+            if (ids.Count == 0)
+            {
+                return new List<IngredientResolutionCandidate>();
+            }
+
+            var items = await _context.IngredientsAndNutrients
+                .AsNoTracking()
+                .Include(x => x.Group)
+                .Include(x => x.FoodCategory)
+                .Where(x => ids.Contains(x.Id))
+                .ToListAsync(cancellationToken);
+
+            return items
+                .Select(x => MapCandidate(x, resolvedLanguage, "by_id", score: 1m))
+                .ToList();
+        }
+
         private async Task<List<IngredientsAndNutrients>> QueryCandidateIngredientsAsync(
             IEnumerable<string>? allowedCategoryKeys,
             CancellationToken cancellationToken)
@@ -208,11 +283,31 @@ namespace DelikatessenDrehbuch.Services
             return goal switch
             {
                 "lowcarb" => IsLowCarbReplacementCandidate(ingredient, categoryKey),
-                "highprotein" => !ingredient.is_powder && !IsFlavorOnlyCategory(categoryKey),
+                "highprotein" => IsHighProteinCandidate(ingredient, categoryKey),
                 "vegan" => !ingredient.is_powder && !ingredient.is_fat && !IsFlavorOnlyCategory(categoryKey),
                 "mealprep" => !ingredient.is_powder && !IsFlavorOnlyCategory(categoryKey),
                 _ => true
             };
+        }
+
+        private static bool IsHighProteinCandidate(IngredientsAndNutrients ingredient, string categoryKey)
+        {
+            // For "highprotein" we want a broad, useful candidate pool. The AI/prompt will ensure
+            // the actual recipe change is meaningful (no tiny 2g "protein upgrades").
+            // Do not exclude powders here; some apps legitimately use e.g. chickpea flour as a component.
+            if (IsFlavorOnlyCategory(categoryKey))
+            {
+                return false;
+            }
+
+            // Keep out typical low-protein items while not being overly strict.
+            // (Strict "protein calorie share" filters tend to shrink the list too much.)
+            if (ingredient.Protein_a_100g < 10m)
+            {
+                return false;
+            }
+
+            return true;
         }
 
         private static bool IsLowCarbReplacementCandidate(IngredientsAndNutrients ingredient, string categoryKey)

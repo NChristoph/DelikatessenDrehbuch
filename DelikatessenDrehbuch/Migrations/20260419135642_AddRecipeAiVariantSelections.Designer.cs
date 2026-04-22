@@ -4,6 +4,7 @@ using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace DelikatessenDrehbuch.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260419135642_AddRecipeAiVariantSelections")]
+    partial class AddRecipeAiVariantSelections
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -197,183 +200,6 @@ namespace DelikatessenDrehbuch.Migrations
                     b.ToTable("WorldMealplanPurcase", (string)null);
                 });
 
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipe", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("AiProvider")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
-                    b.Property<int>("AppliedChangeCount")
-                        .HasColumnType("int");
-
-                    b.Property<int>("BaseRecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CreatedByUserHash")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<bool>("IsSharedCanonical")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Language")
-                        .IsRequired()
-                        .HasMaxLength(12)
-                        .HasColumnType("nvarchar(12)");
-
-                    b.Property<string>("LatestUserNote")
-                        .HasMaxLength(1000)
-                        .HasColumnType("nvarchar(1000)");
-
-                    b.Property<int?>("ParentAiRecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("PersonCount")
-                        .HasColumnType("int");
-
-                    b.Property<string>("PreparationText")
-                        .IsRequired()
-                        .HasMaxLength(16000)
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("PreparationTimeMinutes")
-                        .HasColumnType("int");
-
-                    b.Property<string>("SelectedIngredientKey")
-                        .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
-
-                    b.Property<string>("Summary")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<DateTime>("UpdatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("VariantType")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ParentAiRecipeId");
-
-                    b.HasIndex("BaseRecipeId", "Language", "VariantType", "AiProvider", "SelectedIngredientKey", "CreatedByUserHash");
-
-                    b.HasIndex("BaseRecipeId", "Language", "VariantType", "AiProvider", "SelectedIngredientKey", "IsSharedCanonical");
-
-                    b.ToTable("RecipeAiBaseRecipes", (string)null);
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipeIngredient", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("ChangeHint")
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<int>("IngredientMeasureQuantityId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsModified")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("RecipeAiBaseRecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IngredientMeasureQuantityId");
-
-                    b.HasIndex("RecipeAiBaseRecipeId", "SortOrder");
-
-                    b.ToTable("RecipeAiBaseRecipeIngredients", (string)null);
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipeSelectedIngredient", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("IngredientId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RecipeAiBaseRecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IngredientId");
-
-                    b.HasIndex("RecipeAiBaseRecipeId", "IngredientId")
-                        .IsUnique();
-
-                    b.HasIndex("RecipeAiBaseRecipeId", "SortOrder");
-
-                    b.ToTable("RecipeAiBaseRecipeSelectedIngredients", (string)null);
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipeStep", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("RecipeAiBaseRecipeId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("StepIndex")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasMaxLength(4000)
-                        .HasColumnType("nvarchar(4000)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RecipeAiBaseRecipeId", "StepIndex");
-
-                    b.ToTable("RecipeAiBaseRecipeSteps", (string)null);
-                });
-
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariant", b =>
                 {
                     b.Property<int>("Id")
@@ -382,11 +208,6 @@ namespace DelikatessenDrehbuch.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("AiProvider")
-                        .IsRequired()
-                        .HasMaxLength(32)
-                        .HasColumnType("nvarchar(32)");
-
                     b.Property<int>("AppliedChangeCount")
                         .HasColumnType("int");
 
@@ -399,11 +220,6 @@ namespace DelikatessenDrehbuch.Migrations
                     b.Property<string>("CreatedByUserHash")
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
-
-                    b.Property<string>("IngredientsText")
-                        .IsRequired()
-                        .HasMaxLength(16000)
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsSharedCanonical")
                         .HasColumnType("bit");
@@ -419,11 +235,6 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.Property<int?>("ParentVariantId")
                         .HasColumnType("int");
-
-                    b.Property<string>("PreparationText")
-                        .IsRequired()
-                        .HasMaxLength(16000)
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("RenderedHighlightsJson")
                         .IsRequired()
@@ -447,11 +258,6 @@ namespace DelikatessenDrehbuch.Migrations
                         .HasMaxLength(256)
                         .HasColumnType("nvarchar(256)");
 
-                    b.Property<string>("SelectedIngredientKey")
-                        .IsRequired()
-                        .HasMaxLength(400)
-                        .HasColumnType("nvarchar(400)");
-
                     b.Property<string>("StepPlanJson")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -468,92 +274,11 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("ParentVariantId");
 
-                    b.HasIndex("BaseRecipeId", "CreatedByUserHash", "VariantType", "Language", "AiProvider", "SelectedIngredientKey");
+                    b.HasIndex("BaseRecipeId", "CreatedByUserHash", "VariantType", "Language");
 
-                    b.HasIndex("BaseRecipeId", "VariantType", "Language", "AiProvider", "SelectedIngredientKey", "IsSharedCanonical");
+                    b.HasIndex("BaseRecipeId", "VariantType", "Language", "IsSharedCanonical");
 
                     b.ToTable("RecipeAiVariants", (string)null);
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariantIngredientRow", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("DisplayName")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
-
-                    b.Property<int?>("IngredientId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("IngredientMeasureQuantityId")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsAiGenerated")
-                        .HasColumnType("bit");
-
-                    b.Property<int?>("MeasureId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("QuantityText")
-                        .IsRequired()
-                        .HasMaxLength(128)
-                        .HasColumnType("nvarchar(128)");
-
-                    b.Property<int>("RecipeAiVariantId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IngredientId");
-
-                    b.HasIndex("IngredientMeasureQuantityId");
-
-                    b.HasIndex("MeasureId");
-
-                    b.HasIndex("RecipeAiVariantId", "SortOrder");
-
-                    b.ToTable("RecipeAiVariantIngredientRows", (string)null);
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariantSelectedIngredient", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAtUtc")
-                        .HasColumnType("datetime2");
-
-                    b.Property<int>("IngredientId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("RecipeAiVariantId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SortOrder")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IngredientId");
-
-                    b.HasIndex("RecipeAiVariantId", "IngredientId")
-                        .IsUnique();
-
-                    b.HasIndex("RecipeAiVariantId", "SortOrder");
-
-                    b.ToTable("RecipeAiVariantSelectedIngredients", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeBaseKeyword", b =>
@@ -1697,8 +1422,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.Property<string>("Category")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("LikeCount")
                         .HasColumnType("int");
@@ -1708,8 +1432,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.Property<string>("Preferences")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("PreparationTime")
                         .HasColumnType("int")
@@ -1717,8 +1440,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.Property<string>("Title")
                         .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
 
@@ -2219,10 +1941,12 @@ namespace DelikatessenDrehbuch.Migrations
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
                 {
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderKey")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("ProviderDisplayName")
                         .HasColumnType("nvarchar(max)");
@@ -2259,10 +1983,12 @@ namespace DelikatessenDrehbuch.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("LoginProvider")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Name")
-                        .HasColumnType("nvarchar(450)");
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
 
                     b.Property<string>("Value")
                         .HasColumnType("nvarchar(max)");
@@ -2313,73 +2039,6 @@ namespace DelikatessenDrehbuch.Migrations
                     b.Navigation("Listing");
                 });
 
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipe", b =>
-                {
-                    b.HasOne("DelikatessenDrehbuch.Models.RecipeBaseData", "BaseRecipe")
-                        .WithMany()
-                        .HasForeignKey("BaseRecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipe", "ParentAiRecipe")
-                        .WithMany()
-                        .HasForeignKey("ParentAiRecipeId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.Navigation("BaseRecipe");
-
-                    b.Navigation("ParentAiRecipe");
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipeIngredient", b =>
-                {
-                    b.HasOne("DelikatessenDrehbuch.Models.IngredientMeasureQuantity", "IngredientMeasureQuantity")
-                        .WithMany()
-                        .HasForeignKey("IngredientMeasureQuantityId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipe", "RecipeAiBaseRecipe")
-                        .WithMany("Ingredients")
-                        .HasForeignKey("RecipeAiBaseRecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("IngredientMeasureQuantity");
-
-                    b.Navigation("RecipeAiBaseRecipe");
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipeSelectedIngredient", b =>
-                {
-                    b.HasOne("DelikatessenDrehbuch.Models.IngredientsAndNutrients", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipe", "RecipeAiBaseRecipe")
-                        .WithMany("SelectedIngredients")
-                        .HasForeignKey("RecipeAiBaseRecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("RecipeAiBaseRecipe");
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipeStep", b =>
-                {
-                    b.HasOne("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipe", "RecipeAiBaseRecipe")
-                        .WithMany("Steps")
-                        .HasForeignKey("RecipeAiBaseRecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("RecipeAiBaseRecipe");
-                });
-
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariant", b =>
                 {
                     b.HasOne("DelikatessenDrehbuch.Models.RecipeBaseData", "BaseRecipe")
@@ -2396,57 +2055,6 @@ namespace DelikatessenDrehbuch.Migrations
                     b.Navigation("BaseRecipe");
 
                     b.Navigation("ParentVariant");
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariantIngredientRow", b =>
-                {
-                    b.HasOne("DelikatessenDrehbuch.Models.IngredientsAndNutrients", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("DelikatessenDrehbuch.Models.IngredientMeasureQuantity", "IngredientMeasureQuantity")
-                        .WithMany()
-                        .HasForeignKey("IngredientMeasureQuantityId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("DelikatessenDrehbuch.Models.Measure", "Measure")
-                        .WithMany()
-                        .HasForeignKey("MeasureId")
-                        .OnDelete(DeleteBehavior.NoAction);
-
-                    b.HasOne("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariant", "RecipeAiVariant")
-                        .WithMany("IngredientRows")
-                        .HasForeignKey("RecipeAiVariantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("IngredientMeasureQuantity");
-
-                    b.Navigation("Measure");
-
-                    b.Navigation("RecipeAiVariant");
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariantSelectedIngredient", b =>
-                {
-                    b.HasOne("DelikatessenDrehbuch.Models.IngredientsAndNutrients", "Ingredient")
-                        .WithMany()
-                        .HasForeignKey("IngredientId")
-                        .OnDelete(DeleteBehavior.NoAction)
-                        .IsRequired();
-
-                    b.HasOne("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariant", "RecipeAiVariant")
-                        .WithMany("SelectedIngredients")
-                        .HasForeignKey("RecipeAiVariantId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Ingredient");
-
-                    b.Navigation("RecipeAiVariant");
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeBaseKeyword", b =>
@@ -2883,22 +2491,6 @@ namespace DelikatessenDrehbuch.Migrations
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.Keyword", b =>
                 {
                     b.Navigation("RecipeLinks");
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiBaseRecipe", b =>
-                {
-                    b.Navigation("Ingredients");
-
-                    b.Navigation("SelectedIngredients");
-
-                    b.Navigation("Steps");
-                });
-
-            modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.RecipeAiVariant", b =>
-                {
-                    b.Navigation("IngredientRows");
-
-                    b.Navigation("SelectedIngredients");
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.FoodCategory", b =>

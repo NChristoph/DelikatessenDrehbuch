@@ -82,11 +82,11 @@ builder.Services.AddScoped<IWorldClipWatchService, WorldClipWatchService>();
 builder.Services.AddScoped<IWorldAdPreferenceService, WorldAdPreferenceService>();
 builder.Services.AddHttpClient<IMissingIngredientAiService, MissingIngredientAiService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(45);
+    client.Timeout = TimeSpan.FromSeconds(120);
 });
 builder.Services.AddHttpClient<IRecipeAiTransformService, RecipeAiTransformService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(45);
+    client.Timeout = TimeSpan.FromSeconds(120);
 });
 
 

@@ -2273,6 +2273,83 @@
         window.likedRecipeIds = new Set(@Html.Raw(Json.Serialize(likedRecipeIds)));
         window.bookmarkedRecipeIds = new Set(@Html.Raw(Json.Serialize(bookmarkedRecipeIds)));
 
+        // ----------------- feed state restore (back from recipe detail) -----------------
+        const FEED_STATE_KEY = 'worldminiapp.feed.state.v1';
+        const FEED_RESTORE_FLAG_KEY = 'worldminiapp.feed.restore.v1';
+        let lastVisibleFeedRecipeId = 0;
+        let lastVisibleFeedPostingId = 0;
+        let lastFeedStateWriteAt = 0;
+
+        function safeParseJson(value) {
+            try { return JSON.parse(value); } catch { return null; }
+        }
+
+        function buildReturnUrlWithScrollTo(recipeId) {
+            const url = new URL(window.location.href);
+            if (recipeId && Number.isFinite(Number(recipeId))) {
+                url.searchParams.set('scrollToId', String(recipeId));
+            }
+            return url.pathname + url.search;
+        }
+
+        function persistFeedState(container) {
+            const feedContainer = document.getElementById('feedContainer');
+            if (!feedContainer) return;
+
+            if (typeof activeSection !== 'undefined' && activeSection !== 'feed') return;
+
+            const now = Date.now();
+            if (now - lastFeedStateWriteAt < 250) return; // throttle writes
+            lastFeedStateWriteAt = now;
+
+            const recipeId = Number(container?.dataset?.id || lastVisibleFeedRecipeId || 0) || 0;
+            const postingId = Number(container?.dataset?.postingId || lastVisibleFeedPostingId || 0) || 0;
+            if (!recipeId) return;
+
+            const state = {
+                recipeId,
+                postingId,
+                scrollTop: feedContainer.scrollTop,
+                returnUrl: buildReturnUrlWithScrollTo(recipeId),
+                ts: now
+            };
+
+            sessionStorage.setItem(FEED_STATE_KEY, JSON.stringify(state));
+        }
+
+        function tryRestoreFeedScrollFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const scrollToId = Number(params.get('scrollToId') || 0) || 0;
+            if (!scrollToId) return false;
+
+            const target = document.querySelector(`#feedSection .feed-item[data-id="${scrollToId}"]`);
+            if (!target) return false;
+
+            target.scrollIntoView({ block: 'start' });
+
+            // Clean URL so refresh doesn't keep jumping.
+            params.delete('scrollToId');
+            const cleaned = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
+            history.replaceState(history.state, '', cleaned);
+            return true;
+        }
+
+        function tryRestoreFeedScrollFromSession() {
+            const shouldRestore = sessionStorage.getItem(FEED_RESTORE_FLAG_KEY) === '1';
+            if (!shouldRestore) return false;
+            sessionStorage.removeItem(FEED_RESTORE_FLAG_KEY);
+
+            const state = safeParseJson(sessionStorage.getItem(FEED_STATE_KEY) || '');
+            const recipeId = Number(state?.recipeId || 0) || 0;
+            if (!recipeId) return false;
+
+            const target = document.querySelector(`#feedSection .feed-item[data-id="${recipeId}"]`);
+            if (!target) return false;
+
+            target.scrollIntoView({ block: 'start' });
+            return true;
+        }
+
         // ----------------- toast -----------------
         function showToast(message, type = 'info', duration = 2800, action = null) {
             const c = document.getElementById('toastContainer');
@@ -4541,6 +4618,13 @@
                 const video = container.querySelector('video');
 
                 if (entry.isIntersecting) {
+                    // Persist current feed position for "back to feed" navigation.
+                    if (container?.closest('#feedSection')) {
+                        lastVisibleFeedRecipeId = Number(container.dataset.id || 0) || lastVisibleFeedRecipeId;
+                        lastVisibleFeedPostingId = Number(container.dataset.postingId || 0) || lastVisibleFeedPostingId;
+                        persistFeedState(container);
+                    }
+
                     if (video) {
                         video.muted = isGlobalMuted;
                         updateSoundIcon(container, isGlobalMuted);
@@ -4644,6 +4728,16 @@
             document.querySelectorAll('.feed-item').forEach(item => {
                 bindFeedItemState(item);
                 observer.observe(item);
+            });
+
+            // When opening a recipe detail page, store current feed position first.
+            document.querySelectorAll('#feedSection .feed-item a[aria-label="Rezept anzeigen"]').forEach(link => {
+                if (link.dataset.feedStateBound === 'true') return;
+                link.dataset.feedStateBound = 'true';
+                link.addEventListener('click', (event) => {
+                    const container = link.closest('.feed-item');
+                    persistFeedState(container);
+                }, { passive: true });
             });
 
             document.querySelectorAll('.feed-item video').forEach(video => {
@@ -5074,6 +5168,13 @@
             renderPlan();
             updatePlanModeHeader();
             setSection('feed');
+
+            // Restore scroll position when navigating back from the recipe detail page.
+            setTimeout(() => {
+                if (tryRestoreFeedScrollFromUrl()) return;
+                tryRestoreFeedScrollFromSession();
+            }, 60);
+
             syncMarketplaceToCurrentFeedItem();
             setFeedToken('WLD');
             loadFeedWldPrice();

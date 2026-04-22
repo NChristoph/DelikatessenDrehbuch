@@ -2,47 +2,53 @@
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 {
     public class SaveNewRecipeService : ISaveNewRecipeService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ILogger<SaveNewRecipeService> _logger;
 
-        public SaveNewRecipeService(ApplicationDbContext context)
+        public SaveNewRecipeService(ApplicationDbContext context, ILogger<SaveNewRecipeService> logger)
         {
             _context = context;
+            _logger = logger;
         }
 
-        public async Task SaveNewAsync(SaveNewRecipeModel recipesModel,bool wordUserImage)
+        public async Task<RecipeBaseData> SaveNewAsync(SaveNewRecipeModel recipesModel,bool wordUserImage)
         {
-            
+
             using var transaction = await _context.Database.BeginTransactionAsync();
 
             try
             {
-                
+
                 var recipeBaseData = await GetOrUpdateRecipeAsync(recipesModel);
 
-                
+
                 await ProcessIngredientsAsync(recipeBaseData, recipesModel);
 
-                
+
                 await ProcessPreparationStepsAsync(recipeBaseData, recipesModel);
                 await ProcessSmartStepsAsync(recipeBaseData, recipesModel);
 
                 await ProcessRecipeImageAsync(recipeBaseData, recipesModel,wordUserImage);
 
-              
+
                 await _context.SaveChangesAsync();
 
-             
+
                 await transaction.CommitAsync();
+
+                return recipeBaseData;
             }
             catch (Exception ex)
             {
-               
+
                 await transaction.RollbackAsync();
 
                 throw;
@@ -217,21 +223,31 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                     continue;
                 }
 
-                var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
-                var existing = await _context.SmartRecipeStep
-                    .FirstOrDefaultAsync(x =>
-                        x.MasterStepKey == masterStepKey &&
-                        x.VariablesJson == parsed.variablesJson &&
-                        x.Phase == parsed.phase &&
-                        x.Equipment == parsed.equipment);
+                // Validate MasterStepKey format (should match pattern: CATEGORY_ACTION_XX)
+                if (!Regex.IsMatch(masterStepKey, @"^[A-Z_]+_\d{2}$"))
+                {
+                    _logger.LogWarning("MasterStepKey '{MasterKey}' does not match expected pattern (CATEGORY_ACTION_XX). Allowing but flagging for review.", masterStepKey);
+                }
 
-                var smartStep = existing;
+                var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
+                var normalizedVariablesJson = NormalizeJson(parsed.variablesJson);
+
+                var existing = await _context.SmartRecipeStep
+                    .Where(x =>
+                        x.MasterStepKey == masterStepKey &&
+                        x.Phase == parsed.phase &&
+                        x.Equipment == parsed.equipment)
+                    .ToListAsync();
+
+                var match = existing.FirstOrDefault(x => NormalizeJson(x.VariablesJson) == normalizedVariablesJson);
+
+                var smartStep = match;
                 if (smartStep == null)
                 {
                     smartStep = new SmartRecipeStep
                     {
                         MasterStepKey = masterStepKey,
-                        VariablesJson = parsed.variablesJson,
+                        VariablesJson = normalizedVariablesJson,
                         Phase = parsed.phase,
                         Equipment = parsed.equipment
                     };
@@ -250,7 +266,30 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             }
         }
 
-        private static (string variablesJson, int? phase, string? equipment) ParseSmartStepMetadata(string? metadataJson)
+        private static string NormalizeJson(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return "{}";
+            }
+
+            try
+            {
+                using var document = JsonDocument.Parse(json);
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = false,
+                    PropertyNamingPolicy = null
+                };
+                return JsonSerializer.Serialize(document.RootElement, options);
+            }
+            catch
+            {
+                return "{}";
+            }
+        }
+
+        private (string variablesJson, int? phase, string? equipment) ParseSmartStepMetadata(string? metadataJson)
         {
             if (string.IsNullOrWhiteSpace(metadataJson))
             {
@@ -291,8 +330,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
                 return (variablesJson, phase, equipment);
             }
-            catch
+            catch (Exception ex)
             {
+                _logger.LogWarning(ex, "Failed to parse smart step metadata JSON. Metadata: {MetadataJson}", metadataJson);
                 return ("{}", null, null);
             }
         }

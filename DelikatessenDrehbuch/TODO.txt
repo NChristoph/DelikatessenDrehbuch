@@ -1,5 +1,7 @@
-Hab die Rezeptesuche in die Layout.cshtml geschrieben.
-Bist jetzt mit Der Azure Datenbank verbunden speicher die Rezepte um.
+TODO die speicherung des rezeptes der ai generirte version ist schreklich x daten sind doprrl voralem die zuaten 
+max´ch das als ai base recipe speicher dort name prepereation time personen sprache dei zubereitung ertelt am erstelt von (userhascj)
+ai edeitet ingredient usprung rezept id dan lägst du für die neuen zutene anhand der id ingredient und masure und quantity eine spalte in ingredient
+quatitymasure an und erszele eine brücke zwischen den beiden sorich ingredient masurautiet eine colum aibase recioe colum2so kommen die zusqmmen
 
 //TODO:suche noch verbessern noch filter einfügen unnd die zutaten in ganzen anzeigen also die inhalte fürs ganze menü
 //ToDo: nutze umgebungsvarieablen
