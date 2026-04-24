@@ -57,6 +57,7 @@
     var existingPostingId = ViewData["ExistingPostingId"] as int?;
     var savedAiVariantsJson = ViewData["SavedAiVariantsJson"] as string ?? "[]";
     var savedAiVariantCount = ViewData["SavedAiVariantCount"] as int? ?? 0;
+    var autoApplyAiVariantId = ViewData["AutoApplyAiVariantId"] as int?;
     var originalNutritionJson = System.Text.Json.JsonSerializer.Serialize(new
     {
         calories = totalCalories,
@@ -802,8 +803,12 @@
             </div>
             @if (savedAiVariantCount > 0)
             {
-                <div class="mt-3 small text-muted fw-semibold">Gespeicherte AI-Versionen</div>
-                <div class="ai-fan-grid mt-2" id="savedAiVariantList"></div>
+                <div class="mt-3 small text-muted fw-semibold">
+                    Du hast bereits <span class="fw-bold">@savedAiVariantCount</span> AI-Version@(savedAiVariantCount == 1 ? "" : "en") davon.
+                    <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp" })#tab-ai" class="ms-1 text-decoration-none" style="color: var(--deli-primary); font-weight:800;">
+                        Im Profil ansehen <i class="bi bi-chevron-right"></i>
+                    </a>
+                </div>
             }
         </div>
 
@@ -914,11 +919,11 @@
 
                 <div class="ai-preview-loading is-visible" id="aiPreviewLoading">
                     <div class="spinner-border text-success mb-3" role="status"></div>
-                    <div>AI transformiert gerade dein Rezept...</div>
+                    <div id="aiPreviewLoadingText">AI transformiert gerade dein Rezept...</div>
                 </div>
 
                 <div id="aiPreviewContent" style="display:none;">
-                    <div class="ai-preview-block">
+                    <div class="ai-preview-block" id="aiConceptBlock">
                         <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
                             <h6 class="mb-0">Rezeptidee wählen</h6>
                             <span class="small text-muted" id="aiSuggestionStrategyLabel"></span>
@@ -989,6 +994,7 @@
 <script>
     const basePortionCount = @basePortions;
     let savedAiVariants = @Html.Raw(savedAiVariantsJson);
+    const autoApplyAiVariantId = @(autoApplyAiVariantId.HasValue ? autoApplyAiVariantId.Value.ToString(CultureInfo.InvariantCulture) : "null");
     const recipeId = @Model.Id;
     // Expose for the global AI resume bar (layout) so it can open the modal directly on this page.
     window.recipeId = recipeId;
@@ -1146,12 +1152,16 @@
     }
 
     function buildAiIngredientMarkup(item) {
-        const quantityText = item?.quantity || '';
+        const quantityText = (item?.quantity || '').toString().trim();
+        const displayQuantity = formatIngredientQuantity(item);
         const quantityParts = parseAiQuantityParts(quantityText);
-        let quantityMarkup = escapeHtml(quantityText);
+        let quantityMarkup = escapeHtml(displayQuantity);
 
-        if (quantityParts) {
-            const suffixMarkup = quantityParts.suffix ? ` ${escapeHtml(quantityParts.suffix)}` : '';
+        if (quantityParts && displayQuantity) {
+            const suffixText = displayQuantity.startsWith(quantityText)
+                ? displayQuantity.slice(quantityText.length).trim()
+                : quantityParts.suffix;
+            const suffixMarkup = suffixText ? ` ${escapeHtml(suffixText)}` : '';
             quantityMarkup = `<span class="dyn-qty fw-bold text-dark" data-base-qty="${quantityParts.numericValue.toString().replace(',', '.')}">${formatScaledQuantity(quantityParts.numericValue)}</span>${suffixMarkup}`;
         }
 
@@ -1163,7 +1173,7 @@
                         <span class="fw-bold fs-6">${escapeHtml(item.name || '')}</span>
                         <span class="text-muted small">${quantityMarkup}</span>
                     </div>
-                    ${item.changeHint ? `<div class="small text-success mt-1">${escapeHtml(item.changeHint)}</div>` : ''}
+                    ${renderChangeHint(item.changeHint, 'small text-success mt-1')}
                 </div>
             </div>`;
     }
@@ -1290,6 +1300,7 @@
         document.getElementById('aiPreviewModeLabel').textContent = 'OpenAI Vorschau';
         document.getElementById('aiPreviewTitle').textContent = 'Rezeptideen werden gesucht...';
         document.getElementById('aiPreviewSummary').textContent = 'Wähle gleich eine Richtung aus. Erst danach baut die AI das fertige Rezept.';
+        setAiConceptBlockVisible(true);
         renderAiIngredientSuggestions(null);
         setAiPreviewDetailsVisible(false);
         getAiTransformModal().show();
@@ -1550,9 +1561,61 @@
         }
     }
 
+    const aiLoadingQuips = [
+        '🔪 Messer werden geschliffen...',
+        '🧅 Zwiebeln werden geschnitten...',
+        '🍳 Pfannen werden vorgeheizt...',
+        '👨‍🍳 Schürze wird umgebunden...',
+        '🧄 Knoblauch wird geschält...',
+        '📖 Rezeptbuch wird durchblättert...',
+        '🌿 Kräuter werden gezupft...',
+        '🥄 Töpfe werden rausgeholt...',
+        '⏲️ Timer wird gestellt...',
+        '🧈 Butter wird geschmolzen...',
+        '🫕 Herd wird angeschaltet...',
+        '💡 Küchenlampe flackert noch kurz...',
+        '🧂 Wo ist das Salz schon wieder...',
+        '🥕 Gemüse wird gewaschen...',
+        '🍋 Zitronen werden ausgepresst...',
+        '👃 Mmh, riecht schon gut...',
+        '🫶 Wird mit Liebe zubereitet...',
+        '🎵 Küchenradio wird angemacht...'
+    ];
+    let aiLoadingQuipTimer = null;
+
+    function startAiLoadingQuips() {
+        const el = document.getElementById('aiPreviewLoadingText');
+        const barSpans = document.querySelectorAll('#aiBottomBarStatus span:not(.spinner-border)');
+        if (!el) return;
+        let idx = Math.floor(Math.random() * aiLoadingQuips.length);
+        const tick = () => {
+            const text = aiLoadingQuips[idx % aiLoadingQuips.length];
+            el.textContent = text;
+            if (barSpans.length) barSpans[barSpans.length - 1].textContent = text;
+            idx++;
+        };
+        tick();
+        aiLoadingQuipTimer = setInterval(tick, 3000);
+    }
+
+    function stopAiLoadingQuips() {
+        if (aiLoadingQuipTimer) { clearInterval(aiLoadingQuipTimer); aiLoadingQuipTimer = null; }
+        const el = document.getElementById('aiPreviewLoadingText');
+        if (el) el.textContent = 'AI transformiert gerade dein Rezept...';
+        const barSpans = document.querySelectorAll('#aiBottomBarStatus span:not(.spinner-border)');
+        if (barSpans.length) barSpans[barSpans.length - 1].textContent = 'AI transformiert...';
+    }
+
     function setAiPreviewLoading(isLoading, keepContentVisible = false) {
         document.getElementById('aiPreviewLoading')?.classList.toggle('is-visible', isLoading);
         const content = document.getElementById('aiPreviewContent');
+
+        if (isLoading) {
+            startAiLoadingQuips();
+        } else {
+            stopAiLoadingQuips();
+        }
+
         if (!content) return;
 
         if (isLoading && !keepContentVisible) {
@@ -1585,6 +1648,50 @@
         }
     }
 
+    function setAiConceptBlockVisible(isVisible) {
+        const block = document.getElementById('aiConceptBlock');
+        if (block) {
+            block.style.display = isVisible ? '' : 'none';
+        }
+    }
+
+    async function pollAiJobUntilReady(jobId, maxWaitMs = 120000) {
+        const id = (jobId || '').toString().trim();
+        if (!id) throw new Error('jobId fehlt.');
+
+        const startedAt = Date.now();
+        let attempt = 0;
+
+        while (Date.now() - startedAt < maxWaitMs) {
+            attempt += 1;
+            const statusUrl = '@Url.Action("GetAiRecipeVariantJobStatus", "Home", new { area = "WorldMiniApp" })' + '?jobId=' + encodeURIComponent(id);
+            const statusRes = await fetch(statusUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
+            const statusPayload = await readJsonOrText(statusRes);
+
+            if (statusRes.status === 404) {
+                throw new Error(statusPayload?.message || 'Job nicht gefunden (abgelaufen).');
+            }
+
+            if (!statusRes.ok) {
+                // Keep trying briefly; transient errors happen.
+                const msg = statusPayload?.message || statusPayload?.rawText || 'AI-Status konnte nicht geladen werden.';
+                if (attempt >= 3) throw new Error(msg);
+            } else {
+                const state = (statusPayload?.state || '').toString().toLowerCase();
+                if (state === 'ready') return;
+                if (state === 'error') {
+                    throw new Error(statusPayload?.message || 'AI-Job ist fehlgeschlagen.');
+                }
+            }
+
+            // Backoff: 800ms -> 2.5s
+            const delay = Math.min(2500, 800 + attempt * 220);
+            await new Promise(r => setTimeout(r, delay));
+        }
+
+        throw new Error('AI braucht länger als erwartet. Bitte später erneut öffnen.');
+    }
+
     window.openAiJobResult = async function openAiJobResult(jobId, variantType, aiProvider = 'openai') {
         const id = (jobId || '').toString().trim();
         if (!id) return;
@@ -1600,6 +1707,8 @@
         getAiTransformModal().show();
 
         try {
+            // Do not call "result" immediately; it returns 404 while the job is still running.
+            await pollAiJobUntilReady(id, 120000);
             const url = '@Url.Action("GetAiRecipeVariantJobResult", "Home", new { area = "WorldMiniApp" })' + '?jobId=' + encodeURIComponent(id);
             const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
             const payload = await readJsonOrText(res);
@@ -1620,6 +1729,7 @@
 
     function renderAiPreview(preview) {
         setAiPreviewDetailsVisible(true);
+        setAiConceptBlockVisible(false);
         document.getElementById('aiPreviewModeLabel').textContent = preview.variantLabel || 'AI Vorschau';
         document.getElementById('aiPreviewTitle').textContent = preview.title || originalRecipeState.title;
         document.getElementById('aiPreviewSummary').textContent = preview.summary || 'Neue Variante bereit.';
@@ -1642,6 +1752,9 @@
         if (preview.userNoteApplied) {
             meta.push('<span class="ai-preview-pill"><i class="bi bi-chat-left-text"></i>User-Wunsch drin</span>');
         }
+        if (preview.isCached) {
+            meta.push('<span class="ai-preview-pill"><i class="bi bi-archive"></i>Aus Rezept-Pool</span>');
+        }
         if (preview.usedFallback) {
             meta.push('<span class="ai-preview-pill"><i class="bi bi-cpu"></i>Lokaler Fallback</span>');
         }
@@ -1655,8 +1768,8 @@
             .map(item => `
                 <li class="ai-preview-ingredient${item.isModified ? ' is-modified' : ''}">
                     <div class="fw-bold">${escapeHtml(item.name || '')}</div>
-                    <div class="small text-muted">${escapeHtml(item.quantity || '')}</div>
-                    ${item.changeHint ? `<div class="small mt-1 text-success-emphasis">${escapeHtml(item.changeHint)}</div>` : ''}
+                    <div class="small text-muted">${escapeHtml(formatIngredientQuantity(item))}</div>
+                    ${renderChangeHint(item.changeHint, 'small mt-1 text-success-emphasis')}
                 </li>`)
             .join('');
 
@@ -1899,6 +2012,35 @@
             .replaceAll('\'', '&#39;');
     }
 
+    function isGenericAutoAddedHint(value) {
+        const text = (value || '').toString().trim().toLowerCase();
+        if (!text) return false;
+        // UI noise: this hint is an internal detail and shouldn't be shown to users.
+        if (text === 'aus zutatenliste ergänzt' || text === 'aus zutatenliste ergaenzt') return true;
+        if (text.startsWith('aus zutatenliste')) return true;
+        return false;
+    }
+
+    function renderChangeHint(value, className) {
+        if (!value || isGenericAutoAddedHint(value)) return '';
+        return `<div class="${className}">${escapeHtml(value)}</div>`;
+    }
+
+    function formatIngredientQuantity(item) {
+        const qRaw = (item?.quantity || '').toString().trim();
+        const mRaw = (item?.measure || '').toString().trim();
+        if (!qRaw) return '';
+        if (!mRaw) return qRaw;
+
+        // Avoid "2 Stk. Stk." when quantity already includes the unit (common for base recipe ingredients).
+        const normalizeUnit = (s) => (s || '').toString().trim().replace(/\.+$/, '').toLowerCase();
+        const qTokens = qRaw.split(/\s+/).filter(Boolean);
+        const lastToken = qTokens.length ? qTokens[qTokens.length - 1] : '';
+        if (normalizeUnit(lastToken) === normalizeUnit(mRaw)) return qRaw;
+
+        return `${qRaw} ${mRaw}`.trim();
+    }
+
     window.selectAiConcept = function selectAiConcept(conceptKey) {
         const concept = (aiPreviewState.suggestions || []).find(item => item.conceptKey === conceptKey);
         if (!concept) return;
@@ -1925,6 +2067,7 @@
         if (!list || !strategyLabel || !reasoning || !selectionStatus || !confirmButton) return;
 
         if (!payload) {
+            setAiConceptBlockVisible(true);
             strategyLabel.textContent = '';
             reasoning.textContent = 'Wir suchen stimmige Rezeptideen.';
             list.innerHTML = '';
@@ -2144,4 +2287,12 @@
     })();
 
     renderSavedAiVariantButtons();
+
+    // If we navigated here from the profile AI tab, auto-apply the requested variant silently.
+    if (autoApplyAiVariantId && Array.isArray(savedAiVariants) && savedAiVariants.length) {
+        const idx = savedAiVariants.findIndex(x => Number(x?.variantId || 0) === Number(autoApplyAiVariantId));
+        if (idx >= 0 && typeof window.applySavedAiVariant === 'function') {
+            try { window.applySavedAiVariant(idx); } catch { /* ignore */ }
+        }
+    }
 </script>

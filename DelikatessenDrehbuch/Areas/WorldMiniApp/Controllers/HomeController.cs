@@ -182,7 +182,7 @@ END;
             });
         }
 
-        public async Task<IActionResult> ShowRecipe(int id)
+        public async Task<IActionResult> ShowRecipe(int id, int? aiVariantId = null)
         {
             var model = await _context.RecipeBaseData
                 .IncludeFullRecipeDetails()
@@ -280,6 +280,7 @@ END;
                 PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
             ViewData["SavedAiVariantCount"] = savedVariantPayload.Count;
+            ViewData["AutoApplyAiVariantId"] = aiVariantId;
 
             return View(model);
         }
@@ -535,38 +536,43 @@ END;
                 var selectedIngredientKey = selectedConcept != null
                     ? $"concept:{selectedConcept.ConceptKey}"
                     : BuildSelectedIngredientKey(selectedIngredientIds);
-                RecipeAiTransformPreview? cachedVariant = null;
-                if (selectedIngredients == null || selectedIngredients.Count == 0)
-                {
-                    cachedVariant = await TryGetCachedAiVariantAsync(
-                        request.RecipeId,
-                        request.VariantType,
-                        language,
-                        request.AiProvider ?? string.Empty,
-                        selectedIngredientKey,
-                        request.AppliedChangeCount,
-                        request.UserNote,
-                        resolvedUserHash,
-                        cancellationToken);
-                }
+                // Hybrid cache: always check cache (including concepts/ingredient selections)
+                var cachedVariants = await TryGetCachedAiVariantsAsync(
+                    request.RecipeId,
+                    request.VariantType,
+                    language,
+                    request.AiProvider ?? string.Empty,
+                    selectedIngredientKey,
+                    request.AppliedChangeCount,
+                    request.UserNote,
+                    resolvedUserHash,
+                    cancellationToken);
 
-                if (cachedVariant != null)
+                // Filter out high-protein variants that don't meet the minimum threshold
+                if (string.Equals(request.VariantType?.Trim(), "highprotein", StringComparison.OrdinalIgnoreCase) && cachedVariants.Count > 0)
                 {
-                    // Enforce high-protein minimum even for cached variants (older cached items may predate the rule).
-                    if (string.Equals(request.VariantType?.Trim(), "highprotein", StringComparison.OrdinalIgnoreCase))
+                    var baselineNutrition = BuildRecipeNutritionFromRecipe(recipe, language);
+                    var validCached = new List<RecipeAiTransformPreview>();
+                    foreach (var cv in cachedVariants)
                     {
-                        cachedVariant.Nutrition = await BuildAiPreviewNutritionAsync(cachedVariant, cancellationToken);
-                        var baselineNutrition = BuildRecipeNutritionFromRecipe(recipe, language);
-                        if (!MeetsHighProteinMinimum(recipe.PersonCount, baselineNutrition.Protein, cachedVariant.Nutrition.Protein))
+                        cv.Nutrition = await BuildAiPreviewNutritionAsync(cv, cancellationToken);
+                        if (MeetsHighProteinMinimum(recipe.PersonCount, baselineNutrition.Protein, cv.Nutrition.Protein))
                         {
-                            cachedVariant = null;
+                            validCached.Add(cv);
                         }
                     }
+                    cachedVariants = validCached;
+                }
 
-                    if (cachedVariant != null)
-                    {
-                        return Json(cachedVariant);
-                    }
+                // Hybrid strategy: if we have enough cached variants, return them without AI call
+                if (cachedVariants.Count >= 2)
+                {
+                    return Json(cachedVariants[0]);
+                }
+
+                if (cachedVariants.Count == 1)
+                {
+                    return Json(cachedVariants[0]);
                 }
 
                 var preview = await _recipeAiTransformService.BuildPreviewAsync(
@@ -1053,11 +1059,13 @@ END;
 
             if (entity.Id == 0)
             {
+                entity.AcceptCount = 1;
                 await _context.RecipeAiBaseRecipes.AddAsync(entity, cancellationToken);
                 await _context.SaveChangesAsync(cancellationToken);
             }
             else
             {
+                entity.AcceptCount++;
                 await _context.SaveChangesAsync(cancellationToken);
             }
 
@@ -1342,7 +1350,7 @@ END;
             return RedirectToAction("EditRecipe", "Recipe", new { area = "WorldMiniApp", postingId = posting.Id, userHash });
         }
 
-        private async Task<RecipeAiTransformPreview?> TryGetCachedAiVariantAsync(
+        private async Task<List<RecipeAiTransformPreview>> TryGetCachedAiVariantsAsync(
             int baseRecipeId,
             string variantType,
             string language,
@@ -1355,47 +1363,17 @@ END;
         {
             if (appliedChangeCount > 0 || !string.IsNullOrWhiteSpace(userNote))
             {
-                return null;
+                return new List<RecipeAiTransformPreview>();
             }
 
             var normalizedVariantType = (variantType ?? string.Empty).Trim().ToLowerInvariant();
             var normalizedProvider = string.IsNullOrWhiteSpace(aiProvider) ? "openai" : aiProvider.Trim().ToLowerInvariant();
             if (string.IsNullOrWhiteSpace(normalizedVariantType))
             {
-                return null;
+                return new List<RecipeAiTransformPreview>();
             }
 
-            RecipeAiBaseRecipe? cached = null;
-            if (!string.IsNullOrWhiteSpace(userHash))
-            {
-                cached = await _context.RecipeAiBaseRecipes
-                    .AsNoTracking()
-                    .Include(x => x.Ingredients)
-                        .ThenInclude(x => x.IngredientMeasureQuantity)
-                            .ThenInclude(x => x.IngredientsAndNutrients)
-                    .Include(x => x.Ingredients)
-                        .ThenInclude(x => x.IngredientMeasureQuantity)
-                            .ThenInclude(x => x.Quantity)
-                    .Include(x => x.Ingredients)
-                        .ThenInclude(x => x.IngredientMeasureQuantity)
-                            .ThenInclude(x => x.Measure)
-                    .Include(x => x.Steps)
-                    .Include(x => x.SelectedIngredients)
-                        .ThenInclude(x => x.Ingredient)
-                    .Where(x =>
-                        x.BaseRecipeId == baseRecipeId &&
-                        x.VariantType == normalizedVariantType &&
-                        x.Language == language &&
-                        x.AiProvider == normalizedProvider &&
-                        x.SelectedIngredientKey == selectedIngredientKey &&
-                        x.CreatedByUserHash == userHash &&
-                        !x.IsSharedCanonical)
-                    .OrderByDescending(x => x.UpdatedAtUtc)
-                    .FirstOrDefaultAsync(cancellationToken);
-            }
-
-            cached ??= await _context.RecipeAiBaseRecipes
-                .AsNoTracking()
+            IQueryable<RecipeAiBaseRecipe> IncludeFullGraph(IQueryable<RecipeAiBaseRecipe> q) => q
                 .Include(x => x.Ingredients)
                     .ThenInclude(x => x.IngredientMeasureQuantity)
                         .ThenInclude(x => x.IngredientsAndNutrients)
@@ -1407,7 +1385,34 @@ END;
                         .ThenInclude(x => x.Measure)
                 .Include(x => x.Steps)
                 .Include(x => x.SelectedIngredients)
-                    .ThenInclude(x => x.Ingredient)
+                    .ThenInclude(x => x.Ingredient);
+
+            var results = new List<RecipeAiBaseRecipe>();
+
+            // 1) User-owned personal variant (max 1)
+            if (!string.IsNullOrWhiteSpace(userHash))
+            {
+                var personal = await IncludeFullGraph(_context.RecipeAiBaseRecipes.AsNoTracking())
+                    .Where(x =>
+                        x.BaseRecipeId == baseRecipeId &&
+                        x.VariantType == normalizedVariantType &&
+                        x.Language == language &&
+                        x.AiProvider == normalizedProvider &&
+                        x.SelectedIngredientKey == selectedIngredientKey &&
+                        x.CreatedByUserHash == userHash &&
+                        !x.IsSharedCanonical)
+                    .OrderByDescending(x => x.UpdatedAtUtc)
+                    .FirstOrDefaultAsync(cancellationToken);
+
+                if (personal != null)
+                {
+                    results.Add(personal);
+                }
+            }
+
+            // 2) Shared canonical variants (up to 3, sorted by AcceptCount DESC then newest)
+            var alreadyIds = results.Select(x => x.Id).ToHashSet();
+            var shared = await IncludeFullGraph(_context.RecipeAiBaseRecipes.AsNoTracking())
                 .Where(x =>
                     x.BaseRecipeId == baseRecipeId &&
                     x.VariantType == normalizedVariantType &&
@@ -1415,8 +1420,23 @@ END;
                     x.AiProvider == normalizedProvider &&
                     x.SelectedIngredientKey == selectedIngredientKey &&
                     x.IsSharedCanonical)
-                .OrderByDescending(x => x.UpdatedAtUtc)
-                .FirstOrDefaultAsync(cancellationToken);
+                .OrderByDescending(x => x.AcceptCount)
+                .ThenByDescending(x => x.UpdatedAtUtc)
+                .Take(3)
+                .ToListAsync(cancellationToken);
+
+            foreach (var s in shared)
+            {
+                if (!alreadyIds.Contains(s.Id))
+                {
+                    results.Add(s);
+                }
+            }
+
+            if (results.Count == 0)
+            {
+                return new List<RecipeAiTransformPreview>();
+            }
 
             var baseRecipe = await _context.RecipeBaseData
                 .AsNoTracking()
@@ -1425,7 +1445,37 @@ END;
                         .ThenInclude(x => x.IngredientsAndNutrients)
                 .FirstOrDefaultAsync(x => x.Id == baseRecipeId, cancellationToken);
 
-            return cached == null || baseRecipe == null ? null : MapAiBaseRecipeToPreview(cached, baseRecipe, language);
+            if (baseRecipe == null)
+            {
+                return new List<RecipeAiTransformPreview>();
+            }
+
+            var previews = results
+                .Select(c =>
+                {
+                    var p = MapAiBaseRecipeToPreview(c, baseRecipe, language);
+                    p.IsCached = true;
+                    return p;
+                })
+                .ToList();
+
+            // Fire-and-forget: increment ServedCount for all served entries
+            var servedIds = results.Select(x => x.Id).ToList();
+            var serviceProvider = HttpContext.RequestServices;
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    using var scope = serviceProvider.CreateScope();
+                    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                    await db.RecipeAiBaseRecipes
+                        .Where(x => servedIds.Contains(x.Id))
+                        .ExecuteUpdateAsync(s => s.SetProperty(x => x.ServedCount, x => x.ServedCount + 1));
+                }
+                catch { /* fire-and-forget — best effort */ }
+            });
+
+            return previews;
         }
         private static IngredientsAndNutrients? FindMatchingIngredient(
             int ingredientId,

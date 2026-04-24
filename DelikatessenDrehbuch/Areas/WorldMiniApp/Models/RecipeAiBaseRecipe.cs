@@ -27,6 +27,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public string? LatestUserNote { get; set; }
         public bool IsSharedCanonical { get; set; }
 
+        public int AcceptCount { get; set; }
+        public int ServedCount { get; set; }
+
         public string Title { get; set; } = string.Empty;
         public string Summary { get; set; } = string.Empty;
         public int PersonCount { get; set; }

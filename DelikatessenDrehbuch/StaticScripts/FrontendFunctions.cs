@@ -48,6 +48,18 @@
 
         public static string GetSmallImagePath(string path)
         {
+            if (string.IsNullOrWhiteSpace(path))
+                return path;
+
+            var trimmedPath = path.Trim();
+            var lowerPath = trimmedPath.ToLowerInvariant();
+
+            // Some generated recipes already store a ready-to-use thumbnail path like "..._thumb.webp".
+            // In that case we must not append another "_small", otherwise we end up with
+            // non-existing files such as "..._thumb_small.webp".
+            if (lowerPath.EndsWith("_thumb.webp") || lowerPath.EndsWith("_thumb_small.webp"))
+                return trimmedPath;
+
             var basePath = FrontendFunctions.CaseInsensitivePath(path);
 
             var smallPath = basePath?.Replace(Environment.GetEnvironmentVariable("BigPic"),

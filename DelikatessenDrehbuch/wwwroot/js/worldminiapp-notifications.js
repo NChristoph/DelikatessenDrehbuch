@@ -92,6 +92,40 @@
     try { window.dispatchEvent(new CustomEvent("wm:notify:changed")); } catch { /* ignore */ }
   }
 
+  function parseHrefPostingId(href) {
+    try {
+      const raw = String(href || "");
+      if (!raw) return 0;
+      const url = new URL(raw, window.location.origin);
+      return Number(url.searchParams.get("postingId") || 0) || 0;
+    } catch {
+      return 0;
+    }
+  }
+
+  function buildFeedCommentBadgeMap(items) {
+    const map = {};
+    (Array.isArray(items) ? items : []).forEach(it => {
+      const sender = String(it?.sender || "").toLowerCase();
+      if (sender !== "comment-reply" && sender !== "comment-video") return;
+      const postingId = parseHrefPostingId(it?.href);
+      if (!postingId) return;
+      map[postingId] = (map[postingId] || 0) + 1;
+    });
+    return map;
+  }
+
+  function emitFeedBadgeUpdate(items) {
+    try {
+      const detail = {
+        counts: buildFeedCommentBadgeMap(items)
+      };
+      window.dispatchEvent(new CustomEvent("wm:notify:feedbadges", { detail }));
+    } catch {
+      // ignore
+    }
+  }
+
   function readAntiForgeryToken(formId) {
     try {
       if (!formId) return null;
@@ -259,9 +293,10 @@
         .replaceAll("'", "&#039;");
     }
 
-    async function updateBadge() {
+  async function updateBadge() {
       const items = serverMode ? await apiUnread() : list();
       const u = serverMode ? items.filter(x => x && !x.isSeen).length : unreadCount();
+      emitFeedBadgeUpdate(serverMode ? items.filter(x => x && !x.isSeen) : items.filter(x => x && !x.read));
       if (badge) {
         badge.style.display = u > 0 ? "" : "none";
         badge.textContent = u > 9 ? "9+" : String(u);

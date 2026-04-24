@@ -45,8 +45,10 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldUserMealPlan> WorldUserMealPlan { get; set; }
         public DbSet<WorldSharedMealPlan> WorldSharedMealPlan { get; set; }
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
-        public DbSet<WorldUserBookmark> WorldUserBookmark { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
+        public DbSet<WorldUserComment> WorldUserComments { get; set; }
+        public DbSet<WorldUserCommentReaction> WorldUserCommentReactions { get; set; }
+        public DbSet<WorldUserCommentReport> WorldUserCommentReports { get; set; }
         public DbSet<WorldClipWatchSession> WorldClipWatchSessions { get; set; }
         public DbSet<WorldAdPreferenceProfile> WorldAdPreferenceProfiles { get; set; }
         public DbSet<WorldAdPreferenceInterest> WorldAdPreferenceInterests { get; set; }
@@ -166,6 +168,66 @@ namespace DelikatessenDrehbuch.Data
             // WorldUserPosting — Feed-Queries filtern nach CreatorId
             builder.Entity<WorldUserPosting>()
                 .HasIndex(x => x.CreatorId);
+
+            builder.Entity<WorldUserComment>()
+                .ToTable("WorldUserComments");
+
+            builder.Entity<WorldUserComment>()
+                .HasIndex(x => new { x.WorldUserPostingId, x.CreatedAtUtc });
+
+            builder.Entity<WorldUserComment>()
+                .HasIndex(x => new { x.UserHash, x.CreatedAtUtc });
+
+            builder.Entity<WorldUserComment>()
+                .HasIndex(x => new { x.ParentCommentId, x.CreatedAtUtc });
+
+            builder.Entity<WorldUserComment>()
+                .Property(x => x.UserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldUserComment>()
+                .Property(x => x.UserName)
+                .HasMaxLength(120);
+
+            builder.Entity<WorldUserComment>()
+                .Property(x => x.VerificationLevel)
+                .HasMaxLength(32);
+
+            builder.Entity<WorldUserComment>()
+                .Property(x => x.CommentText)
+                .HasMaxLength(1200);
+
+            builder.Entity<WorldUserCommentReaction>()
+                .ToTable("WorldUserCommentReactions");
+
+            builder.Entity<WorldUserCommentReaction>()
+                .HasIndex(x => new { x.WorldUserCommentId, x.UserHash })
+                .IsUnique();
+
+            builder.Entity<WorldUserCommentReaction>()
+                .HasIndex(x => new { x.WorldUserCommentId, x.IsLike });
+
+            builder.Entity<WorldUserCommentReaction>()
+                .Property(x => x.UserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldUserCommentReport>()
+                .ToTable("WorldUserCommentReports");
+
+            builder.Entity<WorldUserCommentReport>()
+                .HasIndex(x => new { x.WorldUserCommentId, x.UserHash })
+                .IsUnique();
+
+            builder.Entity<WorldUserCommentReport>()
+                .HasIndex(x => x.CreatedAtUtc);
+
+            builder.Entity<WorldUserCommentReport>()
+                .Property(x => x.UserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldUserCommentReport>()
+                .Property(x => x.Reason)
+                .HasMaxLength(500);
 
             // RecipeBaseData.Title — Lookup bei Upload (SaveNewRecipeService)
             builder.Entity<RecipeBaseData>()

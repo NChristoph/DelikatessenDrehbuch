@@ -12,6 +12,7 @@
         public string PreparationText { get; set; } = string.Empty;
         public string IngredientsText { get; set; } = string.Empty;
         public bool UsedFallback { get; set; }
+        public bool IsCached { get; set; }
         public bool UserNoteApplied { get; set; }
         public int RemainingChanges { get; set; }
         public List<RecipeAiTransformIngredientPreview> Ingredients { get; set; } = new();

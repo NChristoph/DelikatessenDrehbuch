@@ -1,0 +1,200 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.CommentModerationViewModel
+@{
+    ViewData["Title"] = "Kommentar-Moderation";
+    Layout = "_MiniAppLayout";
+
+    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+    string T(string de, string en, string es, string pt) => language switch
+    {
+        "en" => en,
+        "es" => es,
+        "pt" => pt,
+        _ => de
+    };
+}
+
+<style>
+    .comment-mod-wrap {
+        max-width: 920px;
+        margin: 0 auto;
+        padding: 18px 16px 120px;
+    }
+
+    .comment-mod-card {
+        background: rgba(255,255,255,0.94);
+        border: 1px solid rgba(15,23,42,0.08);
+        border-radius: 28px;
+        box-shadow: 0 20px 60px rgba(15,23,42,0.10);
+        padding: 18px;
+        margin-bottom: 16px;
+    }
+
+    .comment-mod-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 18px;
+    }
+
+    .comment-mod-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        border-radius: 999px;
+        padding: 8px 12px;
+        background: rgba(245,158,11,0.12);
+        color: #b45309;
+        font-weight: 800;
+    }
+
+    .comment-mod-title {
+        font-size: 1.35rem;
+        font-weight: 900;
+        color: #0f172a;
+        margin: 0;
+    }
+
+    .comment-mod-subtitle {
+        margin: 6px 0 0;
+        color: #64748b;
+    }
+
+    .comment-report-list {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+
+    .comment-report-item {
+        border: 1px solid rgba(15,23,42,0.08);
+        border-radius: 22px;
+        padding: 16px;
+        background: #fff;
+    }
+
+    .comment-report-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        font-size: 0.85rem;
+        color: #64748b;
+        margin-bottom: 10px;
+    }
+
+    .comment-report-pill {
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: rgba(15,23,42,0.06);
+        font-weight: 700;
+    }
+
+    .comment-report-text {
+        color: #0f172a;
+        font-size: 1rem;
+        line-height: 1.5;
+        margin-bottom: 12px;
+        white-space: pre-wrap;
+    }
+
+    .comment-report-reasons {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .comment-report-reason {
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: rgba(239,68,68,0.08);
+        color: #b91c1c;
+        font-size: 0.82rem;
+        font-weight: 700;
+    }
+
+    .comment-report-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .comment-report-actions .btn {
+        border-radius: 14px;
+        font-weight: 800;
+    }
+</style>
+
+<div class="comment-mod-wrap">
+    <a class="btn btn-outline-dark rounded-pill mb-3" href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = Model.UserHash })">
+        <i class="bi bi-arrow-left"></i> @T("Zurueck zum Profil", "Back to profile", "Volver al perfil", "Voltar ao perfil")
+    </a>
+
+    <div class="comment-mod-card">
+        <div class="comment-mod-header">
+            <div>
+                <h1 class="comment-mod-title">@T("Kommentar-Moderation", "Comment moderation", "Moderacion de comentarios", "Moderacao de comentarios")</h1>
+                <p class="comment-mod-subtitle">@T("Gemeldete Kommentare pruefen, ignorieren oder entfernen.", "Review reported comments, dismiss them, or remove them.", "Revisa comentarios reportados, descartalos o eliminalos.", "Revise comentarios denunciados, descarte-os ou remova-os.")</p>
+            </div>
+            <div class="comment-mod-badge">
+                <i class="bi bi-flag-fill"></i>
+                <span>@Model.OpenReportCount @T("offen", "open", "abiertos", "abertos")</span>
+            </div>
+        </div>
+
+        @if (Model.Items.Count == 0)
+        {
+            <div class="text-center py-4 text-muted">@T("Keine offenen Meldungen.", "No open reports.", "No hay reportes abiertos.", "Nao ha denuncias abertas.")</div>
+        }
+        else
+        {
+            <div class="comment-report-list">
+                @foreach (var item in Model.Items)
+                {
+                    <div class="comment-report-item">
+                        <div class="comment-report-meta">
+                            <span class="comment-report-pill">@item.CommentUserName</span>
+                            <span class="comment-report-pill">@item.VerificationLevel</span>
+                            <span class="comment-report-pill">@item.ReportCount @T("Meldungen", "reports", "reportes", "denuncias")</span>
+                            <span class="comment-report-pill">@item.CommentCreatedAtUtc.ToLocalTime().ToString("g")</span>
+                            <a class="comment-report-pill text-decoration-none" href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp", scrollToId = item.PostingId, userHash = Model.UserHash })">
+                                @T("Zum Post", "Open post", "Abrir post", "Abrir post")
+                            </a>
+                        </div>
+
+                        <div class="comment-report-text">@item.CommentText</div>
+
+                        <div class="comment-report-reasons">
+                            @foreach (var reason in item.Reasons)
+                            {
+                                <span class="comment-report-reason">@reason.Count x @reason.Reason</span>
+                            }
+                        </div>
+
+                        <div class="comment-report-actions">
+                            <form method="post" action="@Url.Action("ResolveCommentReport", "Feed", new { area = "WorldMiniApp" })">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userHash" value="@Model.UserHash" />
+                                <input type="hidden" name="commentId" value="@item.CommentId" />
+                                <input type="hidden" name="actionType" value="dismiss" />
+                                <button type="submit" class="btn btn-outline-secondary">
+                                    <i class="bi bi-check2-circle"></i> @T("Meldungen ignorieren", "Dismiss reports", "Descartar reportes", "Ignorar denuncias")
+                                </button>
+                            </form>
+
+                            <form method="post" action="@Url.Action("ResolveCommentReport", "Feed", new { area = "WorldMiniApp" })" onsubmit="return confirm('@T("Kommentar wirklich entfernen?", "Really remove this comment?", "Eliminar realmente este comentario?", "Remover realmente este comentario?").Replace("'", "\\'")');">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="userHash" value="@Model.UserHash" />
+                                <input type="hidden" name="commentId" value="@item.CommentId" />
+                                <input type="hidden" name="actionType" value="delete" />
+                                <button type="submit" class="btn btn-danger">
+                                    <i class="bi bi-trash-fill"></i> @T("Kommentar entfernen", "Remove comment", "Eliminar comentario", "Remover comentario")
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+</div>

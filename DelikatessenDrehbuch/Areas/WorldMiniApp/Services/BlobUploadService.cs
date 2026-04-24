@@ -126,7 +126,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             // Ergebnis für UI/DB
             return new UploadContentResult
             {
-                SourceUrl = processedVideoUrl,
+                // In local/dev the processor may not run; the raw upload exists immediately and is playable.
+                // The processor can still generate the *_processed.mp4 + *_thumb.webp later.
+                SourceUrl = videoResult.SourceUrl,
                 ThumbnailUrl = videoThumbUrl
             };
         }

@@ -20,7 +20,8 @@
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
     var likedRecipeIds = ViewData["LikedRecipeIds"] as HashSet<int> ?? new HashSet<int>();
     var likeCounts = ViewData["LikeCounts"] as Dictionary<int, int> ?? new Dictionary<int, int>();
-    var bookmarkedRecipeIds = ViewData["BookmarkedRecipeIds"] as HashSet<int> ?? new HashSet<int>();
+    var commentCounts = ViewData["CommentCounts"] as Dictionary<int, int> ?? new Dictionary<int, int>();
+    var canWriteComments = (bool?)ViewData["CanWriteComments"] ?? false;
     var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
     var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
     var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
@@ -249,13 +250,408 @@
                 transform: scale(0.9);
             }
 
+        .recipe-title-wrap {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 4px;
+        }
+
         .recipe-title {
-            font-size: 1.8rem;
+            font-size: 1.22rem;
             font-weight: 800;
-            margin-bottom: 6px;
-            line-height: 1.1;
+            margin-bottom: 0;
+            line-height: 1.2;
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
             color: #fff;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            max-width: min(72vw, 340px);
+        }
+
+        .recipe-title.is-expanded {
+            display: block;
+            -webkit-line-clamp: initial;
+            overflow: visible;
+        }
+
+        .title-toggle-btn {
+            border: 0;
+            background: rgba(255,255,255,0.14);
+            color: #fff;
+            border-radius: 999px;
+            padding: 4px 9px;
+            font-size: 0.72rem;
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            backdrop-filter: blur(8px);
+            display: none;
+        }
+
+        .title-toggle-btn.is-visible {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ── Comment Sheet ── */
+        .comment-sheet .modal-dialog {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-end;
+        }
+        .comment-sheet .modal-content {
+            border: 0;
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            flex-direction: column;
+            height: 68vh;
+            max-height: 68vh;
+            background: #fff;
+            box-shadow: 0 -12px 40px rgba(0,0,0,.15);
+            overflow: hidden;
+        }
+        .comment-sheet-handle-wrap {
+            display: flex;
+            justify-content: center;
+            padding: 10px 0 0;
+        }
+        .comment-sheet-handle {
+            width: 36px;
+            height: 4px;
+            border-radius: 999px;
+            background: #d1d5db;
+        }
+        .comment-sheet-header {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 12px 16px 8px;
+        }
+        .comment-sheet-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #0f172a;
+            text-align: center;
+        }
+        .comment-close-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: #f3f4f6;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            padding: 0;
+            color: #6b7280;
+        }
+        .comment-close-btn:hover { background: #e5e7eb; }
+        .comment-close-btn svg { width: 14px; height: 14px; }
+
+        .comment-sort-tabs {
+            display: flex;
+            gap: 8px;
+            padding: 0 16px 10px;
+            border-bottom: 1px solid #f3f4f6;
+        }
+        .comment-sort-tabs button {
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-size: 13px;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 999px;
+            cursor: pointer;
+            transition: all 150ms ease;
+        }
+        .comment-sort-tabs button.active {
+            background: #0f172a;
+            color: #fff;
+        }
+
+        .comment-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .comment-item {
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+        }
+        .comment-avatar {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .comment-item.is-reply .comment-avatar {
+            width: 28px;
+            height: 28px;
+            min-width: 28px;
+            font-size: 11px;
+        }
+        .comment-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .comment-meta {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 2px;
+        }
+        .comment-user {
+            font-size: 13px;
+            font-weight: 700;
+            color: #0f172a;
+        }
+        .comment-verified-badge { display: inline-flex; align-items: center; }
+        .comment-verified-badge svg { width: 14px; height: 14px; }
+        .comment-creator-badge {
+            font-size: 11px;
+            font-weight: 700;
+            color: #059669;
+            background: rgba(16,185,129,0.10);
+            padding: 1px 7px;
+            border-radius: 999px;
+        }
+        .comment-time {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        .comment-pinned-label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+        .comment-pinned-label svg { width: 12px; height: 12px; }
+
+        .comment-text {
+            font-size: 14px;
+            line-height: 1.4;
+            color: #0f172a;
+            word-break: break-word;
+            white-space: pre-wrap;
+        }
+        .comment-text .mention {
+            color: #1c4d2a;
+            font-weight: 600;
+        }
+
+        .comment-actions {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-top: 6px;
+        }
+        .comment-heart-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 12px;
+            color: #9ca3af;
+            font-weight: 600;
+            transition: color 150ms;
+        }
+        .comment-heart-btn svg { width: 16px; height: 16px; transition: transform 150ms; }
+        .comment-heart-btn.is-liked { color: #ef4444; }
+        .comment-heart-btn.is-liked svg { transform: scale(1.1); }
+        .comment-heart-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+        .comment-reply-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+        }
+        .comment-reply-btn:hover { color: #6b7280; }
+
+        .comment-delete-text {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #ef4444;
+        }
+        .comment-pin-btn {
+            background: none;
+            border: none;
+            padding: 0;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            color: #9ca3af;
+        }
+        .comment-pin-btn:hover { color: #6b7280; }
+
+        .comment-replies-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 12px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            padding: 0;
+            font-size: 12px;
+            font-weight: 600;
+            color: #6b7280;
+        }
+        .comment-replies-toggle::before {
+            content: '';
+            display: block;
+            width: 24px;
+            height: 1px;
+            background: #d1d5db;
+        }
+
+        .comment-replies {
+            margin-top: 12px;
+            margin-left: 46px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+        .comment-replies.is-hidden { display: none; }
+
+        .comment-empty {
+            color: #9ca3af;
+            font-size: 14px;
+            text-align: center;
+            padding: 32px 16px;
+        }
+
+        .comment-item.is-auto-hidden {
+            opacity: 0.5;
+        }
+
+        /* ── Comment Input Bar ── */
+        .comment-input-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 16px;
+            border-top: 1px solid #f3f4f6;
+            background: #fff;
+        }
+        .comment-input-avatar {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: 50%;
+            background: #6366f1;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .comment-input-wrap {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            background: #f3f4f6;
+            border-radius: 999px;
+            padding: 0 6px 0 16px;
+            min-height: 40px;
+        }
+        .comment-input-wrap input {
+            flex: 1;
+            background: none;
+            border: none;
+            outline: none;
+            font-size: 14px;
+            color: #0f172a;
+            padding: 8px 0;
+            min-width: 0;
+        }
+        .comment-input-wrap input::placeholder { color: #9ca3af; }
+        .comment-emoji-btn {
+            background: none;
+            border: none;
+            padding: 4px;
+            cursor: pointer;
+            color: #9ca3af;
+            display: flex;
+            align-items: center;
+        }
+        .comment-emoji-btn svg { width: 20px; height: 20px; }
+        .comment-send-btn {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            border-radius: 50%;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 150ms, color 150ms;
+            padding: 0;
+            background: #d1d5db;
+            color: #fff;
+        }
+        .comment-send-btn.is-active {
+            background: #0f172a;
+            color: #fff;
+        }
+        .comment-send-btn svg { width: 16px; height: 16px; }
+        .comment-reply-target {
+            font-size: 12px;
+            color: #6b7280;
+            padding: 6px 16px;
+            border-top: 1px solid #f3f4f6;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #fafafa;
+        }
+        .comment-reply-target button {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 0;
+            font-size: 12px;
+            font-weight: 600;
         }
 
         .recipe-meta {
@@ -283,6 +679,40 @@
             color: white;
             cursor: pointer;
             transition: transform 0.1s;
+        }
+
+        .comment-btn {
+            position: relative;
+        }
+
+        .live-comment-badge {
+            position: absolute;
+            top: -8px;
+            right: -6px;
+            min-width: 20px;
+            height: 20px;
+            padding: 0 6px;
+            border-radius: 999px;
+            background: linear-gradient(135deg, #ff6b6b 0%, #ff3b3b 100%);
+            color: #fff;
+            font-size: 0.68rem;
+            font-weight: 800;
+            line-height: 20px;
+            text-align: center;
+            box-shadow: 0 8px 18px rgba(255, 59, 59, 0.35);
+            border: 1px solid rgba(255,255,255,0.22);
+            display: none;
+            pointer-events: none;
+        }
+
+        .live-comment-badge.is-visible {
+            display: inline-block;
+            animation: pulseBadge 1.2s ease-in-out infinite;
+        }
+
+        @@keyframes pulseBadge {
+            0%, 100% { transform: scale(1); box-shadow: 0 8px 18px rgba(255, 59, 59, 0.35); }
+            50% { transform: scale(1.08); box-shadow: 0 10px 22px rgba(255, 59, 59, 0.5); }
         }
 
         .action-btn:active {
@@ -314,10 +744,42 @@
             border: none;
             box-shadow: 0 4px 20px rgba(255, 94, 98, 0.5);
         }
-        .action-btn.bookmarked .icon-circle {
-            background: linear-gradient(135deg, #60a5fa 0%, #a78bfa 100%);
-            border: none;
-            box-shadow: 0 4px 20px rgba(96, 165, 250, 0.5);
+
+        .heart-btn {
+            display: none !important;
+        }
+
+        .feed-like-indicator {
+            position: absolute;
+            top: 14px;
+            left: 14px;
+            z-index: 4;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.24);
+            background: rgba(15, 15, 15, 0.26);
+            color: rgba(255,255,255,0.95);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 18px rgba(0,0,0,0.2);
+            transition: transform 0.14s ease, background 0.18s ease, color 0.18s ease, border-color 0.18s ease;
+        }
+
+        .feed-like-indicator i {
+            font-size: 1rem;
+        }
+
+        .feed-like-indicator.is-liked {
+            background: linear-gradient(135deg, rgba(255, 94, 98, 0.95), rgba(255, 153, 102, 0.92));
+            border-color: rgba(255,255,255,0.38);
+            color: #fff;
+        }
+
+        .feed-like-indicator:active {
+            transform: scale(0.94);
         }
 
         .action-label {
@@ -375,20 +837,20 @@
 
         .double-tap-heart {
             position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            font-size: 6rem;
-            color: white;
-            text-shadow: 0 4px 20px rgba(0,0,0,0.3);
-            z-index: 100;
+            top: 15px;
+            left: 15px;
+            transform: scale(0.6);
+            font-size: 2rem;
+            color: #ff5e62;
+            text-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            z-index: 5;
             opacity: 0;
             pointer-events: none;
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.3s;
         }
 
             .double-tap-heart.animate {
-                transform: translate(-50%, -50%) scale(1.2);
+                transform: scale(1.12);
                 opacity: 1;
             }
 
@@ -500,81 +962,9 @@
             opacity: 0.9;
         }
 
-        #planModal .modal-body {
-            position: relative;
-            padding-top: 12px;
-        }
 
-        .plan-sticky-header {
-            position: sticky;
-            top: 0;
-            z-index: 70;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            padding-bottom: 8px;
-        }
 
-        .pending-recipe {
-            display: none;
-            gap: 12px;
-            align-items: center;
-            padding: 10px;
-            border-radius: 18px;
-            border: 1px solid var(--plan-accent-border);
-            background: rgba(255, 255, 255, 0.08);
-            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-        }
 
-        .pending-media {
-            width: 70px;
-            height: 70px;
-            border-radius: 16px;
-            overflow: hidden;
-            flex-shrink: 0;
-            border: 1px solid var(--plan-accent-border);
-        }
-
-            .pending-media img,
-            .pending-media video {
-                width: 100%;
-                height: 100%;
-                object-fit: cover;
-                display: block;
-            }
-
-        .pending-label {
-            font-size: 0.7rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 800;
-            color: var(--plan-muted-text);
-        }
-
-        .pending-title {
-            font-size: 0.95rem;
-            font-weight: 900;
-            color: var(--plan-text);
-            line-height: 1.2;
-        }
-
-        .plan-tools {
-            z-index: 60;
-            padding: 12px;
-            border-radius: 18px;
-            background: var(--plan-tools-bg);
-            border: 1px solid var(--plan-outline);
-            backdrop-filter: blur(16px);
-            box-shadow: 0 14px 40px rgba(0,0,0,0.35);
-            transition: transform 220ms ease, opacity 220ms ease;
-            will-change: transform, opacity;
-        }
-
-            .plan-tools.is-hidden {
-                transform: translateY(-115%);
-                opacity: 0.15;
-                pointer-events: none;
-            }
 
         .plan-btn-primary {
             background: var(--plan-accent);
@@ -600,13 +990,8 @@
             border-radius: 14px;
         }
 
-        .plan-tools .form-control {
-            background: var(--plan-input-bg);
-            border: 1px solid var(--plan-outline);
-            color: var(--plan-text);
-        }
-
-            .plan-tools .form-control::placeholder {
+        .plan-btn-primary::placeholder,
+        .plan-btn-outline::placeholder {
                 color: var(--plan-muted-text);
             }
 
@@ -888,276 +1273,779 @@
             color: var(--plan-muted-text);
         }
 
-        .plan-day-row {
-            margin-top: 12px;
-            border: 1px solid var(--plan-card-border);
-            background: var(--plan-card-bg);
-            border-radius: 18px;
-            padding: 12px;
+
+        /* ============ V1 PLAN REDESIGN ============ */
+
+        .v1 {
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(1200px 800px at 10% 0%, var(--plan-accent-soft), transparent 60%),
+                        radial-gradient(900px 600px at 90% 20%, var(--plan-accent-soft-2), transparent 60%),
+                        var(--plan-surface);
+            color: var(--plan-text);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            z-index: 1;
         }
 
-        .plan-day-header {
+        .v1-topbar {
+            position: sticky;
+            top: 0;
+            z-index: 80;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 10px;
+            padding: 10px 16px;
+            background: rgba(0,0,0,0.45);
+            backdrop-filter: blur(18px);
+            -webkit-backdrop-filter: blur(18px);
+            border-bottom: 1px solid var(--plan-outline);
+            flex-shrink: 0;
         }
 
-        .day-label {
-            font-weight: 950;
-            color: var(--plan-accent);
-            display: block;
-            font-size: 0.9rem;
-            text-transform: uppercase;
-            letter-spacing: 1.2px;
-        }
-
-        .day-actions {
+        .v1-topbar-back {
+            background: none;
+            border: none;
+            color: var(--plan-text);
+            font-size: 1.3rem;
+            padding: 4px 8px;
             display: inline-flex;
             align-items: center;
-            gap: 6px;
         }
 
-        .day-duplicate-btn {
+        .v1-topbar-brand {
+            background: rgba(255,255,255,0.08);
             border: 1px solid var(--plan-outline);
-            background: var(--plan-input-bg);
-            color: var(--plan-text);
             border-radius: 999px;
-            padding: 6px 10px;
-            font-size: 0.7rem;
+            padding: 5px 14px;
+            font-size: 0.78rem;
             font-weight: 900;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-            transition: all 0.18s ease;
+            color: var(--plan-accent);
+            letter-spacing: 0.3px;
         }
 
-        .day-duplicate-btn.is-source {
+        .v1-topbar-more {
+            background: none;
+            border: none;
+            color: var(--plan-text);
+            font-size: 1.3rem;
+            padding: 4px 8px;
+            position: relative;
+        }
+
+        .v1-more-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background: rgba(22,22,22,0.96);
+            border: 1px solid var(--plan-outline);
+            border-radius: 14px;
+            padding: 6px 0;
+            min-width: 180px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(16px);
+            z-index: 90;
+        }
+
+        .v1-more-menu.is-open {
+            display: block;
+        }
+
+        .v1-more-menu button {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+            background: none;
+            border: none;
+            color: var(--plan-text);
+            padding: 10px 16px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            text-align: left;
+        }
+
+        .v1-more-menu button:active {
+            background: rgba(255,255,255,0.06);
+        }
+
+        .v1-scroll {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+        }
+
+        /* Hero Section */
+        .v1-hero {
+            padding: 20px 16px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .v1-hero-eyebrow {
+            font-size: 0.72rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            font-weight: 800;
+            color: var(--plan-muted-text);
+        }
+
+        .v1-hero-title {
+            background: transparent;
+            border: none;
+            color: var(--plan-text);
+            font-size: 1.5rem;
+            font-weight: 900;
+            padding: 0;
+            width: 100%;
+            outline: none;
+            letter-spacing: -0.3px;
+            line-height: 1.2;
+        }
+
+        .v1-hero-title::placeholder {
+            color: var(--plan-muted-text);
+        }
+
+        .v1-chips {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .v1-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--plan-outline);
+            border-radius: 999px;
+            padding: 5px 12px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--plan-text);
+            white-space: nowrap;
+        }
+
+        .v1-chip i {
+            font-size: 0.82rem;
+            color: var(--plan-accent);
+        }
+
+        .v1-chip-value {
+            font-weight: 900;
+        }
+
+        /* Progress Bar */
+        .v1-progress {
+            height: 5px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .v1-progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--plan-accent), #FF5E62);
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+
+        /* Action Buttons Row */
+        .v1-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .v1-action-btn {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            font-size: 0.8rem;
+            font-weight: 800;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .v1-action-btn:active {
+            transform: scale(0.96);
+        }
+
+        .v1-action-btn.primary {
+            background: var(--plan-accent);
+            color: var(--plan-button-text);
+        }
+
+        .v1-action-btn.secondary {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid var(--plan-outline);
+            color: var(--plan-text);
+        }
+
+        /* Pending Recipe Card */
+        .v1-pending {
+            margin: 0 16px;
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 14px;
+            border-radius: 16px;
+            border: 1px solid var(--plan-accent-border);
+            background: rgba(255,153,102,0.08);
+            animation: v1PendingPulse 2s ease-in-out infinite;
+        }
+
+        .v1-pending.is-visible {
+            display: flex;
+        }
+
+        .v1-pending-media {
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .v1-pending-media img,
+        .v1-pending-media video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+
+        .v1-pending-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .v1-pending-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 800;
+            color: var(--plan-accent);
+        }
+
+        .v1-pending-title {
+            font-size: 0.88rem;
+            font-weight: 800;
+            color: var(--plan-text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .v1-pending-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--plan-accent);
+            animation: v1DotPulse 1.5s ease-in-out infinite;
+            flex-shrink: 0;
+        }
+
+        .v1-pending-close {
+            background: none;
+            border: none;
+            color: var(--plan-muted-text);
+            font-size: 1.1rem;
+            padding: 4px;
+            flex-shrink: 0;
+        }
+
+        @@keyframes v1PendingPulse {
+            0%, 100% { border-color: var(--plan-accent-border); }
+            50% { border-color: var(--plan-accent); }
+        }
+
+        @@keyframes v1DotPulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(0.7); }
+        }
+
+        /* Macro Nutrition Section */
+        .v1-macro {
+            margin: 0 16px;
+            padding: 16px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--plan-outline);
+            border-radius: 18px;
+        }
+
+        .v1-macro-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .v1-macro-title {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--plan-text);
+        }
+
+        .v1-macro-kcal {
+            font-size: 1.6rem;
+            font-weight: 900;
+            color: var(--plan-text);
+            line-height: 1;
+        }
+
+        .v1-macro-kcal-unit {
+            font-size: 0.72rem;
+            color: var(--plan-muted-text);
+            font-weight: 700;
+            margin-left: 4px;
+        }
+
+        .v1-bar-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .v1-bar-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .v1-bar-label {
+            font-size: 0.72rem;
+            font-weight: 700;
+            color: var(--plan-muted-text);
+            width: 50px;
+            flex-shrink: 0;
+        }
+
+        .v1-bar-track {
+            flex: 1;
+            height: 7px;
+            background: rgba(255,255,255,0.06);
+            border-radius: 999px;
+            overflow: hidden;
+        }
+
+        .v1-bar-fill {
+            height: 100%;
+            border-radius: 999px;
+            transition: width 0.4s ease;
+        }
+
+        .v1-bar-fill.protein { background: #4ade80; }
+        .v1-bar-fill.fat { background: #facc15; }
+        .v1-bar-fill.carbs { background: #60a5fa; }
+
+        .v1-bar-value {
+            font-size: 0.72rem;
+            font-weight: 800;
+            color: var(--plan-text);
+            width: 42px;
+            text-align: right;
+            flex-shrink: 0;
+        }
+
+        /* Day Navigation Bar */
+        .v1-daynav {
+            position: sticky;
+            top: 0;
+            z-index: 70;
+            display: flex;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--plan-outline);
+            padding: 0 8px;
+            flex-shrink: 0;
+        }
+
+        .v1-daynav-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            padding: 10px 4px 8px;
+            background: none;
+            border: none;
+            color: var(--plan-muted-text);
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            position: relative;
+            transition: color 0.2s;
+        }
+
+        .v1-daynav-btn.is-active {
+            color: var(--plan-accent);
+        }
+
+        .v1-daynav-btn.is-active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: var(--plan-accent);
+            border-radius: 999px;
+        }
+
+        .v1-daynav-dot {
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+        }
+
+        .v1-daynav-dot.has-meals {
+            background: var(--plan-accent);
+        }
+
+        /* Day Section */
+        .v1-day {
+            padding: 16px;
+            scroll-margin-top: 48px;
+        }
+
+        .v1-day-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .v1-day-label {
+            font-size: 1.05rem;
+            font-weight: 900;
+            color: var(--plan-text);
+        }
+
+        .v1-day-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .v1-day-dup-btn {
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--plan-outline);
+            border-radius: 10px;
+            color: var(--plan-muted-text);
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 5px 10px;
+        }
+
+        .v1-day-dup-btn.is-source {
             background: var(--plan-accent);
             color: var(--plan-button-text);
             border-color: var(--plan-accent);
-            box-shadow: 0 8px 18px rgba(0,0,0,0.18);
         }
 
-        .day-duplicate-btn.is-target {
+        .v1-day-dup-btn.is-target {
             border-color: var(--plan-accent-border);
-            box-shadow: 0 0 0 1px var(--plan-accent-border);
+            color: var(--plan-accent);
         }
 
-        .slot-container {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 10px;
-        }
-
-        @@media(min-width: 350px) {
-            .slot-container {
-                grid-template-columns: 1fr 1fr 1fr;
-            }
-        }
-
-        .meal-slot-btn {
-            background: var(--plan-surface);
-            border: 1px dashed var(--plan-accent-border);
-            color: var(--plan-text);
-            height: 112px;
-            border-radius: 16px;
-            font-size: 0.85rem;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.18s ease;
+        .v1-day-meals {
             display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Meal Card */
+        .v1-meal {
             position: relative;
+            border-radius: 18px;
             overflow: hidden;
-            opacity: 1;
+            height: 180px;
+            background: var(--plan-card-bg);
+            border: 1px solid var(--plan-card-border);
+            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
         }
 
-        .meal-slot-btn.slot-pending-highlight {
-            animation: pendingSlotPulse 1.45s ease-in-out infinite;
-            box-shadow: 0 0 0 1px var(--plan-accent-border), 0 0 24px rgba(255, 153, 102, 0.12);
+        .v1-meal:active {
+            transform: scale(0.98);
+            transition: transform 0.1s ease;
         }
 
-        .meal-slot-btn.drag-target,
-        .filled-slot.drag-target {
-            outline: 2px solid var(--plan-accent);
-            outline-offset: -2px;
-            box-shadow: 0 10px 26px rgba(0,0,0,0.35), 0 0 0 4px rgba(255, 153, 102, 0.14);
-        }
-
-        .meal-slot-btn:active {
-            transform: scale(0.97);
-        }
-
-        .filled-slot {
-            background: var(--plan-surface);
-            border: 1px solid var(--plan-outline);
-            border-radius: 16px;
-            height: 112px;
-            overflow: hidden;
-            box-shadow: 0 10px 26px rgba(0,0,0,0.35);
-            position: relative;
-            transition: transform 0.15s ease;
-            touch-action: none;
-            user-select: none;
-            will-change: transform;
-            backface-visibility: hidden;
-        }
-
-        .filled-slot.swiping {
-            transition: none;
-        }
-
-        .filled-slot.dragging-source {
-            z-index: 6;
-            box-shadow: 0 18px 44px rgba(0,0,0,0.42);
-            cursor: grabbing;
-            transition: none !important;
-        }
-
-        .filled-slot.drag-placeholder {
-            opacity: 0.55;
-        }
-
-        .filled-slot:active {
-            transform: scale(0.97);
-        }
-
-        .replace-slot {
-            outline: 2px dashed var(--plan-accent-border);
-            cursor: pointer;
-        }
-
-        .mini-img {
+        .v1-meal-img {
             position: absolute;
             inset: 0;
             width: 100%;
             height: 100%;
             object-fit: cover;
             display: block;
-            -webkit-user-drag: none;
-            user-select: none;
-            pointer-events: none;
         }
 
-        .mini-content {
+        .v1-meal-gradient {
             position: absolute;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            padding: 8px 10px;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(0,0,0,0.55) 45%, rgba(0,0,0,0.92) 100%);
-            color: #fff;
+            inset: 0;
+            background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.75) 70%, rgba(0,0,0,0.95) 100%);
             z-index: 1;
         }
 
-        .mini-title {
-            font-size: 0.88rem;
-            font-weight: 900;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        .v1-meal-type-pill {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            z-index: 2;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(8px);
             color: #fff;
-            line-height: 1.2;
-            text-shadow: 0 1px 3px rgba(0,0,0,0.85);
-        }
-
-        .mini-type {
-            font-size: 0.6rem;
-            color: rgba(255,255,255,0.88);
+            padding: 3px 10px;
+            border-radius: 999px;
+            font-size: 0.62rem;
+            font-weight: 800;
             text-transform: uppercase;
             letter-spacing: 0.8px;
-            font-weight: 800;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.85);
         }
 
-        .slot-actions {
+        .v1-meal-heart {
             position: absolute;
-            right: 8px;
-            top: 8px;
-            display: flex;
-            gap: 6px;
+            top: 10px;
+            right: 10px;
             z-index: 2;
-        }
-
-        .slot-btn {
-            border: none;
             background: rgba(0,0,0,0.35);
-            color: var(--plan-text);
-            width: 30px;
-            height: 30px;
-            border-radius: 12px;
+            border: none;
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
+            color: #fff;
+            font-size: 0.9rem;
         }
 
-            .slot-btn.edit-slot-btn {
-                color: var(--plan-button-text);
-                background: var(--plan-accent);
-                font-weight: 900;
-            }
-
-            .slot-btn.delete-slot-btn {
-                background: rgba(255, 94, 98, 0.18);
-                color: rgba(255,255,255,0.95);
-            }
-
-        .replace-hint {
+        .v1-meal-content {
             position: absolute;
-            right: 10px;
-            bottom: 8px;
-            font-size: 0.68rem;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 14px;
+            z-index: 2;
+        }
+
+        .v1-meal-title {
+            font-size: 1rem;
+            font-weight: 900;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
+            line-height: 1.3;
+        }
+
+        .v1-meal-stats {
+            display: flex;
+            gap: 10px;
+            margin-top: 4px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.75);
+            font-weight: 600;
+        }
+
+        /* Meal Action Buttons */
+        .v1-meal-actions {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .v1-meal-act {
+            flex: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            padding: 8px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid var(--plan-outline);
+            color: var(--plan-text);
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .v1-meal-act:active {
+            background: rgba(255,255,255,0.12);
+        }
+
+        .v1-meal-act.delete {
+            color: #ff6b6b;
+            border-color: rgba(255,107,107,0.2);
+        }
+
+        /* Empty Slot */
+        .v1-empty {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            height: 100px;
+            border: 2px dashed var(--plan-outline);
+            border-radius: 18px;
             color: var(--plan-muted-text);
-            background: var(--plan-header-bg);
-            padding: 4px 8px;
-            border-radius: 999px;
-            border: 1px solid rgba(255,255,255,0.10);
+            cursor: pointer;
+            transition: border-color 0.2s, background 0.2s;
         }
 
-        .slot-swipe-delete-bg {
-            position: absolute;
-            inset: 0;
+        .v1-empty:active {
+            transform: scale(0.97);
+        }
+
+        .v1-empty.is-highlight {
+            border-color: var(--plan-accent-border);
+            background: rgba(255,153,102,0.05);
+            animation: v1SlotPulse 1.5s ease-in-out infinite;
+        }
+
+        .v1-empty-icon {
+            font-size: 1.3rem;
+            color: var(--plan-muted-text);
+        }
+
+        .v1-empty-label {
+            font-size: 0.68rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+        }
+
+        .v1-empty-hint {
+            font-size: 0.62rem;
+            opacity: 0.6;
+        }
+
+        @@keyframes v1SlotPulse {
+            0%, 100% { border-color: var(--plan-accent-border); }
+            50% { border-color: var(--plan-accent); }
+        }
+
+        /* Day Nutrition Button */
+        .v1-day-nutrition-btn {
             display: flex;
             align-items: center;
-            justify-content: flex-end;
-            padding-right: 14px;
-            background: linear-gradient(90deg, rgba(255,94,98,0) 0%, rgba(255,94,98,0.28) 45%, rgba(255,94,98,0.82) 100%);
-            color: #fff;
-            font-size: 0.78rem;
-            font-weight: 900;
-            letter-spacing: 0.04em;
-            text-transform: uppercase;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.18s ease;
-            z-index: 0;
+            justify-content: space-between;
+            width: 100%;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--plan-outline);
+            border-radius: 12px;
+            padding: 10px 14px;
+            color: var(--plan-muted-text);
+            font-size: 0.75rem;
+            font-weight: 700;
+            margin-top: 10px;
         }
 
-        .filled-slot.swiping .slot-swipe-delete-bg {
-            opacity: 1;
+        .v1-day-nutrition-btn i {
+            font-size: 0.85rem;
+            transition: transform 0.2s;
         }
 
-        .plan-text-muted {
+        .v1-day-nutrition-btn.is-expanded i {
+            transform: rotate(180deg);
+        }
+
+        /* Shopping Section */
+        .v1-shopping {
+            margin: 8px 16px 16px;
+            padding: 14px;
+            background: rgba(255,255,255,0.04);
+            border: 1px solid var(--plan-outline);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .v1-shopping:active {
+            background: rgba(255,255,255,0.08);
+        }
+
+        .v1-shopping-icon {
+            font-size: 1.2rem;
+            color: var(--plan-accent);
+        }
+
+        .v1-shopping-text {
+            flex: 1;
+        }
+
+        .v1-shopping-title {
+            font-size: 0.85rem;
+            font-weight: 800;
+            color: var(--plan-text);
+        }
+
+        .v1-shopping-sub {
+            font-size: 0.7rem;
             color: var(--plan-muted-text);
         }
 
-        @@keyframes pendingSlotPulse {
-            0%, 100% {
-                transform: scale(1);
-                border-color: var(--plan-accent-border);
-            }
+        .v1-shopping-arrow {
+            color: var(--plan-muted-text);
+            font-size: 1rem;
+        }
 
-            50% {
-                transform: scale(1.015);
-                border-color: var(--plan-accent);
-            }
+        /* FAB */
+        .v1-fab {
+            position: fixed;
+            bottom: 24px;
+            right: 20px;
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--plan-accent), #FF5E62);
+            border: none;
+            color: #fff;
+            font-size: 1.4rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 28px rgba(255,153,102,0.35);
+            z-index: 75;
+        }
+
+        .v1-fab:active {
+            transform: scale(0.9);
+        }
+
+        /* Person Stepper in hero (popover style) */
+        .v1-person-popover {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            margin-top: 6px;
+            background: rgba(22,22,22,0.96);
+            border: 1px solid var(--plan-outline);
+            border-radius: 14px;
+            padding: 12px;
+            box-shadow: 0 14px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(16px);
+            z-index: 90;
+        }
+
+        .v1-person-popover.is-open {
+            display: block;
         }
 
         .shopping-share textarea {
@@ -1877,6 +2765,13 @@
                 }
 
                 <div class="overlay-gradient"></div>
+                <button type="button"
+                        class="feed-like-indicator@(likedRecipeIds.Contains(item.Recipe.Id) ? " is-liked" : "")"
+                        aria-label="Like"
+                        onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));"
+                        data-recipe-id="@item.Recipe.Id">
+                    <i class="bi bi-heart-fill"></i>
+                </button>
                 <i class="bi bi-heart-fill double-tap-heart"></i>
 
                 <div class="info-container">
@@ -1889,7 +2784,8 @@
                         </button>
                     </div>
 
-                    <h2 class="recipe-title">@item.Recipe.Title</h2>
+                    <h2 class="recipe-title" data-title-limit="58">@item.Recipe.Title</h2>
+                    <button type="button" class="title-toggle-btn" onclick="event.stopPropagation(); toggleFeedTitle(this);">@T("Mehr", "More", "Más", "Mais")</button>
                     <div class="recipe-meta">&#x23F1;&#xFE0F; @item.Recipe.PreparationTime Min</div>
                 </div>
 
@@ -1904,8 +2800,10 @@
                         <span class="action-label like-count">@(likeCounts.TryGetValue(item.Recipe.Id, out var lc) ? lc : 0)</span>
                     </div>
 
-                    <div class="action-btn bookmark-btn@(bookmarkedRecipeIds.Contains(item.Recipe.Id) ? " bookmarked" : "")" role="button" aria-label="Merken" data-recipe-id="@item.Recipe.Id" onclick="toggleBookmark(this)">
-                        <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
+                    <div class="action-btn comment-btn" role="button" aria-label="Kommentare" data-posting-id="@item.Id" onclick="event.stopPropagation(); openCommentsSheet(this.closest('.feed-item'));">
+                        <span class="live-comment-badge" data-live-comment-badge="@item.Id">0</span>
+                        <div class="icon-circle"><i class="bi bi-chat-dots-fill"></i></div>
+                        <span class="action-label comment-count">@(commentCounts.TryGetValue(item.Id, out var cc) ? cc : 0)</span>
                     </div>
 
                     <div class="action-btn share-action-btn" role="button" aria-label="Teilen" onclick="shareRecipeFromButton(this)">
@@ -2018,25 +2916,89 @@
         </div>
     </div>
 
-    <!-- PLAN MODAL -->
+    <!-- PLAN MODAL (V1 Fullscreen Redesign) -->
     <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title mb-0">Wochenplaner</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-
-                <div class="modal-body" id="planModalBody">
-                    <div class="plan-sticky-header">
-                        <div id="pendingRecipeCard" class="pending-recipe">
-                            <div class="pending-media" id="pendingRecipeMedia"></div>
-                            <div class="pending-info">
-                                <div class="pending-label">Wird hinzugefügt</div>
-                                <div class="pending-title" id="pendingRecipeTitle"></div>
+        <div class="modal-dialog modal-fullscreen">
+            <div class="modal-content" style="border:none;border-radius:0;background:transparent;">
+                <div class="v1">
+                    <!-- Top Bar -->
+                    <div class="v1-topbar">
+                        <button type="button" class="v1-topbar-back" data-bs-dismiss="modal" aria-label="Zurück">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <span class="v1-topbar-brand">Wochenplaner</span>
+                        <button type="button" class="v1-topbar-more" id="v1MoreBtn" onclick="toggleMoreMenu()">
+                            <i class="bi bi-three-dots"></i>
+                            <div class="v1-more-menu" id="v1MoreMenu">
+                                <button type="button" onclick="clearWeeklyPlanState(true)"><i class="bi bi-trash3"></i> Plan leeren</button>
+                                <button type="button" onclick="exportPlanAsIcs()"><i class="bi bi-calendar-event"></i> .ics Export</button>
+                                <button type="button" onclick="document.getElementById('kcalGoalInput')?.focus()"><i class="bi bi-bullseye"></i> Kcal-Ziel</button>
                             </div>
+                        </button>
+                    </div>
+
+                    <!-- Scrollable Content -->
+                    <div class="v1-scroll" id="planModalBody">
+                        <!-- Hero Section -->
+                        <div class="v1-hero">
+                            <div class="v1-hero-eyebrow" id="v1HeroEyebrow">KW —</div>
+                            <input id="planTitleInput" type="text" class="v1-hero-title" placeholder="Mein Wochenplan" />
+                            <div class="v1-chips">
+                                <div class="v1-chip" id="v1ChipPersons" style="position:relative;cursor:pointer;" onclick="togglePersonPopover()">
+                                    <i class="bi bi-people-fill"></i>
+                                    <span class="v1-chip-value" id="v1ChipPersonValue">1</span> Pers.
+                                    <div class="v1-person-popover" id="v1PersonPopover">
+                                        <div class="person-stepper">
+                                            <button type="button" class="person-stepper-btn" id="personStepperDec" aria-label="Personenzahl verringern">&#x2212;</button>
+                                            <input id="planPersonCount" type="number" min="1" max="99" step="1" value="1" class="person-stepper-input" inputmode="numeric" pattern="[0-9]*" />
+                                            <button type="button" class="person-stepper-btn" id="personStepperInc" aria-label="Personenzahl erhöhen">+</button>
+                                        </div>
+                                        <div class="person-presets" role="group" aria-label="Schnellauswahl Personen" style="margin-top:6px;">
+                                            <button type="button" class="person-preset" data-value="1">1</button>
+                                            <button type="button" class="person-preset" data-value="2">2</button>
+                                            <button type="button" class="person-preset" data-value="4">4</button>
+                                            <button type="button" class="person-preset" data-value="6">6</button>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="v1-chip">
+                                    <i class="bi bi-fire"></i>
+                                    <span class="v1-chip-value" id="v1ChipKcal">—</span> kcal
+                                </div>
+                                <div class="v1-chip">
+                                    <i class="bi bi-check2-circle"></i>
+                                    <span class="v1-chip-value" id="v1ChipProgress">0/21</span>
+                                </div>
+                            </div>
+                            <div class="v1-progress">
+                                <div class="v1-progress-fill" id="v1ProgressFill" style="width:0%"></div>
+                            </div>
+                            <div class="v1-actions">
+                                <button type="button" class="v1-action-btn primary" onclick="saveWeeklyPlan()">
+                                    <i class="bi bi-check2-circle"></i> Speichern
+                                </button>
+                                <button type="button" class="v1-action-btn secondary" onclick="withButtonSpinner(this, shufflePlanFromLikes)">
+                                    <i class="bi bi-shuffle"></i>
+                                </button>
+                                <button type="button" class="v1-action-btn secondary" onclick="withButtonSpinner(this, shareWeeklyPlan)">
+                                    <i class="bi bi-share"></i>
+                                </button>
+                            </div>
+                            <input id="planShareLink" type="text" readonly placeholder="Plan-Link erscheint hier..." style="display:none;background:var(--plan-input-bg);border:1px solid var(--plan-outline);color:var(--plan-text);border-radius:10px;padding:8px 12px;font-size:0.8rem;margin-top:4px;" />
                         </div>
-                        <div class="plan-nutrition is-collapsed" id="planNutrition">
+
+                        <!-- Pending Recipe Card -->
+                        <div id="pendingRecipeCard" class="v1-pending">
+                            <div class="v1-pending-dot"></div>
+                            <div class="v1-pending-media" id="pendingRecipeMedia"></div>
+                            <div class="v1-pending-info">
+                                <div class="v1-pending-label">Wird hinzugefügt</div>
+                                <div class="v1-pending-title" id="pendingRecipeTitle"></div>
+                            </div>
+                            <button type="button" class="v1-pending-close" onclick="cancelPendingRecipe()"><i class="bi bi-x-lg"></i></button>
+                        </div>
+                        <!-- Macro Nutrition (collapsible) -->
+                        <div class="plan-nutrition is-collapsed" id="planNutrition" style="margin:8px 16px;">
                             <button type="button" class="plan-nutrition-toggle" id="planNutritionToggle" aria-expanded="false">
                                 <span class="plan-nutrition-toggle-content">
                                     <i class="bi bi-chevron-down"></i>
@@ -2163,81 +3125,50 @@
                         </div>
                     </div>
 
-                    <div class="plan-tools" id="planTools">
-                        <div class="row g-2">
-                            <div class="col-7">
-                                <label class="form-label small mb-1">Plan-Name</label>
-                                <input id="planTitleInput" type="text" class="form-control form-control-sm" placeholder="Mein Wochenplan" />
-                            </div>
-                            <div class="col-5">
-                                <label class="form-label small mb-1">Personen</label>
-                                <div class="person-stepper">
-                                    <button type="button" class="person-stepper-btn" id="personStepperDec" aria-label="Personenzahl verringern">âˆ’</button>
-                                    <input id="planPersonCount" type="number" min="1" max="99" step="1" value="1" class="person-stepper-input" inputmode="numeric" pattern="[0-9]*" />
-                                    <button type="button" class="person-stepper-btn" id="personStepperInc" aria-label="Personenzahl erhöhen">+</button>
-                                </div>
-                                <div class="person-presets" role="group" aria-label="Schnellauswahl Personen">
-                                    <button type="button" class="person-preset" data-value="1">1</button>
-                                    <button type="button" class="person-preset" data-value="2">2</button>
-                                    <button type="button" class="person-preset" data-value="4">4</button>
-                                    <button type="button" class="person-preset" data-value="6">6</button>
-                                </div>
-                            </div>
-
-                            <div class="d-flex gap-2 mt-2">
-                                <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="saveWeeklyPlan()">
-                                    <i class="bi bi-check2-circle me-1"></i> Plan speichern
-                                </button>
-                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, shareWeeklyPlan)">
-                                    <i class="bi bi-share me-1"></i> Plan teilen
-                                </button>
-                            </div>
-
-                            <div class="d-flex gap-2 mt-2">
-                                <button type="button" class="btn plan-btn-secondary btn-sm flex-grow-1" onclick="clearWeeklyPlanState(true)">
-                                    <i class="bi bi-trash3 me-1"></i> Plan leeren
-                                </button>
-                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="exportPlanAsIcs()" aria-label="Kalender-Export">
-                                    <i class="bi bi-calendar-event me-1"></i> .ics Export
-                                </button>
-                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, shufflePlanFromLikes)" aria-label="Zufällig befüllen">
-                                    <i class="bi bi-shuffle me-1"></i> Shuffle
-                                </button>
-                            </div>
-
-                            <input id="planShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Plan-Link erscheint hier..." />
-
-                         
+                        <!-- Day Navigation Bar -->
+                        <div class="v1-daynav" id="v1DayNav">
+                            <button type="button" class="v1-daynav-btn is-active" data-day="0" onclick="scrollToDay(0)">Mo<div class="v1-daynav-dot" id="v1DayDot-0"></div></button>
+                            <button type="button" class="v1-daynav-btn" data-day="1" onclick="scrollToDay(1)">Di<div class="v1-daynav-dot" id="v1DayDot-1"></div></button>
+                            <button type="button" class="v1-daynav-btn" data-day="2" onclick="scrollToDay(2)">Mi<div class="v1-daynav-dot" id="v1DayDot-2"></div></button>
+                            <button type="button" class="v1-daynav-btn" data-day="3" onclick="scrollToDay(3)">Do<div class="v1-daynav-dot" id="v1DayDot-3"></div></button>
+                            <button type="button" class="v1-daynav-btn" data-day="4" onclick="scrollToDay(4)">Fr<div class="v1-daynav-dot" id="v1DayDot-4"></div></button>
+                            <button type="button" class="v1-daynav-btn" data-day="5" onclick="scrollToDay(5)">Sa<div class="v1-daynav-dot" id="v1DayDot-5"></div></button>
+                            <button type="button" class="v1-daynav-btn" data-day="6" onclick="scrollToDay(6)">So<div class="v1-daynav-dot" id="v1DayDot-6"></div></button>
                         </div>
-                    </div>
 
-                    <div id="addingModeHeader" style="display:none;">
-                        <div class="plan-text-muted small text-center mb-2">Tippe auf einen Slot &#x1F447;</div>
-                    </div>
+                        <!-- Plan Container (rendered by JS) -->
+                        <div id="planContainer"></div>
 
-                    <div id="viewModeHeader" class="plan-text-muted small mb-2 text-center">
-                        Dein aktueller Plan für die Woche
-                    </div>
-
-                    <div id="planContainer"></div>
-
-                    <div class="shopping-share mt-3">
-                        <label class="form-label small">Einkaufsliste</label>
-                        <button type="button" class="btn plan-btn-secondary btn-sm w-100 mb-2" onclick="withButtonSpinner(this, prepareShoppingList)">
-                            <i class="bi bi-basket3 me-1"></i> Einkaufsliste laden
-                        </button>
-                        <div id="shoppingChecklistWrap" class="shopping-checklist" style="display:none;"></div>
-                        <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..." style="display:none;"></textarea>
-                        <div class="d-flex gap-2 mt-2">
-                            <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, generateShareLink)">
-                                <i class="bi bi-link-45deg me-1"></i> Link erstellen
-                            </button>
-                            <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="withButtonSpinner(this, copyShareLink)">
-                                <i class="bi bi-clipboard-check me-1"></i> Link kopieren
-                            </button>
+                        <!-- Shopping List Section -->
+                        <div class="v1-shopping" id="v1ShoppingSection" onclick="withButtonSpinner(document.getElementById('v1ShoppingSection'), prepareShoppingList)">
+                            <i class="bi bi-basket3 v1-shopping-icon"></i>
+                            <div class="v1-shopping-text">
+                                <div class="v1-shopping-title">Einkaufsliste</div>
+                                <div class="v1-shopping-sub">Tippen zum Generieren</div>
+                            </div>
+                            <i class="bi bi-chevron-right v1-shopping-arrow"></i>
                         </div>
-                        <input id="shoppingShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Hier erscheint der Link..." />
+                        <div class="shopping-share" style="margin:0 16px 16px;display:none;" id="v1ShoppingDetail">
+                            <div id="shoppingChecklistWrap" class="shopping-checklist" style="display:none;"></div>
+                            <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..." style="display:none;"></textarea>
+                            <div class="d-flex gap-2 mt-2">
+                                <button type="button" class="btn plan-btn-outline btn-sm flex-grow-1" onclick="withButtonSpinner(this, generateShareLink)">
+                                    <i class="bi bi-link-45deg me-1"></i> Link erstellen
+                                </button>
+                                <button type="button" class="btn plan-btn-primary btn-sm flex-grow-1" onclick="withButtonSpinner(this, copyShareLink)">
+                                    <i class="bi bi-clipboard-check me-1"></i> Link kopieren
+                                </button>
+                            </div>
+                            <input id="shoppingShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Hier erscheint der Link..." />
+                        </div>
+
+                        <div style="height:80px;"></div>
                     </div>
+
+                    <!-- FAB -->
+                    <button type="button" class="v1-fab" id="v1Fab" onclick="v1FabAction()" style="display:none;">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
                 </div>
             </div>
         </div>
@@ -2249,6 +3180,40 @@
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="SchlieÃŸen"></button>
         </div>
         <div class="offcanvas-body" id="feedPreviewBody"></div>
+    </div>
+
+    <div class="modal fade comment-sheet" id="commentsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="comment-sheet-handle-wrap"><div class="comment-sheet-handle"></div></div>
+
+                <div class="comment-sheet-header">
+                    <div class="comment-sheet-title" id="commentsMetaText">0 @T("Kommentare", "Comments", "Comentarios", "Comentários")</div>
+                    <button class="comment-close-btn" data-bs-dismiss="modal" aria-label="Close">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="6" y1="6" x2="18" y2="18"/><line x1="18" y1="6" x2="6" y2="18"/></svg>
+                    </button>
+                </div>
+
+                <div class="comment-sort-tabs">
+                    <button id="commentSortTopBtn" class="active" onclick="changeCommentSort('top')">Top</button>
+                    <button id="commentSortNewBtn" onclick="changeCommentSort('new')">@T("Neueste", "Newest", "Recientes", "Recentes")</button>
+                </div>
+
+                <div id="commentsList" class="comment-list"></div>
+                <div id="commentsEmpty" class="comment-empty" style="display:none;">@T("Noch keine Kommentare. Sei der Erste!", "No comments yet. Be the first!", "Todavia no hay comentarios. Se el primero!", "Ainda nao ha comentarios. Seja o primeiro!")</div>
+
+                <div id="commentReplyTarget" class="comment-reply-target" style="display:none;"></div>
+                <div class="comment-input-bar" id="commentInputBar">
+                    <div class="comment-input-avatar" id="commentInputAvatar">U</div>
+                    <div class="comment-input-wrap">
+                        <input type="text" id="commentInput" maxlength="500" placeholder="@T("Kommentar hinzufuegen...", "Add a comment...", "Agregar un comentario...", "Adicionar um comentario...")" autocomplete="off">
+                        <button class="comment-send-btn" id="commentSubmitBtn" onclick="submitComment()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- SEARCH MODAL -->
@@ -2312,8 +3277,18 @@
         let feedWalletAddresses = { WLD: '@walletWLD', USDT: '@walletUSDT', USDCE: '@walletUSDT' };
         const FEED_USER_HASH = '@userHash';
         const feedRefreshThresholdPx = 84;
+        const FEED_CAN_WRITE_COMMENTS = @(canWriteComments ? "true" : "false");
         window.likedRecipeIds = new Set(@Html.Raw(Json.Serialize(likedRecipeIds)));
-        window.bookmarkedRecipeIds = new Set(@Html.Raw(Json.Serialize(bookmarkedRecipeIds)));
+        let activeCommentsPostingId = 0;
+        let activeCommentsSort = 'top';
+        let activeReplyTarget = null;
+        let activeCommentAnchorId = 0;
+        let activeLiveCommentBadgeCounts = {};
+        let activeCommentsState = {
+            canWrite: FEED_CAN_WRITE_COMMENTS,
+            canReactOrReport: false,
+            isLoggedIn: false
+        };
 
         // Lightweight notifications overlay (client-only).
         try {
@@ -2335,6 +3310,10 @@
                 markAllSeenUrl: '/WorldMiniApp/Home/MarkAllWorldUserNotificationsSeen',
                 clearAllUrl: '/WorldMiniApp/Home/ClearWorldUserNotifications',
                 antiforgeryFormId: 'wmAntiForgeryForm'
+            });
+
+            window.addEventListener('wm:notify:feedbadges', (event) => {
+                applyLiveCommentBadges(event?.detail?.counts || {});
             });
 
             const openPlanBtn = document.getElementById('wmNotifyOpenPlanBtn');
@@ -2490,6 +3469,13 @@
                 .replaceAll('>', '&gt;')
                 .replaceAll('"', '&quot;')
                 .replaceAll("'", '&#039;');
+        }
+
+        function escapeJsString(str) {
+            if (!str) return '';
+            return String(str)
+                .replaceAll('\\', '\\\\')
+                .replaceAll("'", "\\'");
         }
 
         function getUserHash() {
@@ -2803,26 +3789,7 @@
         let pendingDeleteUndoState = null;
         let pendingDeleteUndoToast = null;
         let suppressPlanClickUntil = 0;
-        const planSwipeDeleteThreshold = 72;
-        const planLongPressDelayMs = 280;
         const planDeleteUndoDurationMs = 4000;
-        let planGlobalPointerHandlersBound = false;
-        const planPointerState = {
-            pointerId: null,
-            startX: 0,
-            startY: 0,
-            currentX: 0,
-            currentY: 0,
-            renderDx: 0,
-            renderDy: 0,
-            dragFrameId: null,
-            swiping: false,
-            dragging: false,
-            sourceKey: null,
-            sourceElement: null,
-            targetKey: null,
-            longPressTimer: null
-        };
 
         function hexToRgb(hex) {
             const cleaned = hex.replace('#', '').trim();
@@ -2874,29 +3841,6 @@
             root.style.setProperty('--plan-card-border', rgbaFromHex(selected.text, 0.1));
             root.style.setProperty('--plan-outline', rgbaFromHex(selected.text, 0.12));
             root.style.setProperty('--plan-input-bg', rgbaFromHex(selected.background, 0.4));
-        }
-
-        function updatePendingRecipeCard() {
-            const card = document.getElementById('pendingRecipeCard');
-            const media = document.getElementById('pendingRecipeMedia');
-            const titleEl = document.getElementById('pendingRecipeTitle');
-            if (!card || !media || !titleEl) return;
-
-            if (!pendingRecipe) {
-                card.style.display = 'none';
-                media.innerHTML = '';
-                titleEl.textContent = '';
-                return;
-            }
-
-            const safeTitle = pendingRecipe.title || '';
-            const isVideo = pendingRecipe.img && pendingRecipe.img.endsWith('.mp4');
-            media.innerHTML = isVideo
-                ? `<video src="${pendingRecipe.img}#t=0.1" muted playsinline preload="metadata" draggable="false"></video>`
-                : `<img src="${pendingRecipe.img}" alt="${escapeHtml(safeTitle)}" loading="lazy" draggable="false" />`;
-
-            titleEl.textContent = safeTitle;
-            card.style.display = 'flex';
         }
 
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
@@ -2983,24 +3927,6 @@
             commitPlanStateChange({ render: true, save: true });
         }
 
-        function moveSlotItem(fromKey, toKey, options = {}) {
-            if (!fromKey || !toKey || fromKey === toKey) return;
-            if (!weeklyPlanData[fromKey]) return;
-
-            const sourceItem = clonePlanRecipe(weeklyPlanData[fromKey]);
-            const targetItem = clonePlanRecipe(weeklyPlanData[toKey]);
-
-            if (targetItem) weeklyPlanData[fromKey] = targetItem;
-            else delete weeklyPlanData[fromKey];
-
-            weeklyPlanData[toKey] = sourceItem;
-
-            commitPlanStateChange({
-                render: true,
-                save: options.save !== false
-            });
-        }
-
         function duplicateDay(fromDayIndex, toDayIndex) {
             if (fromDayIndex === null || toDayIndex === null || fromDayIndex === toDayIndex) return;
 
@@ -3035,23 +3961,8 @@
         }
 
         function updatePlanModeHeader() {
-            const adding = document.getElementById('addingModeHeader');
-            const view = document.getElementById('viewModeHeader');
-            if (!adding || !view) return;
-
-            if (pendingRecipe) { adding.style.display = 'block'; view.style.display = 'none'; }
-            else { adding.style.display = 'none'; view.style.display = 'block'; }
-
             updatePendingRecipeCard();
-        }
-
-        function showPlanTools() {
-            const tools = document.getElementById('planTools');
-            if (tools) tools.classList.remove('is-hidden');
-        }
-        function hidePlanTools() {
-            const tools = document.getElementById('planTools');
-            if (tools) tools.classList.add('is-hidden');
+            updateHeroChips();
         }
 
         function openPlanModal(title, url, recipeId) {
@@ -3075,199 +3986,125 @@
             renderPlan();
             applyPlanThemeFromProfile();
             modal.show();
-            showPlanTools();
+            updateHeroChips();
+            updateDayNavDots();
+            const eyebrow = document.getElementById('v1HeroEyebrow');
+            if (eyebrow) eyebrow.textContent = 'KW ' + getWeekNumber();
         }
 
         function renderPlan() {
             const container = document.getElementById('planContainer');
             if (!container) return;
 
-            container.innerHTML = '';
+            let html = '';
 
             days.forEach((day, dayIndex) => {
                 const isDuplicateSource = duplicateSourceDayIndex === dayIndex;
                 const isDuplicateTarget = duplicateSourceDayIndex !== null && duplicateSourceDayIndex !== dayIndex;
-                const duplicateLabel = isDuplicateSource
-                    ? 'Abbrechen'
-                    : duplicateSourceDayIndex === null
-                        ? 'Tag duplizieren'
-                        : 'Hierhin kopieren';
+                const duplicateLabel = isDuplicateSource ? 'Abbrechen' : duplicateSourceDayIndex === null ? 'Kopieren' : 'Hierhin';
 
-                let dayHtml = `
-                    <div class="plan-day-row" data-day-index="${dayIndex}">
-                        <div class="plan-day-header">
-                            <span class="day-label">${day}</span>
-                            <div class="day-actions">
-                                <button type="button"
-                                        class="day-duplicate-btn${isDuplicateSource ? ' is-source' : ''}${isDuplicateTarget ? ' is-target' : ''}"
-                                        data-action="duplicate-day"
-                                        data-day-index="${dayIndex}">
-                                    ${duplicateLabel}
-                                </button>
-                            </div>
+                let dayHtml = `<div class="v1-day" id="day-section-${dayIndex}" data-day-index="${dayIndex}">
+                    <div class="v1-day-header">
+                        <span class="v1-day-label">${day}</span>
+                        <div class="v1-day-actions">
+                            <button type="button" class="v1-day-dup-btn${isDuplicateSource ? ' is-source' : ''}${isDuplicateTarget ? ' is-target' : ''}" data-action="duplicate-day" data-day-index="${dayIndex}">
+                                <i class="bi bi-copy"></i> ${duplicateLabel}
+                            </button>
                         </div>
-                        <div class="slot-container">`;
+                    </div>
+                    <div class="v1-day-meals">`;
 
                 slots.forEach((slotName, slotIndex) => {
                     const key = getSlotKey(dayIndex, slotIndex);
                     const item = weeklyPlanData[key];
 
                     if (item) {
-                        const replaceMode = pendingRecipe ? 'replace-slot' : '';
-                        const replaceHint = pendingRecipe ? `<div class="replace-hint">Antippen zum Ersetzen</div>` : '';
-
-                        const media = (item.img && item.img.endsWith('.mp4'))
-                            ? `<video src="${item.img}#t=0.1" class="mini-img" muted playsinline preload="metadata" draggable="false"></video>`
-                            : `<img src="${item.img}" class="mini-img" loading="lazy" draggable="false" />`;
+                        const mediaTag = (item.img && item.img.endsWith('.mp4'))
+                            ? `<video src="${item.img}#t=0.1" class="v1-meal-img" muted playsinline preload="metadata"></video>`
+                            : `<img src="${item.img}" class="v1-meal-img" loading="lazy" />`;
 
                         dayHtml += `
-                            <div class="filled-slot ${replaceMode}" data-slot-kind="filled" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
-                                <div class="slot-swipe-delete-bg"><i class="bi bi-trash3-fill"></i><span>&nbsp;Löschen</span></div>
-                                ${media}
-                                <div class="mini-content">
-                                    <div class="mini-title" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</div>
-                                    <div class="mini-type">${slotName}</div>
-                                </div>
-
-                                <div class="slot-actions">
-                                    <button type="button" class="slot-btn edit-slot-btn" aria-label="Slot bearbeiten" data-action="edit-slot" data-slot-key="${key}">
-                                        <i class="bi bi-pencil"></i>
-                                    </button>
-                                    <button type="button" class="slot-btn delete-slot-btn" aria-label="Slot entfernen" data-action="delete-slot" data-slot-key="${key}">
-                                        <i class="bi bi-x-lg"></i>
-                                    </button>
-                                </div>
-
-                                ${replaceHint}
-                            </div>`;
+                        <div class="v1-meal" data-slot-kind="filled" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+                            ${mediaTag}
+                            <div class="v1-meal-gradient"></div>
+                            <span class="v1-meal-type-pill">${slotName}</span>
+                            <div class="v1-meal-content">
+                                <div class="v1-meal-title" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</div>
+                            </div>
+                        </div>
+                        <div class="v1-meal-actions">
+                            <button type="button" class="v1-meal-act" data-action="edit-slot" data-slot-key="${key}"><i class="bi bi-pencil"></i> Ersetzen</button>
+                            <button type="button" class="v1-meal-act delete" data-action="delete-slot" data-slot-key="${key}"><i class="bi bi-trash3"></i> Entfernen</button>
+                        </div>`;
                     } else {
-                        const pulseClass = pendingRecipe ? ' slot-pending-highlight' : '';
-                        const opacity = pendingRecipe ? '1' : '0.55';
-                        dayHtml += `<div class="meal-slot-btn${pulseClass}" style="opacity:${opacity}" data-slot-kind="empty" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">${slotName}</div>`;
+                        const highlightClass = pendingRecipe ? ' is-highlight' : '';
+                        dayHtml += `
+                        <div class="v1-empty${highlightClass}" data-slot-kind="empty" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+                            <i class="bi bi-plus-circle v1-empty-icon"></i>
+                            <span class="v1-empty-label">${slotName}</span>
+                            <span class="v1-empty-hint">${pendingRecipe ? 'Tippen zum Hinzufügen' : 'Rezept wählen'}</span>
+                        </div>`;
                     }
                 });
 
+                // Day nutrition (collapsed by default)
                 dayHtml += `</div>
-                        <div class="day-nutrition is-collapsed" data-day-index="${dayIndex}">
-                            <button type="button" class="day-nutrition-toggle" data-day-index="${dayIndex}" aria-expanded="false">
-                                <span class="plan-nutrition-toggle-content">
-                                    <i class="bi bi-chevron-down"></i>
-                                    <span>Tages-Nährwerte</span>
-                                </span>
-                                <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
-                            </button>
-                            <div class="day-nutrition-body">
-                                <div class="nutrition-segment day-nutrition-segment" data-day-index="${dayIndex}">
-                                    <button type="button" class="nutrition-seg-btn is-active" data-mode="total">Gesamt</button>
-                                    <button type="button" class="nutrition-seg-btn" data-mode="portion">Pro Portion</button>
-                                </div>
-                                <div class="macro-donut-wrap">
-                                    <div class="macro-donut-row">
-                                        <svg class="macro-donut" viewBox="0 0 120 120" id="dayMacroDonut-${dayIndex}">
-                                            <circle class="macro-donut-bg" cx="60" cy="60" r="50" />
-                                            <circle class="macro-donut-ring macro-protein" id="dayMacroRingProtein-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
-                                            <circle class="macro-donut-ring macro-fat" id="dayMacroRingFat-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
-                                            <circle class="macro-donut-ring macro-carbs" id="dayMacroRingCarbs-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
-                                            <text x="60" y="55" class="macro-donut-kcal" id="dayMacroDonutKcal-${dayIndex}">â€”</text>
-                                            <text x="60" y="70" class="macro-donut-label">kcal</text>
-                                        </svg>
-                                        <div class="macro-donut-legend">
-                                            <div class="macro-legend-row"><span class="macro-dot macro-protein"></span><span>Protein</span><b id="dayMacroBarProteinPct-${dayIndex}">0</b>%</div>
-                                            <div class="macro-legend-row"><span class="macro-dot macro-fat"></span><span>Fett</span><b id="dayMacroBarFatPct-${dayIndex}">0</b>%</div>
-                                            <div class="macro-legend-row"><span class="macro-dot macro-carbs"></span><span>KH</span><b id="dayMacroBarCarbsPct-${dayIndex}">0</b>%</div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="day-nutrition-grid" id="dayNutritionGridTotal-${dayIndex}">
-                                    <div class="day-nutrition-item">
-                                        <span>Kalorien</span>
-                                        <div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">kcal</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Protein</span>
-                                        <div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Fett</span>
-                                        <div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Kohlenhydrate</span>
-                                        <div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Zucker</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Ballaststoffe</span>
-                                        <div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Salz</span>
-                                        <div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                </div>
-                                <div class="day-nutrition-grid" id="dayNutritionGridPortion-${dayIndex}" style="display:none;">
-                                    <div class="day-nutrition-item">
-                                        <span>Kalorien</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionCalories-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">kcal</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Protein</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionProtein-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Fett</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionFat-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Kohlenhydrate</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionCarbs-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Zucker</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSugar-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Ballaststoffe</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionFiber-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSaturatedFat-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="day-nutrition-item">
-                                        <span>Salz</span>
-                                        <div class="day-nutrition-value" id="dayNutritionPerPortionSalt-${dayIndex}">â€”</div>
-                                        <div class="day-nutrition-unit">g</div>
+                    <div class="day-nutrition is-collapsed" data-day-index="${dayIndex}">
+                        <button type="button" class="day-nutrition-toggle" data-day-index="${dayIndex}" aria-expanded="false">
+                            <span class="plan-nutrition-toggle-content"><i class="bi bi-chevron-down"></i><span>Tages-Nährwerte</span></span>
+                            <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
+                        </button>
+                        <div class="day-nutrition-body">
+                            <div class="nutrition-segment day-nutrition-segment" data-day-index="${dayIndex}">
+                                <button type="button" class="nutrition-seg-btn is-active" data-mode="total">Gesamt</button>
+                                <button type="button" class="nutrition-seg-btn" data-mode="portion">Pro Portion</button>
+                            </div>
+                            <div class="macro-donut-wrap">
+                                <div class="macro-donut-row">
+                                    <svg class="macro-donut" viewBox="0 0 120 120" id="dayMacroDonut-${dayIndex}">
+                                        <circle class="macro-donut-bg" cx="60" cy="60" r="50" />
+                                        <circle class="macro-donut-ring macro-protein" id="dayMacroRingProtein-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                        <circle class="macro-donut-ring macro-fat" id="dayMacroRingFat-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                        <circle class="macro-donut-ring macro-carbs" id="dayMacroRingCarbs-${dayIndex}" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
+                                        <text x="60" y="55" class="macro-donut-kcal" id="dayMacroDonutKcal-${dayIndex}">&#x2014;</text>
+                                        <text x="60" y="70" class="macro-donut-label">kcal</text>
+                                    </svg>
+                                    <div class="macro-donut-legend">
+                                        <div class="macro-legend-row"><span class="macro-dot macro-protein"></span><span>Protein</span><b id="dayMacroBarProteinPct-${dayIndex}">0</b>%</div>
+                                        <div class="macro-legend-row"><span class="macro-dot macro-fat"></span><span>Fett</span><b id="dayMacroBarFatPct-${dayIndex}">0</b>%</div>
+                                        <div class="macro-legend-row"><span class="macro-dot macro-carbs"></span><span>KH</span><b id="dayMacroBarCarbsPct-${dayIndex}">0</b>%</div>
                                     </div>
                                 </div>
                             </div>
+                            <div class="day-nutrition-grid" id="dayNutritionGridTotal-${dayIndex}">
+                                <div class="day-nutrition-item"><span>Kalorien</span><div class="day-nutrition-value" id="dayNutritionCalories-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">kcal</div></div>
+                                <div class="day-nutrition-item"><span>Protein</span><div class="day-nutrition-value" id="dayNutritionProtein-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Fett</span><div class="day-nutrition-value" id="dayNutritionFat-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Kohlenhydrate</span><div class="day-nutrition-value" id="dayNutritionCarbs-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Zucker</span><div class="day-nutrition-value" id="dayNutritionSugar-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Ballaststoffe</span><div class="day-nutrition-value" id="dayNutritionFiber-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Gesättigt</span><div class="day-nutrition-value" id="dayNutritionSaturatedFat-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Salz</span><div class="day-nutrition-value" id="dayNutritionSalt-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                            </div>
+                            <div class="day-nutrition-grid" id="dayNutritionGridPortion-${dayIndex}" style="display:none;">
+                                <div class="day-nutrition-item"><span>Kalorien</span><div class="day-nutrition-value" id="dayNutritionPerPortionCalories-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">kcal</div></div>
+                                <div class="day-nutrition-item"><span>Protein</span><div class="day-nutrition-value" id="dayNutritionPerPortionProtein-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Fett</span><div class="day-nutrition-value" id="dayNutritionPerPortionFat-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Kohlenhydrate</span><div class="day-nutrition-value" id="dayNutritionPerPortionCarbs-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Zucker</span><div class="day-nutrition-value" id="dayNutritionPerPortionSugar-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Ballaststoffe</span><div class="day-nutrition-value" id="dayNutritionPerPortionFiber-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Gesättigt</span><div class="day-nutrition-value" id="dayNutritionPerPortionSaturatedFat-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                                <div class="day-nutrition-item"><span>Salz</span><div class="day-nutrition-value" id="dayNutritionPerPortionSalt-${dayIndex}">&#x2014;</div><div class="day-nutrition-unit">g</div></div>
+                            </div>
                         </div>
-                    </div>`;
-                container.innerHTML += dayHtml;
+                    </div>
+                </div>`;
+                html += dayHtml;
             });
 
+            container.innerHTML = html;
+            updateHeroChips();
+            updateDayNavDots();
             scheduleNutritionUpdate();
         }
 
@@ -3418,219 +4255,6 @@
             triggerHaptic();
         }
 
-        function clearPlanDragTarget() {
-            document.querySelectorAll('.drag-target').forEach(el => el.classList.remove('drag-target'));
-            planPointerState.targetKey = null;
-        }
-
-        function releasePlanPointerCapture() {
-            if (!planPointerState.sourceElement || planPointerState.pointerId === null) return;
-            try {
-                if (planPointerState.sourceElement.hasPointerCapture(planPointerState.pointerId)) {
-                    planPointerState.sourceElement.releasePointerCapture(planPointerState.pointerId);
-                }
-            } catch (_) {
-                // Ignore browsers with partial pointer capture support.
-            }
-        }
-
-        function resetPlanPointerState() {
-            if (planPointerState.longPressTimer) {
-                clearTimeout(planPointerState.longPressTimer);
-            }
-
-            if (planPointerState.dragFrameId) {
-                cancelAnimationFrame(planPointerState.dragFrameId);
-                planPointerState.dragFrameId = null;
-            }
-
-            if (planPointerState.sourceElement) {
-                planPointerState.sourceElement.style.transform = '';
-                planPointerState.sourceElement.style.pointerEvents = '';
-                planPointerState.sourceElement.classList.remove('swiping', 'dragging-source', 'drag-placeholder');
-            }
-
-            clearPlanDragTarget();
-            releasePlanPointerCapture();
-
-            planPointerState.pointerId = null;
-            planPointerState.startX = 0;
-            planPointerState.startY = 0;
-            planPointerState.currentX = 0;
-            planPointerState.currentY = 0;
-            planPointerState.renderDx = 0;
-            planPointerState.renderDy = 0;
-            planPointerState.swiping = false;
-            planPointerState.dragging = false;
-            planPointerState.sourceKey = null;
-            planPointerState.sourceElement = null;
-            planPointerState.longPressTimer = null;
-        }
-
-        function renderDraggedPlanSlot() {
-            planPointerState.dragFrameId = null;
-
-            if (!planPointerState.dragging || !planPointerState.sourceElement) {
-                return;
-            }
-
-            planPointerState.sourceElement.style.transform = `translate3d(${planPointerState.renderDx}px, ${planPointerState.renderDy}px, 0) scale(1.03)`;
-        }
-
-        function queueDraggedPlanSlotRender(dx, dy) {
-            planPointerState.renderDx = dx;
-            planPointerState.renderDy = dy;
-
-            if (planPointerState.dragFrameId) {
-                return;
-            }
-
-            planPointerState.dragFrameId = requestAnimationFrame(renderDraggedPlanSlot);
-        }
-
-        function findPlanDropTarget(x, y, sourceKey) {
-            const slotCandidates = Array.from(document.querySelectorAll('#planContainer .filled-slot[data-slot-key], #planContainer .meal-slot-btn[data-slot-key]'));
-            const validCandidates = slotCandidates.filter(slotEl => {
-                const targetKey = slotEl?.dataset?.slotKey;
-                return !!targetKey && targetKey !== sourceKey;
-            });
-
-            const directHit = validCandidates.find(slotEl => {
-                const rect = slotEl.getBoundingClientRect();
-                return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
-            });
-
-            if (directHit) return directHit;
-
-            let nearestTarget = null;
-            let nearestDistance = Number.POSITIVE_INFINITY;
-
-            validCandidates.forEach(slotEl => {
-                const rect = slotEl.getBoundingClientRect();
-                const centerX = rect.left + (rect.width / 2);
-                const centerY = rect.top + (rect.height / 2);
-                const dx = centerX - x;
-                const dy = centerY - y;
-                const distance = Math.hypot(dx, dy);
-
-                if (distance < nearestDistance) {
-                    nearestDistance = distance;
-                    nearestTarget = slotEl;
-                }
-            });
-
-            return nearestDistance <= 96 ? nearestTarget : null;
-        }
-
-        function beginPlanDrag() {
-            if (!planPointerState.sourceElement || !planPointerState.sourceKey) return;
-            planPointerState.dragging = true;
-            planPointerState.swiping = false;
-            planPointerState.sourceElement.classList.remove('swiping');
-            planPointerState.sourceElement.classList.add('dragging-source', 'drag-placeholder');
-            suppressPlanClickUntil = Date.now() + 250;
-        }
-
-        function handlePlanPointerDown(event) {
-            if (event.pointerType === 'mouse' && event.button !== 0) return;
-            if (event.target.closest('.slot-btn')) return;
-
-            const slotEl = event.target.closest('.filled-slot[data-slot-key]');
-            if (!slotEl) return;
-
-            event.preventDefault();
-
-            resetPlanPointerState();
-
-            planPointerState.pointerId = event.pointerId;
-            planPointerState.startX = event.clientX;
-            planPointerState.startY = event.clientY;
-            planPointerState.currentX = event.clientX;
-            planPointerState.currentY = event.clientY;
-            planPointerState.sourceKey = slotEl.dataset.slotKey;
-            planPointerState.sourceElement = slotEl;
-
-            try {
-                slotEl.setPointerCapture(event.pointerId);
-            } catch (_) {
-                // Ignore if capture is unsupported.
-            }
-
-            planPointerState.longPressTimer = window.setTimeout(() => beginPlanDrag(), planLongPressDelayMs);
-        }
-
-        function handlePlanPointerMove(event) {
-            if (planPointerState.pointerId !== event.pointerId || !planPointerState.sourceElement) return;
-
-            const dx = event.clientX - planPointerState.startX;
-            const dy = event.clientY - planPointerState.startY;
-            planPointerState.currentX = event.clientX;
-            planPointerState.currentY = event.clientY;
-
-            if (planPointerState.dragging) {
-                event.preventDefault();
-                queueDraggedPlanSlotRender(dx, dy);
-
-                const target = findPlanDropTarget(event.clientX, event.clientY, planPointerState.sourceKey);
-                clearPlanDragTarget();
-                if (target) {
-                    target.classList.add('drag-target');
-                    planPointerState.targetKey = target.dataset.slotKey;
-                }
-                return;
-            }
-
-            if (Math.abs(dy) > 10 && Math.abs(dy) > Math.abs(dx)) {
-                if (planPointerState.longPressTimer) {
-                    clearTimeout(planPointerState.longPressTimer);
-                    planPointerState.longPressTimer = null;
-                }
-                return;
-            }
-
-            if (!planPointerState.swiping && Math.abs(dx) > 14 && Math.abs(dx) > Math.abs(dy)) {
-                if (planPointerState.longPressTimer) {
-                    clearTimeout(planPointerState.longPressTimer);
-                    planPointerState.longPressTimer = null;
-                }
-                planPointerState.swiping = true;
-                planPointerState.sourceElement.classList.add('swiping');
-            }
-
-            if (planPointerState.swiping) {
-                event.preventDefault();
-                const clampedX = Math.max(-132, Math.min(132, dx));
-                planPointerState.sourceElement.style.transform = `translateX(${clampedX}px)`;
-            }
-        }
-
-        function handlePlanPointerUp(event) {
-            if (planPointerState.pointerId !== event.pointerId || !planPointerState.sourceElement) return;
-
-            const dx = event.clientX - planPointerState.startX;
-            const sourceKey = planPointerState.sourceKey;
-            const targetKey = planPointerState.dragging
-                ? (findPlanDropTarget(event.clientX, event.clientY, sourceKey)?.dataset?.slotKey || planPointerState.targetKey)
-                : planPointerState.targetKey;
-            const wasDragging = planPointerState.dragging;
-            const wasSwiping = planPointerState.swiping;
-
-            if (wasDragging && sourceKey && targetKey) {
-                moveSlotItem(sourceKey, targetKey, { save: true });
-                suppressPlanClickUntil = Date.now() + 350;
-            } else if (wasSwiping && sourceKey && Math.abs(dx) >= planSwipeDeleteThreshold) {
-                deleteSlotItem(sourceKey, { withUndo: true, save: true });
-                suppressPlanClickUntil = Date.now() + 350;
-            }
-
-            resetPlanPointerState();
-        }
-
-        function handlePlanPointerCancel(event) {
-            if (planPointerState.pointerId !== event.pointerId) return;
-            resetPlanPointerState();
-        }
-
         function handlePlanContainerClick(event) {
             if (Date.now() < suppressPlanClickUntil) {
                 event.preventDefault();
@@ -3681,14 +4305,14 @@
                 }
             }
 
-            const emptySlot = event.target.closest('.meal-slot-btn[data-slot-key]');
+            const emptySlot = event.target.closest('.v1-empty[data-slot-key]');
             if (emptySlot?.dataset.slotKey && pendingRecipe) {
                 addToSlot(emptySlot.dataset.slotKey);
                 return;
             }
 
-            const filledSlot = event.target.closest('.filled-slot[data-slot-key]');
-            if (filledSlot?.dataset.slotKey && pendingRecipe && !event.target.closest('.slot-btn')) {
+            const filledSlot = event.target.closest('.v1-meal[data-slot-key]');
+            if (filledSlot?.dataset.slotKey && pendingRecipe && !event.target.closest('.v1-meal-act')) {
                 setSlotItem(filledSlot.dataset.slotKey, pendingRecipe, {
                     save: true,
                     haptic: true,
@@ -3703,19 +4327,6 @@
 
             planContainer.dataset.handlersBound = 'true';
             planContainer.addEventListener('click', handlePlanContainerClick);
-            planContainer.addEventListener('pointerdown', handlePlanPointerDown);
-            planContainer.addEventListener('dragstart', event => {
-                if (event.target.closest('.filled-slot[data-slot-key]')) {
-                    event.preventDefault();
-                }
-            });
-
-            if (!planGlobalPointerHandlersBound) {
-                document.addEventListener('pointermove', handlePlanPointerMove);
-                document.addEventListener('pointerup', handlePlanPointerUp);
-                document.addEventListener('pointercancel', handlePlanPointerCancel);
-                planGlobalPointerHandlersBound = true;
-            }
         }
 
         function saveWeeklyPlan() {
@@ -3894,6 +4505,8 @@
             const text = data.text || '';
             document.getElementById('shoppingListEditor').value = text;
             renderShoppingChecklist(text);
+            const detail = document.getElementById('v1ShoppingDetail');
+            if (detail) detail.style.display = '';
         }
 
         function renderShoppingChecklist(text) {
@@ -3957,6 +4570,7 @@
             personInput.value = clamped;
             handlePlanPersonCountChange(true);
             syncPersonPresets();
+            updateHeroChips();
         }
 
         function syncPersonPresets() {
@@ -4037,6 +4651,7 @@
             if (ppSaltEl) ppSaltEl.textContent = formatNutritionValue(perPortion(salt), 1);
 
             updateMacroBar(protein, fat, carbs, calories);
+            updateHeroChips();
         }
 
         function updateMacroBar(protein, fat, carbs, calories, prefix, suffix) {
@@ -4461,30 +5076,156 @@
             }
         }
 
-        // hide settings on scroll down (inside modal body)
-        let lastPlanScrollTop = 0;
-        let planScrollTicking = false;
+        // Day-Nav scroll spy (replaces old hide-on-scroll behavior)
         function attachPlanScrollBehavior() {
             const body = document.getElementById('planModalBody');
             if (!body) return;
-            lastPlanScrollTop = body.scrollTop || 0;
+            initDayNavScrollSpy();
+        }
 
-            body.addEventListener('scroll', () => {
-                if (planScrollTicking) return;
-                planScrollTicking = true;
+        // ----------- V1 New Functions -----------
 
-                requestAnimationFrame(() => {
-                    const st = body.scrollTop || 0;
-                    const delta = st - lastPlanScrollTop;
-                    if (Math.abs(delta) < 6) { planScrollTicking = false; return; }
+        function getWeekNumber() {
+            const d = new Date();
+            d.setHours(0, 0, 0, 0);
+            d.setDate(d.getDate() + 3 - ((d.getDay() + 6) % 7));
+            const week1 = new Date(d.getFullYear(), 0, 4);
+            return 1 + Math.round(((d - week1) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
+        }
 
-                    if (delta > 0 && st > 10) hidePlanTools();
-                    else showPlanTools();
+        function updateHeroChips() {
+            let filled = 0;
+            const total = 21;
+            for (const key of Object.keys(weeklyPlanData)) {
+                if (weeklyPlanData[key]) filled++;
+            }
+            const progressEl = document.getElementById('v1ChipProgress');
+            if (progressEl) progressEl.textContent = `${filled}/${total}`;
+            const fillEl = document.getElementById('v1ProgressFill');
+            if (fillEl) fillEl.style.width = `${Math.round((filled / total) * 100)}%`;
 
-                    lastPlanScrollTop = st;
-                    planScrollTicking = false;
+            const personEl = document.getElementById('v1ChipPersonValue');
+            const personInput = document.getElementById('planPersonCount');
+            if (personEl && personInput) personEl.textContent = personInput.value || '1';
+
+            const kcalEl = document.getElementById('v1ChipKcal');
+            const kcalSrc = document.getElementById('planNutritionCalories');
+            if (kcalEl && kcalSrc) {
+                const val = kcalSrc.textContent?.trim();
+                kcalEl.textContent = (val && val !== '\u2014') ? val : '\u2014';
+            }
+        }
+
+        function updateDayNavDots() {
+            days.forEach((_, dayIndex) => {
+                const dot = document.getElementById(`v1DayDot-${dayIndex}`);
+                if (!dot) return;
+                const hasMeals = slots.some((_, slotIndex) => !!weeklyPlanData[getSlotKey(dayIndex, slotIndex)]);
+                dot.classList.toggle('has-meals', hasMeals);
+            });
+        }
+
+        function scrollToDay(dayIndex) {
+            const section = document.getElementById(`day-section-${dayIndex}`);
+            if (section) section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+
+            document.querySelectorAll('.v1-daynav-btn').forEach(btn => {
+                btn.classList.toggle('is-active', Number(btn.dataset.day) === dayIndex);
+            });
+        }
+
+        let _dayNavObserver = null;
+        function initDayNavScrollSpy() {
+            if (_dayNavObserver) _dayNavObserver.disconnect();
+
+            const scrollRoot = document.getElementById('planModalBody');
+            if (!scrollRoot) return;
+
+            _dayNavObserver = new IntersectionObserver((entries) => {
+                let topMost = null;
+                let topMostY = Infinity;
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const y = entry.boundingClientRect.top;
+                        if (y < topMostY) { topMostY = y; topMost = entry.target; }
+                    }
                 });
-            }, { passive: true });
+                if (topMost) {
+                    const dayIndex = Number(topMost.dataset.dayIndex);
+                    document.querySelectorAll('.v1-daynav-btn').forEach(btn => {
+                        btn.classList.toggle('is-active', Number(btn.dataset.day) === dayIndex);
+                    });
+                }
+            }, { root: scrollRoot, threshold: 0.3 });
+
+            days.forEach((_, i) => {
+                const el = document.getElementById(`day-section-${i}`);
+                if (el) _dayNavObserver.observe(el);
+            });
+        }
+
+        function toggleMoreMenu() {
+            const menu = document.getElementById('v1MoreMenu');
+            if (menu) menu.classList.toggle('is-open');
+        }
+
+        // Close more menu when clicking outside
+        document.addEventListener('click', (e) => {
+            const menu = document.getElementById('v1MoreMenu');
+            const btn = document.getElementById('v1MoreBtn');
+            if (menu?.classList.contains('is-open') && !btn?.contains(e.target)) {
+                menu.classList.remove('is-open');
+            }
+        });
+
+        function togglePersonPopover() {
+            const popover = document.getElementById('v1PersonPopover');
+            if (popover) popover.classList.toggle('is-open');
+        }
+
+        // Close person popover when clicking outside
+        document.addEventListener('click', (e) => {
+            const popover = document.getElementById('v1PersonPopover');
+            const chip = document.getElementById('v1ChipPersons');
+            if (popover?.classList.contains('is-open') && !chip?.contains(e.target)) {
+                popover.classList.remove('is-open');
+            }
+        });
+
+        function cancelPendingRecipe() {
+            pendingRecipe = null;
+            editingSlotKey = null;
+            updatePlanModeHeader();
+            renderPlan();
+        }
+
+        function v1FabAction() {
+            const modalEl = document.getElementById('planModal');
+            const modalInstance = bootstrap.Modal.getInstance(modalEl);
+            if (modalInstance) modalInstance.hide();
+            showToast('Wähle im Feed ein Rezept zum Hinzufügen.', 'info');
+        }
+
+        // Update pending recipe card for v1
+        function updatePendingRecipeCard() {
+            const card = document.getElementById('pendingRecipeCard');
+            if (!card) return;
+
+            if (pendingRecipe) {
+                card.classList.add('is-visible');
+                const mediaEl = document.getElementById('pendingRecipeMedia');
+                const titleEl = document.getElementById('pendingRecipeTitle');
+                if (titleEl) titleEl.textContent = pendingRecipe.title || '';
+                if (mediaEl) {
+                    if (pendingRecipe.img && pendingRecipe.img.endsWith('.mp4')) {
+                        mediaEl.innerHTML = `<video src="${pendingRecipe.img}#t=0.1" muted playsinline preload="metadata"></video>`;
+                    } else {
+                        mediaEl.innerHTML = `<img src="${pendingRecipe.img}" loading="lazy" />`;
+                    }
+                }
+            } else {
+                card.classList.remove('is-visible');
+            }
         }
 
         // ----------------- FEED: Autoplay + Sound + DoubleTap Like -----------------
@@ -4735,27 +5476,6 @@
             catch (e) { console.error(e); }
         }
 
-        async function toggleBookmark(btn) {
-            const recipeId = btn.dataset.recipeId;
-            const userHash = getUserHash();
-            if (!userHash) { showToast("Bitte erst einloggen!", "warn"); return; }
-
-            btn.classList.toggle('bookmarked');
-            const rid = parseInt(recipeId, 10);
-            if (window.bookmarkedRecipeIds) {
-                if (btn.classList.contains('bookmarked')) window.bookmarkedRecipeIds.add(rid);
-                else window.bookmarkedRecipeIds.delete(rid);
-            }
-
-            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-            const token = tokenInput ? tokenInput.value : null;
-            const formData = new FormData();
-            formData.append('userHash', userHash);
-            formData.append('recipeId', recipeId);
-            if (token) formData.append('__RequestVerificationToken', token);
-            try { await fetch('/WorldMiniApp/Feed/ToggleBookmark', { method: 'POST', body: formData }); }
-            catch (e) { console.error(e); }
-        }
 
         function togglePlayPause(container) {
             const video = container.querySelector('video');
@@ -4765,29 +5485,23 @@
         }
 
         function triggerLike(container) {
+            if (!container) return;
             const recipeId = container.dataset.id;
             if (recipeId) sendLikeToBackend(recipeId);
 
             const heartBtn = container.querySelector('.heart-btn');
             const bigHeart = container.querySelector('.double-tap-heart');
+            const likeIndicator = container.querySelector('.feed-like-indicator');
 
-            if (heartBtn) heartBtn.classList.toggle('liked');
+            const nextLiked = !(likeIndicator?.classList.contains('is-liked') || heartBtn?.classList.contains('liked'));
+            if (heartBtn) heartBtn.classList.toggle('liked', nextLiked);
+            if (likeIndicator) likeIndicator.classList.toggle('is-liked', nextLiked);
             triggerHaptic();
 
             if (window.likedRecipeIds && recipeId) {
                 const rid = parseInt(recipeId, 10);
-                if (heartBtn?.classList.contains('liked')) window.likedRecipeIds.add(rid);
+                if (nextLiked) window.likedRecipeIds.add(rid);
                 else window.likedRecipeIds.delete(rid);
-            }
-
-            // Update like count display
-            if (heartBtn) {
-                const countEl = heartBtn.querySelector('.like-count');
-                if (countEl) {
-                    let count = parseInt(countEl.textContent, 10) || 0;
-                    count += heartBtn.classList.contains('liked') ? 1 : -1;
-                    countEl.textContent = Math.max(0, count);
-                }
             }
 
             if (bigHeart) {
@@ -4799,11 +5513,490 @@
             }
         }
 
+        function toggleFeedTitle(button) {
+            const title = button?.previousElementSibling;
+            if (!button || !title) return;
+            const expanded = title.classList.toggle('is-expanded');
+            button.textContent = expanded ? '@T("Weniger", "Less", "Menos", "Menos")' : '@T("Mehr", "More", "Más", "Mais")';
+        }
+
+        function prepareExpandableTitles(root = document) {
+            (root.querySelectorAll ? root.querySelectorAll('.recipe-title') : []).forEach(titleEl => {
+                if (titleEl.dataset.expandPrepared === 'true') return;
+                titleEl.dataset.expandPrepared = 'true';
+
+                const button = titleEl.parentElement?.querySelector('.title-toggle-btn');
+                if (!button) return;
+
+                const titleLimit = parseInt(titleEl.dataset.titleLimit || '58', 10);
+                const textLength = (titleEl.textContent || '').trim().length;
+                button.classList.toggle('is-visible', textLength > titleLimit);
+            });
+        }
+
+        function syncCommentCount(postingId, count) {
+            if (!postingId) return;
+            document.querySelectorAll(`.feed-item[data-posting-id="${postingId}"] .comment-count`).forEach(el => {
+                el.textContent = `${Math.max(0, count || 0)}`;
+            });
+        }
+
+        function syncLiveCommentBadge(postingId, count) {
+            if (!postingId) return;
+            const normalized = Math.max(0, count || 0);
+            document.querySelectorAll(`.live-comment-badge[data-live-comment-badge="${postingId}"]`).forEach(el => {
+                el.textContent = normalized > 9 ? '9+' : `${normalized}`;
+                el.classList.toggle('is-visible', normalized > 0);
+            });
+        }
+
+        function applyLiveCommentBadges(counts) {
+            activeLiveCommentBadgeCounts = counts && typeof counts === 'object' ? counts : {};
+            document.querySelectorAll('.live-comment-badge').forEach(el => {
+                const postingId = Number(el.getAttribute('data-live-comment-badge') || 0) || 0;
+                syncLiveCommentBadge(postingId, activeLiveCommentBadgeCounts[postingId] || 0);
+            });
+        }
+
+        const _avatarColors = ['#6366f1','#ec4899','#f59e0b','#10b981','#3b82f6','#8b5cf6','#ef4444','#14b8a6'];
+        function getAvatarColor(name) {
+            let h = 0;
+            for (let i = 0; i < (name || '').length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
+            return _avatarColors[Math.abs(h) % _avatarColors.length];
+        }
+
+        function timeAgo(dateStr) {
+            if (!dateStr) return '';
+            const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
+            if (diff < 60) return '@T("jetzt", "now", "ahora", "agora")';
+            if (diff < 3600) return `${Math.floor(diff / 60)} Min.`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} @T("Std.", "h", "h", "h")`;
+            if (diff < 604800) return `${Math.floor(diff / 86400)} @T("T.", "d", "d", "d")`;
+            return new Date(dateStr).toLocaleDateString();
+        }
+
+        function highlightMentions(text) {
+            return escapeHtml(text).replace(/@@(\w+)/g, '<span class="mention">@@$1</span>');
+        }
+
+        const _heartOutlineSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        const _heartFilledSvg = '<svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+        const _pinSvg = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 17v5"/><path d="M5 17h14"/><path d="M15 3.5L9 3.5 8 9.5 5 12h14l-3-2.5L15 3.5z"/></svg>';
+        const _verifiedSvg = '<svg viewBox="0 0 24 24" fill="#059669"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>';
+
+        function renderSingleComment(item, isReply = false) {
+            const name = item?.userName || 'User';
+            const initial = name.charAt(0).toUpperCase();
+            const avatarBg = getAvatarColor(name);
+            const myReaction = (item?.myReaction || '').toLowerCase();
+            const isLiked = myReaction === 'like';
+            const canReact = !!activeCommentsState.canReactOrReport;
+            const canDelete = !!item?.canDelete;
+            const canPin = !!activeCommentsState.canPin && !isReply;
+            const replyTargetId = item?.parentCommentId || item?.id || 0;
+            const hiddenCls = item?.isAutoHidden ? ' is-auto-hidden' : '';
+            const isVerified = (item?.verificationLevel || '').toLowerCase() === 'orb';
+            const isCreator = !!item?.isCreator;
+            const isPinned = !!item?.isPinned;
+            const likeCount = item?.likeCount || 0;
+
+            const pinnedHtml = isPinned
+                ? `<div class="comment-pinned-label">${_pinSvg} @T("Angeheftet vom Creator", "Pinned by creator", "Fijado por el creador", "Fixado pelo criador")</div>`
+                : '';
+
+            const verifiedHtml = isVerified
+                ? `<span class="comment-verified-badge">${_verifiedSvg}</span>`
+                : '';
+
+            const creatorBadgeHtml = isCreator
+                ? `<span class="comment-creator-badge">Creator</span>`
+                : '';
+
+            const likeText = likeCount > 0 ? `<span>${likeCount}</span>` : '';
+
+            const deleteHtml = canDelete
+                ? `<button class="comment-delete-text" onclick="event.stopPropagation(); deleteComment(${item?.id || 0});">@T("Loeschen", "Delete", "Eliminar", "Apagar")</button>`
+                : '';
+
+            const pinHtml = canPin
+                ? `<button class="comment-pin-btn" onclick="event.stopPropagation(); pinComment(${item?.id || 0});">${isPinned ? '@T("Loslösen", "Unpin", "Desfijar", "Desafixar")' : '@T("Anheften", "Pin", "Fijar", "Fixar")'}</button>`
+                : '';
+
+            let repliesHtml = '';
+            const replies = Array.isArray(item?.replies) ? item.replies : [];
+            if (replies.length > 0) {
+                const replyItems = replies.map(r => renderSingleComment(r, true)).join('');
+                const toggleId = `replies-${item?.id || 0}`;
+                const toggleBtnId = `replies-toggle-${item?.id || 0}`;
+                const hidden = replies.length > 1 ? ' is-hidden' : '';
+                const toggleBtn = replies.length > 1
+                    ? `<button class="comment-replies-toggle" id="${toggleBtnId}" onclick="toggleReplies(${item?.id || 0}, ${replies.length})">${replies.length} @T("Antworten anzeigen", "View replies", "Ver respuestas", "Ver respostas")</button>`
+                    : '';
+                repliesHtml = `${toggleBtn}<div class="comment-replies${hidden}" id="${toggleId}">${replyItems}</div>`;
+            }
+
+            return `
+                <div class="comment-item${isReply ? ' is-reply' : ''}${hiddenCls}" data-comment-id="${item?.id || 0}">
+                    <div class="comment-avatar" style="background:${avatarBg}">${initial}</div>
+                    <div class="comment-content">
+                        ${pinnedHtml}
+                        <div class="comment-meta">
+                            <span class="comment-user">${escapeHtml(name)}</span>
+                            ${verifiedHtml}
+                            ${creatorBadgeHtml}
+                            <span class="comment-time">${timeAgo(item?.createdAtUtc)}</span>
+                        </div>
+                        <div class="comment-text">${highlightMentions(item?.text || '')}</div>
+                        <div class="comment-actions">
+                            <button class="comment-heart-btn${isLiked ? ' is-liked' : ''}" ${canReact ? '' : 'disabled'} onclick="event.stopPropagation(); toggleCommentReaction(${item?.id || 0}, 'like');">
+                                ${isLiked ? _heartFilledSvg : _heartOutlineSvg}
+                                ${likeText}
+                            </button>
+                            <button class="comment-reply-btn" ${activeCommentsState.canWrite ? '' : 'disabled'} onclick="event.stopPropagation(); setReplyTarget(${replyTargetId}, '${escapeJsString(name)}');">@T("Antworten", "Reply", "Responder", "Responder")</button>
+                            ${deleteHtml}
+                            ${pinHtml}
+                        </div>
+                        ${repliesHtml}
+                    </div>
+                </div>`;
+        }
+
+        function renderComments(items) {
+            const list = document.getElementById('commentsList');
+            const empty = document.getElementById('commentsEmpty');
+            if (!list || !empty) return;
+
+            if (!Array.isArray(items) || items.length === 0) {
+                list.innerHTML = '';
+                empty.style.display = '';
+                return;
+            }
+
+            empty.style.display = 'none';
+            list.innerHTML = items.map(item => renderSingleComment(item, false)).join('');
+        }
+
+        function focusCommentAnchor(commentId) {
+            if (!commentId) return;
+            const target = document.querySelector(`#commentsList .comment-item[data-comment-id="${commentId}"]`);
+            if (!target) return;
+            target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+            target.classList.add('is-burst');
+            window.setTimeout(() => target.classList.remove('is-burst'), 900);
+        }
+
+        async function loadComments(postingId) {
+            const meta = document.getElementById('commentsMetaText');
+            const input = document.getElementById('commentInput');
+            const submitBtn = document.getElementById('commentSubmitBtn');
+            if (meta) meta.textContent = '@T("Lade Kommentare...", "Loading comments...", "Cargando comentarios...", "Carregando comentários...")';
+
+            const response = await fetch(`/WorldMiniApp/Feed/GetComments?postingId=${encodeURIComponent(postingId)}&sort=${encodeURIComponent(activeCommentsSort)}`, {
+                method: 'GET',
+                headers: { 'Accept': 'application/json' }
+            });
+            const payload = await response.json();
+            if (!response.ok || !payload?.success) {
+                throw new Error(payload?.message || 'Kommentare konnten nicht geladen werden.');
+            }
+
+            activeCommentsState = {
+                canWrite: !!payload.canWrite,
+                canReactOrReport: !!payload.canReactOrReport,
+                canPin: !!payload.canPin,
+                isLoggedIn: !!payload.isLoggedIn
+            };
+            activeCommentsSort = payload?.sort === 'new' ? 'new' : 'top';
+            document.getElementById('commentSortTopBtn')?.classList.toggle('active', activeCommentsSort === 'top');
+            document.getElementById('commentSortNewBtn')?.classList.toggle('active', activeCommentsSort === 'new');
+            renderComments(payload.items || []);
+            if (activeCommentAnchorId) {
+                const anchorId = activeCommentAnchorId;
+                activeCommentAnchorId = 0;
+                window.setTimeout(() => focusCommentAnchor(anchorId), 80);
+            }
+            syncCommentCount(postingId, payload.commentCount || 0);
+
+            if (meta) {
+                const cnt = payload.commentCount || 0;
+                meta.textContent = cnt === 1
+                    ? '1 @T("Kommentar", "Comment", "Comentario", "Comentário")'
+                    : `${cnt} @T("Kommentare", "Comments", "Comentarios", "Comentários")`;
+            }
+
+            if (input && submitBtn) {
+                const canWrite = !!payload.canWrite;
+                input.disabled = !canWrite;
+                if (!canWrite) {
+                    input.placeholder = '@T("Nur orb-verifizierte Nutzer koennen kommentieren.", "Only orb-verified users can comment.", "Solo usuarios verificados pueden comentar.", "Somente usuarios verificados podem comentar.")';
+                }
+            }
+        }
+
+        function burstCommentAction(commentId, selector) {
+            const candidates = Array.from(document.querySelectorAll(selector));
+            const button = candidates.find(x => (x.getAttribute('onclick') || '').includes(`(${commentId},`));
+            if (!button) return;
+            button.classList.remove('is-burst');
+            void button.offsetWidth;
+            button.classList.add('is-burst');
+            window.setTimeout(() => button.classList.remove('is-burst'), 240);
+        }
+
+        async function toggleCommentReaction(commentId, reaction) {
+            if (!commentId || !reaction) return;
+            burstCommentAction(commentId, '.comment-heart-btn');
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            try {
+                const formData = new FormData();
+                formData.append('userHash', getUserHash() || '');
+                formData.append('commentId', `${commentId}`);
+                formData.append('reaction', reaction);
+                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+                const response = await fetch('/WorldMiniApp/Feed/ToggleCommentReaction', {
+                    method: 'POST',
+                    body: formData
+                });
+                const payload = await response.json().catch(() => null);
+                if (!response.ok || !payload?.success) {
+                    throw new Error(payload?.message || 'Reaktion konnte nicht gespeichert werden.');
+                }
+
+                await loadComments(activeCommentsPostingId);
+            } catch (error) {
+                showToast(error?.message || 'Reaktion konnte nicht gespeichert werden.', 'error');
+            }
+        }
+
+        async function reportComment(commentId) {
+            if (!commentId) return;
+
+            const defaultReason = '@T("Unangemessener Kommentar", "Inappropriate comment", "Comentario inapropiado", "Comentario inadequado")';
+            const reason = window.prompt('@T("Warum moechtest du diesen Kommentar melden?", "Why do you want to report this comment?", "Por que quieres reportar este comentario?", "Por que voce quer denunciar este comentario?")', defaultReason);
+            if (reason === null) return;
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            try {
+                const formData = new FormData();
+                formData.append('userHash', getUserHash() || '');
+                formData.append('commentId', `${commentId}`);
+                formData.append('reason', (reason || '').trim());
+                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+                const response = await fetch('/WorldMiniApp/Feed/ReportComment', {
+                    method: 'POST',
+                    body: formData
+                });
+                const payload = await response.json().catch(() => null);
+                if (!response.ok || !payload?.success) {
+                    throw new Error(payload?.message || 'Kommentar konnte nicht gemeldet werden.');
+                }
+
+                showToast('@T("Kommentar wurde gemeldet.", "Comment reported.", "Comentario reportado.", "Comentario denunciado.")', 'success');
+                await loadComments(activeCommentsPostingId);
+            } catch (error) {
+                showToast(error?.message || 'Kommentar konnte nicht gemeldet werden.', 'error');
+            }
+        }
+
+        function setReplyTarget(commentId, userName) {
+            activeReplyTarget = {
+                commentId: commentId || 0,
+                userName: userName || 'User'
+            };
+
+            const replyTarget = document.getElementById('commentReplyTarget');
+            const input = document.getElementById('commentInput');
+            if (replyTarget) {
+                replyTarget.style.display = '';
+                replyTarget.innerHTML = `@T("Antwort an", "Replying to", "Respuesta a", "Respondendo a") <strong>${escapeHtml(activeReplyTarget.userName)}</strong> <button onclick="clearReplyTarget()">@T("Abbrechen", "Cancel", "Cancelar", "Cancelar")</button>`;
+            }
+            if (input) {
+                input.value = `@@${userName} `;
+                input.focus();
+            }
+        }
+
+        function clearReplyTarget() {
+            activeReplyTarget = null;
+            const replyTarget = document.getElementById('commentReplyTarget');
+            if (replyTarget) {
+                replyTarget.style.display = 'none';
+                replyTarget.innerHTML = '';
+            }
+        }
+
+        function toggleReplies(commentId, count) {
+            const el = document.getElementById(`replies-${commentId}`);
+            const btn = document.getElementById(`replies-toggle-${commentId}`);
+            if (!el) return;
+            const hidden = el.classList.toggle('is-hidden');
+            if (btn) {
+                btn.textContent = hidden
+                    ? `${count} @T("Antworten anzeigen", "View replies", "Ver respuestas", "Ver respostas")`
+                    : '@T("Antworten ausblenden", "Hide replies", "Ocultar respuestas", "Ocultar respostas")';
+            }
+        }
+
+        async function pinComment(commentId) {
+            if (!commentId) return;
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            try {
+                const formData = new FormData();
+                formData.append('userHash', getUserHash() || '');
+                formData.append('commentId', `${commentId}`);
+                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+                const response = await fetch('/WorldMiniApp/Feed/PinComment', { method: 'POST', body: formData });
+                const payload = await response.json().catch(() => null);
+                if (!response.ok || !payload?.success) throw new Error(payload?.message || 'Fehler');
+                await loadComments(activeCommentsPostingId);
+            } catch (error) {
+                showToast(error?.message || '@T("Fehler beim Anheften.", "Error pinning comment.", "Error al fijar.", "Erro ao fixar.")', 'error');
+            }
+        }
+
+        async function changeCommentSort(sort) {
+            activeCommentsSort = sort === 'new' ? 'new' : 'top';
+            if (activeCommentsPostingId) {
+                await loadComments(activeCommentsPostingId);
+            }
+        }
+
+        async function deleteComment(commentId) {
+            if (!commentId) return;
+            const ok = window.confirm('@T("Kommentar wirklich loeschen?", "Really delete this comment?", "Eliminar realmente este comentario?", "Apagar realmente este comentario?")');
+            if (!ok) return;
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            try {
+                const formData = new FormData();
+                formData.append('userHash', getUserHash() || '');
+                formData.append('commentId', `${commentId}`);
+                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+                const response = await fetch('/WorldMiniApp/Feed/DeleteComment', {
+                    method: 'POST',
+                    body: formData
+                });
+                const payload = await response.json().catch(() => null);
+                if (!response.ok || !payload?.success) {
+                    throw new Error(payload?.message || 'Kommentar konnte nicht geloescht werden.');
+                }
+
+                syncCommentCount(payload.postingId || activeCommentsPostingId, payload.commentCount || 0);
+                showToast('@T("Kommentar geloescht.", "Comment deleted.", "Comentario eliminado.", "Comentario apagado.")', 'success');
+                await loadComments(activeCommentsPostingId);
+            } catch (error) {
+                showToast(error?.message || 'Kommentar konnte nicht geloescht werden.', 'error');
+            }
+        }
+
+        async function openCommentsSheet(container) {
+            const postingId = container?.dataset?.postingId;
+            if (!postingId) return;
+            activeCommentsPostingId = parseInt(postingId, 10);
+
+            const modalEl = document.getElementById('commentsModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+            const list = document.getElementById('commentsList');
+            const empty = document.getElementById('commentsEmpty');
+            const input = document.getElementById('commentInput');
+            if (list) list.innerHTML = '';
+            if (empty) empty.style.display = 'none';
+            if (input) input.value = '';
+            clearReplyTarget();
+
+            await loadComments(activeCommentsPostingId);
+        }
+
+        // Send button activation + Enter key submit
+        (function() {
+            const input = document.getElementById('commentInput');
+            const sendBtn = document.getElementById('commentSubmitBtn');
+            if (input && sendBtn) {
+                input.addEventListener('input', function() {
+                    sendBtn.classList.toggle('is-active', this.value.trim().length > 0);
+                });
+                input.addEventListener('keydown', function(e) {
+                    if (e.key === 'Enter' && !e.shiftKey && this.value.trim()) {
+                        e.preventDefault();
+                        submitComment();
+                    }
+                });
+            }
+        })();
+
+        function tryOpenCommentsFromUrl() {
+            const params = new URLSearchParams(window.location.search);
+            const shouldOpenComments = params.get('openComments') === '1';
+            const postingId = Number(params.get('postingId') || 0) || 0;
+            const commentId = Number(params.get('commentId') || 0) || 0;
+            if (!shouldOpenComments || !postingId) return false;
+
+            const target = document.querySelector(`#feedSection .feed-item[data-posting-id="${postingId}"]`);
+            if (!target) return false;
+
+            activeCommentAnchorId = commentId;
+            window.setTimeout(() => openCommentsSheet(target), 120);
+
+            params.delete('openComments');
+            params.delete('postingId');
+            params.delete('commentId');
+            const cleaned = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
+            history.replaceState(history.state, '', cleaned);
+            return true;
+        }
+
+        async function submitComment() {
+            if (!activeCommentsPostingId) return;
+
+            const input = document.getElementById('commentInput');
+            const submitBtn = document.getElementById('commentSubmitBtn');
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const text = (input?.value || '').trim();
+            if (!text) return;
+
+            if (submitBtn) submitBtn.disabled = true;
+            try {
+                const formData = new FormData();
+                formData.append('userHash', getUserHash() || '');
+                formData.append('postingId', `${activeCommentsPostingId}`);
+                formData.append('text', text);
+                if (activeReplyTarget?.commentId) {
+                    formData.append('parentCommentId', `${activeReplyTarget.commentId}`);
+                }
+                if (tokenInput) formData.append('__RequestVerificationToken', tokenInput.value);
+
+                const response = await fetch('/WorldMiniApp/Feed/AddComment', {
+                    method: 'POST',
+                    body: formData
+                });
+                const payload = await response.json().catch(() => null);
+                if (!response.ok || !payload?.success) {
+                    throw new Error(payload?.message || 'Kommentar konnte nicht gespeichert werden.');
+                }
+
+                if (input) input.value = '';
+                clearReplyTarget();
+                await loadComments(activeCommentsPostingId);
+            } catch (error) {
+                showToast(error?.message || 'Kommentar konnte nicht gespeichert werden.', 'error');
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        }
+
         function attachFeedHandlers() {
+            prepareExpandableTitles(document);
             document.querySelectorAll('.feed-item').forEach(item => {
                 bindFeedItemState(item);
                 observer.observe(item);
             });
+            applyLiveCommentBadges(activeLiveCommentBadgeCounts);
 
             // When opening a recipe detail page, store current feed position first.
             document.querySelectorAll('#feedSection .feed-item a[aria-label="Rezept anzeigen"]').forEach(link => {
@@ -4852,22 +6045,7 @@
             document.querySelectorAll('.heart-btn').forEach(btn => {
                 btn.addEventListener('click', function (e) {
                     e.stopPropagation();
-                    const container = this.closest('.feed-item');
-                    const recipeId = container?.dataset?.id;
-                    if (recipeId) sendLikeToBackend(recipeId);
-                    this.classList.toggle('liked');
-                    triggerHaptic();
-                    if (window.likedRecipeIds && recipeId) {
-                        const rid = parseInt(recipeId, 10);
-                        if (this.classList.contains('liked')) window.likedRecipeIds.add(rid);
-                        else window.likedRecipeIds.delete(rid);
-                    }
-                    const countEl = this.querySelector('.like-count');
-                    if (countEl) {
-                        let count = parseInt(countEl.textContent, 10) || 0;
-                        count += this.classList.contains('liked') ? 1 : -1;
-                        countEl.textContent = Math.max(0, count);
-                    }
+                    triggerLike(this.closest('.feed-item'));
                 });
             });
         }
@@ -5090,8 +6268,9 @@
             const prepLabel = item.prepTime ? `${item.prepTime} min` : '';
             const safeTitle = escapeHtml(item.title || '');
             const safeCreatorName = escapeHtml(item.creatorName || '');
-            const isLikedCls = (item.isLiked || window.likedRecipeIds?.has(item.recipeId)) ? ' liked' : '';
-            const isBookmarkedCls = (item.isBookmarked || window.bookmarkedRecipeIds?.has(item.recipeId)) ? ' bookmarked' : '';
+            const isLiked = !!(item.isLiked || window.likedRecipeIds?.has(item.recipeId));
+            const isLikedCls = isLiked ? ' liked' : '';
+
 
             let mediaHtml;
             if (isVideo) {
@@ -5112,12 +6291,20 @@
                 <div class="feed-item" data-id="${item.recipeId}" data-posting-id="${item.postingId}" data-creator-id="${item.creatorId}" data-creator-name="${safeCreatorName}">
                     ${mediaHtml}
                     <div class="overlay-gradient"></div>
+                    <button type="button"
+                            class="feed-like-indicator${isLiked ? ' is-liked' : ''}"
+                            aria-label="Like"
+                            onclick="event.stopPropagation(); triggerLike(this.closest('.feed-item'));"
+                            data-recipe-id="${item.recipeId}">
+                        <i class="bi bi-heart-fill"></i>
+                    </button>
                     <i class="bi bi-heart-fill double-tap-heart"></i>
                     <div class="info-container">
                         <div class="chef-badge">
                             <span class="chef-name">${safeCreatorName}</span>
                         </div>
-                        <div class="recipe-title">${safeTitle}</div>
+                        <div class="recipe-title" data-title-limit="58">${safeTitle}</div>
+                        <button type="button" class="title-toggle-btn" onclick="event.stopPropagation(); toggleFeedTitle(this);">@T("Mehr", "More", "Más", "Mais")</button>
                         <div class="recipe-meta">${prepLabel}</div>
                     </div>
                     <div class="action-bar">
@@ -5129,8 +6316,10 @@
                             <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
                             <span class="action-label like-count">${item.likeCount || 0}</span>
                         </div>
-                        <div class="action-btn bookmark-btn${isBookmarkedCls}" role="button" aria-label="Merken" data-recipe-id="${item.recipeId}" onclick="event.stopPropagation(); toggleBookmark(this);">
-                            <div class="icon-circle"><i class="bi bi-bookmark-fill"></i></div>
+                        <div class="action-btn comment-btn" role="button" aria-label="Kommentare" data-posting-id="${item.postingId}" onclick="event.stopPropagation(); openCommentsSheet(this.closest('.feed-item'));">
+                            <span class="live-comment-badge" data-live-comment-badge="${item.postingId}">0</span>
+                            <div class="icon-circle"><i class="bi bi-chat-dots-fill"></i></div>
+                            <span class="action-label comment-count">${item.commentCount || 0}</span>
                         </div>
                         <div class="action-btn share-action-btn" role="button" aria-label="Teilen" onclick="event.stopPropagation(); shareRecipeFromButton(this);">
                             <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
@@ -5152,6 +6341,9 @@
         function attachCreatorFeedHandlers() {
             const container = document.getElementById('creatorFeedItems');
             if (!container) return;
+
+            prepareExpandableTitles(container);
+            applyLiveCommentBadges(activeLiveCommentBadgeCounts);
 
             container.querySelectorAll('.feed-item').forEach(item => {
                 bindFeedItemState(item);
@@ -5246,8 +6438,11 @@
 
             // Restore scroll position when navigating back from the recipe detail page.
             setTimeout(() => {
-                if (tryRestoreFeedScrollFromUrl()) return;
-                tryRestoreFeedScrollFromSession();
+                const restoredFromUrl = tryRestoreFeedScrollFromUrl();
+                if (!restoredFromUrl) {
+                    tryRestoreFeedScrollFromSession();
+                }
+                tryOpenCommentsFromUrl();
             }, 60);
 
             syncMarketplaceToCurrentFeedItem();
