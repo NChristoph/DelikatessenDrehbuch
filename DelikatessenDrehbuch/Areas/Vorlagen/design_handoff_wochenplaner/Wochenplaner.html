@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Wochenplaner — Redesign</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<link rel="stylesheet" href="v1.css">
+<link rel="stylesheet" href="v2.css">
+<link rel="stylesheet" href="v3.css">
+<style>
+  body { margin: 0; background: #f0eee9; font-family: Inter, system-ui, sans-serif; }
+</style>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+<div id="root"></div>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="v1-editorial.jsx"></script>
+<script type="text/babel" src="v2-story-rail.jsx"></script>
+<script type="text/babel" src="v3-cinematic.jsx"></script>
+
+<script type="text/babel">
+const { V1, V2, V3 } = window;
+
+function PhoneFrame({ children, statusDark = false }) {
+  return (
+    <div className="phone">
+      <div className="phone-notch"/>
+      <div className="phone-screen">
+        <div className={`phone-status ${statusDark ? "dark" : ""}`}>
+          <span>9:41</span>
+          <div className="pill-dots">
+            <svg width="17" height="11" viewBox="0 0 17 11" fill="currentColor"><rect x="0" y="7" width="3" height="4" rx="0.6"/><rect x="4.5" y="5" width="3" height="6" rx="0.6"/><rect x="9" y="2.5" width="3" height="8.5" rx="0.6"/><rect x="13.5" y="0" width="3" height="11" rx="0.6"/></svg>
+            <div className="battery"/>
+          </div>
+        </div>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection id="planner" title="Wochenplaner — TikTok-Feed-Style" subtitle="Drei Varianten basierend auf deinem Avocado-Feed (dunkelgrün + koralle)">
+        <DCArtboard id="v1" label="A · Editorial Stack · große Foodkarten" width={390} height={844}>
+          <PhoneFrame><V1/></PhoneFrame>
+        </DCArtboard>
+        <DCArtboard id="v2" label="B · Story Rail · horizontale Swipe-Cards" width={390} height={844}>
+          <PhoneFrame><V2/></PhoneFrame>
+        </DCArtboard>
+        <DCArtboard id="v3" label="C · Dark Cinematic · Feed-Modal im Video-Look" width={390} height={844}>
+          <PhoneFrame statusDark={true}><V3/></PhoneFrame>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

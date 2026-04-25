@@ -46,6 +46,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="~/css/creator-shop-cards.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&display=swap" rel="stylesheet">
 
     <style>
         body, html {
@@ -929,19 +930,44 @@
             --plan-card-border: rgba(255, 255, 255, 0.06);
             --plan-outline: rgba(255, 255, 255, 0.08);
             --plan-input-bg: rgba(0, 0, 0, 0.25);
+            --avo-coral: #ff7a59;
+            --macro-protein: #c55a3d;
+            --macro-fat: #e8b34a;
+            --macro-carbs: #5b8a52;
+        }
+
+        .btn-reset {
+            border: none;
+            background: none;
+            padding: 0;
+            margin: 0;
+            cursor: pointer;
+            font: inherit;
+            color: inherit;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+            appearance: none;
         }
 
         .modal-dialog {
             max-width: 520px;
         }
 
-        .modal-content {
+        .modal-dialog:not(.modal-fullscreen) .modal-content {
             background: radial-gradient(1200px 800px at 10% 0%, var(--plan-accent-soft), transparent 60%), radial-gradient(900px 600px at 90% 20%, var(--plan-accent-soft-2), transparent 60%), var(--plan-surface);
             color: var(--plan-text);
             border-radius: 26px;
             border: 1px solid rgba(255,255,255,0.10);
             overflow: hidden;
             box-shadow: 0 22px 60px rgba(0,0,0,0.55);
+        }
+        /* Fullscreen plan modal: override Bootstrap defaults */
+        .modal-fullscreen .modal-content {
+            background: #faf7f2;
+            border: none;
+            border-radius: 0;
+            overflow: visible;
+            box-shadow: none;
         }
 
         .modal-header {
@@ -1102,7 +1128,7 @@
             border-radius: 14px;
             border: 1px solid var(--plan-outline);
             background: var(--plan-surface);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.35);
+            box-shadow: var(--avo-card-shadow, 0 12px 30px rgba(0,0,0,0.35));
             margin-left: -12px;
             margin-right: -12px;
             padding: 12px 14px;
@@ -1195,7 +1221,7 @@
             padding: 8px;
             border-radius: 14px;
             border: 1px solid var(--plan-card-border);
-            background: rgba(0, 0, 0, 0.18);
+            background: var(--plan-input-bg);
         }
 
         .day-nutrition-toggle {
@@ -1246,7 +1272,7 @@
             padding: 6px 8px;
             border-radius: 12px;
             border: 1px solid var(--plan-card-border);
-            background: rgba(0, 0, 0, 0.2);
+            background: var(--plan-card-bg);
         }
 
         .day-nutrition-item span {
@@ -1276,83 +1302,98 @@
 
         /* ============ V1 PLAN REDESIGN ============ */
 
+        /* Design Tokens (scoped to .v1 to avoid conflicts) */
         .v1 {
-            position: fixed;
-            inset: 0;
-            background: radial-gradient(1200px 800px at 10% 0%, var(--plan-accent-soft), transparent 60%),
-                        radial-gradient(900px 600px at 90% 20%, var(--plan-accent-soft-2), transparent 60%),
-                        var(--plan-surface);
-            color: var(--plan-text);
-            display: flex;
-            flex-direction: column;
+            --avo-green: #2d5a3d;
+            --avo-green-deep: #1f4530;
+            --avo-green-soft: #e8efe9;
+            --avo-coral: #ff7a59;
+            --avo-coral-glow: #ffb199;
+            --avo-cream: #faf7f2;
+            --avo-paper: #ffffff;
+            --avo-ink: #1a1a1a;
+            --avo-muted: #6b6b6b;
+            --avo-line: rgba(0,0,0,0.08);
+            --avo-card-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 8px 24px rgba(0,0,0,0.06);
+            --macro-protein: #c55a3d;
+            --macro-fat: #e8b34a;
+            --macro-carbs: #5b8a52;
+            --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+            --font-display: "Fraunces", "Playfair Display", Georgia, serif;
+
+            /* Remap --plan-* vars to light theme within .v1 */
+            --plan-accent: #ff7a59;
+            --plan-accent-border: rgba(255,122,89,0.3);
+            --plan-accent-soft: rgba(255,122,89,0.08);
+            --plan-accent-soft-2: rgba(255,94,98,0.06);
+            --plan-surface: #faf7f2;
+            --plan-text: #1a1a1a;
+            --plan-muted-text: #6b6b6b;
+            --plan-button-text: #ffffff;
+            --plan-header-bg: #faf7f2;
+            --plan-tools-bg: rgba(0,0,0,0.03);
+            --plan-card-bg: rgba(0,0,0,0.02);
+            --plan-card-border: rgba(0,0,0,0.08);
+            --plan-outline: rgba(0,0,0,0.08);
+            --plan-input-bg: rgba(0,0,0,0.03);
+        }
+
+        /* --- V1 Container --- */
+        .v1 {
+            width: 100%; height: 100dvh;
+            background: var(--avo-cream);
+            display: flex; flex-direction: column;
+            font-family: var(--font-sans);
+            color: var(--avo-ink);
+            position: relative;
             overflow: hidden;
-            z-index: 1;
         }
 
         .v1-topbar {
-            position: sticky;
-            top: 0;
-            z-index: 80;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 16px;
-            background: rgba(0,0,0,0.45);
-            backdrop-filter: blur(18px);
-            -webkit-backdrop-filter: blur(18px);
-            border-bottom: 1px solid var(--plan-outline);
+            position: sticky; top: 0;
+            background: var(--avo-cream);
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 8px 16px 12px;
+            z-index: 10;
+            border-bottom: 1px solid var(--avo-line);
             flex-shrink: 0;
         }
-
-        .v1-topbar-back {
-            background: none;
-            border: none;
-            color: var(--plan-text);
-            font-size: 1.3rem;
-            padding: 4px 8px;
-            display: inline-flex;
-            align-items: center;
-        }
-
-        .v1-topbar-brand {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid var(--plan-outline);
-            border-radius: 999px;
-            padding: 5px 14px;
-            font-size: 0.78rem;
-            font-weight: 900;
-            color: var(--plan-accent);
-            letter-spacing: 0.3px;
-        }
-
-        .v1-topbar-more {
-            background: none;
-            border: none;
-            color: var(--plan-text);
-            font-size: 1.3rem;
-            padding: 4px 8px;
+        .v1-back, .v1-more {
+            width: 36px; height: 36px; border-radius: 999px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.04);
+            color: var(--avo-ink);
             position: relative;
+            cursor: pointer;
         }
+        .v1-back:active, .v1-more:active { transform: scale(0.96); }
+        .v1-back svg, .v1-more svg { width: 22px; height: 22px; }
+        .v1-brand-pill {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: var(--avo-green);
+            color: #fff;
+            padding: 8px 14px 8px 10px;
+            border-radius: 999px;
+            font-size: 14px; font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+        .v1-brand-dot { font-size: 14px; }
 
+        /* More Menu (dropdown) */
         .v1-more-menu {
             display: none;
             position: absolute;
             top: 100%;
             right: 0;
-            background: rgba(22,22,22,0.96);
-            border: 1px solid var(--plan-outline);
+            background: var(--avo-paper);
+            border: 1px solid var(--avo-line);
             border-radius: 14px;
             padding: 6px 0;
             min-width: 180px;
-            box-shadow: 0 14px 40px rgba(0,0,0,0.5);
-            backdrop-filter: blur(16px);
+            box-shadow: var(--avo-card-shadow);
             z-index: 90;
         }
-
-        .v1-more-menu.is-open {
-            display: block;
-        }
-
+        .v1-more-menu.is-open { display: block; }
         .v1-more-menu button {
             display: flex;
             align-items: center;
@@ -1360,672 +1401,608 @@
             width: 100%;
             background: none;
             border: none;
-            color: var(--plan-text);
+            color: var(--avo-ink);
             padding: 10px 16px;
             font-size: 0.82rem;
             font-weight: 600;
             text-align: left;
         }
-
         .v1-more-menu button:active {
-            background: rgba(255,255,255,0.06);
+            background: rgba(0,0,0,0.04);
         }
 
         .v1-scroll {
             flex: 1;
+            min-height: 0;
             overflow-y: auto;
             overflow-x: hidden;
-            -webkit-overflow-scrolling: touch;
             scroll-behavior: smooth;
+            padding-bottom: 0;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
         }
+        .v1-scroll::-webkit-scrollbar { display: none; }
 
-        /* Hero Section */
+        /* Hero */
         .v1-hero {
-            padding: 20px 16px 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
+            padding: 22px 20px 20px;
+            background: var(--avo-cream);
         }
-
         .v1-hero-eyebrow {
-            font-size: 0.72rem;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.14em;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
-            font-weight: 800;
-            color: var(--plan-muted-text);
+            color: var(--avo-coral);
+            margin-bottom: 8px;
         }
-
         .v1-hero-title {
+            font-family: var(--font-display);
+            font-size: 34px;
+            font-weight: 600;
+            line-height: 1.05;
+            letter-spacing: -0.02em;
+            margin: 0 0 16px;
+            color: var(--avo-green-deep);
+            text-wrap: pretty;
             background: transparent;
             border: none;
-            color: var(--plan-text);
-            font-size: 1.5rem;
-            font-weight: 900;
             padding: 0;
             width: 100%;
             outline: none;
-            letter-spacing: -0.3px;
-            line-height: 1.2;
         }
-
         .v1-hero-title::placeholder {
-            color: var(--plan-muted-text);
+            color: var(--avo-muted);
         }
-
-        .v1-chips {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
+        .v1-hero-meta {
+            display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px;
         }
-
         .v1-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            background: rgba(255,255,255,0.08);
-            border: 1px solid var(--plan-outline);
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 7px 12px;
             border-radius: 999px;
-            padding: 5px 12px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            color: var(--plan-text);
+            background: rgba(45,90,61,0.08);
+            color: var(--avo-green-deep);
+            font-size: 12.5px; font-weight: 600;
             white-space: nowrap;
+            cursor: pointer;
         }
-
-        .v1-chip i {
-            font-size: 0.82rem;
-            color: var(--plan-accent);
+        .v1-chip svg {
+            width: 14px; height: 14px;
         }
-
-        .v1-chip-value {
-            font-weight: 900;
+        .v1-chip-value { font-weight: 700; }
+        .v1-chip-progress {
+            background: var(--avo-green-deep);
+            color: #fff;
         }
-
-        /* Progress Bar */
         .v1-progress {
-            height: 5px;
-            background: rgba(255,255,255,0.08);
+            height: 6px;
+            background: rgba(45,90,61,0.12);
             border-radius: 999px;
             overflow: hidden;
+            margin-bottom: 18px;
         }
-
         .v1-progress-fill {
             height: 100%;
-            background: linear-gradient(90deg, var(--plan-accent), #FF5E62);
+            background: linear-gradient(90deg, var(--avo-coral) 0%, #ff9576 100%);
             border-radius: 999px;
-            transition: width 0.4s ease;
+            transition: width 0.3s;
         }
 
-        /* Action Buttons Row */
         .v1-actions {
-            display: flex;
-            gap: 8px;
+            display: flex; gap: 8px;
         }
-
         .v1-action-btn {
-            flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 10px 12px;
+            height: 44px;
+            padding: 0 16px;
             border-radius: 14px;
-            font-size: 0.8rem;
-            font-weight: 800;
+            background: #fff;
+            color: var(--avo-green-deep);
+            display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            font-size: 14px; font-weight: 600;
+            box-shadow: var(--avo-card-shadow);
             border: none;
             cursor: pointer;
             transition: transform 0.1s ease;
         }
-
-        .v1-action-btn:active {
-            transform: scale(0.96);
-        }
-
-        .v1-action-btn.primary {
-            background: var(--plan-accent);
-            color: var(--plan-button-text);
-        }
-
-        .v1-action-btn.secondary {
-            background: rgba(255,255,255,0.08);
-            border: 1px solid var(--plan-outline);
-            color: var(--plan-text);
-        }
-
-        /* Pending Recipe Card */
-        .v1-pending {
-            margin: 0 16px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 16px;
-            border: 1px solid var(--plan-accent-border);
-            background: rgba(255,153,102,0.08);
-            animation: v1PendingPulse 2s ease-in-out infinite;
-        }
-
-        .v1-pending.is-visible {
-            display: flex;
-        }
-
-        .v1-pending-media {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
-            overflow: hidden;
-            flex-shrink: 0;
-        }
-
-        .v1-pending-media img,
-        .v1-pending-media video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .v1-pending-info {
+        .v1-action-btn:active { transform: scale(0.96); }
+        .v1-action-btn svg { width: 16px; height: 16px; }
+        .v1-action-primary {
             flex: 1;
-            min-width: 0;
+            background: var(--avo-green-deep);
+            color: #fff;
         }
 
-        .v1-pending-label {
-            font-size: 0.65rem;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            font-weight: 800;
-            color: var(--plan-accent);
-        }
-
-        .v1-pending-title {
-            font-size: 0.88rem;
-            font-weight: 800;
-            color: var(--plan-text);
-            white-space: nowrap;
+        /* Pending */
+        .v1-pending {
+            position: relative;
+            margin: 0 20px 20px;
+            display: none;
+            align-items: center; gap: 12px;
+            padding: 10px 44px 10px 10px;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: var(--avo-card-shadow);
             overflow: hidden;
-            text-overflow: ellipsis;
         }
-
-        .v1-pending-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--plan-accent);
-            animation: v1DotPulse 1.5s ease-in-out infinite;
+        .v1-pending.is-visible { display: flex; }
+        .v1-pending-bar {
+            position: absolute; left: 0; top: 0; bottom: 0;
+            width: 4px;
+            background: var(--avo-coral);
+        }
+        .v1-pending-img {
+            width: 48px; height: 48px; border-radius: 12px; object-fit: cover;
             flex-shrink: 0;
         }
-
-        .v1-pending-close {
-            background: none;
-            border: none;
-            color: var(--plan-muted-text);
-            font-size: 1.1rem;
-            padding: 4px;
+        .v1-pending img {
+            width: 48px; height: 48px; border-radius: 12px; object-fit: cover;
             flex-shrink: 0;
         }
-
-        @@keyframes v1PendingPulse {
-            0%, 100% { border-color: var(--plan-accent-border); }
-            50% { border-color: var(--plan-accent); }
+        .v1-pending video {
+            width: 48px; height: 48px; border-radius: 12px; object-fit: cover;
+            flex-shrink: 0;
         }
-
+        .v1-pending-text { flex: 1; min-width: 0; }
+        .v1-pending-label {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 10.5px; font-weight: 700; letter-spacing: 0.1em;
+            text-transform: uppercase; color: var(--avo-coral);
+            margin-bottom: 2px;
+        }
+        .v1-pulse-dot {
+            width: 7px; height: 7px; border-radius: 999px;
+            background: var(--avo-coral);
+            display: inline-block;
+            animation: v1DotPulse 1.4s infinite;
+        }
         @@keyframes v1DotPulse {
             0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.4; transform: scale(0.7); }
+            50% { opacity: 0.5; transform: scale(0.8); }
         }
+        .v1-pending-title {
+            font-size: 14px; font-weight: 600;
+            color: var(--avo-ink);
+            line-height: 1.25;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .v1-pending-close {
+            position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+            width: 28px; height: 28px; border-radius: 999px;
+            background: rgba(0,0,0,0.05);
+            color: var(--avo-muted);
+            display: flex; align-items: center; justify-content: center;
+            border: none;
+        }
+        .v1-pending-close svg { width: 14px; height: 14px; }
 
-        /* Macro Nutrition Section */
+        /* Macro block */
         .v1-macro {
-            margin: 0 16px;
-            padding: 16px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--plan-outline);
-            border-radius: 18px;
+            margin: 0 20px 24px;
+            padding: 20px;
+            background: var(--avo-green-deep);
+            color: #fff;
+            border-radius: 24px;
+            position: relative;
+            overflow: hidden;
         }
-
-        .v1-macro-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
+        .v1-macro::before {
+            content: "";
+            position: absolute;
+            right: -40px; top: -40px;
+            width: 160px; height: 160px;
+            background: radial-gradient(circle, rgba(255,122,89,0.25) 0%, transparent 65%);
+            pointer-events: none;
         }
-
-        .v1-macro-title {
-            font-size: 0.82rem;
-            font-weight: 800;
-            color: var(--plan-text);
+        .v1-macro-head {
+            display: flex; align-items: flex-start; justify-content: space-between;
+            margin-bottom: 18px;
+            position: relative;
         }
-
+        .v1-macro-eyebrow {
+            font-size: 11px; font-weight: 600; letter-spacing: 0.12em;
+            text-transform: uppercase; opacity: 0.7; margin-bottom: 6px;
+        }
         .v1-macro-kcal {
-            font-size: 1.6rem;
-            font-weight: 900;
-            color: var(--plan-text);
-            line-height: 1;
+            font-family: var(--font-display);
+            font-size: 40px; font-weight: 500;
+            letter-spacing: -0.02em; line-height: 1;
         }
-
-        .v1-macro-kcal-unit {
-            font-size: 0.72rem;
-            color: var(--plan-muted-text);
-            font-weight: 700;
+        .v1-macro-kcal span {
+            font-family: var(--font-sans);
+            font-size: 13px; font-weight: 500;
+            opacity: 0.7;
             margin-left: 4px;
         }
+        .v1-macro-goal { text-align: center; }
+        .v1-macro-goal-ring {
+            position: relative;
+            width: 56px; height: 56px;
+            margin: 0 auto 4px;
+        }
+        .v1-macro-goal-pct {
+            position: absolute; inset: 0;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 12px; font-weight: 700;
+        }
+        .v1-macro-goal-label {
+            font-size: 10px; font-weight: 600;
+            letter-spacing: 0.08em; text-transform: uppercase;
+            opacity: 0.7;
+        }
 
+        .v1-macro-bars {
+            display: flex; flex-direction: column; gap: 8px;
+        }
         .v1-bar-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
+            display: grid;
+            grid-template-columns: 70px 1fr 50px;
+            align-items: center; gap: 10px;
+            font-size: 12px;
         }
-
-        .v1-bar-row:last-child {
-            margin-bottom: 0;
-        }
-
         .v1-bar-label {
-            font-size: 0.72rem;
-            font-weight: 700;
-            color: var(--plan-muted-text);
-            width: 50px;
-            flex-shrink: 0;
+            display: inline-flex; align-items: center; gap: 6px;
+            font-weight: 600;
         }
-
+        .v1-bar-dot {
+            width: 8px; height: 8px; border-radius: 999px;
+        }
+        .v1-bar-dot.protein { background: var(--macro-protein); }
+        .v1-bar-dot.fat { background: var(--macro-fat); }
+        .v1-bar-dot.carbs { background: var(--macro-carbs); }
         .v1-bar-track {
-            flex: 1;
-            height: 7px;
-            background: rgba(255,255,255,0.06);
+            height: 6px;
+            background: rgba(255,255,255,0.15);
             border-radius: 999px;
             overflow: hidden;
         }
-
         .v1-bar-fill {
             height: 100%;
             border-radius: 999px;
             transition: width 0.4s ease;
         }
-
-        .v1-bar-fill.protein { background: #4ade80; }
-        .v1-bar-fill.fat { background: #facc15; }
-        .v1-bar-fill.carbs { background: #60a5fa; }
-
-        .v1-bar-value {
-            font-size: 0.72rem;
-            font-weight: 800;
-            color: var(--plan-text);
-            width: 42px;
-            text-align: right;
-            flex-shrink: 0;
+        .v1-bar-val {
+            text-align: right; opacity: 0.85;
+            font-variant-numeric: tabular-nums;
+            font-weight: 600;
+        }
+        .v1-macro-goal-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 10px 0 0;
+            margin-top: 10px;
+            border-top: 1px solid var(--avo-line);
+            font-size: 13px; font-weight: 600;
+            color: var(--avo-muted);
+        }
+        .v1-macro-goal-input-wrap {
+            display: flex; align-items: center; gap: 6px;
+        }
+        .v1-macro-goal-input {
+            width: 72px; text-align: center;
+            border: 1px solid var(--avo-line);
+            border-radius: 8px; padding: 5px 8px;
+            font-size: 13px; font-weight: 700;
+            color: var(--avo-ink); background: var(--avo-paper);
+            font-family: var(--font-sans);
+        }
+        .v1-macro-goal-input:focus { outline: none; border-color: var(--avo-green); }
+        .v1-macro-goal-unit {
+            font-size: 12px; color: var(--avo-muted); font-weight: 500;
         }
 
-        /* Day Navigation Bar */
+        /* Day nav */
         .v1-daynav {
-            position: sticky;
-            top: 0;
-            z-index: 70;
-            display: flex;
-            background: rgba(0,0,0,0.55);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
-            border-bottom: 1px solid var(--plan-outline);
-            padding: 0 8px;
+            position: sticky; top: 0;
+            background: var(--avo-cream);
+            display: flex; gap: 6px;
+            padding: 10px 20px 10px;
+            z-index: 5;
+            border-bottom: 1px solid var(--avo-line);
             flex-shrink: 0;
         }
-
         .v1-daynav-btn {
             flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 3px;
-            padding: 10px 4px 8px;
-            background: none;
-            border: none;
-            color: var(--plan-muted-text);
-            font-size: 0.68rem;
-            font-weight: 700;
+            padding: 8px 4px 6px;
+            display: flex; flex-direction: column; align-items: center; gap: 4px;
+            border-radius: 10px;
+            font-size: 11px; font-weight: 700;
+            color: var(--avo-muted);
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            position: relative;
-            transition: color 0.2s;
+            letter-spacing: 0.04em;
+            transition: all 0.15s;
         }
-
         .v1-daynav-btn.is-active {
-            color: var(--plan-accent);
+            background: var(--avo-green-deep);
+            color: #fff;
         }
-
-        .v1-daynav-btn.is-active::after {
-            content: '';
-            position: absolute;
-            bottom: 0;
-            left: 20%;
-            right: 20%;
-            height: 2px;
-            background: var(--plan-accent);
-            border-radius: 999px;
+        .v1-daynav-dots {
+            display: flex; gap: 2px;
         }
-
         .v1-daynav-dot {
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.15);
+            width: 4px; height: 4px; border-radius: 999px;
+            background: currentColor;
+            opacity: 0.25;
+        }
+        .v1-daynav-dot.is-filled {
+            opacity: 1;
         }
 
-        .v1-daynav-dot.has-meals {
-            background: var(--plan-accent);
-        }
-
-        /* Day Section */
+        /* Days */
         .v1-day {
-            padding: 16px;
+            padding: 24px 20px 8px;
             scroll-margin-top: 48px;
         }
-
-        .v1-day-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
+        .v1-day-head {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 14px;
         }
-
-        .v1-day-label {
-            font-size: 1.05rem;
-            font-weight: 900;
-            color: var(--plan-text);
+        .v1-day-num {
+            font-family: var(--font-display);
+            font-size: 44px;
+            font-weight: 500;
+            line-height: 1;
+            color: var(--avo-coral);
+            letter-spacing: -0.03em;
         }
-
-        .v1-day-actions {
-            display: flex;
-            gap: 8px;
-        }
-
-        .v1-day-dup-btn {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid var(--plan-outline);
-            border-radius: 10px;
-            color: var(--plan-muted-text);
-            font-size: 0.72rem;
+        .v1-day-name {
+            flex: 1;
+            font-size: 20px;
             font-weight: 700;
-            padding: 5px 10px;
+            color: var(--avo-green-deep);
+            letter-spacing: -0.01em;
         }
-
-        .v1-day-dup-btn.is-source {
-            background: var(--plan-accent);
-            color: var(--plan-button-text);
-            border-color: var(--plan-accent);
+        .v1-day-dup {
+            padding: 6px 10px;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.04);
+            color: var(--avo-muted);
+            font-size: 11px; font-weight: 600;
+            display: inline-flex; align-items: center; gap: 4px;
+            border: none;
         }
-
-        .v1-day-dup-btn.is-target {
-            border-color: var(--plan-accent-border);
-            color: var(--plan-accent);
+        .v1-day-dup:active { transform: scale(0.96); }
+        .v1-day-dup svg { width: 14px; height: 14px; }
+        .v1-day-dup.is-source {
+            color: var(--avo-coral);
+            background: rgba(255,122,89,0.12);
+        }
+        .v1-day-dup.is-target {
+            color: var(--avo-coral);
+            background: rgba(255,122,89,0.06);
         }
 
         .v1-day-meals {
             display: flex;
             flex-direction: column;
-            gap: 12px;
         }
 
-        /* Meal Card */
+        /* Empty slot */
+        .v1-empty {
+            display: flex; align-items: center; gap: 12px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: 16px;
+            background: transparent;
+            border: 1.5px dashed rgba(45,90,61,0.25);
+            width: 100%;
+            text-align: left;
+            font: inherit;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .v1-empty:hover {
+            border-color: var(--avo-green);
+            background: rgba(45,90,61,0.03);
+        }
+        .v1-empty:active { transform: scale(0.96); }
+        .v1-empty.is-highlight {
+            border-color: var(--avo-green);
+            background: rgba(45,90,61,0.06);
+        }
+        .v1-empty-icon {
+            width: 40px; height: 40px; border-radius: 12px;
+            background: rgba(45,90,61,0.08);
+            color: var(--avo-green-deep);
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+        }
+        .v1-empty-icon svg { width: 18px; height: 18px; }
+        .v1-empty-label {
+            font-size: 14px; font-weight: 600;
+            color: var(--avo-green-deep);
+        }
+        .v1-empty-sub {
+            font-size: 12px; color: var(--avo-muted);
+            margin-top: 1px;
+        }
+
+        /* Meal card */
         .v1-meal {
-            position: relative;
-            border-radius: 18px;
+            margin-bottom: 14px;
+            border-radius: 20px;
+            background: #fff;
+            box-shadow: var(--avo-card-shadow);
             overflow: hidden;
-            height: 180px;
-            background: var(--plan-card-bg);
-            border: 1px solid var(--plan-card-border);
-            box-shadow: 0 8px 24px rgba(0,0,0,0.3);
         }
-
         .v1-meal:active {
             transform: scale(0.98);
             transition: transform 0.1s ease;
         }
-
         .v1-meal-img {
-            position: absolute;
-            inset: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            display: block;
-        }
-
-        .v1-meal-gradient {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(180deg, rgba(0,0,0,0) 30%, rgba(0,0,0,0.75) 70%, rgba(0,0,0,0.95) 100%);
-            z-index: 1;
-        }
-
-        .v1-meal-type-pill {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 2;
-            background: rgba(0,0,0,0.5);
-            backdrop-filter: blur(8px);
-            color: #fff;
-            padding: 3px 10px;
-            border-radius: 999px;
-            font-size: 0.62rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        .v1-meal-heart {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            z-index: 2;
-            background: rgba(0,0,0,0.35);
-            border: none;
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            color: #fff;
-            font-size: 0.9rem;
-        }
-
-        .v1-meal-content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            padding: 12px 14px;
-            z-index: 2;
-        }
-
-        .v1-meal-title {
-            font-size: 1rem;
-            font-weight: 900;
-            color: #fff;
-            white-space: nowrap;
+            position: relative;
+            aspect-ratio: 16/10;
             overflow: hidden;
-            text-overflow: ellipsis;
-            text-shadow: 0 1px 4px rgba(0,0,0,0.8);
-            line-height: 1.3;
         }
-
+        .v1-meal-img img,
+        .v1-meal-img video {
+            width: 100%; height: 100%; object-fit: cover; display: block;
+        }
+        .v1-meal-grad {
+            position: absolute; inset: 0;
+            background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%);
+            pointer-events: none;
+        }
+        .v1-meal-type-pill {
+            position: absolute; top: 12px; left: 12px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            background: rgba(0,0,0,0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: #fff;
+            font-size: 10.5px; font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            z-index: 2;
+        }
+        .v1-meal-fav {
+            position: absolute; top: 12px; right: 12px;
+            width: 34px; height: 34px; border-radius: 999px;
+            background: rgba(0,0,0,0.35);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            display: flex; align-items: center; justify-content: center;
+            border: none;
+            z-index: 2;
+        }
+        .v1-meal-fav svg { width: 16px; height: 16px; }
+        .v1-meal-caption {
+            position: absolute; bottom: 14px; left: 14px; right: 14px;
+            color: #fff;
+            z-index: 2;
+        }
+        .v1-meal-caption h3 {
+            margin: 0 0 6px;
+            font-size: 17px; font-weight: 700;
+            line-height: 1.2;
+            letter-spacing: -0.01em;
+            text-wrap: pretty;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.3);
+        }
         .v1-meal-stats {
-            display: flex;
-            gap: 10px;
-            margin-top: 4px;
-            font-size: 0.7rem;
-            color: rgba(255,255,255,0.75);
-            font-weight: 600;
+            display: flex; gap: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            opacity: 0.95;
         }
-
-        /* Meal Action Buttons */
         .v1-meal-actions {
-            display: flex;
-            gap: 6px;
-            margin-top: 8px;
+            display: flex; gap: 6px;
+            padding: 10px 10px;
+            border-top: 1px solid var(--avo-line);
         }
-
         .v1-meal-act {
             flex: 1;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 5px;
-            padding: 8px;
-            border-radius: 12px;
-            background: rgba(255,255,255,0.06);
-            border: 1px solid var(--plan-outline);
-            color: var(--plan-text);
-            font-size: 0.72rem;
-            font-weight: 700;
+            height: 34px;
+            border-radius: 10px;
+            background: rgba(0,0,0,0.03);
+            color: var(--avo-ink);
+            display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+            font-size: 12px; font-weight: 600;
+            border: none;
+        }
+        .v1-meal-act svg { width: 14px; height: 14px; }
+        .v1-meal-act:active { background: rgba(0,0,0,0.06); transform: scale(0.96); }
+        .v1-meal-act-danger {
+            flex: 0 0 42px;
+            color: #c55a3d;
+            background: rgba(197,90,61,0.08);
+        }
+        .v1-meal-act-danger:active {
+            background: rgba(197,90,61,0.15);
         }
 
-        .v1-meal-act:active {
-            background: rgba(255,255,255,0.12);
-        }
-
-        .v1-meal-act.delete {
-            color: #ff6b6b;
-            border-color: rgba(255,107,107,0.2);
-        }
-
-        /* Empty Slot */
-        .v1-empty {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            height: 100px;
-            border: 2px dashed var(--plan-outline);
-            border-radius: 18px;
-            color: var(--plan-muted-text);
-            cursor: pointer;
-            transition: border-color 0.2s, background 0.2s;
-        }
-
-        .v1-empty:active {
-            transform: scale(0.97);
-        }
-
-        .v1-empty.is-highlight {
-            border-color: var(--plan-accent-border);
-            background: rgba(255,153,102,0.05);
-            animation: v1SlotPulse 1.5s ease-in-out infinite;
-        }
-
-        .v1-empty-icon {
-            font-size: 1.3rem;
-            color: var(--plan-muted-text);
-        }
-
-        .v1-empty-label {
-            font-size: 0.68rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-        }
-
-        .v1-empty-hint {
-            font-size: 0.62rem;
-            opacity: 0.6;
-        }
-
-        @@keyframes v1SlotPulse {
-            0%, 100% { border-color: var(--plan-accent-border); }
-            50% { border-color: var(--plan-accent); }
-        }
-
-        /* Day Nutrition Button */
-        .v1-day-nutrition-btn {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
+        /* Day nutrition */
+        .v1-day-nutrition {
             width: 100%;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--plan-outline);
-            border-radius: 12px;
-            padding: 10px 14px;
-            color: var(--plan-muted-text);
-            font-size: 0.75rem;
-            font-weight: 700;
-            margin-top: 10px;
+            display: flex; align-items: center; gap: 10px;
+            padding: 12px 16px;
+            margin-top: 4px;
+            border-radius: 14px;
+            background: rgba(45,90,61,0.05);
+            font-size: 13px; color: var(--avo-green-deep);
+            font: inherit;
+            border: none;
+            cursor: pointer;
+            transition: background 0.2s;
         }
-
-        .v1-day-nutrition-btn i {
-            font-size: 0.85rem;
+        .v1-day-nutrition:active { background: rgba(45,90,61,0.10); }
+        .v1-day-nutrition-kcal {
+            font-weight: 700;
+            font-family: var(--font-display);
+            font-size: 16px;
+        }
+        .v1-day-nutrition-label {
+            flex: 1;
+            text-align: left;
+            font-weight: 600;
+            opacity: 0.8;
+        }
+        .v1-day-nutrition svg {
+            width: 14px; height: 14px;
             transition: transform 0.2s;
         }
-
-        .v1-day-nutrition-btn.is-expanded i {
+        .v1-day-nutrition.is-expanded svg {
             transform: rotate(180deg);
         }
 
-        /* Shopping Section */
+        /* Shopping */
         .v1-shopping {
-            margin: 8px 16px 16px;
-            padding: 14px;
-            background: rgba(255,255,255,0.04);
-            border: 1px solid var(--plan-outline);
-            border-radius: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            margin: 20px;
+            display: flex; align-items: center; gap: 14px;
+            padding: 16px 16px 16px 18px;
+            background: var(--avo-green-deep);
+            border-radius: 20px;
+            color: #fff;
             cursor: pointer;
         }
-
-        .v1-shopping:active {
-            background: rgba(255,255,255,0.08);
-        }
-
+        .v1-shopping:active { background: var(--avo-green); }
         .v1-shopping-icon {
-            font-size: 1.2rem;
-            color: var(--plan-accent);
+            width: 44px; height: 44px;
+            border-radius: 12px;
+            background: rgba(255,255,255,0.1);
+            display: flex; align-items: center; justify-content: center;
+            color: var(--avo-coral);
+            flex-shrink: 0;
         }
-
-        .v1-shopping-text {
-            flex: 1;
-        }
-
+        .v1-shopping-icon svg { width: 22px; height: 22px; }
+        .v1-shopping-text { flex: 1; }
         .v1-shopping-title {
-            font-size: 0.85rem;
-            font-weight: 800;
-            color: var(--plan-text);
+            font-size: 15px; font-weight: 700;
+            margin-bottom: 2px;
         }
-
         .v1-shopping-sub {
-            font-size: 0.7rem;
-            color: var(--plan-muted-text);
+            font-size: 12px; opacity: 0.7;
         }
-
-        .v1-shopping-arrow {
-            color: var(--plan-muted-text);
-            font-size: 1rem;
+        .v1-shopping-go {
+            width: 40px; height: 40px;
+            border-radius: 999px;
+            background: var(--avo-coral);
+            color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            flex-shrink: 0;
+            box-shadow: 0 6px 16px -4px rgba(255,122,89,0.6);
         }
+        .v1-shopping-go svg { width: 18px; height: 18px; }
 
         /* FAB */
         .v1-fab {
-            position: fixed;
-            bottom: 24px;
-            right: 20px;
-            width: 52px;
-            height: 52px;
-            border-radius: 50%;
-            background: linear-gradient(135deg, var(--plan-accent), #FF5E62);
-            border: none;
+            position: absolute; bottom: 24px; right: 24px;
+            width: 56px; height: 56px;
+            border-radius: 999px;
+            background: var(--avo-coral);
             color: #fff;
-            font-size: 1.4rem;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 8px 28px rgba(255,153,102,0.35);
-            z-index: 75;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 10px 24px -6px rgba(255,122,89,0.6), 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 20;
+            border: none;
         }
+        .v1-fab svg { width: 22px; height: 22px; }
+        .v1-fab:active { transform: scale(0.9); }
 
-        .v1-fab:active {
-            transform: scale(0.9);
+        /* Generic reset */
+        .v1 .btn-reset {
+            background: none; border: none; padding: 0; margin: 0;
+            font: inherit; color: inherit; cursor: pointer;
         }
 
         /* Person Stepper in hero (popover style) */
@@ -2035,12 +2012,11 @@
             top: 100%;
             left: 0;
             margin-top: 6px;
-            background: rgba(22,22,22,0.96);
-            border: 1px solid var(--plan-outline);
+            background: var(--avo-paper, #fff);
+            border: 1px solid var(--avo-line, rgba(0,0,0,0.08));
             border-radius: 14px;
             padding: 12px;
-            box-shadow: 0 14px 40px rgba(0,0,0,0.5);
-            backdrop-filter: blur(16px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
             z-index: 90;
         }
 
@@ -2379,9 +2355,9 @@
             stroke-linecap: round;
             transition: stroke-dasharray 0.5s ease, stroke-dashoffset 0.5s ease;
         }
-        .macro-donut-ring.macro-protein { stroke: #34d399; }
-        .macro-donut-ring.macro-fat { stroke: #fbbf24; }
-        .macro-donut-ring.macro-carbs { stroke: #60a5fa; }
+        .macro-donut-ring.macro-protein { stroke: var(--macro-protein, #c55a3d); }
+        .macro-donut-ring.macro-fat { stroke: var(--macro-fat, #e8b34a); }
+        .macro-donut-ring.macro-carbs { stroke: var(--macro-carbs, #5b8a52); }
         .macro-donut-kcal {
             font-size: 18px;
             font-weight: 800;
@@ -2423,9 +2399,9 @@
             display: inline-block;
             flex-shrink: 0;
         }
-        .macro-dot.macro-protein { background: #34d399; }
-        .macro-dot.macro-fat { background: #fbbf24; }
-        .macro-dot.macro-carbs { background: #60a5fa; }
+        .macro-dot.macro-protein { background: var(--macro-protein, #c55a3d); }
+        .macro-dot.macro-fat { background: var(--macro-fat, #e8b34a); }
+        .macro-dot.macro-carbs { background: var(--macro-carbs, #5b8a52); }
 
         /* === Kcal Goal / Traffic Light === */
         .kcal-goal-row {
@@ -2919,22 +2895,25 @@
     <!-- PLAN MODAL (V1 Fullscreen Redesign) -->
     <div class="modal fade" id="planModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-fullscreen">
-            <div class="modal-content" style="border:none;border-radius:0;background:transparent;">
+            <div class="modal-content">
                 <div class="v1">
                     <!-- Top Bar -->
                     <div class="v1-topbar">
-                        <button type="button" class="v1-topbar-back" data-bs-dismiss="modal" aria-label="Zurück">
-                            <i class="bi bi-chevron-left"></i>
+                        <button type="button" class="v1-back btn-reset" data-bs-dismiss="modal" aria-label="Zurück">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
                         </button>
-                        <span class="v1-topbar-brand">Wochenplaner</span>
-                        <button type="button" class="v1-topbar-more" id="v1MoreBtn" onclick="toggleMoreMenu()">
-                            <i class="bi bi-three-dots"></i>
+                        <div class="v1-brand-pill">
+                            <span class="v1-brand-dot">&#x1F951;</span>
+                            <span>Wochenplaner</span>
+                        </div>
+                        <div class="v1-more" id="v1MoreBtn" onclick="toggleMoreMenu()" role="button" tabindex="0" aria-label="Mehr">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg>
                             <div class="v1-more-menu" id="v1MoreMenu">
-                                <button type="button" onclick="clearWeeklyPlanState(true)"><i class="bi bi-trash3"></i> Plan leeren</button>
-                                <button type="button" onclick="exportPlanAsIcs()"><i class="bi bi-calendar-event"></i> .ics Export</button>
-                                <button type="button" onclick="document.getElementById('kcalGoalInput')?.focus()"><i class="bi bi-bullseye"></i> Kcal-Ziel</button>
+                                <button type="button" onclick="clearWeeklyPlanState(true)">Plan leeren</button>
+                                <button type="button" onclick="exportPlanAsIcs()">.ics Export</button>
+                                <button type="button" onclick="document.getElementById('kcalGoalInput')?.focus()">Kcal-Ziel</button>
                             </div>
-                        </button>
+                        </div>
                     </div>
 
                     <!-- Scrollable Content -->
@@ -2943,9 +2922,9 @@
                         <div class="v1-hero">
                             <div class="v1-hero-eyebrow" id="v1HeroEyebrow">KW —</div>
                             <input id="planTitleInput" type="text" class="v1-hero-title" placeholder="Mein Wochenplan" />
-                            <div class="v1-chips">
+                            <div class="v1-hero-meta">
                                 <div class="v1-chip" id="v1ChipPersons" style="position:relative;cursor:pointer;" onclick="togglePersonPopover()">
-                                    <i class="bi bi-people-fill"></i>
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
                                     <span class="v1-chip-value" id="v1ChipPersonValue">1</span> Pers.
                                     <div class="v1-person-popover" id="v1PersonPopover">
                                         <div class="person-stepper">
@@ -2962,178 +2941,105 @@
                                     </div>
                                 </div>
                                 <div class="v1-chip">
-                                    <i class="bi bi-fire"></i>
-                                    <span class="v1-chip-value" id="v1ChipKcal">—</span> kcal
+                                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>
+                                    <span class="v1-chip-value" id="v1ChipKcal">&#x2014; kcal</span>
                                 </div>
-                                <div class="v1-chip">
-                                    <i class="bi bi-check2-circle"></i>
+                                <div class="v1-chip v1-chip-progress">
                                     <span class="v1-chip-value" id="v1ChipProgress">0/21</span>
                                 </div>
                             </div>
+
+                            <!-- Progress bar -->
                             <div class="v1-progress">
                                 <div class="v1-progress-fill" id="v1ProgressFill" style="width:0%"></div>
                             </div>
+
+                            <!-- Action row -->
                             <div class="v1-actions">
-                                <button type="button" class="v1-action-btn primary" onclick="saveWeeklyPlan()">
-                                    <i class="bi bi-check2-circle"></i> Speichern
+                                <button type="button" class="v1-action-btn v1-action-primary" onclick="saveWeeklyPlan()">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M20 6L9 17l-5-5"/></svg>
+                                    Speichern
                                 </button>
-                                <button type="button" class="v1-action-btn secondary" onclick="withButtonSpinner(this, shufflePlanFromLikes)">
-                                    <i class="bi bi-shuffle"></i>
+                                <button type="button" class="v1-action-btn" aria-label="Shuffle" onclick="withButtonSpinner(this, shufflePlanFromLikes)">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5M4 20L21 3M21 16v5h-5M15 15l6 6M4 4l5 5"/></svg>
                                 </button>
-                                <button type="button" class="v1-action-btn secondary" onclick="withButtonSpinner(this, shareWeeklyPlan)">
-                                    <i class="bi bi-share"></i>
+                                <button type="button" class="v1-action-btn" aria-label="Teilen" onclick="withButtonSpinner(this, shareWeeklyPlan)">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>
                                 </button>
                             </div>
-                            <input id="planShareLink" type="text" readonly placeholder="Plan-Link erscheint hier..." style="display:none;background:var(--plan-input-bg);border:1px solid var(--plan-outline);color:var(--plan-text);border-radius:10px;padding:8px 12px;font-size:0.8rem;margin-top:4px;" />
+                            <input id="planShareLink" type="text" readonly placeholder="Plan-Link erscheint hier..." style="display:none;background:var(--avo-green-soft);border:1px solid var(--avo-line);color:var(--avo-ink);border-radius:10px;padding:8px 12px;font-size:0.8rem;margin-top:4px;" />
                         </div>
 
                         <!-- Pending Recipe Card -->
                         <div id="pendingRecipeCard" class="v1-pending">
-                            <div class="v1-pending-dot"></div>
-                            <div class="v1-pending-media" id="pendingRecipeMedia"></div>
-                            <div class="v1-pending-info">
-                                <div class="v1-pending-label">Wird hinzugefügt</div>
+                            <div class="v1-pending-bar"></div>
+                            <img id="pendingRecipeImg" src="" alt="" class="v1-pending-img" style="display:none;" />
+                            <div class="v1-pending-text">
+                                <div class="v1-pending-label">
+                                    <span class="v1-pulse-dot"></span>
+                                    wird hinzugefügt
+                                </div>
                                 <div class="v1-pending-title" id="pendingRecipeTitle"></div>
                             </div>
-                            <button type="button" class="v1-pending-close" onclick="cancelPendingRecipe()"><i class="bi bi-x-lg"></i></button>
-                        </div>
-                        <!-- Macro Nutrition (collapsible) -->
-                        <div class="plan-nutrition is-collapsed" id="planNutrition" style="margin:8px 16px;">
-                            <button type="button" class="plan-nutrition-toggle" id="planNutritionToggle" aria-expanded="false">
-                                <span class="plan-nutrition-toggle-content">
-                                    <i class="bi bi-chevron-down"></i>
-                                    <span>Nährwerte gesamt</span>
-                                </span>
-                                <span class="plan-nutrition-status" id="planNutritionStatus">Keine Rezepte</span>
+                            <button type="button" class="v1-pending-close btn-reset" onclick="cancelPendingRecipe()" aria-label="Abbrechen">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>
                             </button>
-                            <div class="plan-nutrition-body">
-                                <div class="nutrition-segment" id="nutritionSegment">
-                                    <button type="button" class="nutrition-seg-btn is-active" data-mode="total">Gesamt</button>
-                                    <button type="button" class="nutrition-seg-btn" data-mode="portion">Pro Portion</button>
+                        </div>
+
+                        <!-- Macro Nutrition Block -->
+                        <div class="v1-macro" id="planNutrition">
+                            <div class="v1-macro-head">
+                                <div>
+                                    <div class="v1-macro-eyebrow">Nährwerte gesamt</div>
+                                    <div class="v1-macro-kcal" id="planNutritionCalories">&#x2014; <span>kcal</span></div>
                                 </div>
-                                <div class="kcal-goal-row">
-                                    <label for="kcalGoalInput">Tagesziel</label>
-                                    <input type="number" class="kcal-goal-input" id="kcalGoalInput" min="500" max="10000" step="100" placeholder="2000">
-                                    <span>kcal</span>
-                                </div>
-                                <div class="macro-donut-wrap" id="macroBarWrap">
-                                    <div class="macro-donut-row">
-                                        <svg class="macro-donut" viewBox="0 0 120 120" id="macroDonut">
-                                            <circle class="macro-donut-bg" cx="60" cy="60" r="50" />
-                                            <circle class="macro-donut-ring macro-protein" id="macroRingProtein" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
-                                            <circle class="macro-donut-ring macro-fat" id="macroRingFat" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
-                                            <circle class="macro-donut-ring macro-carbs" id="macroRingCarbs" cx="60" cy="60" r="50" stroke-dasharray="0 314.16" />
-                                            <text x="60" y="55" class="macro-donut-kcal" id="macroDonutKcal">â€”</text>
-                                            <text x="60" y="70" class="macro-donut-label">kcal</text>
+                                <div class="v1-macro-goal">
+                                    <div class="v1-macro-goal-ring">
+                                        <svg width="56" height="56" viewBox="0 0 56 56">
+                                            <circle cx="28" cy="28" r="24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="4"/>
+                                            <circle id="macroGoalRingFill" cx="28" cy="28" r="24" fill="none" stroke="var(--avo-coral)" stroke-width="4"
+                                                stroke-dasharray="0 150.8" stroke-linecap="round" transform="rotate(-90 28 28)"/>
                                         </svg>
-                                        <div class="macro-donut-legend">
-                                            <div class="macro-legend-row"><span class="macro-dot macro-protein"></span><span>Protein</span><b id="macroBarProteinPct">0</b>%</div>
-                                            <div class="macro-legend-row"><span class="macro-dot macro-fat"></span><span>Fett</span><b id="macroBarFatPct">0</b>%</div>
-                                            <div class="macro-legend-row"><span class="macro-dot macro-carbs"></span><span>KH</span><b id="macroBarCarbsPct">0</b>%</div>
-                                        </div>
+                                        <div class="v1-macro-goal-pct" id="macroGoalPct">0%</div>
                                     </div>
+                                    <div class="v1-macro-goal-label">Wochenziel</div>
                                 </div>
-                                <div class="sparkline-wrap" id="sparklineWrap" style="display:none;">
-                                    <div class="sparkline-title">kcal pro Tag (7 Tage)</div>
-                                    <svg class="sparkline-svg" id="sparklineSvg" viewBox="0 0 200 56" preserveAspectRatio="none"></svg>
+                            </div>
+                            <div class="v1-macro-bars">
+                                <div class="v1-bar-row">
+                                    <div class="v1-bar-label"><span class="v1-bar-dot protein"></span>Protein</div>
+                                    <div class="v1-bar-track"><div class="v1-bar-fill" id="macroBarProteinFill" style="width:0%;background:var(--macro-protein)"></div></div>
+                                    <div class="v1-bar-val" id="macroBarProteinVal">0g</div>
                                 </div>
-                                <div class="plan-nutrition-grid" id="nutritionGridTotal">
-                                    <div class="plan-nutrition-item">
-                                        <span>Kalorien</span>
-                                        <div class="plan-nutrition-value" id="planNutritionCalories">â€”</div>
-                                        <div class="plan-nutrition-unit">kcal</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Protein</span>
-                                        <div class="plan-nutrition-value" id="planNutritionProtein">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Fett</span>
-                                        <div class="plan-nutrition-value" id="planNutritionFat">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Kohlenhydrate</span>
-                                        <div class="plan-nutrition-value" id="planNutritionCarbs">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Zucker</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSugar">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Ballaststoffe</span>
-                                        <div class="plan-nutrition-value" id="planNutritionFiber">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSaturatedFat">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Salz</span>
-                                        <div class="plan-nutrition-value" id="planNutritionSalt">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
+                                <div class="v1-bar-row">
+                                    <div class="v1-bar-label"><span class="v1-bar-dot fat"></span>Fett</div>
+                                    <div class="v1-bar-track"><div class="v1-bar-fill" id="macroBarFatFill" style="width:0%;background:var(--macro-fat)"></div></div>
+                                    <div class="v1-bar-val" id="macroBarFatVal">0g</div>
                                 </div>
-                                <div class="plan-nutrition-grid" id="nutritionGridPortion" style="display:none;">
-                                    <div class="plan-nutrition-item">
-                                        <span>Kalorien</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionCalories">â€”</div>
-                                        <div class="plan-nutrition-unit">kcal</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Protein</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionProtein">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Fett</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionFat">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Kohlenhydrate</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionCarbs">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Zucker</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSugar">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Ballaststoffe</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionFiber">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Gesättigt</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSaturatedFat">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
-                                    <div class="plan-nutrition-item">
-                                        <span>Salz</span>
-                                        <div class="plan-nutrition-value" id="planNutritionPerPortionSalt">â€”</div>
-                                        <div class="plan-nutrition-unit">g</div>
-                                    </div>
+                                <div class="v1-bar-row">
+                                    <div class="v1-bar-label"><span class="v1-bar-dot carbs"></span>KH</div>
+                                    <div class="v1-bar-track"><div class="v1-bar-fill" id="macroBarCarbsFill" style="width:0%;background:var(--macro-carbs)"></div></div>
+                                    <div class="v1-bar-val" id="macroBarCarbsVal">0g</div>
+                                </div>
+                            </div>
+                            <div class="v1-macro-goal-row">
+                                <label for="kcalGoalInput">Tagesziel</label>
+                                <div class="v1-macro-goal-input-wrap">
+                                    <input id="kcalGoalInput" type="number" min="500" max="10000" step="100" value="2000" inputmode="numeric" class="v1-macro-goal-input" />
+                                    <span class="v1-macro-goal-unit">kcal</span>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
                         <!-- Day Navigation Bar -->
                         <div class="v1-daynav" id="v1DayNav">
-                            <button type="button" class="v1-daynav-btn is-active" data-day="0" onclick="scrollToDay(0)">Mo<div class="v1-daynav-dot" id="v1DayDot-0"></div></button>
-                            <button type="button" class="v1-daynav-btn" data-day="1" onclick="scrollToDay(1)">Di<div class="v1-daynav-dot" id="v1DayDot-1"></div></button>
-                            <button type="button" class="v1-daynav-btn" data-day="2" onclick="scrollToDay(2)">Mi<div class="v1-daynav-dot" id="v1DayDot-2"></div></button>
-                            <button type="button" class="v1-daynav-btn" data-day="3" onclick="scrollToDay(3)">Do<div class="v1-daynav-dot" id="v1DayDot-3"></div></button>
-                            <button type="button" class="v1-daynav-btn" data-day="4" onclick="scrollToDay(4)">Fr<div class="v1-daynav-dot" id="v1DayDot-4"></div></button>
-                            <button type="button" class="v1-daynav-btn" data-day="5" onclick="scrollToDay(5)">Sa<div class="v1-daynav-dot" id="v1DayDot-5"></div></button>
-                            <button type="button" class="v1-daynav-btn" data-day="6" onclick="scrollToDay(6)">So<div class="v1-daynav-dot" id="v1DayDot-6"></div></button>
+                            <button type="button" class="v1-daynav-btn btn-reset is-active" data-day="0" onclick="scrollToDay(0)"><span class="v1-daynav-short">Mo</span><span class="v1-daynav-dots"><span class="v1-daynav-dot" data-day="0" data-slot="0"></span><span class="v1-daynav-dot" data-day="0" data-slot="1"></span><span class="v1-daynav-dot" data-day="0" data-slot="2"></span></span></button>
+                            <button type="button" class="v1-daynav-btn btn-reset" data-day="1" onclick="scrollToDay(1)"><span class="v1-daynav-short">Di</span><span class="v1-daynav-dots"><span class="v1-daynav-dot" data-day="1" data-slot="0"></span><span class="v1-daynav-dot" data-day="1" data-slot="1"></span><span class="v1-daynav-dot" data-day="1" data-slot="2"></span></span></button>
+                            <button type="button" class="v1-daynav-btn btn-reset" data-day="2" onclick="scrollToDay(2)"><span class="v1-daynav-short">Mi</span><span class="v1-daynav-dots"><span class="v1-daynav-dot" data-day="2" data-slot="0"></span><span class="v1-daynav-dot" data-day="2" data-slot="1"></span><span class="v1-daynav-dot" data-day="2" data-slot="2"></span></span></button>
+                            <button type="button" class="v1-daynav-btn btn-reset" data-day="3" onclick="scrollToDay(3)"><span class="v1-daynav-short">Do</span><span class="v1-daynav-dots"><span class="v1-daynav-dot" data-day="3" data-slot="0"></span><span class="v1-daynav-dot" data-day="3" data-slot="1"></span><span class="v1-daynav-dot" data-day="3" data-slot="2"></span></span></button>
+                            <button type="button" class="v1-daynav-btn btn-reset" data-day="4" onclick="scrollToDay(4)"><span class="v1-daynav-short">Fr</span><span class="v1-daynav-dots"><span class="v1-daynav-dot" data-day="4" data-slot="0"></span><span class="v1-daynav-dot" data-day="4" data-slot="1"></span><span class="v1-daynav-dot" data-day="4" data-slot="2"></span></span></button>
+                            <button type="button" class="v1-daynav-btn btn-reset" data-day="5" onclick="scrollToDay(5)"><span class="v1-daynav-short">Sa</span><span class="v1-daynav-dots"><span class="v1-daynav-dot" data-day="5" data-slot="0"></span><span class="v1-daynav-dot" data-day="5" data-slot="1"></span><span class="v1-daynav-dot" data-day="5" data-slot="2"></span></span></button>
+                            <button type="button" class="v1-daynav-btn btn-reset" data-day="6" onclick="scrollToDay(6)"><span class="v1-daynav-short">So</span><span class="v1-daynav-dots"><span class="v1-daynav-dot" data-day="6" data-slot="0"></span><span class="v1-daynav-dot" data-day="6" data-slot="1"></span><span class="v1-daynav-dot" data-day="6" data-slot="2"></span></span></button>
                         </div>
 
                         <!-- Plan Container (rendered by JS) -->
@@ -3141,14 +3047,18 @@
 
                         <!-- Shopping List Section -->
                         <div class="v1-shopping" id="v1ShoppingSection" onclick="withButtonSpinner(document.getElementById('v1ShoppingSection'), prepareShoppingList)">
-                            <i class="bi bi-basket3 v1-shopping-icon"></i>
+                            <div class="v1-shopping-icon">
+                                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18l-2 13H5L3 6zM8 6V4a4 4 0 0 1 8 0v2"/></svg>
+                            </div>
                             <div class="v1-shopping-text">
-                                <div class="v1-shopping-title">Einkaufsliste</div>
+                                <div class="v1-shopping-title">Einkaufsliste laden</div>
                                 <div class="v1-shopping-sub">Tippen zum Generieren</div>
                             </div>
-                            <i class="bi bi-chevron-right v1-shopping-arrow"></i>
+                            <button type="button" class="v1-shopping-go btn-reset">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+                            </button>
                         </div>
-                        <div class="shopping-share" style="margin:0 16px 16px;display:none;" id="v1ShoppingDetail">
+                        <div class="shopping-share" style="margin:0 20px 16px;display:none;" id="v1ShoppingDetail">
                             <div id="shoppingChecklistWrap" class="shopping-checklist" style="display:none;"></div>
                             <textarea id="shoppingListEditor" class="form-control form-control-sm" rows="6" placeholder="Liste laden und bearbeiten..." style="display:none;"></textarea>
                             <div class="d-flex gap-2 mt-2">
@@ -3162,12 +3072,12 @@
                             <input id="shoppingShareLink" class="form-control form-control-sm mt-2" type="text" readonly placeholder="Hier erscheint der Link..." />
                         </div>
 
-                        <div style="height:80px;"></div>
+                        <div style="height:100px;"></div>
                     </div>
 
                     <!-- FAB -->
-                    <button type="button" class="v1-fab" id="v1Fab" onclick="v1FabAction()" style="display:none;">
-                        <i class="bi bi-plus-lg"></i>
+                    <button type="button" class="v1-fab btn-reset" id="v1Fab" onclick="v1FabAction()" style="display:none;" aria-label="Rezept hinzufügen">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
                     </button>
                 </div>
             </div>
@@ -3996,21 +3906,28 @@
             const container = document.getElementById('planContainer');
             if (!container) return;
 
+            const dayNums = ['01','02','03','04','05','06','07'];
+            const svgCopy = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+            const svgPlus = '<svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>';
+            const svgHeart = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>';
+            const svgPencil = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>';
+            const svgSwap = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>';
+            const svgTrash = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>';
+            const svgChevDown = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
+
             let html = '';
 
             days.forEach((day, dayIndex) => {
-                const isDuplicateSource = duplicateSourceDayIndex === dayIndex;
-                const isDuplicateTarget = duplicateSourceDayIndex !== null && duplicateSourceDayIndex !== dayIndex;
-                const duplicateLabel = isDuplicateSource ? 'Abbrechen' : duplicateSourceDayIndex === null ? 'Kopieren' : 'Hierhin';
+                const isDupSource = duplicateSourceDayIndex === dayIndex;
+                const isDupTarget = duplicateSourceDayIndex !== null && duplicateSourceDayIndex !== dayIndex;
 
                 let dayHtml = `<div class="v1-day" id="day-section-${dayIndex}" data-day-index="${dayIndex}">
-                    <div class="v1-day-header">
-                        <span class="v1-day-label">${day}</span>
-                        <div class="v1-day-actions">
-                            <button type="button" class="v1-day-dup-btn${isDuplicateSource ? ' is-source' : ''}${isDuplicateTarget ? ' is-target' : ''}" data-action="duplicate-day" data-day-index="${dayIndex}">
-                                <i class="bi bi-copy"></i> ${duplicateLabel}
-                            </button>
-                        </div>
+                    <div class="v1-day-head">
+                        <div class="v1-day-num">${dayNums[dayIndex]}</div>
+                        <div class="v1-day-name">${day}</div>
+                        <button type="button" class="v1-day-dup btn-reset${isDupSource ? ' is-source' : ''}${isDupTarget ? ' is-target' : ''}" data-action="duplicate-day" data-day-index="${dayIndex}" aria-label="${isDupSource ? 'Abbrechen' : duplicateSourceDayIndex === null ? 'Duplizieren' : 'Hierhin kopieren'}">
+                            ${svgCopy}
+                        </button>
                     </div>
                     <div class="v1-day-meals">`;
 
@@ -4019,41 +3936,51 @@
                     const item = weeklyPlanData[key];
 
                     if (item) {
-                        const mediaTag = (item.img && item.img.endsWith('.mp4'))
-                            ? `<video src="${item.img}#t=0.1" class="v1-meal-img" muted playsinline preload="metadata"></video>`
-                            : `<img src="${item.img}" class="v1-meal-img" loading="lazy" />`;
+                        const mediaInner = (item.img && item.img.endsWith('.mp4'))
+                            ? `<video src="${item.img}#t=0.1" muted playsinline preload="metadata"></video>`
+                            : `<img src="${item.img}" loading="lazy" alt="" />`;
 
+                        const kcalVal = item.kcal ? `🔥 ${item.kcal} kcal` : '';
+                        const minVal = item.min ? `⏱ ${item.min} Min` : '';
                         dayHtml += `
                         <div class="v1-meal" data-slot-kind="filled" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
-                            ${mediaTag}
-                            <div class="v1-meal-gradient"></div>
-                            <span class="v1-meal-type-pill">${slotName}</span>
-                            <div class="v1-meal-content">
-                                <div class="v1-meal-title" title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</div>
+                            <div class="v1-meal-img">
+                                ${mediaInner}
+                                <div class="v1-meal-type-pill">${slotName}</div>
+                                <button type="button" class="v1-meal-fav btn-reset">${svgHeart}</button>
+                                <div class="v1-meal-grad"></div>
+                                <div class="v1-meal-caption">
+                                    <h3 title="${escapeHtml(item.title || '')}">${escapeHtml(item.title || '')}</h3>
+                                    <div class="v1-meal-stats">${kcalVal ? `<span>${kcalVal}</span>` : ''}${minVal ? `<span>${minVal}</span>` : ''}</div>
+                                </div>
                             </div>
-                        </div>
-                        <div class="v1-meal-actions">
-                            <button type="button" class="v1-meal-act" data-action="edit-slot" data-slot-key="${key}"><i class="bi bi-pencil"></i> Ersetzen</button>
-                            <button type="button" class="v1-meal-act delete" data-action="delete-slot" data-slot-key="${key}"><i class="bi bi-trash3"></i> Entfernen</button>
+                            <div class="v1-meal-actions">
+                                <button type="button" class="v1-meal-act btn-reset" data-action="show-recipe" data-slot-key="${key}">${svgPencil} Bearbeiten</button>
+                                <button type="button" class="v1-meal-act btn-reset" data-action="edit-slot" data-slot-key="${key}">${svgSwap} Ersetzen</button>
+                                <button type="button" class="v1-meal-act v1-meal-act-danger btn-reset" data-action="delete-slot" data-slot-key="${key}" aria-label="Entfernen">${svgTrash}</button>
+                            </div>
                         </div>`;
                     } else {
-                        const highlightClass = pendingRecipe ? ' is-highlight' : '';
+                        const hlClass = pendingRecipe ? ' is-highlight' : '';
                         dayHtml += `
-                        <div class="v1-empty${highlightClass}" data-slot-kind="empty" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
-                            <i class="bi bi-plus-circle v1-empty-icon"></i>
-                            <span class="v1-empty-label">${slotName}</span>
-                            <span class="v1-empty-hint">${pendingRecipe ? 'Tippen zum Hinzufügen' : 'Rezept wählen'}</span>
-                        </div>`;
+                        <button type="button" class="v1-empty${hlClass}" data-slot-kind="empty" data-slot-key="${key}" data-day-index="${dayIndex}" data-slot-index="${slotIndex}">
+                            <div class="v1-empty-icon">${svgPlus}</div>
+                            <div class="v1-empty-text">
+                                <div class="v1-empty-label">${slotName}</div>
+                                <div class="v1-empty-sub">${pendingRecipe ? 'Tippen zum Hinzufügen' : 'Rezept wählen'}</div>
+                            </div>
+                        </button>`;
                     }
                 });
 
-                // Day nutrition (collapsed by default)
+                // Day nutrition button (collapsed by default)
                 dayHtml += `</div>
+                    <button type="button" class="v1-day-nutrition" data-action="toggle-day-nutrition" data-day-index="${dayIndex}">
+                        <span class="v1-day-nutrition-kcal" id="dayNutritionKcalLabel-${dayIndex}">&#x2014; kcal</span>
+                        <span class="v1-day-nutrition-label">Nährwerte</span>
+                        ${svgChevDown}
+                    </button>
                     <div class="day-nutrition is-collapsed" data-day-index="${dayIndex}">
-                        <button type="button" class="day-nutrition-toggle" data-day-index="${dayIndex}" aria-expanded="false">
-                            <span class="plan-nutrition-toggle-content"><i class="bi bi-chevron-down"></i><span>Tages-Nährwerte</span></span>
-                            <span class="day-nutrition-status" id="dayNutritionStatus-${dayIndex}">Keine Rezepte</span>
-                        </button>
                         <div class="day-nutrition-body">
                             <div class="nutrition-segment day-nutrition-segment" data-day-index="${dayIndex}">
                                 <button type="button" class="nutrition-seg-btn is-active" data-mode="total">Gesamt</button>
@@ -4262,32 +4189,17 @@
                 return;
             }
 
-            const toggle = event.target.closest('.day-nutrition-toggle');
-            if (toggle) {
-                const dayIndex = toggle.dataset.dayIndex;
-                if (dayIndex !== undefined) toggleDayNutrition(Number(dayIndex));
-                return;
-            }
-
-            const segBtn = event.target.closest('.day-nutrition-segment .nutrition-seg-btn');
-            if (segBtn) {
-                const seg = segBtn.closest('.day-nutrition-segment');
-                const di = seg?.dataset.dayIndex;
-                if (di === undefined) return;
-                const mode = segBtn.dataset.mode;
-                seg.querySelectorAll('.nutrition-seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
-                const totalGrid = document.getElementById(`dayNutritionGridTotal-${di}`);
-                const portionGrid = document.getElementById(`dayNutritionGridPortion-${di}`);
-                if (totalGrid) totalGrid.style.display = mode === 'total' ? '' : 'none';
-                if (portionGrid) portionGrid.style.display = mode === 'portion' ? '' : 'none';
-                return;
-            }
-
             const actionButton = event.target.closest('[data-action]');
             if (actionButton) {
                 const action = actionButton.dataset.action;
                 const slotKey = actionButton.dataset.slotKey;
                 const dayIndex = actionButton.dataset.dayIndex;
+
+                if (action === 'toggle-day-nutrition' && dayIndex !== undefined) {
+                    toggleDayNutrition(Number(dayIndex));
+                    actionButton.classList.toggle('is-expanded');
+                    return;
+                }
 
                 if (action === 'edit-slot' && slotKey) {
                     startEditSlot(slotKey);
@@ -4305,6 +4217,20 @@
                 }
             }
 
+            const segBtn = event.target.closest('.day-nutrition-segment .nutrition-seg-btn');
+            if (segBtn) {
+                const seg = segBtn.closest('.day-nutrition-segment');
+                const di = seg?.dataset.dayIndex;
+                if (di === undefined) return;
+                const mode = segBtn.dataset.mode;
+                seg.querySelectorAll('.nutrition-seg-btn').forEach(b => b.classList.toggle('is-active', b === segBtn));
+                const totalGrid = document.getElementById(`dayNutritionGridTotal-${di}`);
+                const portionGrid = document.getElementById(`dayNutritionGridPortion-${di}`);
+                if (totalGrid) totalGrid.style.display = mode === 'total' ? '' : 'none';
+                if (portionGrid) portionGrid.style.display = mode === 'portion' ? '' : 'none';
+                return;
+            }
+
             const emptySlot = event.target.closest('.v1-empty[data-slot-key]');
             if (emptySlot?.dataset.slotKey && pendingRecipe) {
                 addToSlot(emptySlot.dataset.slotKey);
@@ -4312,7 +4238,7 @@
             }
 
             const filledSlot = event.target.closest('.v1-meal[data-slot-key]');
-            if (filledSlot?.dataset.slotKey && pendingRecipe && !event.target.closest('.v1-meal-act')) {
+            if (filledSlot?.dataset.slotKey && pendingRecipe && !event.target.closest('.v1-meal-act') && !event.target.closest('.v1-meal-act-danger')) {
                 setSlotItem(filledSlot.dataset.slotKey, pendingRecipe, {
                     save: true,
                     haptic: true,
@@ -4602,54 +4528,48 @@
         }
 
         function setNutritionTotals(data) {
-            const caloriesEl = document.getElementById('planNutritionCalories');
-            const proteinEl = document.getElementById('planNutritionProtein');
-            const fatEl = document.getElementById('planNutritionFat');
-            const carbsEl = document.getElementById('planNutritionCarbs');
-            const sugarEl = document.getElementById('planNutritionSugar');
-            const fiberEl = document.getElementById('planNutritionFiber');
-            const saturatedEl = document.getElementById('planNutritionSaturatedFat');
-            const saltEl = document.getElementById('planNutritionSalt');
-
-            const ppCaloriesEl = document.getElementById('planNutritionPerPortionCalories');
-            const ppProteinEl = document.getElementById('planNutritionPerPortionProtein');
-            const ppFatEl = document.getElementById('planNutritionPerPortionFat');
-            const ppCarbsEl = document.getElementById('planNutritionPerPortionCarbs');
-            const ppSugarEl = document.getElementById('planNutritionPerPortionSugar');
-            const ppFiberEl = document.getElementById('planNutritionPerPortionFiber');
-            const ppSaturatedEl = document.getElementById('planNutritionPerPortionSaturatedFat');
-            const ppSaltEl = document.getElementById('planNutritionPerPortionSalt');
-
             const calories = data?.calories;
             const protein = data?.protein;
             const fat = data?.fat;
             const carbs = data?.carbohydrates;
-            const sugar = data?.sugar;
-            const fiber = data?.fiber;
-            const saturatedFat = data?.saturatedFat;
-            const salt = data?.salt;
 
-            if (caloriesEl) caloriesEl.textContent = formatNutritionValue(calories, 0);
-            if (proteinEl) proteinEl.textContent = formatNutritionValue(protein, 1);
-            if (fatEl) fatEl.textContent = formatNutritionValue(fat, 1);
-            if (carbsEl) carbsEl.textContent = formatNutritionValue(carbs, 1);
-            if (sugarEl) sugarEl.textContent = formatNutritionValue(sugar, 1);
-            if (fiberEl) fiberEl.textContent = formatNutritionValue(fiber, 1);
-            if (saturatedEl) saturatedEl.textContent = formatNutritionValue(saturatedFat, 1);
-            if (saltEl) saltEl.textContent = formatNutritionValue(salt, 1);
+            // v1-macro-kcal — big number with <span>kcal</span>
+            const kcalEl = document.getElementById('planNutritionCalories');
+            if (kcalEl) {
+                const val = Number.isFinite(calories) ? Math.round(calories).toLocaleString('de-DE') : '\u2014';
+                kcalEl.innerHTML = `${val} <span>kcal</span>`;
+            }
 
-            const personCount = Math.max(1, parseInt(document.getElementById('planPersonCount')?.value || '1', 10) || 1);
-            const perPortion = (v) => (Number.isFinite(v) ? v / personCount : v);
+            // v1-macro bars (protein / fat / carbs)
+            const p = Number.isFinite(protein) ? protein : 0;
+            const f = Number.isFinite(fat) ? fat : 0;
+            const c = Number.isFinite(carbs) ? carbs : 0;
+            const total = p + f + c;
+            const pPct = total > 0 ? Math.round(p / total * 100) : 0;
+            const fPct = total > 0 ? Math.round(f / total * 100) : 0;
+            const cPct = total > 0 ? 100 - pPct - fPct : 0;
 
-            if (ppCaloriesEl) ppCaloriesEl.textContent = formatNutritionValue(perPortion(calories), 0);
-            if (ppProteinEl) ppProteinEl.textContent = formatNutritionValue(perPortion(protein), 1);
-            if (ppFatEl) ppFatEl.textContent = formatNutritionValue(perPortion(fat), 1);
-            if (ppCarbsEl) ppCarbsEl.textContent = formatNutritionValue(perPortion(carbs), 1);
-            if (ppSugarEl) ppSugarEl.textContent = formatNutritionValue(perPortion(sugar), 1);
-            if (ppFiberEl) ppFiberEl.textContent = formatNutritionValue(perPortion(fiber), 1);
-            if (ppSaturatedEl) ppSaturatedEl.textContent = formatNutritionValue(perPortion(saturatedFat), 1);
-            if (ppSaltEl) ppSaltEl.textContent = formatNutritionValue(perPortion(salt), 1);
+            const setBar = (id, pct, val) => {
+                const fill = document.getElementById(id + 'Fill');
+                const valEl = document.getElementById(id + 'Val');
+                if (fill) fill.style.width = pct + '%';
+                if (valEl) valEl.textContent = Math.round(val) + 'g';
+            };
+            setBar('macroBarProtein', pPct, p);
+            setBar('macroBarFat', fPct, f);
+            setBar('macroBarCarbs', cPct, c);
 
+            // Goal ring (weekly target, default 14000 kcal = 2000/day × 7)
+            const goalInput = document.getElementById('kcalGoalInput');
+            const dailyGoal = parseInt(goalInput?.value || '2000', 10) || 2000;
+            const weeklyGoal = dailyGoal * 7;
+            const goalPct = Number.isFinite(calories) ? Math.min(Math.round(calories / weeklyGoal * 100), 100) : 0;
+            const ringFill = document.getElementById('macroGoalRingFill');
+            if (ringFill) ringFill.setAttribute('stroke-dasharray', `${(goalPct / 100) * 150.8} 150.8`);
+            const goalPctEl = document.getElementById('macroGoalPct');
+            if (goalPctEl) goalPctEl.textContent = goalPct + '%';
+
+            // Day-nutrition donut still uses old updateMacroBar (with prefix)
             updateMacroBar(protein, fat, carbs, calories);
             updateHeroChips();
         }
@@ -4933,12 +4853,10 @@
 
         function toggleDayNutrition(dayIndex) {
             const nutritionEl = document.querySelector(`.day-nutrition[data-day-index="${dayIndex}"]`);
-            const toggle = document.querySelector(`.day-nutrition-toggle[data-day-index="${dayIndex}"]`);
-            if (!nutritionEl || !toggle) return;
+            if (!nutritionEl) return;
 
             const isCollapsed = nutritionEl.classList.contains('is-collapsed');
             nutritionEl.classList.toggle('is-collapsed', !isCollapsed);
-            toggle.setAttribute('aria-expanded', isCollapsed ? 'true' : 'false');
         }
 
         function getDayRecipeIds(dayIndex) {
@@ -5111,17 +5029,22 @@
             const kcalEl = document.getElementById('v1ChipKcal');
             const kcalSrc = document.getElementById('planNutritionCalories');
             if (kcalEl && kcalSrc) {
-                const val = kcalSrc.textContent?.trim();
-                kcalEl.textContent = (val && val !== '\u2014') ? val : '\u2014';
+                const raw = kcalSrc.textContent?.replace(/[^\d.,]/g, '').trim();
+                if (raw && raw !== '') {
+                    const num = parseFloat(raw.replace(/\./g, '').replace(',', '.'));
+                    kcalEl.textContent = Number.isFinite(num) ? (num / 1000).toFixed(1) + 'k kcal' : '\u2014';
+                } else {
+                    kcalEl.textContent = '\u2014';
+                }
             }
         }
 
         function updateDayNavDots() {
-            days.forEach((_, dayIndex) => {
-                const dot = document.getElementById(`v1DayDot-${dayIndex}`);
-                if (!dot) return;
-                const hasMeals = slots.some((_, slotIndex) => !!weeklyPlanData[getSlotKey(dayIndex, slotIndex)]);
-                dot.classList.toggle('has-meals', hasMeals);
+            document.querySelectorAll('.v1-daynav-dot').forEach(dot => {
+                const dayIndex = Number(dot.dataset.day);
+                const slotIndex = Number(dot.dataset.slot);
+                const isFilled = !!weeklyPlanData[getSlotKey(dayIndex, slotIndex)];
+                dot.classList.toggle('is-filled', isFilled);
             });
         }
 
@@ -5213,15 +5136,12 @@
 
             if (pendingRecipe) {
                 card.classList.add('is-visible');
-                const mediaEl = document.getElementById('pendingRecipeMedia');
+                const imgEl = document.getElementById('pendingRecipeImg');
                 const titleEl = document.getElementById('pendingRecipeTitle');
                 if (titleEl) titleEl.textContent = pendingRecipe.title || '';
-                if (mediaEl) {
-                    if (pendingRecipe.img && pendingRecipe.img.endsWith('.mp4')) {
-                        mediaEl.innerHTML = `<video src="${pendingRecipe.img}#t=0.1" muted playsinline preload="metadata"></video>`;
-                    } else {
-                        mediaEl.innerHTML = `<img src="${pendingRecipe.img}" loading="lazy" />`;
-                    }
+                if (imgEl) {
+                    imgEl.src = pendingRecipe.img || '';
+                    imgEl.style.display = pendingRecipe.img ? '' : 'none';
                 }
             } else {
                 card.classList.remove('is-visible');
