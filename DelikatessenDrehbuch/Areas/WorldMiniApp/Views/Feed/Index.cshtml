@@ -4269,7 +4269,7 @@
             clearWeeklyPlanState();
             showToast("Plan gespeichert!", "success");
             setTimeout(() => {
-                window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(title)}`;
+                window.location.href = `/WorldMiniApp/MealPlan/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(title)}`;
             }, 600);
         }
 
