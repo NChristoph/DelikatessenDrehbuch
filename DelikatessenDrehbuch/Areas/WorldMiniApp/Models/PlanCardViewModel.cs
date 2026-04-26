@@ -42,6 +42,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public decimal? FatGrams { get; set; }
         public decimal? CarbsGrams { get; set; }
 
+        public decimal? KcalPerDay => CaloriesKcal.HasValue && DayCount > 0
+            ? Math.Round(CaloriesKcal.Value / DayCount, 0)
+            : null;
+
+        public List<string> Tags { get; set; } = new();
+
+        public decimal? PriceUsdce { get; set; }
+
         public string JourneyLabel => $"Teil der {CreatorName} Journey";
     }
 }

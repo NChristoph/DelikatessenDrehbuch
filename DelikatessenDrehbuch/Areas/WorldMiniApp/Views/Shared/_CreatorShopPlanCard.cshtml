@@ -1,140 +1,366 @@
 @using System.Linq
+@using System.Globalization
 
 @model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel
 @{
-    var carouselId = $"cs-carousel-{Model.ListingId}";
-    var heroSlides = (Model.HeroSlides ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardHeroSlideViewModel>()).Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl)).ToList();
+    var heroSlides = (Model.HeroSlides ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardHeroSlideViewModel>())
+        .Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl)).ToList();
     var hasMacroData = Model.CaloriesKcal.HasValue || Model.ProteinGrams.HasValue || Model.FatGrams.HasValue || Model.CarbsGrams.HasValue;
-    var totalSlides = heroSlides.Count + (hasMacroData ? 1 : 0);
+    var tags = Model.Tags?.Take(3).ToList() ?? new List<string>();
+    var priceInvariant = Model.PriceWld.ToString(CultureInfo.InvariantCulture);
+    var creatorInitial = !string.IsNullOrEmpty(Model.CreatorName) ? Model.CreatorName[0].ToString().ToUpper() : "?";
+    var kcalPerDay = Model.KcalPerDay;
+    var proteinPct = Model.ProteinGrams.HasValue ? Math.Min(100, Math.Round((double)Model.ProteinGrams.Value / 250.0 * 100.0)) : 0;
+    var fatPct = Model.FatGrams.HasValue ? Math.Min(100, Math.Round((double)Model.FatGrams.Value / 250.0 * 100.0)) : 0;
+    var carbsPct = Model.CarbsGrams.HasValue ? Math.Min(100, Math.Round((double)Model.CarbsGrams.Value / 250.0 * 100.0)) : 0;
 }
 
-<article class="cs-card" aria-label="Plan @Model.Title von @Model.CreatorName">
+<article class="cs-card" data-listing-id="@Model.ListingId">
+
+    <!-- ═══ HERO (4:3) ═══ -->
     <div class="cs-hero">
         @if (heroSlides.Any())
         {
-            <div id="@carouselId" class="carousel slide cs-carousel" data-bs-ride="carousel">
-                <div class="carousel-indicators cs-indicators">
-                    @for (var i = 0; i < totalSlides; i++)
-                    {
-                        <button type="button"
-                                data-bs-target="#@carouselId"
-                                data-bs-slide-to="@i"
-                                class="@(i == 0 ? "active" : "")"
-                                aria-current="@(i == 0 ? "true" : "false")"
-                                aria-label="Slide @(i + 1)"></button>
-                    }
-                </div>
-
-                <div class="carousel-inner">
-                    @for (var i = 0; i < heroSlides.Count; i++)
-                    {
-                        <div class="carousel-item @(i == 0 ? "active" : "")">
-                            <img src="@heroSlides[i].ImageUrl" alt="@($"Rezeptbild {i + 1} für {Model.Title}")" class="cs-hero-img" loading="lazy" />
-                            <div class="cs-recipe-caption">@heroSlides[i].RecipeTitle</div>
-                        </div>
-                    }
-
-                    @if (hasMacroData)
-                    {
-                        <div class="carousel-item @(heroSlides.Count == 0 ? "active" : "")">
-                            <div class="cs-hero-macro-slide" aria-label="Gesamtmakros dieses Plans">
-                                <div class="cs-macro-title">Gesamt-Makros</div>
-                                <div class="cs-macro-grid">
-                                    <span>kcal: @(Model.CaloriesKcal.HasValue ? Math.Round(Model.CaloriesKcal.Value).ToString() : "-")</span>
-                                    <span>Protein: @(Model.ProteinGrams.HasValue ? $"{Math.Round(Model.ProteinGrams.Value, 1)}g" : "-")</span>
-                                    <span>Fett: @(Model.FatGrams.HasValue ? $"{Math.Round(Model.FatGrams.Value, 1)}g" : "-")</span>
-                                    <span>KH: @(Model.CarbsGrams.HasValue ? $"{Math.Round(Model.CarbsGrams.Value, 1)}g" : "-")</span>
-                                </div>
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
+            <img src="@heroSlides[0].ImageUrl"
+                 alt="@Model.Title"
+                 class="cs-hero-img"
+                 id="heroImg-@Model.ListingId"
+                 loading="lazy" />
         }
         else
         {
-            <div class="cs-hero-fallback" aria-hidden="true"></div>
-            @if (hasMacroData)
-            {
-                <div class="cs-hero-macro-slide cs-hero-macro-slide-absolute" aria-label="Gesamtmakros dieses Plans">
-                    <div class="cs-macro-title">Gesamt-Makros</div>
-                    <div class="cs-macro-grid">
-                        <span>kcal: @(Model.CaloriesKcal.HasValue ? Math.Round(Model.CaloriesKcal.Value).ToString() : "-")</span>
-                        <span>Protein: @(Model.ProteinGrams.HasValue ? $"{Math.Round(Model.ProteinGrams.Value, 1)}g" : "-")</span>
-                        <span>Fett: @(Model.FatGrams.HasValue ? $"{Math.Round(Model.FatGrams.Value, 1)}g" : "-")</span>
-                        <span>KH: @(Model.CarbsGrams.HasValue ? $"{Math.Round(Model.CarbsGrams.Value, 1)}g" : "-")</span>
-                    </div>
-                </div>
-            }
+            <div class="cs-hero-fallback"></div>
         }
 
-        <div class="cs-overlay"></div>
+        <div class="cs-hero-overlay"></div>
 
-        <span class="cs-premium-pill">
-            <i class="bi bi-stars me-1"></i>Premium
+        <!-- Premium badge -->
+        <span class="cs-premium-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="#c8a45c">
+                <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/>
+            </svg>
+            Premium
         </span>
 
-        <div class="cs-hero-text">
+        <!-- Like button -->
+        <button class="cs-like-btn" aria-label="Merken">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#14391f" stroke-width="2">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+            </svg>
+        </button>
+
+        <!-- Bottom: Glass Tags + Title + Creator -->
+        <div class="cs-hero-bottom">
+            @if (tags.Any())
+            {
+                <div class="cs-hero-tags">
+                    @foreach (var tag in tags)
+                    {
+                        <span class="cs-glass-tag">@tag</span>
+                    }
+                </div>
+            }
+
             <h3 class="cs-title">@Model.Title</h3>
-            <p class="cs-subline mb-0">@Model.DayCount Tage · @Model.RecipeCount Rezepte · @Model.CreatedDateLabel</p>
-        </div>
-    </div>
 
-    <div class="cs-body">
-        <div class="cs-creator-label">@Model.JourneyLabel</div>
-
-        <div class="cs-macro-row" role="list" aria-label="Makros und Tags">
-            @if (Model.CaloriesKcal.HasValue)
-            {
-                <span class="cs-chip" role="listitem">@Math.Round(Model.CaloriesKcal.Value) kcal</span>
-            }
-            @if (Model.ProteinGrams.HasValue)
-            {
-                <span class="cs-chip" role="listitem">@Math.Round(Model.ProteinGrams.Value, 1)g Protein</span>
-            }
-            @if (Model.IsLowCarb)
-            {
-                <span class="cs-chip cs-chip-tag" role="listitem">Low Carb</span>
-            }
-            @if (Model.IsDietFriendly)
-            {
-                <span class="cs-chip cs-chip-tag" role="listitem">Diät</span>
-            }
-        </div>
-
-        <div class="cs-social-row" aria-label="Social Proof">
-            <span>⭐ @Model.Rating.ToString("0.0")</span>
-            <span>🔥 @Model.SoldCount verkauft</span>
-            <span>👥 @Model.ActivePlannerCount planen aktuell</span>
-        </div>
-
-
-        <div class="cs-token-toggle" title="WLD / USDCE">
-            <span>WLD</span>
-            <label class="cs-switch" for="cs-switch-@Model.ListingId">
-                <input type="checkbox" id="cs-switch-@Model.ListingId" class="feed-token-switch" onchange="setFeedToken(this.checked ? 'USDCE' : 'WLD', @Model.ListingId)" aria-label="Währung zwischen WLD und USDCE wechseln" />
-                <span class="cs-slider"></span>
-            </label>
-            <span>USDCE</span>
-        </div>
-
-        <div class="cs-cta-row">
-            <button type="button"
-                    class="cs-btn cs-btn-secondary"
-                    aria-label="@($"Vorschau für {Model.Title} öffnen")"
-                    onclick="showFeedPreview(@Model.ListingId)">
-                Vorschau
-            </button>
-
-            <div class="cs-buy-wrap">
-                <div class="cs-price" id="feedPrice-@Model.ListingId" data-price-wld="@Model.PriceWld.ToString(System.Globalization.CultureInfo.InvariantCulture)">@Model.PriceLabel</div>
-                <button type="button"
-                        class="cs-btn cs-btn-primary"
-                        aria-label="@($"Plan {Model.Title} freischalten")"
-                        onclick="buyFeedListing(@Model.ListingId, '@Model.TitleJsSafe', @Model.PriceWld.ToString(System.Globalization.CultureInfo.InvariantCulture), '@(Model.SellerWalletAddress ?? "")')">
-                    Freischalten
-                </button>
+            <div class="cs-creator-row">
+                <span class="cs-creator-avatar">@creatorInitial</span>
+                <span class="cs-creator-name">@Model.CreatorName</span>
+                <span class="cs-creator-sep">&middot;</span>
+                <span class="cs-creator-duration">@Model.DayCount Tage</span>
             </div>
         </div>
     </div>
+
+    <!-- ═══ STATS STRIP ══��� -->
+    <div class="cs-stats-strip">
+        <div class="cs-stat-cell">
+            <div class="cs-stat-value">@Model.RecipeCount</div>
+            <div class="cs-stat-label">Rezepte</div>
+        </div>
+        @if (kcalPerDay.HasValue)
+        {
+            <div class="cs-stat-cell">
+                <div class="cs-stat-value">@(kcalPerDay.Value >= 1000 ? $"{(kcalPerDay.Value / 1000m):0.#}k" : Math.Round(kcalPerDay.Value).ToString())</div>
+                <div class="cs-stat-label">kcal/Tag</div>
+            </div>
+        }
+        <div class="cs-stat-cell">
+            <div class="cs-stat-value">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="#f5b942">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                </svg>
+                @Model.Rating.ToString("0.0")
+            </div>
+            <div class="cs-stat-label">@Model.SoldCount verk.</div>
+        </div>
+    </div>
+
+    <!-- ═══ THUMBNAIL CAROUSEL ═══ -->
+    @if (heroSlides.Count > 1)
+    {
+        <div class="cs-carousel-section">
+            <div class="cs-carousel-header">
+                <span class="cs-carousel-label">Gerichte im Plan</span>
+                <span class="cs-carousel-counter" id="carouselCounter-@Model.ListingId">1 / @heroSlides.Count</span>
+            </div>
+            <div class="cs-carousel-track" id="carouselTrack-@Model.ListingId" data-listing-id="@Model.ListingId">
+                @for (var i = 0; i < heroSlides.Count; i++)
+                {
+                    <div class="cs-carousel-item js-cs-thumb @(i == 0 ? "active" : "")"
+                         data-index="@i"
+                         data-img="@heroSlides[i].ImageUrl">
+                        <img src="@heroSlides[i].ImageUrl"
+                             alt="@heroSlides[i].RecipeTitle"
+                             class="cs-carousel-thumb"
+                             loading="lazy" />
+                        <div class="cs-carousel-name">@heroSlides[i].RecipeTitle</div>
+                    </div>
+                }
+            </div>
+            <div class="cs-carousel-dots" id="carouselDots-@Model.ListingId">
+                @for (var i = 0; i < heroSlides.Count; i++)
+                {
+                    <span class="cs-carousel-dot @(i == 0 ? "active" : "")" data-index="@i"></span>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- ═══ MACROS PANEL (collapsible) ═══ -->
+    @if (hasMacroData)
+    {
+        <div class="cs-macros-section">
+            <button class="cs-macros-toggle js-cs-macros-toggle" data-listing-id="@Model.ListingId" id="macrosToggle-@Model.ListingId">
+                <span class="cs-macros-toggle-label">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 2 a10 10 0 0 1 8.66 5"/>
+                    </svg>
+                    Makros &amp; N&auml;hrwerte
+                </span>
+                <svg class="cs-macros-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M6 9l6 6 6-6"/>
+                </svg>
+            </button>
+
+            <div class="cs-macros-panel" id="macrosPanel-@Model.ListingId">
+                <div class="cs-macros-header">
+                    <div>
+                        <div class="cs-macros-kcal-label">Pro Tag</div>
+                        <div class="cs-macros-kcal-value">
+                            @(kcalPerDay.HasValue ? Math.Round(kcalPerDay.Value).ToString() : "-")
+                            <span class="cs-macros-kcal-unit">kcal</span>
+                        </div>
+                    </div>
+                    <div class="cs-macros-info">
+                        <div class="cs-macros-info-sub">@Model.DayCount Tage</div>
+                        <div class="cs-macros-info-main">@Model.RecipeCount Rezepte</div>
+                    </div>
+                </div>
+
+                <div class="cs-macro-bars">
+                    @if (Model.ProteinGrams.HasValue)
+                    {
+                        <div class="cs-macro-bar-row">
+                            <span class="cs-macro-bar-label">Protein</span>
+                            <div class="cs-macro-bar-track">
+                                <div class="cs-macro-bar-fill protein" style="width: @(proteinPct)%"></div>
+                            </div>
+                            <span class="cs-macro-bar-value">@Math.Round(Model.ProteinGrams.Value, 1)g</span>
+                        </div>
+                    }
+                    @if (Model.FatGrams.HasValue)
+                    {
+                        <div class="cs-macro-bar-row">
+                            <span class="cs-macro-bar-label">Fett</span>
+                            <div class="cs-macro-bar-track">
+                                <div class="cs-macro-bar-fill fat" style="width: @(fatPct)%"></div>
+                            </div>
+                            <span class="cs-macro-bar-value">@Math.Round(Model.FatGrams.Value, 1)g</span>
+                        </div>
+                    }
+                    @if (Model.CarbsGrams.HasValue)
+                    {
+                        <div class="cs-macro-bar-row">
+                            <span class="cs-macro-bar-label">KH</span>
+                            <div class="cs-macro-bar-track">
+                                <div class="cs-macro-bar-fill carbs" style="width: @(carbsPct)%"></div>
+                            </div>
+                            <span class="cs-macro-bar-value">@Math.Round(Model.CarbsGrams.Value, 1)g</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <!-- ═══ FOOTER: Currency Toggle + Buttons ═══ -->
+    <div class="cs-card-footer">
+        <div class="cs-currency-pill" id="currencyPill-@Model.ListingId">
+            <button class="cs-currency-opt active js-cs-currency" data-token="WLD" data-listing-id="@Model.ListingId">WLD</button>
+            <button class="cs-currency-opt js-cs-currency" data-token="USDCE" data-listing-id="@Model.ListingId">USDCE</button>
+        </div>
+        <div class="cs-footer-actions">
+            <button class="cs-btn-preview js-cs-preview" data-listing-id="@Model.ListingId"
+                    aria-label="Vorschau f&uuml;r @Model.Title">
+                Vorschau
+            </button>
+            <button class="cs-btn-buy js-cs-buy"
+                    id="buyBtn-@Model.ListingId"
+                    data-listing-id="@Model.ListingId"
+                    data-price-wld="@priceInvariant"
+                    data-title="@Model.TitleJsSafe"
+                    data-seller-wallet="@(Model.SellerWalletAddress ?? "")">
+                <span class="cs-btn-buy-price" id="feedPrice-@Model.ListingId" data-price-wld="@priceInvariant">@priceInvariant WLD</span>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
+                    <path d="M5 12h14M13 5l7 7-7 7"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <!-- ═══ SOCIAL PROOF FOOTER ═══ -->
+    <div class="cs-social-footer">
+        <span class="cs-social-avatars">
+            <span class="cs-social-avatar-stack">
+                <span class="cs-social-avatar a1"></span>
+                <span class="cs-social-avatar a2"></span>
+                <span class="cs-social-avatar a3"></span>
+            </span>
+            <span><strong class="cs-social-count">@Model.ActivePlannerCount</strong> planen jetzt</span>
+        </span>
+        <span>@Model.CreatedDateLabel</span>
+    </div>
+
 </article>
+
+@* ── Self-contained card interactions (runs once via guard) ��─ *@
+<script>
+if (!window._csCardInitDone) {
+    window._csCardInitDone = true;
+
+    document.addEventListener('click', function(e) {
+        // ── Thumbnail click → switch hero ──
+        var thumb = e.target.closest('.js-cs-thumb');
+        if (thumb) {
+            var card = thumb.closest('.cs-card');
+            if (!card) return;
+            var listingId = card.dataset.listingId;
+            var idx = parseInt(thumb.dataset.index, 10);
+            var imgUrl = thumb.dataset.img;
+
+            var heroImg = document.getElementById('heroImg-' + listingId);
+            if (heroImg && imgUrl) heroImg.src = imgUrl;
+
+            var track = thumb.closest('.cs-carousel-track');
+            if (track) {
+                var items = track.querySelectorAll('.cs-carousel-item');
+                for (var i = 0; i < items.length; i++) items[i].classList.remove('active');
+                thumb.classList.add('active');
+            }
+
+            var dots = document.getElementById('carouselDots-' + listingId);
+            if (dots) {
+                var allDots = dots.querySelectorAll('.cs-carousel-dot');
+                for (var d = 0; d < allDots.length; d++) allDots[d].classList.remove('active');
+                var activeDot = dots.querySelector('[data-index="' + idx + '"]');
+                if (activeDot) activeDot.classList.add('active');
+            }
+
+            var counter = document.getElementById('carouselCounter-' + listingId);
+            var total = track ? track.children.length : 0;
+            if (counter) counter.textContent = (idx + 1) + ' / ' + total;
+            return;
+        }
+
+        // ── Macros toggle ──
+        var macrosBtn = e.target.closest('.js-cs-macros-toggle');
+        if (macrosBtn) {
+            var lid = macrosBtn.dataset.listingId;
+            var panel = document.getElementById('macrosPanel-' + lid);
+            if (!panel) return;
+            var isOpen = panel.classList.contains('open');
+            if (isOpen) {
+                panel.classList.remove('open');
+                macrosBtn.classList.remove('expanded');
+            } else {
+                panel.classList.add('open');
+                macrosBtn.classList.add('expanded');
+            }
+            return;
+        }
+
+        // ── Currency pill toggle ──
+        var currBtn = e.target.closest('.js-cs-currency');
+        if (currBtn) {
+            var cLid = currBtn.dataset.listingId;
+            var token = currBtn.dataset.token;
+            var pill = document.getElementById('currencyPill-' + cLid);
+            if (pill) {
+                var opts = pill.querySelectorAll('.cs-currency-opt');
+                for (var o = 0; o < opts.length; o++) {
+                    opts[o].classList.toggle('active', opts[o].dataset.token === token);
+                }
+            }
+            if (typeof updateListingPrice === 'function') {
+                updateListingPrice(cLid, token);
+            }
+            return;
+        }
+
+        // ── Preview button ──
+        var prevBtn = e.target.closest('.js-cs-preview');
+        if (prevBtn) {
+            var pLid = prevBtn.dataset.listingId;
+            if (typeof showFeedPreview === 'function') showFeedPreview(pLid);
+            else if (typeof showPreview === 'function') showPreview(pLid);
+            return;
+        }
+
+        // ���─ Buy button ──
+        var buyBtn = e.target.closest('.js-cs-buy');
+        if (buyBtn) {
+            var bLid = buyBtn.dataset.listingId;
+            var bTitle = buyBtn.dataset.title;
+            var bPrice = parseFloat(buyBtn.dataset.priceWld);
+            var bWallet = buyBtn.dataset.sellerWallet;
+            if (typeof buyFeedListing === 'function') buyFeedListing(bLid, bTitle, bPrice, bWallet);
+            else if (typeof buyListing === 'function') buyListing(bLid, bTitle, bPrice, bWallet);
+            return;
+        }
+    });
+
+    // ── Scroll-based carousel sync ──
+    document.querySelectorAll('.cs-carousel-track').forEach(function(track) {
+        track.addEventListener('scroll', function() {
+            var listingId = track.dataset.listingId;
+            if (!listingId) return;
+            var scrollLeft = track.scrollLeft;
+            var itemWidth = 92;
+            var idx = Math.round(scrollLeft / itemWidth);
+
+            var items = track.querySelectorAll('.cs-carousel-item');
+            for (var i = 0; i < items.length; i++) {
+                items[i].classList.toggle('active', i === idx);
+            }
+
+            var dots = document.getElementById('carouselDots-' + listingId);
+            if (dots) {
+                var allDots = dots.querySelectorAll('.cs-carousel-dot');
+                for (var d = 0; d < allDots.length; d++) allDots[d].classList.toggle('active', d === idx);
+            }
+
+            var counter = document.getElementById('carouselCounter-' + listingId);
+            if (counter) counter.textContent = (idx + 1) + ' / ' + items.length;
+
+            var activeItem = items[idx];
+            if (activeItem) {
+                var imgUrl = activeItem.dataset.img;
+                var heroImg = document.getElementById('heroImg-' + listingId);
+                if (heroImg && imgUrl) heroImg.src = imgUrl;
+            }
+        }, { passive: true });
+    });
+}
+</script>

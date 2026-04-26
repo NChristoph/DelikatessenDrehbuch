@@ -318,6 +318,16 @@ END;
                 .ToList();
             var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
 
+            // Build nutrition totals per listing
+            var nutritionMap = new Dictionary<int, NutritionTotals>();
+            foreach (var listing in marketplaceListings)
+            {
+                var lRecipeIds = ExtractRecipeIdsFromMealPlanJson(listing.MealPlan?.MealPlan)
+                    .Where(id => id > 0).Distinct().ToList();
+                if (lRecipeIds.Any())
+                    nutritionMap[listing.Id] = await BuildNutritionTotalsAsync(lRecipeIds);
+            }
+
             ViewData["MarketplaceListings"] = marketplaceListings;
             ViewData["CreatorShopCards"] = marketplaceListings.Select(listing =>
             {
@@ -327,6 +337,9 @@ END;
                     .Select(id => recipeMediaMap[id])
                     .Where(media => !string.IsNullOrWhiteSpace(media.ImageUrl))
                     .ToList();
+
+                nutritionMap.TryGetValue(listing.Id, out var nutrition);
+                var desc = listing.Description ?? string.Empty;
 
                 return new PlanCardViewModel
                 {
@@ -341,12 +354,17 @@ END;
                     RecipeCount = listing.RecipeCount,
                     CreatedDateLabel = listing.CreatedAt.ToString("dd.MM.yy"),
                     PriceWld = listing.Price,
+                    CaloriesKcal = nutrition?.Calories,
+                    ProteinGrams = nutrition?.Protein,
+                    FatGrams = nutrition?.Fat,
+                    CarbsGrams = nutrition?.Carbohydrates,
                     Rating = listing.SoldCount > 0 ? 4.8m : 4.6m,
                     SoldCount = listing.SoldCount,
                     ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
-                    IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
-                    IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
-                        || (listing.Description ?? string.Empty).Contains("di�t", StringComparison.OrdinalIgnoreCase),
+                    IsLowCarb = desc.Contains("low carb", StringComparison.OrdinalIgnoreCase),
+                    IsDietFriendly = desc.Contains("diet", StringComparison.OrdinalIgnoreCase)
+                        || desc.Contains("diät", StringComparison.OrdinalIgnoreCase),
+                    Tags = ExtractTags(desc, nutrition),
                     HeroSlides = heroImages.Select(x => new PlanCardHeroSlideViewModel { ImageUrl = x.ImageUrl, RecipeTitle = x.RecipeTitle }).ToList(),
                     HeroImageUrls = heroImages.Select(x => x.ImageUrl).ToList(),
                     HeroImageUrl = heroImages.Select(x => x.ImageUrl).FirstOrDefault()
@@ -790,6 +808,7 @@ END;
                 .FirstOrDefaultAsync(x => x.WorldUserCommentId == commentId && x.UserHash == userHash, cancellationToken);
 
             var wantsLike = normalizedReaction == "like";
+            var isNewLike = false;
             if (entity == null)
             {
                 entity = new WorldUserCommentReaction
@@ -801,6 +820,7 @@ END;
                     UpdatedAtUtc = DateTime.UtcNow
                 };
                 await _context.WorldUserCommentReactions.AddAsync(entity, cancellationToken);
+                isNewLike = wantsLike;
             }
             else if (entity.IsLike == wantsLike)
             {
@@ -811,9 +831,20 @@ END;
             {
                 entity.IsLike = wantsLike;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
+                isNewLike = wantsLike;
             }
 
             await _context.SaveChangesAsync(cancellationToken);
+
+            // Create notification for comment owner if this was a new like
+            if (isNewLike)
+            {
+                var user = await _context.WorldAppUser
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.UserHash == userHash, cancellationToken);
+                var likerName = user?.UserName ?? "Jemand";
+                await TryAddCommentLikeNotificationAsync(userHash, likerName, commentId, cancellationToken);
+            }
 
             var summary = await GetCommentReactionSummaryAsync(commentId, userHash, cancellationToken);
             return Json(new
@@ -1102,6 +1133,9 @@ END;
                     };
                     recipe.LikeCount++;
                     await _context.WorldUserLike.AddAsync(newLike);
+
+                    // Create notification for posting owner
+                    await TryAddLikeNotificationAsync(userHash, user.UserName ?? "Jemand", recipeId, CancellationToken.None);
                 }
             }
             await _context.SaveChangesAsync();
@@ -1492,6 +1526,111 @@ END;
             return Json(result);
         }
 
+        // ── Notification Endpoints ──
+
+        [HttpGet]
+        public async Task<IActionResult> GetNotifications(string? filter = null, int limit = 50, CancellationToken cancellationToken = default)
+        {
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { success = false, message = "Nicht angemeldet." });
+
+            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+            var query = _context.WorldUserNotifications
+                .AsNoTracking()
+                .Where(x => x.UserHash == userHash);
+
+            if (filter == "unread")
+                query = query.Where(x => !x.IsSeen);
+
+            var notifications = await query
+                .OrderByDescending(x => x.CreatedAtUtc)
+                .Take(Math.Min(limit, 100))
+                .Select(x => new
+                {
+                    id = x.Id,
+                    icon = x.Icon,
+                    sender = x.Sender,
+                    description = x.Description,
+                    href = x.Href,
+                    createdAtUtc = x.CreatedAtUtc,
+                    isSeen = x.IsSeen,
+                    seenAtUtc = x.SeenAtUtc
+                })
+                .ToListAsync(cancellationToken);
+
+            return Json(new { success = true, notifications });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkNotificationAsRead([FromForm] int notificationId, CancellationToken cancellationToken = default)
+        {
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { success = false, message = "Nicht angemeldet." });
+
+            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+            var notification = await _context.WorldUserNotifications
+                .FirstOrDefaultAsync(x => x.Id == notificationId && x.UserHash == userHash, cancellationToken);
+
+            if (notification == null)
+                return Json(new { success = false, message = "Benachrichtigung nicht gefunden." });
+
+            if (!notification.IsSeen)
+            {
+                notification.IsSeen = true;
+                notification.SeenAtUtc = DateTime.UtcNow;
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+
+            return Json(new { success = true });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkAllNotificationsAsRead(CancellationToken cancellationToken = default)
+        {
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { success = false, message = "Nicht angemeldet." });
+
+            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+            var unreadNotifications = await _context.WorldUserNotifications
+                .Where(x => x.UserHash == userHash && !x.IsSeen)
+                .ToListAsync(cancellationToken);
+
+            var now = DateTime.UtcNow;
+            foreach (var notification in unreadNotifications)
+            {
+                notification.IsSeen = true;
+                notification.SeenAtUtc = now;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return Json(new { success = true, count = unreadNotifications.Count });
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetUnreadNotificationCount(CancellationToken cancellationToken = default)
+        {
+            var userHash = ResolveUserHash(string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { count = 0 });
+
+            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+            var count = await _context.WorldUserNotifications
+                .AsNoTracking()
+                .CountAsync(x => x.UserHash == userHash && !x.IsSeen, cancellationToken);
+
+            return Json(new { count });
+        }
+
         private string ResolveUserHash(string userHash)
         {
             return WorldMiniAppUserHashHelper.Resolve(HttpContext, userHash);
@@ -1808,6 +1947,123 @@ END;
                 : $"{normalized[..117].TrimEnd()}...";
         }
 
+        private async Task TryAddLikeNotificationAsync(string likerUserHash, string likerName, int recipeId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var posting = await _context.WorldUserPosting
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Recipe != null && x.Recipe.Id == recipeId, cancellationToken);
+
+                if (posting == null || string.IsNullOrWhiteSpace(posting.CreatorId))
+                    return;
+
+                // Don't notify yourself
+                if (string.Equals(posting.CreatorId, likerUserHash, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+                var recipeTitle = string.IsNullOrWhiteSpace(posting.Title) ? "dein Video" : posting.Title.Trim();
+                var description = $"{likerName} hat {recipeTitle} geliked.";
+                var href = $"/WorldMiniApp/Feed?scrollToId={recipeId}";
+                var sender = "like-video";
+                var icon = "bi-heart-fill";
+
+                var exists = await _context.WorldUserNotifications
+                    .AsNoTracking()
+                    .AnyAsync(x => x.UserHash == posting.CreatorId
+                        && x.Sender == sender
+                        && x.Href == href
+                        && x.Description == description,
+                        cancellationToken);
+
+                if (exists)
+                    return;
+
+                _context.WorldUserNotifications.Add(new WorldUserNotification
+                {
+                    UserHash = posting.CreatorId,
+                    Icon = icon,
+                    Sender = sender,
+                    Description = description,
+                    Href = href,
+                    CreatedAtUtc = DateTime.UtcNow,
+                    IsSeen = false,
+                    SeenAtUtc = null
+                });
+
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch
+            {
+                // best-effort
+            }
+        }
+
+        private async Task TryAddCommentLikeNotificationAsync(string likerUserHash, string likerName, int commentId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var comment = await _context.WorldUserComments
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == commentId && !x.IsDeleted, cancellationToken);
+
+                if (comment == null || string.IsNullOrWhiteSpace(comment.UserHash))
+                    return;
+
+                // Don't notify yourself
+                if (string.Equals(comment.UserHash, likerUserHash, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+
+                var excerpt = BuildCommentNotificationExcerpt(comment.CommentText);
+                var description = string.IsNullOrWhiteSpace(excerpt)
+                    ? $"{likerName} hat deinen Kommentar geliked."
+                    : $"{likerName} hat deinen Kommentar geliked.\n\"{excerpt}\"";
+
+                var posting = await _context.WorldUserPosting
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(x => x.Id == comment.WorldUserPostingId, cancellationToken);
+
+                var recipeId = posting?.Recipe?.Id ?? 0;
+                var scrollToId = recipeId > 0 ? recipeId : posting?.Id ?? 0;
+                var href = $"/WorldMiniApp/Feed?scrollToId={scrollToId}&openComments=1&postingId={comment.WorldUserPostingId}&commentId={commentId}";
+                var sender = "like-comment";
+                var icon = "bi-heart-fill";
+
+                var exists = await _context.WorldUserNotifications
+                    .AsNoTracking()
+                    .AnyAsync(x => x.UserHash == comment.UserHash
+                        && x.Sender == sender
+                        && x.Href == href
+                        && x.Description == description,
+                        cancellationToken);
+
+                if (exists)
+                    return;
+
+                _context.WorldUserNotifications.Add(new WorldUserNotification
+                {
+                    UserHash = comment.UserHash,
+                    Icon = icon,
+                    Sender = sender,
+                    Description = description,
+                    Href = href,
+                    CreatedAtUtc = DateTime.UtcNow,
+                    IsSeen = false,
+                    SeenAtUtc = null
+                });
+
+                await _context.SaveChangesAsync(cancellationToken);
+            }
+            catch
+            {
+                // best-effort
+            }
+        }
+
         private async Task EnsureWorldUserCommentsSchemaAsync(CancellationToken cancellationToken = default)
         {
             if (CommentsSchemaEnsured) return;
@@ -1843,10 +2099,89 @@ END;
         }
 
 
+
+        private async Task<NutritionTotals> BuildNutritionTotalsAsync(List<int> recipeIds)
+        {
+            var recipes = await _context.RecipeBaseData
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.IngredientsAndNutrients)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Quantity)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(ri => ri.Ingredient)
+                        .ThenInclude(i => i.Measure)
+                .Where(r => recipeIds.Contains(r.Id))
+                .AsNoTracking()
+                .ToListAsync();
+
+            var totals = new NutritionTotals();
+            foreach (var recipe in recipes)
+            {
+                if (recipe.Ingredients == null) continue;
+                foreach (var entry in recipe.Ingredients)
+                {
+                    var ingredient = entry.Ingredient;
+                    var nutrient = ingredient?.IngredientsAndNutrients;
+                    if (nutrient == null) continue;
+                    var quantity = ingredient.Quantity?.Quantitys ?? 0;
+                    var unit = ingredient.Measure?.Metrics_DE ?? string.Empty;
+                    var grams = (decimal)quantity;
+                    if (string.Equals(unit, "Stk.", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(unit, "Stück", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var weightPerPiece = nutrient.Weight_per_piece > 0 ? nutrient.Weight_per_piece : 0;
+                        grams = (decimal)weightPerPiece * (decimal)quantity;
+                    }
+                    if (grams <= 0) continue;
+                    totals.Calories += ((decimal)nutrient.Calories_a_100g * grams) / 100m;
+                    totals.Fat += (nutrient.Fat_a_100g * grams) / 100m;
+                    totals.Carbohydrates += (nutrient.Carbohydrates_a_100g * grams) / 100m;
+                    totals.Protein += (nutrient.Protein_a_100g * grams) / 100m;
+                }
+            }
+
+            totals.Calories = Math.Round(totals.Calories, 0);
+            totals.Fat = Math.Round(totals.Fat, 1);
+            totals.Carbohydrates = Math.Round(totals.Carbohydrates, 1);
+            totals.Protein = Math.Round(totals.Protein, 1);
+            return totals;
+        }
+
+        private static List<string> ExtractTags(string description, NutritionTotals? nutrition)
+        {
+            var tags = new List<string>();
+            var desc = description.ToLowerInvariant();
+            if (desc.Contains("high protein") || desc.Contains("high-protein") || desc.Contains("proteinreich"))
+                tags.Add("High-Protein");
+            if (desc.Contains("low carb") || desc.Contains("low-carb"))
+                tags.Add("Low Carb");
+            if (desc.Contains("vegan"))
+                tags.Add("Vegan");
+            else if (desc.Contains("vegetarisch") || desc.Contains("vegetarian"))
+                tags.Add("Vegetarisch");
+            if (desc.Contains("keto"))
+                tags.Add("Keto");
+            if (desc.Contains("diät") || desc.Contains("diet") || desc.Contains("abnehm"))
+                tags.Add("Diät");
+            if (tags.Count == 0 && nutrition != null)
+            {
+                if (nutrition.Protein > 0 && nutrition.Calories > 0 && (nutrition.Protein * 4 / nutrition.Calories) > 0.30m)
+                    tags.Add("High-Protein");
+                if (nutrition.Carbohydrates > 0 && nutrition.Calories > 0 && (nutrition.Carbohydrates * 4 / nutrition.Calories) < 0.20m)
+                    tags.Add("Low Carb");
+            }
+            return tags;
+        }
+
+        private class NutritionTotals
+        {
+            public decimal Calories { get; set; }
+            public decimal Protein { get; set; }
+            public decimal Fat { get; set; }
+            public decimal Carbohydrates { get; set; }
+        }
     }
 }
-
-
-
-
 

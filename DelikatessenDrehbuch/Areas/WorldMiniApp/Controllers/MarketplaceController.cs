@@ -74,6 +74,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .Distinct()
                 .ToList();
             var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
+
+            // Build nutrition totals per listing
+            var nutritionMap = new Dictionary<int, NutritionTotals>();
+            foreach (var listing in listings)
+            {
+                var listingRecipeIds = ExtractRecipeIdsFromMealPlanJson(listing.MealPlan?.MealPlan)
+                    .Where(id => id > 0).Distinct().ToList();
+                if (listingRecipeIds.Any())
+                {
+                    nutritionMap[listing.Id] = await BuildNutritionTotalsAsync(listingRecipeIds);
+                }
+            }
+
             var creatorShopCards = listings.Select(listing =>
             {
                 var listingRecipeIds = ExtractRecipeIdsFromMealPlanJson(listing.MealPlan?.MealPlan);
@@ -82,6 +95,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .Select(id => recipeMediaMap[id])
                     .Where(media => !string.IsNullOrWhiteSpace(media.ImageUrl))
                     .ToList();
+
+                nutritionMap.TryGetValue(listing.Id, out var nutrition);
+                var desc = listing.Description ?? string.Empty;
 
                 return new PlanCardViewModel
                 {
@@ -96,12 +112,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     RecipeCount = listing.RecipeCount,
                     CreatedDateLabel = listing.CreatedAt.ToString("dd.MM.yy"),
                     PriceWld = listing.Price,
+                    CaloriesKcal = nutrition?.Calories,
+                    ProteinGrams = nutrition?.Protein,
+                    FatGrams = nutrition?.Fat,
+                    CarbsGrams = nutrition?.Carbohydrates,
                     Rating = listing.SoldCount > 0 ? 4.8m : 4.6m,
                     SoldCount = listing.SoldCount,
                     ActivePlannerCount = Math.Max(3, (listing.SoldCount % 17) + 3),
-                    IsLowCarb = (listing.Description ?? string.Empty).Contains("low carb", StringComparison.OrdinalIgnoreCase),
-                    IsDietFriendly = (listing.Description ?? string.Empty).Contains("diet", StringComparison.OrdinalIgnoreCase)
-                        || (listing.Description ?? string.Empty).Contains("diät", StringComparison.OrdinalIgnoreCase),
+                    IsLowCarb = desc.Contains("low carb", StringComparison.OrdinalIgnoreCase),
+                    IsDietFriendly = desc.Contains("diet", StringComparison.OrdinalIgnoreCase)
+                        || desc.Contains("diät", StringComparison.OrdinalIgnoreCase),
+                    Tags = ExtractTags(desc, nutrition),
                     HeroSlides = heroImages.Select(x => new PlanCardHeroSlideViewModel { ImageUrl = x.ImageUrl, RecipeTitle = x.RecipeTitle }).ToList(),
                     HeroImageUrls = heroImages.Select(x => x.ImageUrl).ToList(),
                     HeroImageUrl = heroImages.Select(x => x.ImageUrl).FirstOrDefault()
@@ -769,6 +790,40 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             totals.Fiber = Math.Round(totals.Fiber, 1);
 
             return totals;
+        }
+
+        private static List<string> ExtractTags(string description, NutritionTotals? nutrition)
+        {
+            var tags = new List<string>();
+            var desc = description.ToLowerInvariant();
+
+            if (desc.Contains("high protein") || desc.Contains("high-protein") || desc.Contains("proteinreich"))
+                tags.Add("High-Protein");
+            if (desc.Contains("low carb") || desc.Contains("low-carb"))
+                tags.Add("Low Carb");
+            if (desc.Contains("vegan"))
+                tags.Add("Vegan");
+            else if (desc.Contains("vegetarisch") || desc.Contains("vegetarian"))
+                tags.Add("Vegetarisch");
+            if (desc.Contains("keto"))
+                tags.Add("Keto");
+            if (desc.Contains("diät") || desc.Contains("diet") || desc.Contains("abnehm"))
+                tags.Add("Diät");
+            if (desc.Contains("glutenfrei") || desc.Contains("gluten-free") || desc.Contains("gluten free"))
+                tags.Add("Glutenfrei");
+            if (desc.Contains("schnell") || desc.Contains("quick") || desc.Contains("15 min"))
+                tags.Add("Schnell");
+
+            // Infer from nutrition if no tags found
+            if (tags.Count == 0 && nutrition != null)
+            {
+                if (nutrition.Protein > 0 && nutrition.Calories > 0 && (nutrition.Protein * 4 / nutrition.Calories) > 0.30m)
+                    tags.Add("High-Protein");
+                if (nutrition.Carbohydrates > 0 && nutrition.Calories > 0 && (nutrition.Carbohydrates * 4 / nutrition.Calories) < 0.20m)
+                    tags.Add("Low Carb");
+            }
+
+            return tags;
         }
 
         private class NutritionTotals

@@ -18,185 +18,68 @@
 <link rel="stylesheet" href="~/css/creator-shop-cards.css" />
 
 <style>
-    .mp-hero {
-        background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #334155 100%);
-        border-radius: 1.25rem;
-        padding: 1.5rem;
-        color: #fff;
-        position: relative;
-        overflow: hidden;
+    /* ─── Page Shell — Handheld Marketplace ─── */
+    body { background: #f5efe1 !important; }
+
+    .mp-page-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 0;
+        margin-bottom: 14px;
     }
-    .mp-hero::before {
-        content: '';
-        position: absolute;
-        top: -50%;
-        right: -30%;
-        width: 200px;
-        height: 200px;
-        background: radial-gradient(circle, rgba(245,158,11,.15) 0%, transparent 70%);
-        border-radius: 50%;
+    .mp-page-header h5 {
+        font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+        font-weight: 600;
+        font-size: 24px;
+        letter-spacing: -0.02em;
+        margin: 0;
+        color: #14391f;
+    }
+    .mp-page-subtitle {
+        font-size: 12px;
+        color: #6b7868;
+        margin-top: 2px;
     }
 
-    .mp-card {
-        background: #fff;
+    .mp-sell-btn {
+        background: #14391f;
+        color: white;
         border: none;
-        border-radius: 1.25rem;
-        box-shadow: 0 2px 16px rgba(0,0,0,.06);
-        transition: transform .2s ease, box-shadow .2s ease;
-        overflow: hidden;
-        cursor: pointer;
-    }
-    .mp-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 8px 32px rgba(0,0,0,.12);
-    }
-
-    .mp-card-header {
-        background: linear-gradient(135deg, #f8fafc, #f1f5f9);
-        padding: 1rem 1.25rem .75rem;
-        border-bottom: 1px solid #e2e8f0;
-    }
-
-    .mp-card-body { padding: 1rem 1.25rem; }
-
-    .mp-card-footer {
-        padding: .75rem 1.25rem;
-        background: #fafbfc;
-        border-top: 1px solid #f1f5f9;
-    }
-
-    .price-tag {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        color: #fff;
-        font-weight: 700;
-        border-radius: .75rem;
-        padding: .35rem .85rem;
-        font-size: .95rem;
-        display: inline-block;
-        box-shadow: 0 2px 8px rgba(245,158,11,.3);
-    }
-
-    .seller-chip {
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: 600;
         display: inline-flex;
         align-items: center;
-        gap: 6px;
-        font-size: .78rem;
-        color: #64748b;
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: 2rem;
-        padding: .2rem .65rem .2rem .3rem;
+        gap: 4px;
+        text-decoration: none;
+        transition: filter .15s;
     }
-    .seller-chip .avatar {
-        width: 22px;
-        height: 22px;
-        border-radius: 50%;
-        background: linear-gradient(135deg, #6366f1, #8b5cf6);
-        color: #fff;
+    .mp-sell-btn:hover { filter: brightness(1.1); color: white; text-decoration: none; }
+    .mp-sell-btn .plus { color: #f5b942; font-size: 14px; margin-right: 2px; }
+
+    .mp-back-link {
+        color: #14391f;
+        text-decoration: none;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: .65rem;
-        font-weight: 700;
-    }
-
-    .stat-chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        font-size: .78rem;
-        background: #f1f5f9;
-        border-radius: .5rem;
-        padding: .3rem .65rem;
-        color: #475569;
-        font-weight: 500;
-    }
-
-    .buy-btn {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-        border: none;
-        color: #fff;
-        font-weight: 600;
-        border-radius: .75rem;
-        padding: .5rem 1.25rem;
-        font-size: .88rem;
-        box-shadow: 0 2px 8px rgba(245,158,11,.25);
-        transition: filter .15s, box-shadow .15s;
-    }
-    .buy-btn:hover { filter: brightness(1.08); color: #fff; box-shadow: 0 4px 16px rgba(245,158,11,.35); }
-    .buy-btn:disabled { opacity: .5; box-shadow: none; }
-
-    .preview-btn {
-        background: transparent;
-        border: 1.5px solid #e2e8f0;
-        color: #475569;
-        font-weight: 500;
-        border-radius: .75rem;
-        padding: .5rem 1rem;
-        font-size: .85rem;
-        transition: all .15s;
-    }
-    .preview-btn:hover { border-color: #94a3b8; background: #f8fafc; color: #1e293b; }
-
-    .token-switch-row {
-        background: #fff;
-        border: 1px solid #e2e8f0;
-        border-radius: .9rem;
-        padding: .55rem .75rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .token-switch {
-        position: relative;
-        width: 52px;
-        height: 30px;
-    }
-    .token-switch input { display: none; }
-    .token-slider {
-        position: absolute;
-        inset: 0;
-        cursor: pointer;
-        background: #334155;
-        border-radius: 40px;
-        transition: all .2s ease;
-    }
-    .token-slider::before {
-        content: '';
-        position: absolute;
-        width: 24px;
-        height: 24px;
-        left: 3px;
-        top: 3px;
+        width: 32px;
+        height: 32px;
         border-radius: 50%;
-        background: #fff;
-        transition: all .2s ease;
-        box-shadow: 0 1px 4px rgba(0,0,0,.2);
-    }
-    .token-switch input:checked + .token-slider {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
-    }
-    .token-switch input:checked + .token-slider::before {
-        transform: translateX(22px);
+        flex-shrink: 0;
     }
 
-    .test-banner {
-        background: linear-gradient(135deg, #fef3c7, #fde68a);
-        color: #92400e;
-        border-radius: .75rem;
-        padding: .5rem 1rem;
-        font-size: .8rem;
-        font-weight: 600;
-        border: 1px solid #fcd34d;
-    }
-
+    /* Wallet bar — dark green */
     .wallet-bar {
-        background: linear-gradient(135deg, #1e293b, #334155);
+        background: linear-gradient(135deg, #1a3a23, #0e2415);
         color: #fff;
-        border-radius: 1rem;
-        padding: .75rem 1.25rem;
+        border-radius: 16px;
+        padding: 14px 16px;
     }
-    .wallet-status { font-size: .8rem; color: #94a3b8; }
+    .wallet-status { font-size: .75rem; opacity: .65; margin-top: 2px; }
+    .wallet-label { font-size: 13px; font-weight: 600; }
     .balance-row {
         border-top: 1px solid rgba(255,255,255,.1);
         padding-top: .6rem;
@@ -206,21 +89,66 @@
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        background: rgba(255,255,255,.1);
+        background: rgba(255,255,255,.08);
         border-radius: .5rem;
         padding: .3rem .75rem;
     }
     .balance-label { font-size: .7rem; font-weight: 700; text-transform: uppercase; opacity: .7; }
     .balance-value { font-size: .9rem; font-weight: 600; }
-    .converted-price { font-size: .72rem; color: #9ca3af; font-weight: 500; }
 
-    .sold-badge {
-        background: linear-gradient(135deg, #10b981, #059669);
-        color: #fff;
-        font-size: .7rem;
-        font-weight: 700;
-        border-radius: .4rem;
-        padding: .15rem .5rem;
+    .mp-wallet-btn {
+        background: rgba(255,255,255,.06);
+        border: 1px solid rgba(255,255,255,.18);
+        color: white;
+        border-radius: 999px;
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 500;
+        cursor: pointer;
+        text-decoration: none;
+        transition: background .15s;
+    }
+    .mp-wallet-btn:hover { background: rgba(255,255,255,.12); color: white; text-decoration: none; }
+    .mp-wallet-btn.primary { background: rgba(255,255,255,.12); }
+
+    /* Filter chips */
+    .mp-filters {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 4px;
+        margin-bottom: 14px;
+        scrollbar-width: none;
+    }
+    .mp-filters::-webkit-scrollbar { display: none; }
+    .mp-chip {
+        flex-shrink: 0;
+        padding: 7px 14px;
+        border-radius: 999px;
+        background: white;
+        border: 1px solid rgba(20, 57, 31, 0.12);
+        font-size: 12px;
+        font-weight: 500;
+        color: #1a2e20;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: all .15s;
+    }
+    .mp-chip.active {
+        background: #14391f;
+        color: white;
+        border-color: #14391f;
+    }
+
+    /* Test banner */
+    .test-banner {
+        background: #fff3d4;
+        border: 1px solid #f0c87a;
+        border-radius: 12px;
+        padding: 8px 12px;
+        font-size: 11px;
+        color: #8a6418;
+        text-align: center;
     }
 
     /* Preview Offcanvas */
@@ -231,9 +159,9 @@
     .preview-day-header {
         font-weight: 700;
         font-size: .85rem;
-        color: #1e293b;
+        color: #14391f;
         padding: .5rem 0 .25rem;
-        border-bottom: 2px solid #f59e0b;
+        border-bottom: 2px solid #f5b942;
         margin-bottom: .5rem;
     }
     .preview-recipe {
@@ -247,17 +175,17 @@
         height: 50px;
         border-radius: .6rem;
         object-fit: cover;
-        background: #f1f5f9;
+        background: #faf6ec;
         flex-shrink: 0;
     }
     .preview-recipe-title {
         font-weight: 600;
         font-size: .85rem;
-        color: #1e293b;
+        color: #14391f;
     }
     .preview-recipe-meta {
         font-size: .72rem;
-        color: #64748b;
+        color: #6b7868;
     }
     .nutrition-grid {
         display: grid;
@@ -266,76 +194,78 @@
     }
     .nutrition-item {
         text-align: center;
-        background: #f8fafc;
+        background: #faf6ec;
         border-radius: .6rem;
         padding: .5rem .25rem;
     }
     .nutrition-value {
+        font-family: 'Fraunces', serif;
         font-weight: 700;
         font-size: 1rem;
-        color: #1e293b;
+        color: #14391f;
     }
     .nutrition-label {
         font-size: .65rem;
-        color: #64748b;
+        color: #6b7868;
         text-transform: uppercase;
         font-weight: 600;
     }
 
-    .back-link {
-        color: #64748b;
-        text-decoration: none;
-        font-size: .88rem;
-        font-weight: 500;
-        transition: color .15s;
+    .own-listing-label {
+        font-size: 11px;
+        color: #6b7868;
+        font-weight: 600;
+        margin-bottom: 4px;
     }
-    .back-link:hover { color: #1e293b; }
+
+    @@keyframes mp-fadeIn {
+        from { opacity: 0; transform: translateY(-4px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 </style>
 
 <div class="container py-3" style="max-width:720px;">
 
-    <!-- Back + Title Row -->
-    <div class="d-flex align-items-center gap-3 mb-3">
-        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="back-link">
-            <i class="bi bi-arrow-left fs-5"></i>
-        </a>
-        <div class="flex-grow-1">
-            <h5 class="fw-bold mb-0">Marketplace</h5>
-            <p class="text-muted small mb-0">Essenspläne kaufen & verkaufen</p>
+    <!-- Header -->
+    <div class="mp-page-header">
+        <div class="d-flex align-items-center gap-2">
+            <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="mp-back-link">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                    <path d="M15 18l-6-6 6-6"/>
+                </svg>
+            </a>
+            <div>
+                <h5>Marktplatz</h5>
+                <div class="mp-page-subtitle">Pläne kaufen &amp; verkaufen</div>
+            </div>
         </div>
-        <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
-           class="btn btn-dark btn-sm rounded-pill px-3">
-            <i class="bi bi-plus-lg me-1"></i>Verkaufen
+        <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="mp-sell-btn">
+            <span class="plus">+</span> Verkaufen
         </a>
     </div>
 
     @if (testMode)
     {
-        <p class="small mb-2 text-warning-emphasis"><i class="bi bi-info-circle me-1"></i>World Testnet (Chain @worldChainId)</p>
+        <div class="test-banner d-flex align-items-center justify-content-center gap-2 mb-3">
+            <i class="bi bi-flask"></i>
+            <span>Testmodus &mdash; World Testnet (Chain @worldChainId)</span>
+        </div>
     }
 
     <!-- Wallet Bar -->
     <div class="wallet-bar mb-3">
         <div class="d-flex justify-content-between align-items-center">
             <div>
-                <div class="small opacity-75">World Wallet</div>
-                <div class="wallet-status mt-1" id="walletStatus">nicht verbunden</div>
+                <div class="wallet-label">World Wallet</div>
+                <div class="wallet-status" id="walletStatus">nicht verbunden</div>
             </div>
             <div class="d-flex gap-2">
-                <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectWalletBtn" onclick="connectWorldWallet()">
+                <button type="button" class="mp-wallet-btn primary" id="connectWalletBtn" onclick="connectWorldWallet()">
                     <i class="bi bi-wallet2 me-1"></i>Verbinden
                 </button>
                 <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
-                   class="btn btn-outline-light btn-sm rounded-pill">Meine</a>
+                   class="mp-wallet-btn">Meine</a>
             </div>
-        </div>
-        <div class="d-flex justify-content-end align-items-center gap-2 mt-2">
-            <span class="small opacity-75">WLD</span>
-            <label class="token-switch" for="globalTokenSwitchTop" title="WLD / USDCE">
-                <input type="checkbox" id="globalTokenSwitchTop" onchange="setGlobalToken(this.checked ? 'USDCE' : 'WLD')">
-                <span class="token-slider"></span>
-            </label>
-            <span class="small opacity-75">USDCE</span>
         </div>
         <div id="walletBalances" class="balance-row d-none">
             <div class="d-flex gap-3">
@@ -353,36 +283,48 @@
 
     @if (allowSelfPurchaseForTesting)
     {
-        <div class="test-banner d-flex align-items-center gap-2 mb-3">
+        <div class="test-banner d-flex align-items-center justify-content-center gap-2 mb-3">
             <i class="bi bi-flask"></i>
-            <span>Testmodus — eigene Listings kaufbar</span>
+            <span>Testmodus &mdash; eigene Listings kaufbar</span>
         </div>
     }
+
+    <!-- Filter Chips -->
+    <div class="mp-filters">
+        <button class="mp-chip active" data-filter="all">Alle (@creatorShopCards.Count)</button>
+        <button class="mp-chip" data-filter="premium">Premium</button>
+        <button class="mp-chip" data-filter="low-carb">Low Carb</button>
+        <button class="mp-chip" data-filter="high-protein">High-Protein</button>
+    </div>
 
     <!-- Listings -->
     @if (!creatorShopCards.Any())
     {
         <div class="text-center py-5">
             <div class="mb-3">
-                <i class="bi bi-shop" style="font-size: 3rem; color: #cbd5e1;"></i>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#6b7868" stroke-width="1.5" opacity=".5">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                    <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
             </div>
-            <p class="text-muted mb-1">Noch keine Angebote vorhanden.</p>
-            <p class="text-muted small mb-3">Sei der Erste, der einen Essensplan verkauft!</p>
-            <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
-               class="btn btn-dark btn-sm rounded-pill px-4">Ersten Plan verkaufen</a>
+            <p style="color:#6b7868" class="mb-1">Noch keine Angebote vorhanden.</p>
+            <p style="color:#6b7868" class="small mb-3">Sei der Erste, der einen Essensplan verkauft!</p>
+            <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="mp-sell-btn">
+                <span class="plus">+</span> Ersten Plan verkaufen
+            </a>
         </div>
     }
     else
     {
-        <div class="d-flex flex-column gap-3 mb-4">
+        <div class="d-flex flex-column gap-3 mb-4" id="listingsContainer">
             @foreach (var card in creatorShopCards)
             {
                 var isOwn = card.CreatorHash == userHash;
 
-                <div class="mb-3">
+                <div class="mb-2">
                     @if (isOwn && !allowSelfPurchaseForTesting)
                     {
-                        <div class="small text-muted fw-medium mb-1">Dein Angebot</div>
+                        <div class="own-listing-label">Dein Angebot</div>
                     }
                     @await Html.PartialAsync("_CreatorShopPlanCard", card)
                 </div>
@@ -418,13 +360,14 @@
 
     function setGlobalToken(token) {
         selectedPaymentToken = token === 'USDCE' ? 'USDCE' : 'WLD';
-        const top = document.getElementById('globalTokenSwitchTop');
-        const checked = selectedPaymentToken === 'USDCE';
-        if (top) top.checked = checked;
-        document.querySelectorAll('.feed-token-switch').forEach(sw => { sw.checked = checked; });
+        // Sync all card currency pills
+        document.querySelectorAll('.cs-currency-pill').forEach(pill => {
+            pill.querySelectorAll('.cs-currency-opt').forEach(opt => {
+                opt.classList.toggle('active', opt.dataset.token === selectedPaymentToken);
+            });
+        });
         updateAllListingPrices();
     }
-
 
     function setFeedToken(token, listingId = null) {
         const selected = token === 'USDCE' ? 'USDCE' : 'WLD';
@@ -432,10 +375,7 @@
             setGlobalToken(selected);
             return;
         }
-
-        const cardSwitch = document.getElementById(`cs-switch-${listingId}`);
-        if (cardSwitch) cardSwitch.checked = selected === 'USDCE';
-        updateListingPrice(listingId, selected);
+        toggleCardCurrency(listingId, selected);
     }
 
     function getSelectedToken() {
@@ -806,8 +746,16 @@
     document.addEventListener('DOMContentLoaded', () => {
         updateWalletStatusUI();
         loadWldPrice();
-
         setGlobalToken('WLD');
+
+        // Filter chips
+        document.querySelectorAll('.mp-chip[data-filter]').forEach(chip => {
+            chip.addEventListener('click', () => {
+                document.querySelectorAll('.mp-chip[data-filter]').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+                // Future: implement actual filtering
+            });
+        });
 
         const previewParam = new URLSearchParams(window.location.search).get('previewId');
         if (previewParam) {
@@ -818,7 +766,7 @@
         const existingAddress = walletAddresses.WLD || walletAddresses.USDCE;
         if (existingAddress) {
             const btn = document.getElementById('connectWalletBtn');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; }
             loadWalletBalances(existingAddress);
         }
 
@@ -829,7 +777,7 @@
                 const balancesEl = document.getElementById('walletBalances');
                 if (balancesEl) balancesEl.classList.add('d-none');
                 const btn = document.getElementById('connectWalletBtn');
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; btn.classList.replace('btn-success', 'btn-outline-light'); }
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
             });
         }
     });

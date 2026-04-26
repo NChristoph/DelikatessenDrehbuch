@@ -69,7 +69,7 @@ async function startLoginProcess() {
 
         log("Bitte World ID in der World App bestätigen...");
 
-        const { commandPayload, finalPayload } = await MiniKit.commandsAsync.verify({
+        const { commandPayload, finalPayload } = await MiniKit.verify({
             action: VERIFY_ACTION,
             verification_level: 'device'
         });
@@ -364,7 +364,7 @@ async function startWalletAuth() {
 
     const nonce = normalizeNonce(await fetchNonce());
 
-    const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
+    const { commandPayload, finalPayload } = await MiniKit.walletAuth({
         nonce
     });
 
@@ -422,7 +422,7 @@ async function connectWalletOnly() {
 
     const nonce = normalizeNonce(await fetchNonce());
 
-    const { commandPayload, finalPayload } = await MiniKit.commandsAsync.walletAuth({
+    const { commandPayload, finalPayload } = await MiniKit.walletAuth({
         nonce
     });
 
@@ -468,7 +468,7 @@ async function startMiniKitPayment({ to, tokenSymbol, amount, reference, descrip
     const paddedFrac = frac.padEnd(decimals, '0').slice(0, decimals);
     const amountSmallestUnit = (BigInt(whole || '0') * (BigInt(10) ** BigInt(decimals)) + BigInt(paddedFrac)).toString();
 
-    const { commandPayload, finalPayload } = await MiniKit.commandsAsync.pay({
+    const { commandPayload, finalPayload } = await MiniKit.pay({
         reference,
         to,
         tokens: [{

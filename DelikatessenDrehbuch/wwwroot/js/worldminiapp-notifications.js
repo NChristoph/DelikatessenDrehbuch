@@ -268,8 +268,14 @@
     }
 
     function applyUiButtons(ui) {
-      if (filterAllBtn) filterAllBtn.classList.toggle("active", ui.filter === "all");
-      if (filterAiBtn) filterAiBtn.classList.toggle("active", ui.filter === "ai");
+      if (filterAllBtn) {
+        filterAllBtn.style.background = ui.filter === "all" ? "#14391f" : "transparent";
+        filterAllBtn.style.color = ui.filter === "all" ? "#fff" : "#14391f";
+      }
+      if (filterAiBtn) {
+        filterAiBtn.style.background = ui.filter === "ai" ? "#14391f" : "transparent";
+        filterAiBtn.style.color = ui.filter === "ai" ? "#fff" : "#14391f";
+      }
       if (groupToggle) groupToggle.checked = !!ui.groupBySender;
     }
 
@@ -304,23 +310,130 @@
       return { items, unread: u };
     }
 
+    function detectType(it) {
+      const sender = String(it?.sender || "").toLowerCase();
+      if (sender === "ai") return "ai";
+      if (sender === "plan" || sender === "mealplan") return "plan";
+      return "system";
+    }
+
+    function fmtRelTime(ts) {
+      try {
+        if (!ts) return "";
+        const n = Number(ts);
+        const d = Number.isFinite(n) ? new Date(n) : new Date(String(ts));
+        const now = new Date();
+        const diffMs = now - d;
+        const diffDays = Math.floor(diffMs / 86400000);
+        if (diffDays <= 0) return d.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" });
+        if (diffDays === 1) return "Gestern";
+        return "Vor " + diffDays + " Tagen";
+      } catch { return ""; }
+    }
+
+    function isToday(ts) {
+      try {
+        const n = Number(ts);
+        const d = Number.isFinite(n) ? new Date(n) : new Date(String(ts));
+        const now = new Date();
+        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth() && d.getDate() === now.getDate();
+      } catch { return false; }
+    }
+
     function groupItems(items, ui) {
       const filtered = (ui.filter === "ai")
-        ? items.filter(x => (String(x?.sender || "")).toLowerCase() === "ai")
+        ? items.filter(x => detectType(x) === "ai")
         : items;
 
       if (!ui.groupBySender) {
         return [{ key: "", label: "", items: filtered }];
       }
 
-      const groups = new Map();
+      const today = [];
+      const earlier = [];
       filtered.forEach(it => {
-        const sender = String(it?.sender || "Info");
-        if (!groups.has(sender)) groups.set(sender, []);
-        groups.get(sender).push(it);
+        const ts = serverMode ? (it.createdAtUtc || it.createdAt || it.ts) : it.ts;
+        if (isToday(ts)) today.push(it);
+        else earlier.push(it);
       });
+      const result = [];
+      if (today.length) result.push({ key: "today", label: "HEUTE", items: today });
+      if (earlier.length) result.push({ key: "earlier", label: "FR\u00dcHER", items: earlier });
+      if (!result.length && filtered.length) result.push({ key: "", label: "", items: filtered });
+      return result;
+    }
 
-      return Array.from(groups.entries()).map(([key, arr]) => ({ key, label: key, items: arr }));
+    function renderCard(it) {
+      const isSeen = serverMode ? !!it.isSeen : !!it.read;
+      const type = detectType(it);
+      const title = serverMode ? String(it.title || "Info") : String(it.title || "");
+      const body = serverMode ? String(it.description || "") : String(it.body || "");
+      const ts = serverMode ? (it.createdAtUtc || it.createdAt || it.ts) : it.ts;
+      const timeStr = fmtRelTime(ts);
+      const href = serverMode ? String(it.href || "") : "";
+      const kcalMatch = body.match(/(\d+)\s*kcal/i);
+      const kcal = kcalMatch ? kcalMatch[1] : "";
+
+      // Unread strip
+      const strip = !isSeen
+        ? '<div style="position:absolute;top:0;bottom:0;left:0;width:3px;background:linear-gradient(180deg,#ff9a3c,#ff7849);border-radius:3px 0 0 3px;"></div>'
+        : "";
+
+      // Thumbnail
+      let thumb = "";
+      if (type === "ai") {
+        thumb = '<div style="width:50px;height:50px;border-radius:11px;background:linear-gradient(135deg,#14391f,#1a4a28);flex-shrink:0;display:flex;align-items:center;justify-content:center;position:relative;">'
+          + '<span style="color:#f5b942;font-size:18px;">&#10022;</span>'
+          + '<span style="position:absolute;top:-3px;right:-3px;width:18px;height:18px;border-radius:50%;background:linear-gradient(135deg,#14391f,#1a4a28);border:2px solid #fff;display:flex;align-items:center;justify-content:center;font-size:9px;color:#f5b942;">&#10022;</span>'
+          + '</div>';
+      } else if (type === "plan") {
+        thumb = '<div style="width:50px;height:50px;border-radius:11px;background:linear-gradient(135deg,#5fa052,#3a7a30);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;">'
+          + '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>'
+          + '</div>';
+      } else {
+        thumb = '<div style="width:50px;height:50px;border-radius:11px;background:linear-gradient(135deg,#f5b942,#c8a45c);flex-shrink:0;display:flex;align-items:center;justify-content:center;color:#fff;">'
+          + '<span style="font-size:18px;">&#128293;</span>'
+          + '</div>';
+      }
+
+      // Type badge
+      let badge = "";
+      if (type === "ai") {
+        badge = '<span style="background:linear-gradient(135deg,#14391f,#1a4a28);color:#fff;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;display:inline-flex;align-items:center;gap:3px;"><span style="color:#f5b942;">&#10022;</span> AI</span>';
+      } else if (type === "plan") {
+        badge = '<span style="background:rgba(95,160,82,0.12);color:#3a7a30;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">PLAN</span>';
+      }
+
+      // kcal pill
+      const kcalPill = kcal
+        ? '<span style="font-size:10px;font-weight:600;color:#6b7868;display:inline-flex;align-items:center;gap:4px;background:#faf6ec;padding:3px 8px;border-radius:999px;"><span style="color:#ff7849;">&#128293;</span>' + escapeHtml(kcal) + ' kcal</span>'
+        : "";
+
+      return '<article style="background:#fff;border-radius:16px;padding:12px;margin-bottom:8px;box-shadow:0 3px 10px rgba(20,57,31,0.05);position:relative;overflow:hidden;display:flex;gap:11px;cursor:pointer;" data-wm-act="' + escapeHtml(it.id) + '">'
+        + strip + thumb
+        + '<div style="flex:1;min-width:0;">'
+        + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
+        + badge
+        + '<span style="font-size:11px;font-weight:600;color:#14391f;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(title) + '</span>'
+        + '<span style="font-size:10px;color:#6b7868;flex-shrink:0;">' + escapeHtml(timeStr) + '</span>'
+        + '</div>'
+        + '<div style="font-size:12px;color:#1a2e20;font-weight:500;line-height:1.35;margin-bottom:8px;">' + escapeHtml(body) + '</div>'
+        + '<div style="display:flex;align-items:center;gap:7px;">'
+        + kcalPill
+        + '<button type="button" style="margin-left:auto;background:linear-gradient(135deg,#ff9a3c,#ff7849);border:none;border-radius:9px;padding:5px 12px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 6px rgba(255,120,73,0.3);" data-wm-act="' + escapeHtml(it.id) + '">'
+        + '\u00d6ffnen <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'
+        + '</button>'
+        + '</div>'
+        + '</div>'
+        + '</article>';
+    }
+
+    function renderSectionHeader(label, count) {
+      return '<div style="display:flex;align-items:center;gap:8px;padding:4px 4px 8px;">'
+        + '<span style="font-size:10px;font-weight:700;color:#14391f;text-transform:uppercase;letter-spacing:0.06em;">' + escapeHtml(label) + '</span>'
+        + '<span style="font-size:10px;font-weight:600;color:#6b7868;background:rgba(20,57,31,0.06);padding:1px 7px;border-radius:999px;">' + count + '</span>'
+        + '<span style="flex:1;height:1px;background:rgba(20,57,31,0.08);"></span>'
+        + '</div>';
     }
 
     async function render() {
@@ -330,43 +443,21 @@
       const items = serverMode ? await apiList() : list();
       await updateBadge();
 
+      // Update filter pill count
+      if (filterAllBtn) filterAllBtn.textContent = "Alle \u00b7 " + items.length;
+
       if (items.length === 0) {
-        listEl.innerHTML = "<div class=\"text-muted\">Keine Benachrichtigungen.</div>";
+        listEl.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#6b7868;font-size:13px;">Keine Benachrichtigungen.</div>';
         return;
       }
 
       const blocks = groupItems(items, ui);
       listEl.innerHTML = blocks.map(block => {
-        const header = (block.label && blocks.length > 1)
-          ? `<div class="small text-muted fw-semibold mb-2 mt-2">${escapeHtml(block.label)}</div>`
+        const header = block.label
+          ? renderSectionHeader(block.label, block.items.length)
           : "";
-
-        const rows = block.items.map(it => {
-          const isSeen = serverMode ? !!it.isSeen : !!it.read;
-          const cls = isSeen ? "opacity-75" : "";
-          const kind = serverMode ? String(it.kind || "") : String(it.kind || "");
-          const kindCls = kind === "error" ? "text-danger" : kind === "success" ? "text-success" : "text-muted";
-          const icon = serverMode ? String(it.icon || "bi-bell") : "";
-          const title = serverMode ? String(it.title || "Info") : String(it.title || "");
-          const body = serverMode ? String(it.description || "") : String(it.body || "");
-          const actionBtn = `<button type="button" class="btn btn-sm btn-outline-primary" data-wm-act="${escapeHtml(it.id)}">Oeffnen</button>`;
-          const ts = serverMode ? (it.createdAtUtc || it.createdAt || it.ts) : it.ts;
-          return `
-            <div class="border rounded-3 p-2 mb-2 ${cls}">
-              <div class="d-flex justify-content-between align-items-start gap-2">
-                <div style="min-width:0;">
-                  <div class="fw-semibold text-truncate">
-                    ${serverMode ? `<i class="bi ${escapeHtml(icon)} me-1"></i>` : ""}${escapeHtml(title)}
-                  </div>
-                  <div class="small ${kindCls}" style="white-space:pre-wrap;">${escapeHtml(body)}</div>
-                </div>
-                <div class="small text-muted">${escapeHtml(fmtTime(ts))}</div>
-              </div>
-              <div class="mt-2 d-flex justify-content-end">${actionBtn}</div>
-            </div>`;
-        }).join("");
-
-        return `${header}${rows}`;
+        const rows = block.items.map(it => renderCard(it)).join("");
+        return header + rows;
       }).join("");
 
       listEl.querySelectorAll("[data-wm-act]").forEach(el => {

@@ -57,6 +57,16 @@
             overflow: hidden;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
         }
+        /* Notification Sheet Avocado overrides */
+        .wm-notify-sheet.offcanvas {
+            display: flex !important;
+            flex-direction: column;
+            border: none;
+            padding: 0;
+        }
+        .wm-notify-sheet.offcanvas:not(.showing):not(.show) {
+            display: none !important;
+        }
 
         .feed-container {
             height: 100vh;
@@ -2859,37 +2869,56 @@
         </div>
     </div>
 
-    <!-- NOTIFICATIONS (lightweight, client-only) -->
-    <div class="offcanvas offcanvas-bottom" tabindex="-1" id="wmNotifyCanvas" aria-labelledby="wmNotifyCanvasLabel" style="height: 70vh; border-top-left-radius: 22px; border-top-right-radius: 22px;">
-        <div class="offcanvas-header" style="padding-bottom: 8px;">
-            <div class="d-flex align-items-center justify-content-between w-100 gap-2">
-                <div>
-                    <div class="fw-semibold" id="wmNotifyCanvasLabel">Benachrichtigungen</div>
-                    <div class="small text-muted">AI und wichtige Hinweise</div>
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Schlie&szlig;en"></button>
-            </div>
+    <!-- NOTIFICATIONS (Avocado Design Bottom Sheet) -->
+    <div class="offcanvas offcanvas-bottom wm-notify-sheet" tabindex="-1" id="wmNotifyCanvas" aria-labelledby="wmNotifyCanvasLabel" style="height:67vh; background:#f5efe1; border-radius:28px 28px 0 0; box-shadow:0 -12px 40px rgba(20,57,31,0.25);">
+        <!-- Drag Handle -->
+        <div style="display:flex;justify-content:center;padding:8px 0 4px;flex-shrink:0;">
+            <span style="width:38px;height:4px;border-radius:999px;background:rgba(20,57,31,0.18);"></span>
         </div>
-        <div class="offcanvas-body" style="padding-top: 6px;">
-            <div class="d-flex gap-2 mb-2">
-                <button type="button" class="btn btn-sm btn-outline-secondary" id="wmNotifyMarkAll">Alles gelesen</button>
-                <button type="button" class="btn btn-sm btn-outline-danger" id="wmNotifyClear">Leeren</button>
-                <button type="button" class="btn btn-sm btn-outline-primary ms-auto" id="wmNotifyOpenPlanBtn">
-                    <i class="bi bi-calendar-week me-1"></i>Plan
-                </button>
-            </div>
-            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
-                <div class="btn-group btn-group-sm" role="group" aria-label="Filter">
-                    <button type="button" class="btn btn-outline-dark" id="wmNotifyFilterAll">Alle</button>
-                    <button type="button" class="btn btn-outline-dark" id="wmNotifyFilterAi">Nur AI</button>
+        <!-- Header -->
+        <div style="padding:8px 20px 14px;display:flex;align-items:flex-start;gap:10px;flex-shrink:0;">
+            <div style="flex:1;">
+                <div style="display:flex;align-items:center;gap:8px;">
+                    <h2 id="wmNotifyCanvasLabel" style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;letter-spacing:-0.02em;margin:0;color:#14391f;line-height:1.1;">Benachrichtigungen</h2>
+                    <span id="wmNotifyUnreadPill" style="display:none;background:linear-gradient(135deg,#ff9a3c,#ff7849);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;"></span>
                 </div>
-                <div class="form-check form-switch m-0">
-                    <input class="form-check-input" type="checkbox" role="switch" id="wmNotifyGroupBySender" checked>
-                    <label class="form-check-label small" for="wmNotifyGroupBySender">Gruppieren</label>
-                </div>
+                <div style="font-size:11px;color:#6b7868;margin-top:3px;">AI Vorschauen &amp; wichtige Hinweise</div>
             </div>
-            <div id="wmNotifyList"></div>
+            <button type="button" data-bs-dismiss="offcanvas" aria-label="Schliessen" style="width:28px;height:28px;border-radius:50%;background:rgba(20,57,31,0.06);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#14391f" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
         </div>
+        <!-- Action Row -->
+        <div style="margin:0 16px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <button type="button" id="wmNotifyMarkAll" class="wm-notify-action-btn" style="background:#fff;border:1px solid rgba(20,57,31,0.12);border-radius:10px;padding:7px 11px;font-size:11px;font-weight:600;color:#14391f;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
+                Alles gelesen
+            </button>
+            <button type="button" id="wmNotifyClear" class="wm-notify-action-btn" style="background:#fff;border:1px solid rgba(255,120,73,0.28);border-radius:10px;padding:7px 11px;font-size:11px;font-weight:600;color:#ff7849;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
+                Leeren
+            </button>
+            <button type="button" id="wmNotifyOpenPlanBtn" style="margin-left:auto;background:linear-gradient(135deg,#ff9a3c,#ff7849);border:none;border-radius:10px;padding:7px 12px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(255,120,73,0.3);">
+                <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+                Plan &ouml;ffnen
+            </button>
+        </div>
+        <!-- Filter / Group Row -->
+        <div style="margin:0 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
+            <div style="display:inline-flex;background:rgba(20,57,31,0.06);border:1px solid rgba(20,57,31,0.1);border-radius:999px;padding:3px;gap:2px;">
+                <button type="button" id="wmNotifyFilterAll" class="wm-notify-filter-pill active" style="background:#14391f;color:#fff;border:none;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;">Alle</button>
+                <button type="button" id="wmNotifyFilterAi" class="wm-notify-filter-pill" style="background:transparent;color:#14391f;border:none;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;">Nur AI</button>
+            </div>
+            <button type="button" id="wmNotifyGroupToggleBtn" style="background:transparent;border:none;display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:#14391f;font-size:11px;font-weight:600;">
+                <span id="wmNotifyGroupTrack" style="width:28px;height:16px;border-radius:999px;background:#14391f;position:relative;display:inline-block;transition:background .2s;">
+                    <span id="wmNotifyGroupKnob" style="position:absolute;top:2px;left:14px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.15);"></span>
+                </span>
+                Gruppieren
+            </button>
+            <input type="checkbox" id="wmNotifyGroupBySender" checked style="display:none;">
+        </div>
+        <!-- Notification List -->
+        <div id="wmNotifyList" style="flex:1;overflow-y:auto;padding:0 14px 20px;"></div>
     </div>
 
     <!-- PLAN MODAL (V1 Fullscreen Redesign) -->
@@ -3224,6 +3253,44 @@
 
             window.addEventListener('wm:notify:feedbadges', (event) => {
                 applyLiveCommentBadges(event?.detail?.counts || {});
+            });
+
+            // Wire custom group toggle button to hidden checkbox
+            const _grpBtn = document.getElementById('wmNotifyGroupToggleBtn');
+            const _grpCb = document.getElementById('wmNotifyGroupBySender');
+            const _grpTrack = document.getElementById('wmNotifyGroupTrack');
+            const _grpKnob = document.getElementById('wmNotifyGroupKnob');
+            function _syncGrpVisual() {
+                const on = _grpCb && _grpCb.checked;
+                if (_grpTrack) _grpTrack.style.background = on ? '#14391f' : 'rgba(20,57,31,0.2)';
+                if (_grpKnob) _grpKnob.style.left = on ? '14px' : '2px';
+            }
+            _grpBtn && _grpBtn.addEventListener('click', () => {
+                if (_grpCb) { _grpCb.checked = !_grpCb.checked; _grpCb.dispatchEvent(new Event('change')); }
+                _syncGrpVisual();
+            });
+            _grpCb && _grpCb.addEventListener('change', _syncGrpVisual);
+
+            // Wire filter pill active styling
+            const _fAll = document.getElementById('wmNotifyFilterAll');
+            const _fAi = document.getElementById('wmNotifyFilterAi');
+            function _syncFilterPills(active) {
+                if (_fAll) { _fAll.style.background = active === 'all' ? '#14391f' : 'transparent'; _fAll.style.color = active === 'all' ? '#fff' : '#14391f'; }
+                if (_fAi) { _fAi.style.background = active === 'ai' ? '#14391f' : 'transparent'; _fAi.style.color = active === 'ai' ? '#fff' : '#14391f'; }
+            }
+            _fAll && _fAll.addEventListener('click', () => _syncFilterPills('all'));
+            _fAi && _fAi.addEventListener('click', () => _syncFilterPills('ai'));
+
+            // Unread pill badge update
+            window.addEventListener('wm:notify:changed', () => {
+                try {
+                    const pill = document.getElementById('wmNotifyUnreadPill');
+                    const badge = document.getElementById('wmNotifyBadge');
+                    if (!pill || !badge) return;
+                    const n = parseInt(badge.textContent) || 0;
+                    if (n > 0) { pill.textContent = n + ' neu'; pill.style.display = ''; }
+                    else { pill.style.display = 'none'; }
+                } catch { /* ignore */ }
             });
 
             const openPlanBtn = document.getElementById('wmNotifyOpenPlanBtn');
@@ -4968,7 +5035,7 @@
             if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden.", "warn"); return; }
 
             const items = parseShoppingListText(text);
-            const resp = await fetch('/WorldMiniApp/Home/SaveSharedShoppingList', {
+            const resp = await fetch('/WorldMiniApp/MealPlan/SaveSharedShoppingList', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ itemsJson: JSON.stringify(items), userHash: window.worldUserHash || '' })
