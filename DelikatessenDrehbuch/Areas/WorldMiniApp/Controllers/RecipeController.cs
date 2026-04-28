@@ -58,6 +58,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting, string userHash)
         {
             userHash = ResolveUserHash(userHash);
@@ -268,6 +269,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpsertStep([FromBody] UpsertStepRequest request, string userHash)
         {
             userHash = ResolveUserHash(userHash);
@@ -319,6 +321,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SuggestMissingIngredient([FromBody] MissingIngredientLookupRequest request, CancellationToken cancellationToken)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.IngredientName))
@@ -375,6 +378,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveSuggestedIngredient([FromBody] MissingIngredientSaveRequest request, CancellationToken cancellationToken)
         {
             if (request?.Suggestion == null)

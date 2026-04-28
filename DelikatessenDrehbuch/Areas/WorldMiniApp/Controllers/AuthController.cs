@@ -162,6 +162,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             });
         }
 
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public IActionResult ClearTestHash()
+        {
+            HttpContext.Session.Remove(WorldMiniAppUserHashHelper.SessionUserHashKey);
+            HttpContext.Session.Remove(WorldMiniAppUserHashHelper.LegacySessionUserHashKey);
+
+            HttpContext.Response.Cookies.Delete(WorldMiniAppUserHashHelper.UserHashCookieKey);
+            HttpContext.Response.Cookies.Delete(WorldMiniAppUserHashHelper.TestUserHashCookieKey);
+
+            return Ok(new
+            {
+                status = "success",
+                isLoggedIn = false,
+                isTestHash = false
+            });
+        }
+
         [HttpGet]
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> SessionStatus()

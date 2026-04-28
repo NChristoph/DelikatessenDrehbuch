@@ -40,9 +40,9 @@
 
     <div class="feed-shell mx-auto" style="visibility:hidden" data-theme="navy">
         <form asp-action="@(isEditMode ? "UpdateRecipeFromCreateForm" : "UploadNewVideo")" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="@(isEditMode ? "return prepareBinding()" : "event.preventDefault(); publishAsync()")">
+            @Html.AntiForgeryToken()
             @if (isEditMode)
             {
-                @Html.AntiForgeryToken()
                 <input type="hidden" name="EditPostingId" value="@ViewData["PostingId"]" />
                 <input type="hidden" name="EditRecipeId" value="@ViewData["RecipeId"]" />
             }

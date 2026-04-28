@@ -37,6 +37,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Generated(MiniAppSetupModel model, string userHash, string title)
         {
             userHash = ResolveUserHash(userHash);
@@ -219,6 +220,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveFeedMealPlanDraft([FromBody] SharedMealPlanRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.MealPlanJson))
@@ -331,6 +333,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveSharedMealPlan([FromBody] SharedMealPlanRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.MealPlanJson))
@@ -787,6 +790,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveSharedShoppingList([FromBody] SharedShoppingListRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.ItemsJson))
@@ -828,6 +832,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateSharedListChecked([FromBody] UpdateCheckedRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Token))

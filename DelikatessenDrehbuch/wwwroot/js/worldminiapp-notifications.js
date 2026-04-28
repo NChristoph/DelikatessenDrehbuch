@@ -11,6 +11,17 @@
 
   function now() { return Date.now(); }
 
+  function getServerEventCount(item) {
+    const unread = Number(item?.unreadEventCount || 0);
+    if (Number.isFinite(unread) && unread > 0) return unread;
+    return item && item.isSeen ? 0 : 1;
+  }
+
+  function getServerAggregateCount(item) {
+    const count = Number(item?.aggregateCount || 0);
+    return Number.isFinite(count) && count > 0 ? count : 1;
+  }
+
   function safeParse(text) {
     try { return text ? JSON.parse(text) : null; } catch { return null; }
   }
@@ -110,7 +121,7 @@
       if (sender !== "comment-reply" && sender !== "comment-video") return;
       const postingId = parseHrefPostingId(it?.href);
       if (!postingId) return;
-      map[postingId] = (map[postingId] || 0) + 1;
+      map[postingId] = (map[postingId] || 0) + getServerEventCount(it);
     });
     return map;
   }
@@ -301,7 +312,9 @@
 
   async function updateBadge() {
       const items = serverMode ? await apiUnread() : list();
-      const u = serverMode ? items.filter(x => x && !x.isSeen).length : unreadCount();
+      const u = serverMode
+        ? items.reduce((sum, x) => sum + getServerEventCount(x), 0)
+        : unreadCount();
       emitFeedBadgeUpdate(serverMode ? items.filter(x => x && !x.isSeen) : items.filter(x => x && !x.read));
       if (badge) {
         badge.style.display = u > 0 ? "" : "none";
@@ -371,6 +384,7 @@
       const ts = serverMode ? (it.createdAtUtc || it.createdAt || it.ts) : it.ts;
       const timeStr = fmtRelTime(ts);
       const href = serverMode ? String(it.href || "") : "";
+      const aggregateCount = serverMode ? getServerAggregateCount(it) : 1;
       const kcalMatch = body.match(/(\d+)\s*kcal/i);
       const kcal = kcalMatch ? kcalMatch[1] : "";
 
@@ -404,6 +418,10 @@
         badge = '<span style="background:rgba(95,160,82,0.12);color:#3a7a30;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:700;letter-spacing:0.04em;text-transform:uppercase;">PLAN</span>';
       }
 
+      const aggregatePill = aggregateCount > 1
+        ? '<span style="background:rgba(20,57,31,0.08);color:#14391f;padding:2px 7px;border-radius:999px;font-size:9px;font-weight:700;line-height:1;">' + escapeHtml(String(aggregateCount)) + '</span>'
+        : "";
+
       // kcal pill
       const kcalPill = kcal
         ? '<span style="font-size:10px;font-weight:600;color:#6b7868;display:inline-flex;align-items:center;gap:4px;background:#faf6ec;padding:3px 8px;border-radius:999px;"><span style="color:#ff7849;">&#128293;</span>' + escapeHtml(kcal) + ' kcal</span>'
@@ -414,6 +432,7 @@
         + '<div style="flex:1;min-width:0;">'
         + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
         + badge
+        + aggregatePill
         + '<span style="font-size:11px;font-weight:600;color:#14391f;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">' + escapeHtml(title) + '</span>'
         + '<span style="font-size:10px;color:#6b7868;flex-shrink:0;">' + escapeHtml(timeStr) + '</span>'
         + '</div>'

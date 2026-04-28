@@ -1557,7 +1557,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var ingredientLines = BuildPromptIngredientLines(recipe, language);
             var strategyHint = GetIngredientSelectionStrategyHint(variantType, strategy, context, language);
             var sideSupportInstruction = GetDietVariantSideSupportInstruction(variantType, context);
-            var replacementInstruction = GetSwapConceptInstruction(variantType, context, language);
+            var replacementInstruction = GetSwapConceptInstruction(variantType, strategy, context, language);
             var proteinGoalInstruction = BuildHighProteinGoalInstruction(recipe, variantType, language);
             var diversityNonce = Guid.NewGuid().ToString("N");
             var promptPack = BuildPromptPack(variantType, language, sideSupportInstruction, replacementInstruction, targetConceptCount);
@@ -1687,18 +1687,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var variantConceptPick = normalizedVariantType switch
             {
                 "highprotein" =>
-                    "High-Protein Fokus: Denke in echten proteinreichen Erweiterungen/Beilagen oder sinnvollem Swap. Bevorzuge Kandidaten mit hohem Eiweiss pro 100 g (Faustregel: ab ca. 15 g/100 g), aber schliesse nicht starr nach Kalorienverteilung aus. " +
+                    "High-Protein Fokus: Denke zuerst in echten, kulinarisch passenden Protein-Erweiterungen, die das Originalgericht klar erkennbar lassen. Hauptzutat, Stil und Charakter des Gerichts sollen erhalten bleiben, solange der Nutzer keinen ausdruecklichen Austausch will. Bevorzuge Kandidaten mit hohem Eiweiss pro 100 g (Faustregel: ab ca. 15 g/100 g), aber schliesse nicht starr nach Kalorienverteilung aus. " +
                     sideSupportInstruction +
                     replacementInstruction,
                 "lowcarb" =>
-                    "Low-Carb Fokus: Konzepte muessen klar zeigen, was reduziert/ersetzt wird. Vermeide staerkehaltige Beilagen. " +
+                    "Low-Carb Fokus: Konzepte muessen klar zeigen, was reduziert oder ersetzt wird, ohne das Gericht auszuduennen. Das Originalgericht soll klar erkennbar bleiben und weiterhin vollstaendig, saettigend und kulinarisch stimmig wirken. Bevorzuge zuerst nahe, alltagstaugliche Low-Carb-Umbauten wie passende Gemuese-, Pilz- oder Salatblatt-Ersatzideen, reduzierte Staerkeanteile oder geschickte Struktur-Aenderungen statt bloss irgendeine Beilage wegzulassen. Vermeide Konzepte, die nur auf Weglassen beruhen oder wie ein anderes Gericht wirken. " +
                     sideSupportInstruction +
                     replacementInstruction,
                 "vegan" =>
-                    "Vegan Fokus: Konzepte muessen klar zeigen, welche tierischen Bestandteile ersetzt werden und wie Umami/Saftigkeit/Substanz erhalten bleiben. " +
+                    "Vegan Fokus: Konzepte muessen klar zeigen, welche tierischen Bestandteile ersetzt werden und wie Umami, Saftigkeit, Bindung, Struktur und Saettigung erhalten bleiben. Das Originalgericht soll klar erkennbar bleiben. Bevorzuge zuerst stilnahe, kulinarisch plausible Ersatzideen, die Funktion und Geschmack des Originals ernst nehmen, statt generische Standardloesungen ueber jedes Gericht zu legen. Vermeide beliebige Tofu-, Cashew- oder Pilzkonzepte, wenn sie nicht wirklich zum Gerichtsstil und zur Funktion der ersetzten Zutat passen. " +
                     sideSupportInstruction,
                 "mealprep" =>
-                    "Meal-Prep Fokus: Konzepte sollen sich gut portionieren, lagern und wieder aufwaermen lassen. " +
+                    "Meal-Prep Fokus: Konzepte muessen das bestehende Gericht in eine klar alltagstaugliche Meal-Prep-Version uebersetzen. Bevorzuge Varianten, die sich gut vorkochen, sauber portionieren, 2-4 Tage lagern und ohne Qualitaetsverlust aufwaermen lassen. Denke zuerst an Workflow, Haltbarkeit, Textur-Stabilitaet und sinnvolle Trennung von Sauce/Beilage/Crunch, statt bloss beliebige Zusatz-Zutaten vorzuschlagen. " +
                     replacementInstruction,
                 _ => string.Empty
             };
@@ -1709,6 +1709,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 "Jedes Konzept braucht einen stabilen key, einen kurzen starken Titel, eine kurze Auswahlbeschreibung und einen Umsetzungsansatz. " +
                 "Verwende Pantry-Zutaten aus oils/fats/spices/herbs/sauces/broths nur dann, wenn das Konzept ohne sie nicht sauber erklaerbar waere. " +
                 "Vermeide beliebige Mini-Zusaetze wie etwas Kraut, etwas Sauce oder etwas Fett ohne klaren kulinarischen Zweck. " +
+                "Vermeide Konzepte, die eher wie ein neues Nebenrezept wirken als wie eine Optimierung des Ausgangsgerichts. " +
+                "Ordne die Konzepte nach Naehe zum Originalgericht: zuerst sehr nahe und alltagstaugliche Varianten, spaeter hoechstens eine mutigere Idee. " +
                 "Bei High-Protein zaehlen Kraeuter, Gewuerze, Oele und Saucen nicht als Protein-Hebel.";
 
             var commonPreview =
@@ -1734,13 +1736,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 "highprotein" =>
                     "High-Protein Regeln: Erhoehe Protein pro Portion mind. 20% (ideal 25%) ohne Kochbarkeit zu gefaehrden. Vermeide reine Mini-Toppings als einzigen Protein-Hebel. " +
                     "Wichtig: Protein-Hebel muessen mengenrelevant sein. Verwende keine Mini-Mengen wie 2 g Mehl als 'Protein-Upgrade'. Wenn eine neue Protein-Zutat der Haupthebel ist, plane eine realistische Menge (Faustregel: >= 30 g pro Portion bzw. >= 120 g gesamt, oder 2 Eier gesamt/mehr je nach Gericht). " +
+                    "Halte das Originalgericht klar erkennbar: Hauptzutat, Stil und Gerichtstyp sollen erhalten bleiben, ausser der Nutzer will ausdruecklich einen Austausch. " +
+                    "Bevorzuge zuerst passende, herzhafte Erweiterungen im selben Kuechenstil statt stilfremder Protein-Zusaetze. " +
                     "Wenn ein Gewaehltes Konzept ein Protein-Swap ist, muss die Hauptproteinquelle wirklich getauscht werden (Titel/Zutaten/Schritte passen zusammen; die alte Hauptproteinquelle bleibt nicht einfach stehen). ",
                 "lowcarb" =>
-                    "Low-Carb Regeln: Reduziere/ersetze staerkehaltige Teile konsequent und halte das Ergebnis alltagstauglich. ",
+                    "Low-Carb Regeln: Reduziere oder ersetze staerkehaltige Teile konsequent und halte das Ergebnis alltagstauglich, saettigend und kulinarisch rund. Streiche nicht einfach nur Reis, Kartoffeln, Pasta, Brot oder aehnliche Komponenten, ohne einen stimmigen Ersatz oder eine sinnvolle neue Struktur zu schaffen. Das Gericht muss auch in der Low-Carb-Version vollstaendig wirken und klar als das gleiche Grundgericht erkennbar bleiben. Bevorzuge nahe Ersatzideen mit passender Textur und Funktion statt radikale Umbauten. ",
                 "vegan" =>
-                    "Vegan Regeln: Keine tierischen Zutaten im finalen Rezept. Wenn du Umami/Rundung brauchst, nutze vegane Alternativen. ",
+                    "Vegan Regeln: Keine tierischen Zutaten im finalen Rezept. Ersetze tierische Bestandteile funktionsgerecht: Denke an Geschmack, Textur, Bindung, Saftigkeit und Rolle im Gericht statt nur an irgendeinen veganen Ersatz. Das Ergebnis muss wie eine stimmige vegane Version desselben Grundgerichts wirken, nicht wie ein anderes Rezept. Wenn du Umami oder Rundung brauchst, nutze passende vegane Alternativen, aber vermeide generische Standardersatzstoffe ohne klaren Stilbezug. ",
                 "mealprep" =>
-                    "Meal-Prep Regeln: Formuliere so, dass Portionieren/Aufwaermen einfach ist (z.B. Sauce separat, Beilage separat). ",
+                    "Meal-Prep Regeln: Das finale Rezept muss klar als Meal-Prep-Rezept erkennbar sein. Formuliere so, dass Portionieren, Lagern und Aufwaermen konkret und einfach werden. " +
+                    "Die Schritte muessen zeigen, was zusammen vorbereitet wird, was separat bleiben soll (z.B. Sauce, Beilage, frische Komponenten), wann portioniert wird und wie das Gericht spaeter wieder erwaermt bzw. serviert wird. " +
+                    "Vermeide Meal-Prep-Konzepte, die im Kern nur das Originalrezept wiederholen. Das Ergebnis soll fuer mehrere Portionen praktikabel sein und darf keine empfindlichen, beim Lagern schnell leidenden Komponenten ohne klaren Plan enthalten. ",
                 _ => string.Empty
             };
 
@@ -1753,9 +1759,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 "Aufgabe: Mache den Entwurf kochbar fuer komplette Anfaenger, ohne die Rezeptidee zu aendern. " +
                 "Repariere Reihenfolge/Grammatik/Klarheit und fuege fehlende Vorbereitungsschritte ein. " +
                 "Wichtig: Keine Zutat darf im Text auftauchen, ohne in ingredients[] zu stehen. Jede Zutat in ingredients[] muss auch tatsaechlich im preparationText vorkommen. Keine 'gekocht' ohne Kochschritt. " +
+                "Pruefe Zutatenliste und Zubereitung hart auf Konsistenz: Wenn ein Schritt eine Zutat, Form, Menge oder Verarbeitungsart nennt, muss das zu ingredients[] passen. Repariere Widersprueche wie 'gemahlen' vs 'ganz', fehlende Essig-/Bruehe-/Gewuerz-Zutaten, oder Zutatennamen, die nur im Schritt auftauchen. " +
+                "Entferne Schrittbegriffe, die nicht sauber vorbereitet oder spaeter nicht wiederverwendet werden. Nenne keine Beilage, Sauce oder Gemueseform, wenn sie im Ablauf nicht wirklich hergestellt wird. " +
+                "Das Variantenziel muss im finalen Rezept sichtbar erfuellt sein. Wenn die Variante im Ergebnis kaum erkennbar ist, repariere den Entwurf konsequent in Richtung des gewaehltens Ziels, ohne ein neues Gericht daraus zu machen. Das Originalgericht muss klar erkennbar bleiben. " +
                 "Fuege keine neuen Zutaten hinzu, nur um Sprache oder Geschmack aufzuwerten. Entferne oder formuliere problematische Textstellen lieber um. " +
                 "Wenn keine Bindezutat vorhanden ist, schreibe nie 'binden/abbinden', sondern formuliere mit einkochen/reduzieren. " +
                 "Wenn schon ein Fett im Rezept vorhanden ist, fuehre kein zusaetzliches Fett nur zum Abschmecken ein. " +
+                "Wenn die Variante Meal-Prep ist, pruefe streng: Portionierung, Lagerlogik und Aufwaermen muessen explizit im Text vorkommen. Ein reines Originalrezept mit minimalen Aenderungen ist kein gueltiges Meal-Prep-Ergebnis. " +
+                "Wenn die Variante High-Protein ist, muss die Proteinerhoehung kulinarisch plausibel und im Gericht selbst spürbar sein, nicht nur als zufaellige Deko oder stilfremde Zutat. " +
+                "Wenn die Variante Low-Carb ist, darf nicht einfach nur eine Beilage gestrichen werden; das Gericht muss weiterhin vollstaendig und stimmig wirken. " +
+                "Wenn die Variante Vegan ist, muss der Ersatz geschmacklich und texturbezogen zum Ursprungsgericht passen; vermeide generische Standardersatzstoffe ohne Stilbezug. " +
                 "Gib stepPlan immer als leeres Array [] zurueck. ";
 
             var alignmentSystemPrompt =
@@ -1765,6 +1778,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 "Sprachqualitaet ist Pflicht: Schreibe idiomatisch, grammatikalisch korrekt und in der angegebenen Sprache (Imperativ in Rezeptstil). " +
                 "Wenn eine Formulierung unnatuerlich klingt oder semantisch schief ist, formuliere sie um. " +
                 "Erfinde keine unueblichen Zuschnitte wie 'Haehnchenschulter'. Verwende realistische Cuts und bevorzugt Kandidaten-Namen. " +
+                "Pruefe Zutatenliste und Zubereitung immer gemeinsam. Schritte duerfen keine Zutaten, Formen oder Mengen erzaehlen, die im finalen ingredients[] nicht gedeckt sind. Repariere Inkonsistenzen direkt statt sie stehen zu lassen. " +
+                "Das Ziel ist nicht nur irgendeine Variante, sondern eine stimmige Variante des Originalgerichts. Das Originalgericht muss erkennbar bleiben; Beilagen oder Zusatzzutaten duerfen das Hauptgericht nicht verdraengen. " +
+                "Wenn das gewaehlte Konzept Meal-Prep ist, muss der Entwurf sichtbar meal-prep-tauglich werden: mehrere Portionen, klare Lager-/Trennlogik und konkrete Aufwaerm-Hinweise. " +
                 "ingredientPlan ist ein Vertrag: Zutaten aus dem Plan duerfen nicht durch andere Zutaten umgedeutet oder ersetzt werden. ";
 
             return new PromptPack(conceptPickSystemPrompt, previewSystemPrompt, qualitySystemPrompt, alignmentSystemPrompt);
@@ -3653,10 +3669,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             if (string.Equals(variantType, "lowcarb", StringComparison.OrdinalIgnoreCase) && context.PreferSideReplacement)
             {
                 return LocalizedWord(language,
-                    "Bevorzuge passende staerkearme Ersatzideen oder das gezielte Weglassen von Beilagen, statt einfach zusaetzliche Zutaten oben drauf zu setzen.",
-                    "Prefer fitting low-carb replacements or deliberate removal of starchy sides instead of only adding extra ingredients.",
-                    "Prefiere sustituciones bajas en carbohidratos o quitar guarniciones con almidón en lugar de solo añadir ingredientes.",
-                    "Prefere substituições low carb ou remover acompanhamentos ricos em amido em vez de apenas adicionar ingredientes.");
+                    "Bevorzuge passende staerkearme Ersatzideen fuer bestehende Beilagen oder Strukturen und halte das Gericht dabei vollstaendig und saettigend. Einfaches Weglassen ohne stimmigen Ersatz ist nur die Notfall-Option.",
+                    "Prefer fitting low-carb replacements for existing sides or structures while keeping the dish complete and satisfying. Simply removing parts without a coherent replacement should only be the fallback option.",
+                    "Prefiere sustituciones bajas en carbohidratos para las guarniciones o estructuras existentes y mantén el plato completo y saciante. Quitar partes sin un reemplazo coherente solo debe ser la opción de emergencia.",
+                    "Prefere substituições low carb para acompanhamentos ou estruturas já existentes e mantém o prato completo e saciante. Remover partes sem um substituto coerente deve ser apenas a opção de recurso.");
             }
 
             if (string.Equals(variantType, "highprotein", StringComparison.OrdinalIgnoreCase) && context.HasPrimaryProtein)
@@ -3664,35 +3680,35 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 if (!context.HasCarbSide)
                 {
                     return LocalizedWord(language,
-                        "Staerke das bestehende Gericht mit passenden Protein-Ergaenzungen. Wenn noch keine klare Beilage vorhanden ist, soll mindestens ein Konzept bewusst eine sehr proteinreiche Beilage oder Sattmacher-Idee vorschlagen. Ein zusaetzliches Konzept darf die Hauptproteinquelle gezielt durch eine andere sehr proteinreiche Leitidee ersetzen.",
-                        "Strengthen the existing dish with fitting protein additions. If no clear side is present yet, at least one concept should deliberately propose a very protein-rich side or hearty add-on. One additional concept may deliberately replace the main protein with a different high-protein lead idea.",
-                        "Refuerza el plato con proteínas complementarias. Si aún no hay una guarnición clara, al menos un concepto debe proponer deliberadamente una guarnición o acompañamiento muy rico en proteína. Un concepto adicional puede sustituir deliberadamente la proteína principal por otra idea central muy proteica.",
-                        "Reforça o prato com proteínas complementares. Se ainda não existir um acompanhamento claro, pelo menos um conceito deve propor de forma deliberada um acompanhamento ou extra muito rico em proteína. Um conceito adicional pode substituir deliberadamente a proteína principal por outra ideia central muito proteica.");
+                        "Staerke das bestehende Gericht mit passenden Protein-Ergaenzungen und halte das Original klar erkennbar. Wenn noch keine klare Beilage vorhanden ist, darf hoechstens ein Konzept eine proteinreiche Beilage oder Saettigungs-Idee vorschlagen; die uebrigen Konzepte sollen das Hauptgericht selbst gezielt verbessern und nicht in ein neues Nebenrezept abdriften.",
+                        "Strengthen the existing dish with fitting protein additions and keep the original dish clearly recognizable. If no clear side is present yet, at most one concept may propose a protein-rich side or hearty add-on; the remaining concepts should improve the main dish itself and must not drift into a new side recipe.",
+                        "Refuerza el plato con proteínas complementarias y mantén el plato original claramente reconocible. Si aún no hay una guarnición clara, como mucho un concepto puede proponer una guarnición o acompañamiento rico en proteína; los demás deben mejorar el plato principal y no desviarse hacia una receta lateral nueva.",
+                        "Reforça o prato com proteínas complementares e mantém o prato original claramente reconhecível. Se ainda não existir um acompanhamento claro, no máximo um conceito pode propor um acompanhamento ou extra rico em proteína; os restantes devem melhorar o prato principal e não desviar para uma nova receita secundária.");
                 }
 
                 return LocalizedWord(language,
-                    "Staerke das bestehende Gericht mit passenden Protein-Ergaenzungen. Ein separates Konzept darf die Hauptproteinquelle gezielt durch eine andere sehr proteinreiche Leitidee ersetzen, die anderen Konzepte sollen das Originalgericht dagegen respektieren.",
-                    "Strengthen the existing dish with fitting protein additions. A separate concept may deliberately replace the main protein with a different high-protein lead idea, while the other concepts should respect the original dish.",
-                    "Refuerza el plato con proteínas complementarias. Un concepto aparte puede sustituir deliberadamente la proteína principal por otra idea central muy proteica, mientras que los demás conceptos deben respetar el plato original.",
-                    "Reforça o prato com proteínas complementares. Um conceito separado pode substituir deliberadamente a proteína principal por outra ideia central muito proteica, enquanto os restantes conceitos devem respeitar o prato original.");
+                    "Staerke das bestehende Gericht mit passenden Protein-Ergaenzungen. Die Konzepte sollen das Originalgericht respektieren, kulinarisch nah bleiben und zuerst echte Verbesserungen am bestehenden Gericht zeigen statt die Hauptproteinquelle vorschnell auszutauschen.",
+                    "Strengthen the existing dish with fitting protein additions. The concepts should respect the original dish, stay culinarly close, and first show real improvements to the existing dish instead of rushing into swapping the main protein.",
+                    "Refuerza el plato con proteínas complementarias. Los conceptos deben respetar el plato original, mantenerse culinariamente cerca y mostrar primero mejoras reales del plato existente en lugar de cambiar demasiado pronto la proteína principal.",
+                    "Reforça o prato com proteínas complementares. Os conceitos devem respeitar o prato original, manter-se culinariamente próximos e mostrar primeiro melhorias reais ao prato existente em vez de trocar cedo demais a proteína principal.");
             }
 
             if (string.Equals(variantType, "lowcarb", StringComparison.OrdinalIgnoreCase) && !context.HasCarbSide)
             {
                 return LocalizedWord(language,
-                    "Da noch keine klare Beilage vorhanden ist, sollen zwei der fuenf Vorschlaege als saettigende, klar low-carb-taugliche Beilagen- oder Zusatzideen funktionieren.",
-                    "Since no clear side is present yet, two of the five suggestions should work as satisfying, clearly low-carb side or add-on ideas.",
-                    "Como aún no hay una guarnición clara, dos de las cinco sugerencias deben funcionar como guarniciones o complementos saciantes y claramente low carb.",
-                    "Como ainda não existe um acompanhamento claro, duas das cinco sugestões devem funcionar como acompanhamentos ou extras saciantes e claramente low carb.");
+                    "Da noch keine klare Beilage vorhanden ist, duerfen hoechstens zwei Vorschlaege als saettigende low-carb-Beilagen- oder Zusatzideen funktionieren. Die anderen Konzepte sollen das Hauptgericht selbst low-carb-tauglicher machen und nicht in ein Nebenrezept abdriften.",
+                    "Since no clear side is present yet, at most two suggestions may work as satisfying low-carb side or add-on ideas. The remaining concepts should make the main dish itself more low-carb-friendly instead of drifting into a side recipe.",
+                    "Como aún no hay una guarnición clara, como mucho dos sugerencias pueden funcionar como guarniciones o complementos low carb y saciantes. Los demás conceptos deben hacer que el plato principal sea más apto para low carb y no desviarse hacia una receta secundaria.",
+                    "Como ainda não existe um acompanhamento claro, no máximo duas sugestões podem funcionar como acompanhamentos ou extras low carb e saciantes. Os restantes conceitos devem tornar o prato principal mais adequado a low carb e não desviar para uma receita secundária.");
             }
 
             if (string.Equals(variantType, "vegan", StringComparison.OrdinalIgnoreCase) && !context.HasCarbSide)
             {
                 return LocalizedWord(language,
-                    "Da noch keine klare Beilage vorhanden ist, sollen zwei der fuenf Vorschlaege als vegane, saettigende Beilagen- oder Zusatzideen funktionieren.",
-                    "Since no clear side is present yet, two of the five suggestions should work as vegan, satisfying side or add-on ideas.",
-                    "Como aún no hay una guarnición clara, dos de las cinco sugerencias deben funcionar como guarniciones o complementos veganos y saciantes.",
-                    "Como ainda não existe um acompanhamento claro, duas das cinco sugestões devem funcionar como acompanhamentos ou extras veganos e saciantes.");
+                    "Da noch keine klare Beilage vorhanden ist, duerfen hoechstens zwei Vorschlaege als vegane, saettigende Beilagen- oder Zusatzideen funktionieren. Die anderen Konzepte sollen vor allem zeigen, wie das Hauptgericht selbst stilnah und kulinarisch plausibel veganisiert wird.",
+                    "Since no clear side is present yet, at most two suggestions may work as vegan, satisfying side or add-on ideas. The remaining concepts should mainly show how the main dish itself can be veganized in a style-faithful and culinarily plausible way.",
+                    "Como aún no hay una guarnición clara, como mucho dos sugerencias pueden funcionar como guarniciones o complementos veganos y saciantes. Los demás conceptos deben mostrar sobre todo cómo veganizar el plato principal de forma fiel al estilo y culinariamente plausible.",
+                    "Como ainda não existe um acompanhamento claro, no máximo duas sugestões podem funcionar como acompanhamentos ou extras veganos e saciantes. Os restantes conceitos devem mostrar sobretudo como veganizar o prato principal de forma fiel ao estilo e culinariamente plausível.");
             }
 
             if (string.Equals(variantType, "mealprep", StringComparison.OrdinalIgnoreCase))
@@ -3700,17 +3716,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 if (context.HasCarbSide)
                 {
                     return LocalizedWord(language,
-                        "Das Rezept hat bereits eine Beilage. Denke meal-prep-freundlich und optimiere eher Ablauf, Haltbarkeit und Aufwärmbarkeit, statt neue Zusatzzutaten zu erzwingen.",
-                        "The recipe already has a side. Think in a meal-prep-friendly way and optimize workflow, storage and reheating instead of forcing extra ingredients.",
-                        "La receta ya tiene guarnición. Piensa en meal prep y optimiza flujo, conservación y recalentado en lugar de forzar ingredientes extra.",
-                        "A receita já tem acompanhamento. Pensa em meal prep e otimiza fluxo, conservação e reaquecimento em vez de forçar ingredientes extra.");
+                        "Das Rezept hat bereits eine Beilage. Denke meal-prep-freundlich und optimiere vor allem Ablauf, Portionierbarkeit, Haltbarkeit und Aufwaermbarkeit, statt neue Zusatzzutaten zu erzwingen. Zeige moeglichst nah am Original, wie das Gericht fuer mehrere Mahlzeiten vorbereitet und gelagert werden kann.",
+                        "The recipe already has a side. Think in a meal-prep-friendly way and optimize workflow, portionability, storage life and reheating instead of forcing extra ingredients. Stay as close as possible to the original while showing how the dish can be prepared and stored for several meals.",
+                        "La receta ya tiene guarnición. Piensa en meal prep y optimiza sobre todo flujo, facilidad de porcionado, conservación y recalentado en lugar de forzar ingredientes extra. Mantente lo más cerca posible del original mostrando cómo preparar y guardar el plato para varias comidas.",
+                        "A receita já tem acompanhamento. Pensa em meal prep e otimiza sobretudo fluxo, facilidade de porcionamento, conservação e reaquecimento em vez de forçar ingredientes extra. Mantém-te o mais próximo possível do original e mostra como preparar e guardar o prato para várias refeições.");
                 }
 
                 return LocalizedWord(language,
-                    "Wenn noch keine Beilage vorhanden ist, schlage vor allem passende meal-prep-freundliche Zusatzzutaten oder Beilagen vor.",
-                    "If no side is present yet, mainly suggest suitable meal-prep-friendly add-ons or sides.",
-                    "Si aún no hay guarnición, sugiere sobre todo complementos o guarniciones aptos para meal prep.",
-                    "Se ainda não existir acompanhamento, sugere sobretudo complementos ou acompanhamentos próprios para meal prep.");
+                    "Wenn noch keine Beilage vorhanden ist, schlage vor allem passende meal-prep-freundliche Komponenten vor, die das Gericht als vorbereitbare Mehrportionen-Mahlzeit staerker machen. Die Idee soll trotzdem wie das gleiche Gericht wirken und nicht in ein anderes Rezept kippen.",
+                    "If no side is present yet, mainly suggest suitable meal-prep-friendly components that make the dish work better as a prep-ahead multi-portion meal. The idea should still feel like the same dish rather than turning into a different recipe.",
+                    "Si aún no hay guarnición, sugiere sobre todo componentes aptos para meal prep que hagan que el plato funcione mejor como comida de varias porciones preparada con antelación. La idea debe seguir sintiéndose como el mismo plato y no convertirse en otra receta.",
+                    "Se ainda não existir acompanhamento, sugere sobretudo componentes adequados para meal prep que façam o prato funcionar melhor como refeição de várias porções preparada com antecedência. A ideia deve continuar a parecer o mesmo prato e não transformar-se noutra receita.");
             }
 
             if (string.Equals(strategy, "replace", StringComparison.OrdinalIgnoreCase))
@@ -3778,12 +3794,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 : 3;
         }
 
-        private static string GetSwapConceptInstruction(string variantType, IngredientSelectionContext context, string language)
+        private static string GetSwapConceptInstruction(string variantType, string strategy, IngredientSelectionContext context, string language)
         {
             var normalized = NormalizeVariantType(variantType);
             if (normalized == "vegan" || !context.HasPrimaryProtein)
             {
                 return string.Empty;
+            }
+
+            if (normalized == "highprotein" && string.Equals(strategy, "add", StringComparison.OrdinalIgnoreCase))
+            {
+                return LocalizedWord(
+                    language,
+                    "Bei High-Protein mit Ergaenzungsfokus darf die Hauptproteinquelle nicht einfach ausgetauscht werden. Bewahre das urspruengliche Hauptprotein und staerke das Gericht zuerst ueber passende, mengenrelevante Protein-Ergaenzungen. Ein kompletter Protein-Swap ist hier nicht gewuenscht. ",
+                    "For high-protein with an add/boost focus, do not simply replace the main protein. Keep the original lead protein and strengthen the dish first through fitting, quantity-relevant protein additions. A full protein swap is not desired here. ",
+                    "En high protein con enfoque de complemento, no sustituyas simplemente la proteína principal. Mantén la proteína original y refuerza el plato primero con añadidos proteicos adecuados y relevantes en cantidad. Aquí no se desea un cambio completo de proteína. ",
+                    "Em high protein com foco em complemento, não substituas simplesmente a proteína principal. Mantém a proteína original e reforça o prato primeiro com adições proteicas adequadas e relevantes em quantidade. Aqui não se pretende uma troca completa da proteína. ");
             }
 
             return LocalizedWord(
@@ -3806,10 +3832,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 return LocalizedWord(
                     language,
-                    "Ziel: Erhoehe den Proteinanteil pro Portion mindestens um 15% (besser 20%) gegenueber dem Original, ohne die Kochbarkeit zu gefaehrden. Vermeide reine Garnituren (z.B. nur Parmesan/Seeds) als einzigen Proteinhebel; nimm stattdessen echte, mengenrelevante Anpassungen vor. Wenn du etwas nur als Topping in Mini-Mengen (<10 g pro Portion) einsetzen wuerdest, zaehlt es nicht als Protein-Hebel, sondern hoechstens als Bonus. ",
-                    "Goal: Increase protein per serving by at least 15% (preferably 20%) versus the original without harming cookability. Avoid using only garnish-level changes (e.g. just parmesan/seeds) as the sole protein lever; make meaningful, quantity-relevant adjustments instead. If something would only be used as a tiny topping (<10 g per serving), it does not count as the protein lever, only as a bonus. ",
-                    "Objetivo: Aumenta la proteína por ración al menos un 15% (mejor 20%) frente al original sin comprometer la cocinabilidad. Evita cambios solo de guarnición (p.ej. solo parmesano/semillas) como único impulso de proteína; haz ajustes reales y relevantes en cantidad. Si algo solo se usaría como topping en cantidades mínimas (<10 g por ración), no cuenta como palanca de proteína, solo como extra. ",
-                    "Objetivo: Aumenta a proteína por porção pelo menos 15% (idealmente 20%) face ao original sem comprometer a exequibilidade. Evita usar apenas alterações de guarnição (ex.: só parmesão/sementes) como único impulso; faz ajustes reais e relevantes em quantidade. Se algo só seria usado como topping em quantidades pequenas (<10 g por porção), não conta como alavanca de proteína, apenas como bónus. ");
+                    "Ziel: Erhoehe den Proteinanteil pro Portion mindestens um 15% (besser 20%) gegenueber dem Original, ohne die Kochbarkeit zu gefaehrden. Das Ausgangsgericht muss klar erkennbar bleiben. Vermeide reine Garnituren (z.B. nur Parmesan/Seeds) als einzigen Proteinhebel; nimm stattdessen echte, mengenrelevante Anpassungen vor. Wenn du etwas nur als Topping in Mini-Mengen (<10 g pro Portion) einsetzen wuerdest, zaehlt es nicht als Protein-Hebel, sondern hoechstens als Bonus. Schlage keine Ideen vor, die eher wie ein neues Beilagen-Rezept oder Stilbruch wirken als wie ein proteinreicheres Originalgericht. ",
+                    "Goal: Increase protein per serving by at least 15% (preferably 20%) versus the original without harming cookability. The base dish must remain clearly recognizable. Avoid using only garnish-level changes (e.g. just parmesan/seeds) as the sole protein lever; make meaningful, quantity-relevant adjustments instead. If something would only be used as a tiny topping (<10 g per serving), it does not count as the protein lever, only as a bonus. Do not propose ideas that feel more like a new side recipe or a style break than a higher-protein version of the original dish. ",
+                    "Objetivo: Aumenta la proteína por ración al menos un 15% (mejor 20%) frente al original sin comprometer la cocinabilidad. El plato base debe seguir siendo claramente reconocible. Evita cambios solo de guarnición (p.ej. solo parmesano/semillas) como único impulso de proteína; haz ajustes reales y relevantes en cantidad. Si algo solo se usaría como topping en cantidades mínimas (<10 g por ración), no cuenta como palanca de proteína, solo como extra. No propongas ideas que parezcan más una receta lateral nueva o una ruptura de estilo que una versión más proteica del plato original. ",
+                    "Objetivo: Aumenta a proteína por porção pelo menos 15% (idealmente 20%) face ao original sem comprometer a exequibilidade. O prato base deve continuar claramente reconhecível. Evita usar apenas alterações de guarnição (ex.: só parmesão/sementes) como único impulso; faz ajustes reais e relevantes em quantidade. Se algo só seria usado como topping em quantidades pequenas (<10 g por porção), não conta como alavanca de proteína, apenas como bónus. Não proponhas ideias que pareçam mais uma nova receita de acompanhamento ou uma quebra de estilo do que uma versão mais proteica do prato original. ");
             }
 
             // High-protein mode: require a meaningful jump so we don't "game" the goal with tiny additions.
@@ -3820,10 +3846,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             return LocalizedWord(
                 language,
-                $"Ziel: Protein pro Portion von ca. {baselineProteinPerPortion:0.#} g (Basis: {baselineProteinTotal:0.#} g gesamt / {portions} Portionen) auf mindestens {minTarget:0.#} g (besser {preferredTarget:0.#} g) erhoehen, ohne die Kochbarkeit zu gefaehrden. Das bedeutet grob +{deltaMin:0.#} g Protein pro Portion (besser +{deltaPreferred:0.#} g). Vermeide reine Garnituren (z.B. nur Parmesan/Seeds) als einzigen Proteinhebel; nimm stattdessen echte, mengenrelevante Anpassungen vor. Wenn du etwas nur als Topping in Mini-Mengen (<10 g pro Portion) einsetzen wuerdest, zaehlt es nicht als Protein-Hebel, sondern hoechstens als Bonus. ",
-                $"Goal: Raise protein per serving from about {baselineProteinPerPortion:0.#} g (baseline: {baselineProteinTotal:0.#} g total / {portions} servings) to at least {minTarget:0.#} g (preferably {preferredTarget:0.#} g) without harming cookability. That is roughly +{deltaMin:0.#} g protein per serving (preferably +{deltaPreferred:0.#} g). Avoid garnish-only changes (e.g. just parmesan/seeds) as the sole protein lever; make meaningful, quantity-relevant adjustments instead. If something would only be used as a tiny topping (<10 g per serving), it does not count as the protein lever, only as a bonus. ",
-                $"Objetivo: Subir la proteína por ración de aprox. {baselineProteinPerPortion:0.#} g (base: {baselineProteinTotal:0.#} g total / {portions} raciones) a al menos {minTarget:0.#} g (mejor {preferredTarget:0.#} g) sin comprometer la cocinabilidad. Eso es aprox. +{deltaMin:0.#} g de proteína por ración (mejor +{deltaPreferred:0.#} g). Evita cambios solo de guarnición (p.ej. solo parmesano/semillas) como único impulso; haz ajustes reales y relevantes en cantidad. Si algo solo se usaría como topping en cantidades mínimas (<10 g por ración), no cuenta como palanca de proteína, solo como extra. ",
-                $"Objetivo: Aumentar a proteína por porção de cerca de {baselineProteinPerPortion:0.#} g (base: {baselineProteinTotal:0.#} g no total / {portions} porções) para pelo menos {minTarget:0.#} g (idealmente {preferredTarget:0.#} g) sem comprometer a exequibilidade. Isso é aprox. +{deltaMin:0.#} g de proteína por porção (idealmente +{deltaPreferred:0.#} g). Evita alterações apenas de guarnição (ex.: só parmesão/sementes) como único impulso; faz ajustes reais e relevantes em quantidade. Se algo só seria usado como topping em quantidades pequenas (<10 g por porção), não conta como alavanca de proteína, apenas como bónus. ");
+                $"Ziel: Protein pro Portion von ca. {baselineProteinPerPortion:0.#} g (Basis: {baselineProteinTotal:0.#} g gesamt / {portions} Portionen) auf mindestens {minTarget:0.#} g (besser {preferredTarget:0.#} g) erhoehen, ohne die Kochbarkeit zu gefaehrden. Das bedeutet grob +{deltaMin:0.#} g Protein pro Portion (besser +{deltaPreferred:0.#} g). Das Ausgangsgericht muss klar erkennbar bleiben. Vermeide reine Garnituren (z.B. nur Parmesan/Seeds) als einzigen Proteinhebel; nimm stattdessen echte, mengenrelevante Anpassungen vor. Wenn du etwas nur als Topping in Mini-Mengen (<10 g pro Portion) einsetzen wuerdest, zaehlt es nicht als Protein-Hebel, sondern hoechstens als Bonus. Schlage keine Ideen vor, die eher wie ein neues Beilagen-Rezept oder Stilbruch wirken als wie ein proteinreicheres Originalgericht. ",
+                $"Goal: Raise protein per serving from about {baselineProteinPerPortion:0.#} g (baseline: {baselineProteinTotal:0.#} g total / {portions} servings) to at least {minTarget:0.#} g (preferably {preferredTarget:0.#} g) without harming cookability. That is roughly +{deltaMin:0.#} g protein per serving (preferably +{deltaPreferred:0.#} g). The base dish must remain clearly recognizable. Avoid garnish-only changes (e.g. just parmesan/seeds) as the sole protein lever; make meaningful, quantity-relevant adjustments instead. If something would only be used as a tiny topping (<10 g per serving), it does not count as the protein lever, only as a bonus. Do not propose ideas that feel more like a new side recipe or a style break than a higher-protein version of the original dish. ",
+                $"Objetivo: Subir la proteína por ración de aprox. {baselineProteinPerPortion:0.#} g (base: {baselineProteinTotal:0.#} g total / {portions} raciones) a al menos {minTarget:0.#} g (mejor {preferredTarget:0.#} g) sin comprometer la cocinabilidad. Eso es aprox. +{deltaMin:0.#} g de proteína por ración (mejor +{deltaPreferred:0.#} g). El plato base debe seguir siendo claramente reconocible. Evita cambios solo de guarnición (p.ej. solo parmesano/semillas) como único impulso; haz ajustes reales y relevantes en cantidad. Si algo solo se usaría como topping en cantidades mínimas (<10 g por ración), no cuenta como palanca de proteína, solo como extra. No propongas ideas que parezcan más una receta lateral nueva o una ruptura de estilo que una versión más proteica del plato original. ",
+                $"Objetivo: Aumentar a proteína por porção de cerca de {baselineProteinPerPortion:0.#} g (base: {baselineProteinTotal:0.#} g no total / {portions} porções) para pelo menos {minTarget:0.#} g (idealmente {preferredTarget:0.#} g) sem comprometer a exequibilidade. Isso é aprox. +{deltaMin:0.#} g de proteína por porção (idealmente +{deltaPreferred:0.#} g). O prato base deve continuar claramente reconhecível. Evita alterações apenas de guarnição (ex.: só parmesão/sementes) como único impulso; faz ajustes reais e relevantes em quantidade. Se algo só seria usado como topping em quantidades pequenas (<10 g por porção), não conta como alavanca de proteína, apenas como bónus. Não proponhas ideias que pareçam mais uma nova receita de acompanhamento ou uma quebra de estilo do que uma versão mais proteica do prato original. ");
         }
 
         private static (decimal totalProtein, decimal proteinPerPortion, int portions) TryEstimateBaselineProtein(RecipeBaseData recipe)
@@ -6584,16 +6610,5 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 
 

@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common UI Elements -->
+  <data name="Common.Back" xml:space="preserve">
+    <value>Atrás</value>
+  </data>
+  <data name="Common.Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Common.Cancel" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
+  <data name="Common.Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Common.Loading" xml:space="preserve">
+    <value>Cargando...</value>
+  </data>
+  <data name="Common.Close" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="Common.Open" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+
+  <!-- Toast Messages -->
+  <data name="Toast.PlanSaved" xml:space="preserve">
+    <value>¡Plan guardado!</value>
+  </data>
+  <data name="Toast.RecipeAdded" xml:space="preserve">
+    <value>{0} añadido</value>
+  </data>
+  <data name="Toast.RecipeRemoved" xml:space="preserve">
+    <value>{0} eliminado</value>
+  </data>
+  <data name="Toast.LinkCopied" xml:space="preserve">
+    <value>Enlace copiado</value>
+  </data>
+  <data name="Toast.UploadSuccess" xml:space="preserve">
+    <value>Subida exitosa</value>
+  </data>
+  <data name="Toast.UploadFailed" xml:space="preserve">
+    <value>Error al subir</value>
+  </data>
+
+  <!-- Error Messages -->
+  <data name="Error.Generic" xml:space="preserve">
+    <value>Ha ocurrido un error.</value>
+  </data>
+  <data name="Error.LoadingFailed" xml:space="preserve">
+    <value>Error al cargar</value>
+  </data>
+  <data name="Error.SavingFailed" xml:space="preserve">
+    <value>Error al guardar</value>
+  </data>
+  <data name="Error.NetworkError" xml:space="preserve">
+    <value>Error de red</value>
+  </data>
+
+  <!-- Feed -->
+  <data name="Feed.Title" xml:space="preserve">
+    <value>Feed</value>
+  </data>
+  <data name="Feed.NoDish" xml:space="preserve">
+    <value>Sin plato</value>
+  </data>
+  <data name="Feed.AddButton" xml:space="preserve">
+    <value>+ Añadir</value>
+  </data>
+  <data name="Feed.NoRecipes" xml:space="preserve">
+    <value>No se encontraron recetas</value>
+  </data>
+  <data name="Feed.NoResults" xml:space="preserve">
+    <value>Sin resultados</value>
+  </data>
+  <data name="Feed.LoadMore" xml:space="preserve">
+    <value>Cargar más</value>
+  </data>
+  <data name="Feed.Following" xml:space="preserve">
+    <value>Siguiendo</value>
+  </data>
+  <data name="Feed.Followers" xml:space="preserve">
+    <value>Seguidores</value>
+  </data>
+  <data name="Feed.Likes" xml:space="preserve">
+    <value>Me gusta</value>
+  </data>
+  <data name="Feed.PullToRefresh" xml:space="preserve">
+    <value>Arrastra para actualizar</value>
+  </data>
+  <data name="Feed.ReleaseToRefresh" xml:space="preserve">
+    <value>Suelta para actualizar</value>
+  </data>
+  <data name="Feed.RefreshingFeed" xml:space="preserve">
+    <value>Actualizando feed...</value>
+  </data>
+  <data name="Feed.RecipesBy" xml:space="preserve">
+    <value>Recetas de</value>
+  </data>
+  <data name="Feed.More" xml:space="preserve">
+    <value>Más</value>
+  </data>
+  <data name="Feed.Less" xml:space="preserve">
+    <value>Menos</value>
+  </data>
+  <data name="Feed.Share" xml:space="preserve">
+    <value>Compartir</value>
+  </data>
+  <data name="Feed.Marketplace" xml:space="preserve">
+    <value>Mercado</value>
+  </data>
+  <data name="Feed.MarketplaceSwipeLeft" xml:space="preserve">
+    <value>Desliza a la izquierda: ofertas del creador actual</value>
+  </data>
+  <data name="Feed.NoListingsYet" xml:space="preserve">
+    <value>Aún no hay ofertas.</value>
+  </data>
+  <data name="Feed.CreatorNoListings" xml:space="preserve">
+    <value>Este creador no tiene ofertas actualmente.</value>
+  </data>
+  <data name="Feed.Comments" xml:space="preserve">
+    <value>Comentarios</value>
+  </data>
+  <data name="Feed.CommentsNewest" xml:space="preserve">
+    <value>Más recientes</value>
+  </data>
+  <data name="Feed.CommentsEmpty" xml:space="preserve">
+    <value>Aún no hay comentarios. ¡Sé el primero!</value>
+  </data>
+  <data name="Feed.AddComment" xml:space="preserve">
+    <value>Añadir comentario...</value>
+  </data>
+  <data name="Feed.SearchTitle" xml:space="preserve">
+    <value>Buscar en el feed</value>
+  </data>
+  <data name="Feed.SearchTerm" xml:space="preserve">
+    <value>Término de búsqueda</value>
+  </data>
+  <data name="Feed.SearchPlaceholder" xml:space="preserve">
+    <value>Nombre o palabra clave</value>
+  </data>
+  <data name="Feed.Category" xml:space="preserve">
+    <value>Categoría</value>
+  </data>
+  <data name="Feed.AllCategories" xml:space="preserve">
+    <value>Todas las categorías</value>
+  </data>
+  <data name="Feed.Search" xml:space="preserve">
+    <value>Buscar</value>
+  </data>
+  <data name="Feed.TimeNow" xml:space="preserve">
+    <value>ahora</value>
+  </data>
+  <data name="Feed.TimeHours" xml:space="preserve">
+    <value>h</value>
+  </data>
+  <data name="Feed.TimeDays" xml:space="preserve">
+    <value>d</value>
+  </data>
+
+  <!-- Meal Plan -->
+  <data name="MealPlan.Title" xml:space="preserve">
+    <value>Plan de comidas</value>
+  </data>
+  <data name="MealPlan.WeeklyPlan" xml:space="preserve">
+    <value>Mi plan semanal</value>
+  </data>
+  <data name="MealPlan.NoDish" xml:space="preserve">
+    <value>Sin plato</value>
+  </data>
+  <data name="MealPlan.AddRecipe" xml:space="preserve">
+    <value>Añadir receta</value>
+  </data>
+  <data name="MealPlan.SharePlan" xml:space="preserve">
+    <value>Compartir plan</value>
+  </data>
+  <data name="MealPlan.ShoppingList" xml:space="preserve">
+    <value>Lista de compras</value>
+  </data>
+  <data name="MealPlan.Persons" xml:space="preserve">
+    <value>Personas</value>
+  </data>
+  <data name="MealPlan.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="MealPlan.PerServing" xml:space="preserve">
+    <value>Por porción</value>
+  </data>
+
+  <!-- AI Messages -->
+  <data name="AI.PreviewCreating" xml:space="preserve">
+    <value>{0} se está creando...</value>
+  </data>
+  <data name="AI.PreviewReady" xml:space="preserve">
+    <value>{0} está listo.</value>
+  </data>
+  <data name="AI.PreviewTitle" xml:space="preserve">
+    <value>Vista previa IA</value>
+  </data>
+  <data name="AI.PreviewError" xml:space="preserve">
+    <value>{0}: Error (volver a abrir).</value>
+  </data>
+  <data name="AI.PreviewFinished" xml:space="preserve">
+    <value>Vista previa IA completada.</value>
+  </data>
+  <data name="AI.PreviewFailed" xml:space="preserve">
+    <value>Vista previa IA falló.</value>
+  </data>
+  <data name="AI.StillRunning" xml:space="preserve">
+    <value>IA todavía está ejecutándose. Por favor espere.</value>
+  </data>
+  <data name="AI.ResultNotReady" xml:space="preserve">
+    <value>El resultado de IA aún no está listo.</value>
+  </data>
+  <data name="AI.ResultLoadFailed" xml:space="preserve">
+    <value>No se pudo cargar el resultado de IA.</value>
+  </data>
+
+  <!-- Days of Week -->
+  <data name="Day.Monday" xml:space="preserve">
+    <value>Lunes</value>
+  </data>
+  <data name="Day.Tuesday" xml:space="preserve">
+    <value>Martes</value>
+  </data>
+  <data name="Day.Wednesday" xml:space="preserve">
+    <value>Miércoles</value>
+  </data>
+  <data name="Day.Thursday" xml:space="preserve">
+    <value>Jueves</value>
+  </data>
+  <data name="Day.Friday" xml:space="preserve">
+    <value>Viernes</value>
+  </data>
+  <data name="Day.Saturday" xml:space="preserve">
+    <value>Sábado</value>
+  </data>
+  <data name="Day.Sunday" xml:space="preserve">
+    <value>Domingo</value>
+  </data>
+
+  <!-- Meal Types -->
+  <data name="Meal.Starter" xml:space="preserve">
+    <value>Entrante</value>
+  </data>
+  <data name="Meal.Main" xml:space="preserve">
+    <value>Plato principal</value>
+  </data>
+  <data name="Meal.Dessert" xml:space="preserve">
+    <value>Postre</value>
+  </data>
+
+  <!-- Navigation -->
+  <data name="Nav.Home" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="Nav.Feed" xml:space="preserve">
+    <value>Feed</value>
+  </data>
+  <data name="Nav.Plan" xml:space="preserve">
+    <value>Plan</value>
+  </data>
+  <data name="Nav.Upload" xml:space="preserve">
+    <value>Subir</value>
+  </data>
+  <data name="Nav.Search" xml:space="preserve">
+    <value>Buscar</value>
+  </data>
+  <data name="Nav.Profile" xml:space="preserve">
+    <value>Perfil</value>
+  </data>
+
+  <!-- Home Menu -->
+  <data name="Home.WeeklyPlan" xml:space="preserve">
+    <value>Mi plan semanal</value>
+  </data>
+  <data name="Home.AutoCreate" xml:space="preserve">
+    <value>Crear automáticamente (Device)</value>
+  </data>
+  <data name="Home.Discover" xml:space="preserve">
+    <value>Descubrir</value>
+  </data>
+  <data name="Home.CommunityTrends" xml:space="preserve">
+    <value>Comunidad y tendencias (Device)</value>
+  </data>
+  <data name="Home.Marketplace" xml:space="preserve">
+    <value>Mercado</value>
+  </data>
+  <data name="Home.MarketplaceSubtitle" xml:space="preserve">
+    <value>Comprar y vender planes dietéticos</value>
+  </data>
+  <data name="Home.UploadRecipe" xml:space="preserve">
+    <value>Subir receta</value>
+  </data>
+  <data name="Home.VerificationStatusID" xml:space="preserve">
+    <value>Estado de verificación ID</value>
+  </data>
+  <data name="Home.BecomeCreator" xml:space="preserve">
+    <value>Conviértete en creador y gana (Orb requerido) 💰</value>
+  </data>
+  <data name="Home.MyArea" xml:space="preserve">
+    <value>Mi área</value>
+  </data>
+  <data name="Home.MyAreaSubtitle" xml:space="preserve">
+    <value>Planes, listas de compras y más</value>
+  </data>
+  <data name="Home.LoginNow" xml:space="preserve">
+    <value>Iniciar sesión ahora</value>
+  </data>
+  <data name="Home.MadeWithLove" xml:space="preserve">
+    <value>Hecho con &lt;i class='bi bi-heart-fill text-danger mx-1'&gt;&lt;/i&gt; para World App</value>
+  </data>
+
+  <!-- Login Modal -->
+  <data name="Login.SignInWithWorldID" xml:space="preserve">
+    <value>Iniciar sesión con World ID</value>
+  </data>
+  <data name="Login.AtDelikatessen" xml:space="preserve">
+    <value>en Delikatessen Drehbuch</value>
+  </data>
+  <data name="Login.AppWillSee" xml:space="preserve">
+    <value>La app verá entonces tu</value>
+  </data>
+  <data name="Login.UniqueHuman" xml:space="preserve">
+    <value>Humano único</value>
+  </data>
+  <data name="Login.AppDetects" xml:space="preserve">
+    <value>La app detecta:</value>
+  </data>
+  <data name="Login.VerificationStatus" xml:space="preserve">
+    <value>Estado de verificación</value>
+  </data>
+  <data name="Login.RememberLogin" xml:space="preserve">
+    <value>Recordar inicio</value>
+  </data>
+  <data name="Login.Approve" xml:space="preserve">
+    <value>Aprobar</value>
+  </data>
+  <data name="Login.Connecting" xml:space="preserve">
+    <value>Conectando con World App...</value>
+  </data>
+
+  <!-- Debug Mode -->
+  <data name="Debug.ActiveHash" xml:space="preserve">
+    <value>Hash debug activo:</value>
+  </data>
+  <data name="Debug.NoHashActive" xml:space="preserve">
+    <value>No hay hash debug activo.</value>
+  </data>
+  <data name="Debug.SignInTestHashA" xml:space="preserve">
+    <value>Iniciar con hash de prueba A</value>
+  </data>
+  <data name="Debug.SignInTestHashB" xml:space="preserve">
+    <value>Iniciar con hash de prueba B</value>
+  </data>
+  <data name="Debug.SignOutDebug" xml:space="preserve">
+    <value>Cerrar debug login</value>
+  </data>
+  <data name="Debug.OnlyVisibleInDebug" xml:space="preserve">
+    <value>Visible solo en modo debug.</value>
+  </data>
+  <data name="Debug.TestLoginFailed" xml:space="preserve">
+    <value>Error en login de prueba.</value>
+  </data>
+  <data name="Debug.LogoutFailed" xml:space="preserve">
+    <value>Error en logout de debug.</value>
+  </data>
+
+  <!-- Toast Messages (Additional) -->
+  <data name="Toast.RecipePublished" xml:space="preserve">
+    <value>¡Receta publicada con éxito!</value>
+  </data>
+</root>

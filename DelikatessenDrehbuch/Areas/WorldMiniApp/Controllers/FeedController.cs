@@ -114,6 +114,12 @@ BEGIN
         [Sender] NVARCHAR(128) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Sender] DEFAULT (N'system'),
         [Description] NVARCHAR(1000) NOT NULL,
         [Href] NVARCHAR(600) NULL,
+        [NotificationKey] NVARCHAR(300) NULL,
+        [EventType] NVARCHAR(64) NULL,
+        [LatestActorName] NVARCHAR(128) NULL,
+        [ContextText] NVARCHAR(400) NULL,
+        [AggregateCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_AggregateCount] DEFAULT (1),
+        [UnreadEventCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_UnreadEventCount] DEFAULT (1),
         [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserNotifications_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
         [IsSeen] BIT NOT NULL CONSTRAINT [DF_WorldUserNotifications_IsSeen] DEFAULT (0),
         [SeenAtUtc] DATETIME2 NULL
@@ -121,6 +127,53 @@ BEGIN
 
     CREATE INDEX [IX_WorldUserNotifications_UserHash_IsSeen_CreatedAtUtc]
         ON [dbo].[WorldUserNotifications]([UserHash], [IsSeen], [CreatedAtUtc]);
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'NotificationKey') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [NotificationKey] NVARCHAR(300) NULL;
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'EventType') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [EventType] NVARCHAR(64) NULL;
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'LatestActorName') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [LatestActorName] NVARCHAR(128) NULL;
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'ContextText') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [ContextText] NVARCHAR(400) NULL;
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'AggregateCount') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [AggregateCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_AggregateCount_Legacy] DEFAULT (1);
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'UnreadEventCount') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [UnreadEventCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_UnreadEventCount_Legacy] DEFAULT (1);
+END;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_WorldUserNotifications_UserHash_NotificationKey'
+      AND object_id = OBJECT_ID(N'[dbo].[WorldUserNotifications]')
+)
+BEGIN
+    CREATE INDEX [IX_WorldUserNotifications_UserHash_NotificationKey]
+        ON [dbo].[WorldUserNotifications]([UserHash], [NotificationKey]);
 END;
 ";
         private static readonly Dictionary<string, string[]> CategoryAliases = new(StringComparer.OrdinalIgnoreCase)
@@ -808,7 +861,7 @@ END;
                 .FirstOrDefaultAsync(x => x.WorldUserCommentId == commentId && x.UserHash == userHash, cancellationToken);
 
             var wantsLike = normalizedReaction == "like";
-            var isNewLike = false;
+            var shouldNotifyReaction = false;
             if (entity == null)
             {
                 entity = new WorldUserCommentReaction
@@ -820,7 +873,7 @@ END;
                     UpdatedAtUtc = DateTime.UtcNow
                 };
                 await _context.WorldUserCommentReactions.AddAsync(entity, cancellationToken);
-                isNewLike = wantsLike;
+                shouldNotifyReaction = true;
             }
             else if (entity.IsLike == wantsLike)
             {
@@ -831,19 +884,18 @@ END;
             {
                 entity.IsLike = wantsLike;
                 entity.UpdatedAtUtc = DateTime.UtcNow;
-                isNewLike = wantsLike;
+                shouldNotifyReaction = true;
             }
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            // Create notification for comment owner if this was a new like
-            if (isNewLike)
+            if (shouldNotifyReaction)
             {
                 var user = await _context.WorldAppUser
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.UserHash == userHash, cancellationToken);
-                var likerName = user?.UserName ?? "Jemand";
-                await TryAddCommentLikeNotificationAsync(userHash, likerName, commentId, cancellationToken);
+                var actorName = user?.UserName ?? "Jemand";
+                await TryAddCommentReactionNotificationAsync(userHash, actorName, commentId, wantsLike, cancellationToken);
             }
 
             var summary = await GetCommentReactionSummaryAsync(commentId, userHash, cancellationToken);
@@ -1556,7 +1608,9 @@ END;
                     href = x.Href,
                     createdAtUtc = x.CreatedAtUtc,
                     isSeen = x.IsSeen,
-                    seenAtUtc = x.SeenAtUtc
+                    seenAtUtc = x.SeenAtUtc,
+                    aggregateCount = x.AggregateCount > 0 ? x.AggregateCount : 1,
+                    unreadEventCount = x.UnreadEventCount > 0 ? x.UnreadEventCount : (x.IsSeen ? 0 : 1)
                 })
                 .ToListAsync(cancellationToken);
 
@@ -1583,6 +1637,7 @@ END;
             {
                 notification.IsSeen = true;
                 notification.SeenAtUtc = DateTime.UtcNow;
+                notification.UnreadEventCount = 0;
                 await _context.SaveChangesAsync(cancellationToken);
             }
 
@@ -1608,6 +1663,7 @@ END;
             {
                 notification.IsSeen = true;
                 notification.SeenAtUtc = now;
+                notification.UnreadEventCount = 0;
             }
 
             await _context.SaveChangesAsync(cancellationToken);
@@ -1626,7 +1682,8 @@ END;
 
             var count = await _context.WorldUserNotifications
                 .AsNoTracking()
-                .CountAsync(x => x.UserHash == userHash && !x.IsSeen, cancellationToken);
+                .Where(x => x.UserHash == userHash && !x.IsSeen)
+                .SumAsync(x => (int?)x.UnreadEventCount, cancellationToken) ?? 0;
 
             return Json(new { count });
         }
@@ -1868,57 +1925,32 @@ END;
                         && string.Equals(parentComment.UserHash, recipientUserHash, StringComparison.OrdinalIgnoreCase);
                     var isCreatorTarget = string.Equals(posting.CreatorId, recipientUserHash, StringComparison.OrdinalIgnoreCase);
 
-                    string description;
-                    string icon;
-                    string sender;
-
                     if (isReplyTarget)
                     {
-                        icon = "bi-reply-fill";
-                        sender = "comment-reply";
-                        description = string.IsNullOrWhiteSpace(excerpt)
-                            ? $"{newComment.UserName} hat auf deinen Kommentar geantwortet."
-                            : $"{newComment.UserName} hat auf deinen Kommentar geantwortet.\n\"{excerpt}\"";
+                        var aggregateCommentId = parentComment?.ParentCommentId ?? parentComment?.Id ?? newComment.Id;
+                        await UpsertInteractionNotificationAsync(
+                            recipientUserHash,
+                            "comment-reply",
+                            "bi-reply-fill",
+                            href,
+                            $"comment-reply:{aggregateCommentId}",
+                            newComment.UserName,
+                            excerpt,
+                            cancellationToken);
                     }
                     else if (isCreatorTarget)
                     {
-                        icon = "bi-chat-dots-fill";
-                        sender = "comment-video";
-                        var targetTitle = string.IsNullOrWhiteSpace(posting.Title) ? "dein Video" : posting.Title.Trim();
-                        description = string.IsNullOrWhiteSpace(excerpt)
-                            ? $"{newComment.UserName} hat {targetTitle} kommentiert."
-                            : $"{newComment.UserName} hat {targetTitle} kommentiert.\n\"{excerpt}\"";
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    var exists = await _context.WorldUserNotifications
-                        .AsNoTracking()
-                        .AnyAsync(x => x.UserHash == recipientUserHash
-                            && x.Sender == sender
-                            && x.Href == href
-                            && x.Description == description,
+                        await UpsertInteractionNotificationAsync(
+                            recipientUserHash,
+                            "comment-video",
+                            "bi-chat-dots-fill",
+                            href,
+                            $"comment-video:{posting.Id}",
+                            newComment.UserName,
+                            excerpt,
                             cancellationToken);
-
-                    if (exists)
-                        continue;
-
-                    _context.WorldUserNotifications.Add(new WorldUserNotification
-                    {
-                        UserHash = recipientUserHash,
-                        Icon = icon,
-                        Sender = sender,
-                        Description = description,
-                        Href = href,
-                        CreatedAtUtc = DateTime.UtcNow,
-                        IsSeen = false,
-                        SeenAtUtc = null
-                    });
+                    }
                 }
-
-                await _context.SaveChangesAsync(cancellationToken);
             }
             catch
             {
@@ -1964,36 +1996,17 @@ END;
 
                 await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
 
-                var recipeTitle = string.IsNullOrWhiteSpace(posting.Title) ? "dein Video" : posting.Title.Trim();
-                var description = $"{likerName} hat {recipeTitle} geliked.";
                 var href = $"/WorldMiniApp/Feed?scrollToId={recipeId}";
-                var sender = "like-video";
-                var icon = "bi-heart-fill";
-
-                var exists = await _context.WorldUserNotifications
-                    .AsNoTracking()
-                    .AnyAsync(x => x.UserHash == posting.CreatorId
-                        && x.Sender == sender
-                        && x.Href == href
-                        && x.Description == description,
-                        cancellationToken);
-
-                if (exists)
-                    return;
-
-                _context.WorldUserNotifications.Add(new WorldUserNotification
-                {
-                    UserHash = posting.CreatorId,
-                    Icon = icon,
-                    Sender = sender,
-                    Description = description,
-                    Href = href,
-                    CreatedAtUtc = DateTime.UtcNow,
-                    IsSeen = false,
-                    SeenAtUtc = null
-                });
-
-                await _context.SaveChangesAsync(cancellationToken);
+                var contextText = string.IsNullOrWhiteSpace(posting.Title) ? string.Empty : posting.Title.Trim();
+                await UpsertInteractionNotificationAsync(
+                    posting.CreatorId,
+                    "like-video",
+                    "bi-heart-fill",
+                    href,
+                    $"like-video:{posting.Id}",
+                    likerName,
+                    contextText,
+                    cancellationToken);
             }
             catch
             {
@@ -2001,7 +2014,7 @@ END;
             }
         }
 
-        private async Task TryAddCommentLikeNotificationAsync(string likerUserHash, string likerName, int commentId, CancellationToken cancellationToken)
+        private async Task TryAddCommentReactionNotificationAsync(string actorUserHash, string actorName, int commentId, bool isLike, CancellationToken cancellationToken)
         {
             try
             {
@@ -2013,16 +2026,12 @@ END;
                     return;
 
                 // Don't notify yourself
-                if (string.Equals(comment.UserHash, likerUserHash, StringComparison.OrdinalIgnoreCase))
+                if (string.Equals(comment.UserHash, actorUserHash, StringComparison.OrdinalIgnoreCase))
                     return;
 
                 await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
 
                 var excerpt = BuildCommentNotificationExcerpt(comment.CommentText);
-                var description = string.IsNullOrWhiteSpace(excerpt)
-                    ? $"{likerName} hat deinen Kommentar geliked."
-                    : $"{likerName} hat deinen Kommentar geliked.\n\"{excerpt}\"";
-
                 var posting = await _context.WorldUserPosting
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == comment.WorldUserPostingId, cancellationToken);
@@ -2030,38 +2039,131 @@ END;
                 var recipeId = posting?.Recipe?.Id ?? 0;
                 var scrollToId = recipeId > 0 ? recipeId : posting?.Id ?? 0;
                 var href = $"/WorldMiniApp/Feed?scrollToId={scrollToId}&openComments=1&postingId={comment.WorldUserPostingId}&commentId={commentId}";
-                var sender = "like-comment";
-                var icon = "bi-heart-fill";
-
-                var exists = await _context.WorldUserNotifications
-                    .AsNoTracking()
-                    .AnyAsync(x => x.UserHash == comment.UserHash
-                        && x.Sender == sender
-                        && x.Href == href
-                        && x.Description == description,
-                        cancellationToken);
-
-                if (exists)
-                    return;
-
-                _context.WorldUserNotifications.Add(new WorldUserNotification
-                {
-                    UserHash = comment.UserHash,
-                    Icon = icon,
-                    Sender = sender,
-                    Description = description,
-                    Href = href,
-                    CreatedAtUtc = DateTime.UtcNow,
-                    IsSeen = false,
-                    SeenAtUtc = null
-                });
-
-                await _context.SaveChangesAsync(cancellationToken);
+                var sender = isLike ? "like-comment" : "dislike-comment";
+                var icon = isLike ? "bi-heart-fill" : "bi-hand-thumbs-down-fill";
+                await UpsertInteractionNotificationAsync(
+                    comment.UserHash,
+                    sender,
+                    icon,
+                    href,
+                    $"{sender}:{commentId}",
+                    actorName,
+                    excerpt,
+                    cancellationToken);
             }
             catch
             {
                 // best-effort
             }
+        }
+
+        private async Task UpsertInteractionNotificationAsync(
+            string recipientUserHash,
+            string sender,
+            string icon,
+            string href,
+            string notificationKey,
+            string actorName,
+            string? contextText,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(recipientUserHash) || string.IsNullOrWhiteSpace(notificationKey))
+                return;
+
+            var normalizedActorName = string.IsNullOrWhiteSpace(actorName) ? "Jemand" : actorName.Trim();
+            var normalizedContextText = NormalizeNotificationContext(contextText);
+
+            var notification = await _context.WorldUserNotifications
+                .FirstOrDefaultAsync(x => x.UserHash == recipientUserHash && x.NotificationKey == notificationKey, cancellationToken);
+
+            if (notification == null)
+            {
+                notification = new WorldUserNotification
+                {
+                    UserHash = recipientUserHash,
+                    Icon = icon,
+                    Sender = sender,
+                    EventType = sender,
+                    NotificationKey = notificationKey,
+                    LatestActorName = normalizedActorName,
+                    ContextText = normalizedContextText,
+                    AggregateCount = 1,
+                    UnreadEventCount = 1,
+                    Href = href,
+                    CreatedAtUtc = DateTime.UtcNow,
+                    IsSeen = false,
+                    SeenAtUtc = null
+                };
+
+                notification.Description = BuildAggregatedNotificationDescription(sender, notification.LatestActorName, notification.AggregateCount, notification.ContextText);
+                await _context.WorldUserNotifications.AddAsync(notification, cancellationToken);
+            }
+            else
+            {
+                notification.Icon = icon;
+                notification.Sender = sender;
+                notification.EventType = sender;
+                notification.Href = href;
+                notification.LatestActorName = normalizedActorName;
+                notification.ContextText = normalizedContextText;
+                notification.AggregateCount = Math.Max(1, notification.AggregateCount) + 1;
+                notification.UnreadEventCount = Math.Max(0, notification.UnreadEventCount) + 1;
+                notification.CreatedAtUtc = DateTime.UtcNow;
+                notification.IsSeen = false;
+                notification.SeenAtUtc = null;
+                notification.Description = BuildAggregatedNotificationDescription(sender, notification.LatestActorName, notification.AggregateCount, notification.ContextText);
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        private static string NormalizeNotificationContext(string? contextText)
+        {
+            var normalized = (contextText ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(normalized))
+                return string.Empty;
+
+            normalized = normalized.Replace("\r", " ").Replace("\n", " ");
+            return normalized.Length <= 400
+                ? normalized
+                : $"{normalized[..397].TrimEnd()}...";
+        }
+
+        private static string BuildAggregatedNotificationDescription(string sender, string? actorName, int aggregateCount, string? contextText)
+        {
+            var normalizedSender = (sender ?? string.Empty).Trim().ToLowerInvariant();
+            var leadActor = string.IsNullOrWhiteSpace(actorName) ? "Jemand" : actorName.Trim();
+            var safeCount = Math.Max(1, aggregateCount);
+            var moreCount = safeCount - 1;
+            var hasMany = moreCount > 0;
+
+            var description = normalizedSender switch
+            {
+                "like-video" => hasMany
+                    ? $"Dein Video gefaellt {leadActor} und {moreCount} weiteren Personen."
+                    : $"Dein Video gefaellt {leadActor}.",
+                "comment-video" => hasMany
+                    ? $"{leadActor} und {moreCount} weitere Personen haben dein Video kommentiert."
+                    : $"{leadActor} hat dein Video kommentiert.",
+                "comment-reply" => hasMany
+                    ? $"{leadActor} und {moreCount} weitere Personen haben auf deinen Kommentar geantwortet."
+                    : $"{leadActor} hat auf deinen Kommentar geantwortet.",
+                "like-comment" => hasMany
+                    ? $"Dein Kommentar gefaellt {leadActor} und {moreCount} weiteren Personen."
+                    : $"Dein Kommentar gefaellt {leadActor}.",
+                "dislike-comment" => hasMany
+                    ? $"{leadActor} und {moreCount} weitere Personen haben deinen Kommentar negativ bewertet."
+                    : $"{leadActor} hat deinen Kommentar negativ bewertet.",
+                _ => hasMany
+                    ? $"{leadActor} und {moreCount} weitere Personen haben reagiert."
+                    : $"{leadActor} hat reagiert."
+            };
+
+            var normalizedContext = NormalizeNotificationContext(contextText);
+            if (string.IsNullOrWhiteSpace(normalizedContext))
+                return description;
+
+            return $"{description}\n\"{normalizedContext}\"";
         }
 
         private async Task EnsureWorldUserCommentsSchemaAsync(CancellationToken cancellationToken = default)
@@ -2184,4 +2286,3 @@ END;
         }
     }
 }
-

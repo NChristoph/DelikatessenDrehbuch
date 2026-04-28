@@ -28,6 +28,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         [MaxLength(600)]
         public string? Href { get; set; }
 
+        // Stable key used to aggregate repeated events on the same target.
+        [MaxLength(300)]
+        public string? NotificationKey { get; set; }
+
+        // Logical notification type (like-video, comment-reply, etc.).
+        [MaxLength(64)]
+        public string? EventType { get; set; }
+
+        // Latest actor that triggered the aggregated notification.
+        [MaxLength(128)]
+        public string? LatestActorName { get; set; }
+
+        // Optional short context, for example a comment excerpt or recipe title.
+        [MaxLength(400)]
+        public string? ContextText { get; set; }
+
+        // Total number of aggregated events represented by this notification row.
+        public int AggregateCount { get; set; } = 1;
+
+        // Number of unseen events inside this aggregated row.
+        public int UnreadEventCount { get; set; } = 1;
+
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
 
         public bool IsSeen { get; set; }
@@ -35,4 +57,3 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public DateTime? SeenAtUtc { get; set; }
     }
 }
-

@@ -6,6 +6,8 @@
     var checkedJson = ViewData["Checked"] as string ?? "[]";
 }
 
+<form id="sharedListAntiForgeryForm" style="display:none;">@Html.AntiForgeryToken()</form>
+
 <div class="px-4 pt-4 pb-2">
     <h2 class="fw-bold mb-1" style="color: #2c3e50;">Geteilte Einkaufsliste</h2>
     <p class="text-muted small mb-0">Echtzeit-Sync &mdash; Haken werden automatisch geteilt.</p>
@@ -193,9 +195,15 @@
             setSyncing(true);
 
             if (dirty) {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const csrfToken = tokenInput ? tokenInput.value : null;
+
                 await fetch('/WorldMiniApp/Home/UpdateSharedListChecked', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(csrfToken ? { 'RequestVerificationToken': csrfToken } : {})
+                    },
                     body: JSON.stringify({ token: token, checked: Array.from(localChecked) })
                 });
                 dirty = false;

@@ -5,6 +5,7 @@ using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Email;
 using DelikatessenDrehbuch.MealPlaner.MealPlanerServices;
 using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
+using DelikatessenDrehbuch.Middleware;
 using DelikatessenDrehbuch.MyExceptions;
 using DelikatessenDrehbuch.Services;
 using DelikatessenDrehbuch.Services.Interfaces;
@@ -24,6 +25,40 @@ using System.Globalization;
 using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ================================================================================
+// 1. Localization Services registrieren
+// ================================================================================
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[]
+    {
+        new CultureInfo("de"),    // Deutsch
+        new CultureInfo("en"),    // English
+        new CultureInfo("es"),    // Español (Cookie: esp → Culture: es)
+        new CultureInfo("pt"),    // Português (Cookie: prt → Culture: pt)
+        new CultureInfo("id"),    // Indonesian
+        new CultureInfo("nl"),    // Dutch
+        new CultureInfo("sv"),    // Swedish
+        new CultureInfo("da"),    // Danish
+        new CultureInfo("nb"),    // Norwegian Bokmål (Cookie: no → Culture: nb)
+        new CultureInfo("ms")     // Malay
+    };
+
+    options.DefaultRequestCulture = new RequestCulture("de");
+    options.SupportedCultures = supportedCultures;
+    options.SupportedUICultures = supportedCultures;
+
+    // Cookie-Provider hat höchste Priorität (für Abwärtskompatibilität mit deli-lang Cookie)
+    options.RequestCultureProviders = new List<IRequestCultureProvider>
+    {
+        new CustomCookieRequestCultureProvider(), // Custom Provider für deli-lang Cookie
+        new QueryStringRequestCultureProvider(),
+        new AcceptLanguageHeaderRequestCultureProvider()
+    };
+});
 
 var defaultCulture = new CultureInfo("de-AT");
 
@@ -109,7 +144,11 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
 })
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
-builder.Services.AddControllersWithViews();
+
+// Add MVC with View Localization and Data Annotations Localization
+builder.Services.AddControllersWithViews()
+    .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix)
+    .AddDataAnnotationsLocalization();
 builder.Services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
 builder.Services.AddTransient<EmailSender>();
 builder.Services.AddTransient<HelpfulMethods>();
@@ -157,6 +196,11 @@ using (var scope = app.Services.CreateScope())
     await StaticData.LoadInternal(db);   // deine Methode
 }
 app.UseSession();
+
+// ================================================================================
+// 2. Localization Middleware aktivieren (VOR UseRouting!)
+// ================================================================================
+app.UseRequestLocalization();
 
 #region Coop xxs CSP schutz
 

@@ -5,7 +5,9 @@ using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Localization;
 using System.Globalization;
+using System.Resources;
 using System.Text.Json;
 using System.Threading;
 
@@ -19,6 +21,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IRecipeAiTransformService _recipeAiTransformService;
         private readonly IRecipeAiVariantJobService _recipeAiVariantJobService;
         private readonly IRecipeAiNutritionService _recipeAiNutritionService;
+        private readonly IStringLocalizer<SharedResources> _sharedLocalizer;
         private readonly ILogger<HomeController> _logger;
 
         private static readonly SemaphoreSlim EnsureNotificationsSchemaLock = new(1, 1);
@@ -35,6 +38,12 @@ BEGIN
         [Sender] NVARCHAR(128) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Sender] DEFAULT (N'system'),
         [Description] NVARCHAR(1000) NOT NULL,
         [Href] NVARCHAR(600) NULL,
+        [NotificationKey] NVARCHAR(300) NULL,
+        [EventType] NVARCHAR(64) NULL,
+        [LatestActorName] NVARCHAR(128) NULL,
+        [ContextText] NVARCHAR(400) NULL,
+        [AggregateCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_AggregateCount] DEFAULT (1),
+        [UnreadEventCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_UnreadEventCount] DEFAULT (1),
         [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserNotifications_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
         [IsSeen] BIT NOT NULL CONSTRAINT [DF_WorldUserNotifications_IsSeen] DEFAULT (0),
         [SeenAtUtc] DATETIME2 NULL
@@ -42,6 +51,53 @@ BEGIN
 
     CREATE INDEX [IX_WorldUserNotifications_UserHash_IsSeen_CreatedAtUtc]
         ON [dbo].[WorldUserNotifications]([UserHash], [IsSeen], [CreatedAtUtc]);
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'NotificationKey') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [NotificationKey] NVARCHAR(300) NULL;
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'EventType') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [EventType] NVARCHAR(64) NULL;
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'LatestActorName') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [LatestActorName] NVARCHAR(128) NULL;
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'ContextText') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [ContextText] NVARCHAR(400) NULL;
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'AggregateCount') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [AggregateCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_AggregateCount_Legacy] DEFAULT (1);
+END;
+
+IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'UnreadEventCount') IS NULL
+BEGIN
+    ALTER TABLE [dbo].[WorldUserNotifications]
+        ADD [UnreadEventCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_UnreadEventCount_Legacy] DEFAULT (1);
+END;
+
+IF NOT EXISTS (
+    SELECT 1
+    FROM sys.indexes
+    WHERE name = N'IX_WorldUserNotifications_UserHash_NotificationKey'
+      AND object_id = OBJECT_ID(N'[dbo].[WorldUserNotifications]')
+)
+BEGIN
+    CREATE INDEX [IX_WorldUserNotifications_UserHash_NotificationKey]
+        ON [dbo].[WorldUserNotifications]([UserHash], [NotificationKey]);
 END;
 ";
 
@@ -52,6 +108,7 @@ END;
             IRecipeAiTransformService recipeAiTransformService,
             IRecipeAiVariantJobService recipeAiVariantJobService,
             IRecipeAiNutritionService recipeAiNutritionService,
+            IStringLocalizer<SharedResources> sharedLocalizer,
             ILogger<HomeController> logger)
         {
             _context = context;
@@ -60,11 +117,79 @@ END;
             _recipeAiTransformService = recipeAiTransformService;
             _recipeAiVariantJobService = recipeAiVariantJobService;
             _recipeAiNutritionService = recipeAiNutritionService;
+            _sharedLocalizer = sharedLocalizer;
             _logger = logger;
         }
 
         public IActionResult Index()
         {
+            // ========== LOCALIZATION DEBUG LOGGING ==========
+            var currentCulture = System.Globalization.CultureInfo.CurrentCulture;
+            var currentUICulture = System.Globalization.CultureInfo.CurrentUICulture;
+
+            _logger.LogWarning("=== LOCALIZATION DEBUG ===");
+            _logger.LogWarning($"CurrentCulture: {currentCulture.Name}");
+            _logger.LogWarning($"CurrentUICulture: {currentUICulture.Name}");
+
+            // Test SharedLocalizer
+            var testKey = "Home.WeeklyPlan";
+            var testValue = _sharedLocalizer[testKey];
+            _logger.LogWarning($"SharedLocalizer[\"{testKey}\"] = \"{testValue}\"");
+            _logger.LogWarning($"ResourceNotFound: {testValue.ResourceNotFound}");
+
+            // Check if resource manager exists
+            try
+            {
+                var resourceManagerProperty = typeof(SharedResources)
+                    .GetProperty("ResourceManager", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+
+                if (resourceManagerProperty != null)
+                {
+                    var resourceManager = resourceManagerProperty.GetValue(null) as System.Resources.ResourceManager;
+                    if (resourceManager != null)
+                    {
+                        _logger.LogWarning($"ResourceManager found: {resourceManager.BaseName}");
+
+                        // Try to get the value directly from ResourceManager
+                        var directValue = resourceManager.GetString(testKey, currentUICulture);
+                        _logger.LogWarning($"ResourceManager.GetString(\"{testKey}\") = \"{directValue}\"");
+
+                        // Try getting the ResourceSet
+                        var resourceSet = resourceManager.GetResourceSet(currentUICulture, true, false);
+                        if (resourceSet != null)
+                        {
+                            _logger.LogWarning("ResourceSet found! Keys:");
+                            var keys = new List<string>();
+                            foreach (System.Collections.DictionaryEntry entry in resourceSet)
+                            {
+                                keys.Add(entry.Key?.ToString() ?? "null");
+                            }
+                            _logger.LogWarning($"Total keys: {keys.Count}");
+                            _logger.LogWarning($"First 10 keys: {string.Join(", ", keys.Take(10))}");
+                        }
+                        else
+                        {
+                            _logger.LogWarning("ResourceSet is NULL!");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("ResourceManager is NULL!");
+                    }
+                }
+                else
+                {
+                    _logger.LogWarning("ResourceManager property not found!");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error checking ResourceManager");
+            }
+
+            _logger.LogWarning("=== END DEBUG ===");
+            // ================================================
+
             return View();
         }
 
@@ -803,6 +928,8 @@ END;
             public DateTime? SeenAtUtc { get; set; }
             public string Kind { get; set; } = "info";
             public string Title { get; set; } = "Info";
+            public int AggregateCount { get; set; } = 1;
+            public int UnreadEventCount { get; set; } = 0;
         }
 
         public sealed class WorldUserNotificationIdRequest
@@ -842,6 +969,8 @@ END;
                     CreatedAtUtc = x.CreatedAtUtc,
                     IsSeen = x.IsSeen,
                     SeenAtUtc = x.SeenAtUtc,
+                    AggregateCount = x.AggregateCount > 0 ? x.AggregateCount : 1,
+                    UnreadEventCount = x.UnreadEventCount > 0 ? x.UnreadEventCount : (x.IsSeen ? 0 : 1),
                     Kind = x.Sender == "ai" ? (x.Description.Contains("fehlgeschlagen") ? "error" : "success") : "info",
                     Title = x.Sender == "ai" ? "AI" : (string.IsNullOrWhiteSpace(x.Sender) ? "Info" : x.Sender)
                 })
@@ -877,6 +1006,7 @@ END;
             {
                 item.IsSeen = true;
                 item.SeenAtUtc = DateTime.UtcNow;
+                item.UnreadEventCount = 0;
                 await _context.SaveChangesAsync(cancellationToken);
             }
 
@@ -906,6 +1036,7 @@ END;
                 {
                     it.IsSeen = true;
                     it.SeenAtUtc = now;
+                    it.UnreadEventCount = 0;
                 }
                 await _context.SaveChangesAsync(cancellationToken);
             }
@@ -1872,6 +2003,55 @@ END;
             ViewData["Checked"] = list.CheckedJson;
 
             return View("~/Areas/WorldMiniApp/Views/Home/SharedShoppingList.cshtml");
+        }
+
+        /// <summary>
+        /// Returns all localized strings from SharedResources as JSON for client-side usage.
+        /// Used by worldminiapp-i18n.js for client-side localization.
+        /// </summary>
+        [HttpGet]
+        public IActionResult GetLocalizedStrings(string? culture)
+        {
+            var strings = new Dictionary<string, string>();
+
+            try
+            {
+                // Get the resource manager via reflection
+                var resourceManagerProperty = typeof(SharedResources)
+                    .GetProperty("ResourceManager", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public);
+
+                if (resourceManagerProperty != null)
+                {
+                    var resourceManager = resourceManagerProperty.GetValue(null) as ResourceManager;
+
+                    if (resourceManager != null)
+                    {
+                        var targetCulture = string.IsNullOrWhiteSpace(culture)
+                            ? CultureInfo.CurrentUICulture
+                            : CultureInfo.GetCultureInfo(culture);
+
+                        var resourceSet = resourceManager.GetResourceSet(targetCulture, true, false);
+
+                        if (resourceSet != null)
+                        {
+                            foreach (System.Collections.DictionaryEntry entry in resourceSet)
+                            {
+                                if (entry.Key != null && entry.Value != null)
+                                {
+                                    strings[entry.Key.ToString()!] = entry.Value.ToString()!;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to load localized strings for culture: {Culture}", culture);
+                // Return empty dictionary on error
+            }
+
+            return Json(strings);
         }
     }
 }

@@ -1,0 +1,1572 @@
+{
+  "version": "3.0",
+  "description": "Generische Step-Defaults und rezepttyp-spezifische Overrides. Variablen-Namen entsprechen exakt den variables-Arrays in master_steps.json. ingredient/ingredients werden NICHT in defaults gesetzt — kommen immer vom User.",
+  "usage": "Priorität: 1. User-Override → 2. types[subtype].step_variables → 3. types[parent].step_variables → 4. defaults[stepId]. ingredient-Variablen werden pro Step vom User zugewiesen.",
+  "defaults": {
+    "PREP_WASH_01": {
+      "action": "tupfe",
+      "pronoun": "es"
+    },
+    "PREP_PEEL_01": {
+      "tool": "Sparschäler"
+    },
+    "PREP_CUT_01": {
+      "shape": "Würfel",
+      "grind_size": "mittel"
+    },
+    "PREP_GRATE_01": {
+      "grind_size": "fein",
+      "tool": "Reibe"
+    },
+    "PREP_MARINATE_01": {
+      "marinade": "Olivenöl, Salz und Gewürzen",
+      "duration": "30 Minuten",
+      "pronoun": "es"
+    },
+    "PREP_SOAK_01": {
+      "liquid": "Wasser",
+      "duration": "30 Minuten"
+    },
+    "PREP_MIX_DRY_01": {},
+    "PREP_KNEAD_01": {
+      "dough": "Teig",
+      "duration": "8-10 Minuten",
+      "state": "geschmeidig",
+      "pronoun": "ihn",
+      "copula": "ist"
+    },
+    "PREP_DOUGH_RISE_01": {
+      "dough": "Teig",
+      "duration": "60 Minuten",
+      "state": "verdoppelt",
+      "copula": "ist"
+    },
+    "PREP_REST_01": {
+      "item": "🍞 Teig",
+      "pronoun": "er",
+      "duration": "10 Minuten",
+      "state": "fest",
+      "copula": "ist"
+    },
+    "PREP_PORTION_01": {
+      "item": "🍞 Teig",
+      "count": "4"
+    },
+    "PREP_ROLL_OUT_01": {
+      "dough": "Teig",
+      "surface": "einer bemehlten Arbeitsfläche",
+      "grind_size": "dünn",
+      "shape": "rund"
+    },
+    "PREP_BREAD_3STEP_01": {
+      "step1": "Mehl",
+      "step2": "verquirltem Ei",
+      "step3": "Semmelbröseln",
+      "pronoun": "es"
+    },
+    "PREP_WHISK_01": {
+      "action": "schlage",
+      "tool": "Schneebesen",
+      "state": "schaumig",
+      "copula": "ist"
+    },
+    "PREP_BEAT_01": {
+      "action": "schlage",
+      "tool": "Handrührgerät",
+      "pronoun": "es",
+      "state": "cremig",
+      "copula": "ist"
+    },
+    "PREP_SEPARATE_01": {
+      "ingredient2": "Eigelb"
+    },
+    "COOK_SIMMER_02": {
+      "duration": "20 Minuten",
+      "state": "gar",
+      "pronoun": "es",
+      "copula": "ist"
+    },
+    "PREP_FOLD_IN_01": {
+      "base": "Masse",
+      "goal": "eine homogene Masse"
+    },
+    "PREP_HEAT_01": {
+      "equipment": "♨️ Backofen",
+      "temp": "180°C",
+      "mode": "Ober-/Unterhitze"
+    },
+    "PREP_LAYER_01": {
+      "equipment": "🍳 Auflaufform",
+      "components": "Zutaten",
+      "finish": "Käse"
+    },
+    "PREP_MARINADE_MAKE_01": {},
+    "COOK_SAUTE_01": {
+      "action": "dünste",
+      "fat": "Olivenöl",
+      "equipment": "🍳 Pfanne",
+      "duration": "3-5 Minuten",
+      "state": "glasig",
+      "copula": "ist"
+    },
+    "COOK_FRY_01": {
+      "fat": "Öl",
+      "heat": "mittlerer",
+      "duration": "3-4 Minuten pro Seite",
+      "pronoun": "es",
+      "state": "goldbraun",
+      "copula": "ist"
+    },
+    "COOK_DEEPFRY_01": {
+      "fat": "Öl",
+      "temp": "170°C",
+      "duration": "3-5 Minuten",
+      "state": "knusprig",
+      "copula": "ist"
+    },
+    "COOK_BOIL_01": {
+      "liquid": "Wasser",
+      "duration": "10 Minuten",
+      "pronoun": "es",
+      "state": "gar",
+      "copula": "ist"
+    },
+    "COOK_SIMMER_01": {
+      "base": "Sauce",
+      "duration": "20 Minuten",
+      "pronoun": "es",
+      "state": "eingedickt",
+      "copula": "ist"
+    },
+    "COOK_STEAM_01": {
+      "equipment": "♨️ Dampfgarer",
+      "duration": "10-15 Minuten",
+      "state": "zart",
+      "copula": "ist"
+    },
+    "COOK_BAKE_01": {
+      "base": "Masse",
+      "pronoun": "es",
+      "temp": "180°C",
+      "mode": "Ober-/Unterhitze",
+      "duration": "30-40 Minuten",
+      "state": "goldbraun",
+      "copula": "ist"
+    },
+    "COOK_ROAST_01": {
+      "fat": "Öl",
+      "temp": "180°C",
+      "duration": "20-30 Minuten",
+      "pronoun": "es",
+      "state": "goldbraun",
+      "copula": "ist"
+    },
+    "COOK_GRILL_01": {
+      "equipment": "🔥 Grill",
+      "heat": "hoher",
+      "duration": "3-4 Minuten pro Seite",
+      "state": "gar",
+      "copula": "ist"
+    },
+    "COOK_DEGLAZE_01": {
+      "liquid": "Wein",
+      "equipment": "🍳 Pfanne"
+    },
+    "COOK_DEGLAZE_02": {
+      "liquid": "Wein"
+    },
+    "COOK_REDUCE_01": {
+      "liquid": "Sauce",
+      "duration": "10 Minuten",
+      "state": "sämig",
+      "copula": "ist"
+    },
+    "COOK_THICKEN_01": {
+      "base": "Sauce",
+      "thickener": "Speisestärke",
+      "state": "sämig",
+      "copula": "ist"
+    },
+    "COOK_STIR_01": {
+      "action": "rühre",
+      "method": "vorsichtig",
+      "base": "Masse"
+    },
+    "COOK_DRAIN_01": {
+      "equipment": "Sieb",
+      "pronoun": "es"
+    },
+    "COOK_STRAIN_01": {
+      "equipment": "Sieb",
+      "keep": "Sud"
+    },
+    "COOK_COVER_01": {
+      "equipment": "🍲 Topf",
+      "heat": "niedriger",
+      "duration": "20 Minuten"
+    },
+    "COOK_BLEND_01": {
+      "action": "püriere",
+      "equipment": "Mixer",
+      "base": "Suppe",
+      "state": "cremig",
+      "copula": "ist"
+    },
+    "COOK_ADD_01": {
+      "method": "unterrühren"
+    },
+    "COOK_BRAISE_01": {
+      "liquid": "Brühe",
+      "equipment": "🍲 Bräter",
+      "duration": "1-2 Stunden",
+      "state": "zart",
+      "copula": "ist"
+    },
+    "COOK_GRATINATE_01": {
+      "base": "Auflauf",
+      "position": "auf oberer Schiene",
+      "duration": "5-10 Minuten",
+      "state": "goldbraun",
+      "pronoun": "es",
+      "copula": "ist"
+    },
+    "COOK_POACH_01": {
+      "liquid": "Fond",
+      "heat": "niedriger",
+      "duration": "8-12 Minuten",
+      "state": "gar",
+      "pronoun": "ihn",
+      "copula": "ist"
+    },
+    "PREP_FILLET_01": {
+      "tool": "Filetiermesser"
+    },
+    "PREP_DESCALE_01": {
+      "tool": "Fischmesser",
+      "pronoun": "ihn"
+    },
+    "PREP_DEVEIN_01": {
+      "tool": "kleines Messer"
+    },
+    "PREP_CLEAN_SEAFOOD_01": {
+      "action": "putze"
+    },
+    "SEASON_ADJUST_01": {
+      "base": "Gericht",
+      "seasonings": "Salz und Pfeffer",
+      "balance": "Würze"
+    },
+    "FINISH_COOL_01": {
+      "base": "Gericht",
+      "duration": "10 Minuten",
+      "state": "abgekühlt",
+      "copula": "ist"
+    },
+    "FINISH_REST_01": {
+      "base": "Gericht",
+      "duration": "10 Minuten",
+      "reason": "damit sich die Aromen verbinden"
+    },
+    "FINISH_PORTION_01": {
+      "base": "Gericht",
+      "count": "4"
+    },
+    "FINISH_SERVE_01": {
+      "base": "Gericht",
+      "extra": "mit frischen Kräutern"
+    }
+  },
+  "types": {
+    "pasta_gericht": {
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "Stücke"
+        },
+        "COOK_BOIL_01": {
+          "liquid": "Salzwasser",
+          "duration": "laut Packungsangabe",
+          "state": "bissfest",
+          "pronoun": "sie"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "Olivenöl",
+          "equipment": "🍳 Pfanne",
+          "duration": "3-5 Minuten",
+          "state": "glasig"
+        },
+        "COOK_DRAIN_01": {
+          "equipment": "Sieb",
+          "pronoun": "sie"
+        },
+        "COOK_STIR_01": {
+          "action": "Vermenge",
+          "method": "schwenkend",
+          "base": "Sauce"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Pasta",
+          "seasonings": "Salz und Pfeffer",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Pasta-Gericht",
+          "extra": "mit Parmesan und frischen Kräutern"
+        }
+      }
+    },
+    "spaghetti": {
+      "parent": "pasta_gericht",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Würfel"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Spaghetti",
+          "extra": "mit frisch geriebenem Parmesan"
+        }
+      }
+    },
+    "bolognese": {
+      "parent": "pasta_gericht",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Würfel"
+        },
+        "PREP_MINCE_01": {},
+        "COOK_SAUTE_01": {
+          "action": "brate",
+          "fat": "Olivenöl",
+          "equipment": "🍲 Topf",
+          "duration": "8-10 Minuten",
+          "state": "braun"
+        },
+        "COOK_DEGLAZE_01": {
+          "liquid": "Rotwein",
+          "equipment": "🍲 Topf"
+        },
+        "COOK_ADD_01": {
+          "method": "unterrühren"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Bolognese",
+          "duration": "30-45 Minuten",
+          "state": "eingedickt",
+          "pronoun": "sie"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Spaghetti Bolognese",
+          "extra": "mit Parmesan und Basilikum"
+        }
+      }
+    },
+    "carbonara": {
+      "parent": "pasta_gericht",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Streifen"
+        },
+        "PREP_WHISK_01": {
+          "action": "Verquirle",
+          "tool": "Schneebesen",
+          "state": "cremig"
+        },
+        "COOK_SAUTE_01": {
+          "action": "brate",
+          "fat": "Olivenöl",
+          "equipment": "🍳 Pfanne",
+          "duration": "5-7 Minuten",
+          "state": "knusprig"
+        },
+        "COOK_STIR_01": {
+          "action": "Vermenge",
+          "method": "bei ausgeschalteter Hitze",
+          "base": "Ei-Käse-Mischung"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Carbonara",
+          "seasonings": "Pfeffer",
+          "balance": "Cremigkeit"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Carbonara",
+          "extra": "mit Pecorino und frisch gemahlenem Pfeffer"
+        }
+      }
+    },
+    "aglio_e_olio": {
+      "parent": "pasta_gericht",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Scheiben"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "viel Olivenöl",
+          "equipment": "🍳 Pfanne",
+          "duration": "2-3 Minuten",
+          "state": "goldbraun"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Aglio e Olio",
+          "seasonings": "Salz und Chiliflocken",
+          "balance": "Schärfe"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Aglio e Olio",
+          "extra": "mit frischer Petersilie und Parmesan"
+        }
+      }
+    },
+    "suppe": {
+      "step_variables": {
+        "PREP_WASH_01": {
+          "pronoun": "es"
+        },
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "Würfel"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "Olivenöl",
+          "equipment": "🍲 Topf",
+          "duration": "3-5 Minuten",
+          "state": "glasig"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Suppe",
+          "duration": "20-30 Minuten",
+          "state": "gar",
+          "pronoun": "sie"
+        },
+        "COOK_COVER_01": {
+          "equipment": "🍲 Topf",
+          "heat": "niedriger",
+          "duration": "20-30 Minuten"
+        },
+        "COOK_BLEND_01": {
+          "action": "Püriere",
+          "base": "Suppe",
+          "equipment": "Mixer",
+          "state": "cremig"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Suppe",
+          "seasonings": "Salz und Pfeffer",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Suppe",
+          "extra": "mit einem Klecks Sahne und frischen Kräutern"
+        }
+      }
+    },
+    "kuerbissuppe": {
+      "parent": "suppe",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "grob",
+          "shape": "Würfel"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Kürbissuppe",
+          "duration": "25-30 Minuten",
+          "state": "weich",
+          "pronoun": "sie"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Kürbissuppe",
+          "seasonings": "Salz, Pfeffer und Muskatnuss",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Kürbissuppe",
+          "extra": "mit Kürbiskernen und einem Schuss Kürbiskernöl"
+        }
+      }
+    },
+    "tomatensuppe": {
+      "parent": "suppe",
+      "step_variables": {
+        "COOK_SIMMER_01": {
+          "base": "Tomatensuppe",
+          "duration": "20-25 Minuten",
+          "state": "weich",
+          "pronoun": "sie"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Tomatensuppe",
+          "seasonings": "Salz, Pfeffer und eine Prise Zucker",
+          "balance": "Säure"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Tomatensuppe",
+          "extra": "mit frischem Basilikum und einem Klecks Sahne"
+        }
+      }
+    },
+    "eintopf": {
+      "step_variables": {
+        "PREP_WASH_01": {
+          "pronoun": "es"
+        },
+        "PREP_PEEL_01": {
+          "tool": "Sparschäler"
+        },
+        "PREP_CUT_01": {
+          "grind_size": "grob",
+          "shape": "Würfel"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "Olivenöl",
+          "equipment": "🍲 Topf",
+          "duration": "5-7 Minuten",
+          "state": "angebraten"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Eintopf",
+          "duration": "45-60 Minuten",
+          "state": "weich",
+          "pronoun": "ihn"
+        },
+        "COOK_COVER_01": {
+          "equipment": "🍲 Topf",
+          "heat": "niedriger",
+          "duration": "45-60 Minuten"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Eintopf",
+          "seasonings": "Salz, Pfeffer und Paprikapulver",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Eintopf",
+          "extra": "mit frischer Petersilie und Brot"
+        }
+      }
+    },
+    "vegetarischer_eintopf": {
+      "parent": "eintopf",
+      "step_variables": {
+        "COOK_SIMMER_01": {
+          "base": "Eintopf",
+          "duration": "30-40 Minuten",
+          "state": "weich",
+          "pronoun": "ihn"
+        },
+        "COOK_COVER_01": {
+          "equipment": "🍲 Topf",
+          "heat": "niedriger",
+          "duration": "30-40 Minuten"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Eintopf",
+          "seasonings": "Salz, Pfeffer und frische Kräuter",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "vegetarischen Eintopf",
+          "extra": "mit Brot und frischen Kräutern"
+        }
+      }
+    },
+    "gulasch": {
+      "parent": "eintopf",
+      "step_variables": {
+        "COOK_SAUTE_01": {
+          "action": "brate",
+          "fat": "Öl",
+          "equipment": "🍲 Topf",
+          "duration": "8-10 Minuten",
+          "state": "angebraten"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Gulasch",
+          "duration": "90-120 Minuten",
+          "state": "zart",
+          "pronoun": "es"
+        },
+        "COOK_COVER_01": {
+          "equipment": "🍲 Topf",
+          "heat": "niedriger",
+          "duration": "90-120 Minuten"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Gulasch",
+          "seasonings": "Salz, Pfeffer und edelsüßes Paprikapulver",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Gulasch",
+          "extra": "mit einem Klecks saurer Sahne und Brot"
+        }
+      }
+    },
+    "curry": {
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "Würfel"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "Öl",
+          "equipment": "🍲 Topf",
+          "duration": "3-4 Minuten",
+          "state": "glasig"
+        },
+        "COOK_STIR_01": {
+          "action": "Rühre",
+          "method": "die Currypaste ein",
+          "base": "Zwiebelmischung"
+        },
+        "COOK_ADD_01": {
+          "method": "angießen und unterrühren"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Curry",
+          "duration": "20-25 Minuten",
+          "state": "sämig",
+          "pronoun": "es"
+        },
+        "COOK_COVER_01": {
+          "equipment": "🍲 Topf",
+          "heat": "niedriger",
+          "duration": "20-25 Minuten"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Curry",
+          "seasonings": "Salz und Limettensaft",
+          "balance": "Schärfe"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Curry",
+          "extra": "mit Reis und frischem Koriander"
+        }
+      }
+    },
+    "thai_curry": {
+      "parent": "curry",
+      "step_variables": {
+        "COOK_STIR_01": {
+          "action": "Rühre",
+          "method": "die Currypaste ein und brate sie kurz an",
+          "base": "Zwiebelmischung"
+        },
+        "COOK_ADD_01": {
+          "method": "Kokosmilch angießen und unterrühren"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Thai Curry",
+          "seasonings": "Fischsauce, Limettensaft und Zucker",
+          "balance": "Schärfe"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Thai Curry",
+          "extra": "mit Jasminreis, Thai-Basilikum und Limettenspalten"
+        }
+      }
+    },
+    "indisches_curry": {
+      "parent": "curry",
+      "step_variables": {
+        "COOK_STIR_01": {
+          "action": "Rühre",
+          "method": "die Gewürze ein und röste sie kurz an",
+          "base": "Zwiebelmischung"
+        },
+        "COOK_ADD_01": {
+          "method": "Tomaten und Joghurt unterrühren"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Curry",
+          "seasonings": "Garam Masala, Salz und Koriander",
+          "balance": "Schärfe"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Curry",
+          "extra": "mit Basmati-Reis und Naan-Brot"
+        }
+      }
+    },
+    "backware_herzhaft": {
+      "step_variables": {
+        "PREP_MIX_DRY_01": {},
+        "PREP_KNEAD_01": {
+          "dough": "Teig",
+          "duration": "8-10 Minuten",
+          "state": "geschmeidig",
+          "pronoun": "ihn"
+        },
+        "PREP_ROLL_OUT_01": {
+          "dough": "Teig",
+          "surface": "einer bemehlten Arbeitsfläche",
+          "grind_size": "dünn",
+          "shape": "passend"
+        },
+        "PREP_LAYER_01": {
+          "components": "Belag und Käse",
+          "equipment": "📋 Backblech",
+          "finish": "gleichmäßig verteilen"
+        },
+        "COOK_BAKE_01": {
+          "base": "Backware",
+          "pronoun": "sie",
+          "temp": "200°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "25-35 Minuten",
+          "state": "goldbraun"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Backware",
+          "extra": "mit frischen Kräutern"
+        }
+      }
+    },
+    "pizza": {
+      "parent": "backware_herzhaft",
+      "step_variables": {
+        "PREP_KNEAD_01": {
+          "dough": "Pizzateig",
+          "duration": "8-10 Minuten",
+          "state": "geschmeidig",
+          "pronoun": "ihn"
+        },
+        "PREP_DOUGH_RISE_01": {
+          "dough": "Teig",
+          "duration": "60-90 Minuten",
+          "state": "verdoppelt"
+        },
+        "PREP_ROLL_OUT_01": {
+          "dough": "Teig",
+          "surface": "einer bemehlten Arbeitsfläche",
+          "grind_size": "dünn",
+          "shape": "rund"
+        },
+        "PREP_LAYER_01": {
+          "components": "Tomatensauce, Mozzarella und Belag",
+          "equipment": "📋 Backblech",
+          "finish": "mit Olivenöl beträufeln"
+        },
+        "COOK_BAKE_01": {
+          "base": "Pizza",
+          "pronoun": "sie",
+          "temp": "250°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "10-15 Minuten",
+          "state": "knusprig"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Pizza",
+          "extra": "mit frischem Basilikum"
+        }
+      }
+    },
+    "quiche": {
+      "parent": "backware_herzhaft",
+      "step_variables": {
+        "PREP_ROLL_OUT_01": {
+          "dough": "Mürbeteig",
+          "surface": "einer bemehlten Arbeitsfläche",
+          "grind_size": "ca. 3 mm dünn",
+          "shape": "passend zur Form"
+        },
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "Würfel"
+        },
+        "PREP_WHISK_01": {
+          "action": "Verquirle",
+          "tool": "Schneebesen",
+          "state": "cremig"
+        },
+        "PREP_LAYER_01": {
+          "components": "Teig, Füllung und Eierguss",
+          "equipment": "🥧 Tarteform",
+          "finish": "den Eierguss gleichmäßig verteilen"
+        },
+        "COOK_BAKE_01": {
+          "base": "Quiche",
+          "pronoun": "sie",
+          "temp": "180°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "35-40 Minuten",
+          "state": "goldbraun"
+        },
+        "FINISH_REST_01": {
+          "base": "Quiche",
+          "duration": "10 Minuten",
+          "reason": "damit sie etwas abkühlt"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Quiche",
+          "extra": "mit frischem Salat"
+        }
+      }
+    },
+    "backware_suess": {
+      "step_variables": {
+        "PREP_MIX_DRY_01": {},
+        "PREP_WHISK_01": {
+          "action": "Verrühre",
+          "tool": "Schneebesen",
+          "state": "schaumig"
+        },
+        "COOK_BAKE_01": {
+          "base": "Gebäck",
+          "pronoun": "es",
+          "temp": "180°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "25-35 Minuten",
+          "state": "goldbraun"
+        },
+        "FINISH_COOL_01": {
+          "base": "Gebäck",
+          "duration": "10 Minuten",
+          "state": "abgekühlt"
+        },
+        "FINISH_REST_01": {
+          "base": "Gebäck",
+          "duration": "10 Minuten",
+          "reason": "auf einem Kuchengitter abkühlen lassen"
+        }
+      }
+    },
+    "hefeteig": {
+      "parent": "backware_suess",
+      "step_variables": {
+        "PREP_KNEAD_01": {
+          "dough": "Hefeteig",
+          "duration": "10-12 Minuten",
+          "state": "geschmeidig",
+          "pronoun": "ihn"
+        },
+        "PREP_DOUGH_RISE_01": {
+          "dough": "Teig",
+          "duration": "60-90 Minuten",
+          "state": "verdoppelt"
+        },
+        "PREP_PORTION_01": {
+          "item": "🍞 Teig",
+          "count": "8"
+        },
+        "COOK_BAKE_01": {
+          "base": "Gebäck",
+          "pronoun": "es",
+          "temp": "180°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "25-35 Minuten",
+          "state": "goldbraun"
+        }
+      }
+    },
+    "muffins": {
+      "parent": "backware_suess",
+      "step_variables": {
+        "PREP_FOLD_IN_01": {
+          "base": "Teig",
+          "goal": "glatt"
+        },
+        "PREP_PORTION_01": {
+          "item": "🍞 Teig",
+          "count": "12"
+        },
+        "COOK_BAKE_01": {
+          "base": "Muffins",
+          "pronoun": "sie",
+          "temp": "180°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "20-25 Minuten",
+          "state": "goldbraun"
+        },
+        "FINISH_COOL_01": {
+          "base": "Muffins",
+          "duration": "10 Minuten",
+          "state": "lauwarm"
+        }
+      }
+    },
+    "cheesecake": {
+      "parent": "backware_suess",
+      "step_variables": {
+        "PREP_WHISK_01": {
+          "action": "Schlage",
+          "tool": "Handrührgerät",
+          "state": "cremig"
+        },
+        "PREP_LAYER_01": {
+          "components": "Keksboden und Käsemasse",
+          "equipment": "🍰 Springform",
+          "finish": "die Oberfläche glatt streichen"
+        },
+        "COOK_BAKE_01": {
+          "base": "Cheesecake",
+          "pronoun": "ihn",
+          "temp": "160°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "50-60 Minuten",
+          "state": "fest"
+        },
+        "FINISH_COOL_01": {
+          "base": "Cheesecake",
+          "duration": "im Ofen mit angelassener Tür 1 Stunde",
+          "state": "abgekühlt"
+        },
+        "FINISH_REST_01": {
+          "base": "Cheesecake",
+          "duration": "mindestens 4 Stunden im Kühlschrank",
+          "reason": "damit er fest wird"
+        }
+      }
+    },
+    "auflauf": {
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "Scheiben"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "Butter",
+          "equipment": "🍳 Pfanne",
+          "duration": "3-5 Minuten",
+          "state": "angebraten"
+        },
+        "PREP_LAYER_01": {
+          "components": "Kartoffeln, Gemüse, Sahne und Käse",
+          "equipment": "🍳 Auflaufform",
+          "finish": "mit Käse bestreuen"
+        },
+        "COOK_BAKE_01": {
+          "base": "Auflauf",
+          "pronoun": "ihn",
+          "temp": "180°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "35-45 Minuten",
+          "state": "goldbraun"
+        },
+        "COOK_GRATINATE_01": {
+          "base": "Auflauf",
+          "position": "auf oberer Schiene",
+          "duration": "5-10 Minuten",
+          "state": "goldbraun",
+          "pronoun": "ihn"
+        },
+        "FINISH_REST_01": {
+          "base": "Auflauf",
+          "duration": "5 Minuten",
+          "reason": "damit er etwas abkühlt"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Auflauf",
+          "extra": "mit frischem Salat"
+        }
+      }
+    },
+    "lasagne": {
+      "parent": "auflauf",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Würfel"
+        },
+        "PREP_MINCE_01": {},
+        "COOK_SAUTE_01": {
+          "action": "brate",
+          "fat": "Olivenöl",
+          "equipment": "🍳 Pfanne",
+          "duration": "8-10 Minuten",
+          "state": "braun"
+        },
+        "COOK_DEGLAZE_01": {
+          "liquid": "Rotwein",
+          "equipment": "🍳 Pfanne"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Bolognese-Sauce",
+          "duration": "20-25 Minuten",
+          "state": "eingedickt",
+          "pronoun": "sie"
+        },
+        "PREP_WHISK_01": {
+          "action": "Verrühre",
+          "tool": "Schneebesen",
+          "state": "cremig"
+        },
+        "COOK_THICKEN_01": {
+          "base": "Béchamel",
+          "thickener": "Mehl-Butter-Mischung (Roux)",
+          "state": "sämig"
+        },
+        "PREP_LAYER_01": {
+          "components": "Bolognese, Lasagneblätter, Béchamel und Käse",
+          "equipment": "🍳 Auflaufform",
+          "finish": "mit Käse abschließen"
+        },
+        "COOK_BAKE_01": {
+          "base": "Lasagne",
+          "pronoun": "sie",
+          "temp": "180°C",
+          "mode": "Ober-/Unterhitze",
+          "duration": "35-40 Minuten",
+          "state": "goldbraun"
+        },
+        "COOK_GRATINATE_01": {
+          "base": "Lasagne",
+          "position": "auf oberer Schiene",
+          "duration": "5-8 Minuten",
+          "state": "goldbraun",
+          "pronoun": "sie"
+        },
+        "PREP_REST_01": {
+          "item": "🍽️ Lasagne",
+          "pronoun": "sie",
+          "duration": "10 Minuten",
+          "state": "fest"
+        }
+      }
+    },
+    "burger_wrap": {
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "Scheiben"
+        },
+        "COOK_SAUTE_01": {
+          "action": "brate",
+          "fat": "Öl",
+          "equipment": "🍳 Pfanne",
+          "duration": "5-7 Minuten",
+          "state": "gar"
+        },
+        "COOK_FRY_01": {
+          "fat": "Öl",
+          "heat": "hoher",
+          "duration": "4-5 Minuten pro Seite",
+          "pronoun": "es",
+          "state": "goldbraun"
+        },
+        "PREP_ASSEMBLE_01": {
+          "base": "Gericht",
+          "components": "Füllung, Salat und Toppings",
+          "finish": "nach Belieben garnieren"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Füllung",
+          "seasonings": "Salz, Pfeffer und Paprikapulver",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Gericht",
+          "extra": "mit Beilagen"
+        }
+      }
+    },
+    "burger": {
+      "parent": "burger_wrap",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "Ringe"
+        },
+        "PREP_MINCE_01": {},
+        "COOK_GRILL_01": {
+          "equipment": "🔥 Grill",
+          "heat": "hoher",
+          "duration": "4-5 Minuten pro Seite",
+          "state": "medium"
+        },
+        "COOK_FRY_01": {
+          "fat": "Öl",
+          "heat": "hoher",
+          "duration": "4-5 Minuten pro Seite",
+          "pronoun": "ihn",
+          "state": "goldbraun"
+        },
+        "PREP_ASSEMBLE_01": {
+          "base": "Burger",
+          "components": "Brötchen, Salat, Patty, Tomate und Sauce",
+          "finish": "mit dem oberen Brötchen abschließen"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Patties",
+          "seasonings": "Salz, Pfeffer und Paprikapulver",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Burger",
+          "extra": "mit Pommes oder Salat"
+        }
+      }
+    },
+    "wrap_burrito": {
+      "parent": "burger_wrap",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Streifen"
+        },
+        "COOK_SAUTE_01": {
+          "action": "brate",
+          "fat": "Olivenöl",
+          "equipment": "🍳 Pfanne",
+          "duration": "5-7 Minuten",
+          "state": "gar"
+        },
+        "COOK_FRY_01": {
+          "fat": "Öl",
+          "heat": "mittlerer",
+          "duration": "2-3 Minuten pro Seite",
+          "pronoun": "ihn",
+          "state": "angebraten"
+        },
+        "PREP_ASSEMBLE_01": {
+          "base": "Wrap",
+          "components": "Füllung, Salsa, Käse und Salat",
+          "finish": "fest einrollen"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Füllung",
+          "seasonings": "Kreuzkümmel, Paprikapulver und Salz",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Wraps",
+          "extra": "mit Salsa und Guacamole"
+        }
+      }
+    },
+    "taco": {
+      "parent": "burger_wrap",
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Würfel"
+        },
+        "COOK_FRY_01": {
+          "fat": "Öl",
+          "heat": "hoher",
+          "duration": "5-7 Minuten",
+          "pronoun": "es",
+          "state": "durchgegart"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "Öl",
+          "equipment": "🍳 Pfanne",
+          "duration": "5-7 Minuten",
+          "state": "gar"
+        },
+        "PREP_ASSEMBLE_01": {
+          "base": "Tacos",
+          "components": "Taco-Shell, Fleisch, Avocado, Tomaten und Käse",
+          "finish": "mit Koriander garnieren"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Füllung",
+          "seasonings": "Kreuzkümmel, Paprikapulver und Salz",
+          "balance": "Schärfe"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Tacos",
+          "extra": "mit Salsa und Limettenspalten"
+        }
+      }
+    },
+    "braten": {
+      "step_variables": {
+        "PREP_MARINATE_01": {
+          "marinade": "Salz, Pfeffer und Kräutern",
+          "duration": "30 Minuten",
+          "pronoun": "ihn"
+        },
+        "COOK_ROAST_01": {
+          "fat": "Öl",
+          "temp": "160°C",
+          "duration": "2-3 Stunden",
+          "state": "zart",
+          "pronoun": "ihn"
+        },
+        "COOK_BRAISE_01": {
+          "liquid": "Rinderbrühe",
+          "equipment": "🍲 Bräter",
+          "duration": "2-3 Stunden",
+          "state": "zart"
+        },
+        "COOK_DEGLAZE_01": {
+          "liquid": "Rotwein",
+          "equipment": "🍲 Bräter"
+        },
+        "COOK_REDUCE_01": {
+          "liquid": "Bratensaft",
+          "duration": "10-15 Minuten",
+          "state": "sämig"
+        },
+        "FINISH_REST_01": {
+          "base": "Braten",
+          "duration": "15-20 Minuten",
+          "reason": "damit sich die Säfte verteilen"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Braten",
+          "extra": "mit Sauce und Beilagen"
+        }
+      }
+    },
+    "pfannengericht": {
+      "step_variables": {
+        "PREP_WASH_01": {
+          "pronoun": "es"
+        },
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "mundgerechte Stücke"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "Öl",
+          "equipment": "🍳 Pfanne",
+          "duration": "3-4 Minuten",
+          "state": "glasig"
+        },
+        "COOK_FRY_01": {
+          "fat": "Öl",
+          "heat": "mittlerer bis hoher",
+          "duration": "5-7 Minuten",
+          "pronoun": "es",
+          "state": "goldbraun"
+        },
+        "COOK_STIR_01": {
+          "action": "Wende",
+          "method": "regelmäßig",
+          "base": "Gericht"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Pfannengericht",
+          "seasonings": "Salz, Pfeffer und Paprikapulver",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Pfannengericht",
+          "extra": "mit frischer Petersilie"
+        }
+      }
+    },
+    "salat": {
+      "step_variables": {
+        "PREP_WASH_01": {
+          "pronoun": "ihn"
+        },
+        "PREP_PEEL_01": {
+          "tool": "Sparschäler"
+        },
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "mundgerechte Stücke"
+        },
+        "PREP_WHISK_01": {
+          "action": "Verrühre",
+          "tool": "Schneebesen",
+          "state": "emulgiert"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Salat",
+          "seasonings": "Salz und Pfeffer",
+          "balance": "Säure"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Salat",
+          "extra": "mit dem Dressing"
+        }
+      }
+    },
+    "risotto": {
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Würfel"
+        },
+        "COOK_SAUTE_01": {
+          "action": "dünste",
+          "fat": "Butter und Olivenöl",
+          "equipment": "🍲 Topf",
+          "duration": "2-3 Minuten",
+          "state": "glasig"
+        },
+        "COOK_DEGLAZE_01": {
+          "liquid": "Weißwein",
+          "equipment": "🍲 Topf"
+        },
+        "COOK_STIR_01": {
+          "action": "Rühre",
+          "method": "kellenweise Brühe ein",
+          "base": "Reis"
+        },
+        "COOK_ADD_01": {
+          "method": "kellenweise einrühren"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Risotto",
+          "duration": "18-20 Minuten",
+          "state": "cremig",
+          "pronoun": "es"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Risotto",
+          "seasonings": "Parmesan, Butter, Salz und Pfeffer",
+          "balance": "Cremigkeit"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Risotto",
+          "extra": "mit Parmesan und frischen Kräutern"
+        }
+      }
+    },
+    "chili": {
+      "step_variables": {
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Würfel"
+        },
+        "PREP_MINCE_01": {},
+        "COOK_SAUTE_01": {
+          "action": "brate",
+          "fat": "Olivenöl",
+          "equipment": "🍲 Topf",
+          "duration": "5-7 Minuten",
+          "state": "glasig"
+        },
+        "COOK_ADD_01": {
+          "method": "unterrühren"
+        },
+        "COOK_SIMMER_01": {
+          "base": "Chili",
+          "duration": "30-45 Minuten",
+          "state": "eingedickt",
+          "pronoun": "es"
+        },
+        "COOK_COVER_01": {
+          "equipment": "🍲 Topf",
+          "heat": "niedriger",
+          "duration": "30-45 Minuten"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Chili",
+          "seasonings": "Salz, Kreuzkümmel und Limettensaft",
+          "balance": "Schärfe"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Chili",
+          "extra": "mit Koriander und saurer Sahne"
+        }
+      }
+    },
+    "bowl": {
+      "step_variables": {
+        "PREP_WASH_01": {
+          "pronoun": "es"
+        },
+        "PREP_CUT_01": {
+          "grind_size": "mittel",
+          "shape": "mundgerechte Stücke"
+        },
+        "PREP_MARINATE_01": {
+          "marinade": "Olivenöl, Limettensaft und Gewürzen",
+          "duration": "15 Minuten",
+          "pronoun": "es"
+        },
+        "COOK_ROAST_01": {
+          "fat": "Olivenöl",
+          "temp": "200°C",
+          "duration": "15-20 Minuten",
+          "state": "angeröstet",
+          "pronoun": "es"
+        },
+        "COOK_BOIL_01": {
+          "liquid": "Salzwasser",
+          "duration": "15-20 Minuten",
+          "state": "gar",
+          "pronoun": "ihn"
+        },
+        "PREP_WHISK_01": {
+          "action": "Verrühre",
+          "tool": "Schneebesen",
+          "state": "emulgiert"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Bowl",
+          "extra": "mit Dressing und Toppings"
+        }
+      }
+    },
+    "wok_gericht": {
+      "step_variables": {
+        "PREP_WASH_01": {
+          "pronoun": "es"
+        },
+        "PREP_CUT_01": {
+          "grind_size": "fein",
+          "shape": "Streifen"
+        },
+        "COOK_SAUTE_01": {
+          "action": "brate",
+          "fat": "Sesamöl",
+          "equipment": "🍲 Wok",
+          "duration": "2-3 Minuten",
+          "state": "bissfest"
+        },
+        "COOK_STIR_01": {
+          "action": "Schwenke",
+          "method": "unter ständigem Rühren",
+          "base": "Gemüse"
+        },
+        "COOK_ADD_01": {
+          "method": "zugießen und unterrühren"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Wokgericht",
+          "seasonings": "Sojasauce, Ingwer und Sesamöl",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Wokgericht",
+          "extra": "mit Sesam und Koriander"
+        }
+      }
+    },
+    "schnitzel": {
+      "step_variables": {
+        "PREP_BREAD_3STEP_01": {
+          "step1": "Mehl",
+          "step2": "verquirltem Ei",
+          "step3": "Semmelbröseln"
+        },
+        "COOK_FRY_01": {
+          "fat": "Öl oder Butterschmalz",
+          "heat": "mittlerer bis hoher",
+          "duration": "3-4 Minuten pro Seite",
+          "pronoun": "es",
+          "state": "knusprig"
+        },
+        "COOK_DRAIN_01": {
+          "equipment": "🧻 Küchenpapier",
+          "pronoun": "es"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Schnitzel",
+          "seasonings": "Salz und Zitronensaft",
+          "balance": "Würze"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Schnitzel",
+          "extra": "mit Zitronenspalten und Petersilie"
+        }
+      }
+    },
+    "steakgericht": {
+      "step_variables": {
+        "PREP_MARINATE_01": {
+          "marinade": "Olivenöl, Salz und Pfeffer",
+          "duration": "30 Minuten",
+          "pronoun": "es"
+        },
+        "COOK_GRILL_01": {
+          "equipment": "🔥 Grill",
+          "heat": "hoher",
+          "duration": "3-4 Minuten pro Seite",
+          "state": "medium"
+        },
+        "COOK_ROAST_01": {
+          "fat": "Butter",
+          "temp": "200°C",
+          "duration": "5-8 Minuten",
+          "state": "medium-rare",
+          "pronoun": "es"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Steak",
+          "seasonings": "Fleur de Sel und Pfeffer",
+          "balance": "Würze"
+        },
+        "FINISH_REST_01": {
+          "base": "Steak",
+          "duration": "5 Minuten",
+          "reason": "damit sich die Säfte verteilen"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Steak",
+          "extra": "mit Kräuterbutter und Beilagen"
+        }
+      }
+    },
+    "fischgericht": {
+      "step_variables": {
+        "PREP_WASH_01": {
+          "pronoun": "ihn"
+        },
+        "PREP_MARINATE_01": {
+          "marinade": "Zitronensaft, Olivenöl und Dill",
+          "duration": "15 Minuten",
+          "pronoun": "ihn"
+        },
+        "COOK_FRY_01": {
+          "fat": "Butter und Olivenöl",
+          "heat": "mittlerer",
+          "duration": "3-4 Minuten pro Seite",
+          "pronoun": "ihn",
+          "state": "goldbraun"
+        },
+        "COOK_STEAM_01": {
+          "equipment": "♨️ Dampfgarer",
+          "duration": "8-12 Minuten",
+          "state": "gar"
+        },
+        "SEASON_ADJUST_01": {
+          "base": "Fisch",
+          "seasonings": "Salz, Pfeffer und Zitronensaft",
+          "balance": "Frische"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Fisch",
+          "extra": "mit Zitronenspalten und Dill"
+        }
+      }
+    },
+    "eis_parfait": {
+      "step_variables": {
+        "PREP_WHISK_01": {
+          "action": "Schlage",
+          "tool": "Handrührgerät",
+          "state": "steif"
+        },
+        "COOK_BLEND_01": {
+          "action": "Püriere",
+          "base": "Früchte",
+          "equipment": "Mixer",
+          "state": "glatt"
+        },
+        "FINISH_COOL_01": {
+          "base": "Eismasse",
+          "duration": "mindestens 4 Stunden im Gefrierfach",
+          "state": "fest"
+        },
+        "FINISH_REST_01": {
+          "base": "Eis",
+          "duration": "10 Minuten bei Raumtemperatur",
+          "reason": "damit es sich besser portionieren lässt"
+        },
+        "FINISH_SERVE_01": {
+          "base": "Eis",
+          "extra": "mit frischen Beeren und Minze"
+        }
+      }
+    }
+  }
+}

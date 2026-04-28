@@ -23,14 +23,43 @@
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
+@using System.Globalization
+@using Microsoft.AspNetCore.Localization
+@using Microsoft.Extensions.Localization
+@using DelikatessenDrehbuch
+@inject IStringLocalizer<SharedResources> _sharedLocalizer
+
 @{
-    var currentLang = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var currentCulture = requestCulture?.RequestCulture.Culture ?? CultureInfo.CurrentCulture;
+    var currentLang = currentCulture.TwoLetterISOLanguageName;
+
     string Flag(string lang) => lang switch
     {
         "en" => "🇬🇧",
         "es" => "🇪🇸",
         "pt" => "🇵🇹",
+        "id" => "🇮🇩",
+        "nl" => "🇳🇱",
+        "sv" => "🇸🇪",
+        "da" => "🇩🇰",
+        "nb" or "no" => "🇳🇴",
+        "ms" => "🇲🇾",
         _ => "🇩🇪"
+    };
+
+    var languages = new[]
+    {
+        ("de", "🇩🇪", "Deutsch"),
+        ("en", "🇬🇧", "English"),
+        ("es", "🇪🇸", "Español"),
+        ("pt", "🇵🇹", "Português"),
+        ("id", "🇮🇩", "Indonesia"),
+        ("nl", "🇳🇱", "Nederlands"),
+        ("sv", "🇸🇪", "Svenska"),
+        ("da", "🇩🇰", "Dansk"),
+        ("nb", "🇳🇴", "Norsk"),
+        ("ms", "🇲🇾", "Melayu")
     };
 }
 <body>
@@ -44,11 +73,11 @@
         <div class="d-flex align-items-center justify-content-between" style="background:#2D4F1E; color:white; padding:10px 14px; border-top: 1px solid rgba(255,255,255,.18);">
             <div class="d-flex align-items-center gap-2" id="wmAiResumeBarStatus">
                 <span class="spinner-border spinner-border-sm text-light" id="wmAiResumeSpinner" style="display:none;"></span>
-                <span id="wmAiResumeText">AI Vorschau bereit.</span>
+                <span id="wmAiResumeText">@_sharedLocalizer["AI.PreviewReady", _sharedLocalizer["AI.PreviewTitle"]]</span>
             </div>
             <div class="d-flex align-items-center gap-2">
-                <button type="button" class="btn btn-sm btn-light rounded-pill" id="wmAiResumeOpenBtn">&Ouml;ffnen</button>
-                <button type="button" class="btn btn-sm btn-outline-light rounded-pill" id="wmAiResumeDismissBtn" aria-label="Schlie&szlig;en">
+                <button type="button" class="btn btn-sm btn-light rounded-pill" id="wmAiResumeOpenBtn">@_sharedLocalizer["Common.Open"]</button>
+                <button type="button" class="btn btn-sm btn-outline-light rounded-pill" id="wmAiResumeDismissBtn" aria-label="@_sharedLocalizer["Common.Close"]">
                     <i class="bi bi-x-lg"></i>
                 </button>
             </div>
@@ -58,8 +87,8 @@
     <div class="toast-container position-fixed bottom-0 end-0 p-0" style="z-index: 2000; right:0; bottom:0;">
         <div id="wmAiToast" class="toast text-bg-dark border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="d-flex">
-                <div class="toast-body" id="wmAiToastBody">AI Vorschau ist fertig.</div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Schlie&szlig;en"></button>
+                <div class="toast-body" id="wmAiToastBody">@_sharedLocalizer["AI.PreviewFinished"]</div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="@_sharedLocalizer["Common.Close"]"></button>
             </div>
         </div>
     </div>
@@ -69,22 +98,22 @@
         <div class="modal-dialog modal-dialog-scrollable modal-fullscreen-sm-down">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="wmAiResultTitle">AI Vorschau</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <h5 class="modal-title" id="wmAiResultTitle">@_sharedLocalizer["AI.PreviewTitle"]</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="@_sharedLocalizer["Common.Close"]"></button>
                 </div>
                 <div class="modal-body">
                     <div id="wmAiResultLoading" class="text-center py-4" style="display:none;">
                         <div class="spinner-border" role="status"></div>
-                        <div class="mt-2 small text-muted">Laedt...</div>
+                        <div class="mt-2 small text-muted">@_sharedLocalizer["Common.Loading"]</div>
                     </div>
                     <div id="wmAiResultError" class="alert alert-danger" style="display:none;"></div>
 
                     <div id="wmAiResultContent" style="display:none;">
                         <p class="text-muted" id="wmAiResultSummary" style="white-space:pre-wrap;"></p>
                         <hr />
-                        <h6>Zutaten</h6>
+                        <h6 id="wmAiResultIngredientsHeader"><!-- Will be set by script --></h6>
                         <pre id="wmAiResultIngredientsText" class="mb-3" style="white-space:pre-wrap; font-family:inherit;"></pre>
-                        <h6>Zubereitung</h6>
+                        <h6 id="wmAiResultPreparationHeader"><!-- Will be set by script --></h6>
                         <pre id="wmAiResultPreparationText" style="white-space:pre-wrap; font-family:inherit;"></pre>
                     </div>
                 </div>
@@ -96,27 +125,49 @@
         <button class="btn btn-sm btn-light border rounded-pill dropdown-toggle shadow-sm" type="button" data-bs-toggle="dropdown" aria-expanded="false">
             @Flag(currentLang) @currentLang.ToUpperInvariant()
         </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow">
-            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('de')">🇩🇪 Deutsch</button></li>
-            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('en')">🇬🇧 English</button></li>
-            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('es')">🇪🇸 Español</button></li>
-            <li><button class="dropdown-item" type="button" onclick="setAppLanguage('pt')">🇵🇹 Português</button></li>
+        <ul class="dropdown-menu dropdown-menu-end shadow" style="max-height: 400px; overflow-y: auto;">
+            @foreach (var (code, flag, name) in languages)
+            {
+                <li>
+                    <button class="dropdown-item @(currentLang == code ? "active" : "")" type="button" onclick="setAppLanguage('@code')">
+                        @flag @name
+                    </button>
+                </li>
+            }
         </ul>
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
+    <script src="~/js/worldminiapp-i18n.js"></script>
     <script src="~/js/CreateNewMealPlan.js"></script>
     <script>
         function setAppLanguage(lang) {
-            document.cookie = `deli-lang=${lang}; path=/; max-age=31536000`;
+            // Cookie für Abwärtskompatibilität mit JSON-Mappings setzen
+            const cookieLang = {
+                'es': 'esp',
+                'pt': 'prt',
+                'nb': 'no',
+                'sv': 'sv',
+                'da': 'da'
+            }[lang] || lang;
+
+            document.cookie = `deli-lang=${cookieLang}; path=/; max-age=31536000`;
+
+            // ASP.NET Core Culture Cookie setzen
+            document.cookie = `.AspNetCore.Culture=c=${lang}|uic=${lang}; path=/; max-age=31536000`;
+
             window.location.reload();
         }
     </script>
 
     <script>
-        (function worldMiniAppAiResume() {
+        (async function worldMiniAppAiResume() {
+            // Initialize localization first
+            await WorldMiniAppI18n.ready();
+            const t = WorldMiniAppI18n.t;
+
             const KEY = 'worldminiapp.ai.resume.v2';
             const bar = document.getElementById('wmAiResumeBar');
             const statusText = document.getElementById('wmAiResumeText');
@@ -177,7 +228,7 @@
                 if (!toastEl || !toastBody || !window.bootstrap) return;
                 // Only pop a notice when no AI overlay is currently open.
                 if (anyAiModalOpen()) return;
-                toastBody.textContent = message || 'AI Vorschau ist fertig.';
+                toastBody.textContent = message || t('AI.PreviewFinished');
                 toastInstance = toastInstance || new bootstrap.Toast(toastEl, { delay: 4500 });
                 toastInstance.show();
             }
@@ -202,17 +253,17 @@
                     return;
                 }
                 const title = (state.title || '').toString();
-                const label = title ? `AI: ${title}` : 'AI Vorschau';
+                const label = title ? `AI: ${title}` : t('AI.PreviewTitle');
 
                 if (stage === 'queued' || stage === 'running') {
                     spinner.style.display = '';
-                    statusText.textContent = `${label} wird erstellt...`;
+                    statusText.textContent = t('AI.PreviewCreating', label);
                 } else if (stage === 'ready') {
                     spinner.style.display = 'none';
-                    statusText.textContent = `${label} ist bereit.`;
+                    statusText.textContent = t('AI.PreviewReady', label);
                 } else if (stage === 'error') {
                     spinner.style.display = 'none';
-                    statusText.textContent = `${label}: Fehler (erneut öffnen).`;
+                    statusText.textContent = t('AI.PreviewError', label);
                 } else {
                     spinner.style.display = 'none';
                     statusText.textContent = `${label}.`;
@@ -238,7 +289,7 @@
                 }
 
                 if (!state.jobId) {
-                    showToast('AI laeuft noch. Bitte kurz warten.');
+                    showToast(t('AI.StillRunning'));
                     return;
                 }
 
@@ -246,7 +297,7 @@
                 modalInstance = modalInstance || new bootstrap.Modal(modalEl);
                 modalInstance.show();
 
-                if (modalTitle) modalTitle.textContent = state.title ? `AI: ${state.title}` : 'AI Vorschau';
+                if (modalTitle) modalTitle.textContent = state.title ? `AI: ${state.title}` : t('AI.PreviewTitle');
                 if (modalError) { modalError.style.display = 'none'; modalError.textContent = ''; }
                 if (modalContent) modalContent.style.display = 'none';
                 if (modalLoading) modalLoading.style.display = '';
@@ -296,12 +347,12 @@
 
                     const result = await fetchResult();
                     if (!result.ok || !result.payload) {
-                        const msg = result.payload?.message || result.raw || 'AI-Ergebnis ist noch nicht bereit.';
+                        const msg = result.payload?.message || result.raw || t('AI.ResultNotReady');
                         throw new Error(msg);
                     }
 
                     const payload = result.payload;
-                    if (modalTitle) modalTitle.textContent = payload.title || (state.title ? `AI: ${state.title}` : 'AI Vorschau');
+                    if (modalTitle) modalTitle.textContent = payload.title || (state.title ? `AI: ${state.title}` : t('AI.PreviewTitle'));
                     if (modalSummary) modalSummary.textContent = payload.summary || '';
                     if (modalIngredientsText) modalIngredientsText.textContent = payload.ingredientsText || '';
                     if (modalPreparationText) modalPreparationText.textContent = payload.preparationText || '';
@@ -311,7 +362,7 @@
                     if (modalLoading) modalLoading.style.display = 'none';
                     if (modalContent) modalContent.style.display = 'none';
                     if (modalError) {
-                        modalError.textContent = (e && e.message) ? e.message : 'AI-Ergebnis konnte nicht geladen werden.';
+                        modalError.textContent = (e && e.message) ? e.message : t('AI.ResultLoadFailed');
                         modalError.style.display = '';
                     }
                 }
@@ -365,9 +416,9 @@
                     });
 
                     if (nextStage === 'ready') {
-                        showToast('AI Vorschau ist fertig.');
+                        showToast(t('AI.PreviewFinished'));
                     } else if (nextStage === 'error') {
-                        showToast('AI Vorschau ist fehlgeschlagen.');
+                        showToast(t('AI.PreviewFailed'));
                     }
                 } catch {
                     // ignore polling errors

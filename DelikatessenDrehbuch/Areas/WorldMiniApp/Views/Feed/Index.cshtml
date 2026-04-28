@@ -1,18 +1,19 @@
-@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@using DelikatessenDrehbuch
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Localization
+@inject IViewLocalizer Localizer
+@inject IHtmlLocalizer<SharedResources> SharedLocalizer
 @model List<WorldUserPosting>
 @using System.Globalization
+@using Microsoft.AspNetCore.Localization
 @{
     ViewData["Title"] = "Feed";
     Layout = null;
 
-    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
-    string T(string de, string en, string es, string pt) => language switch
-    {
-        "en" => en,
-        "es" => es,
-        "pt" => pt,
-        _ => de
-    };
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var currentCulture = requestCulture?.RequestCulture.Culture ?? CultureInfo.CurrentCulture;
+    var language = currentCulture.TwoLetterISOLanguageName;
 
     var selectedCategoryRaw = (ViewData["Category"]?.ToString() ?? string.Empty).Trim().ToLowerInvariant();
     var marketplaceListings = ViewData["MarketplaceListings"] as List<MealPlanListing> ?? new List<MealPlanListing>();
@@ -2699,7 +2700,7 @@
     </div>
     <div class="pull-refresh-indicator" id="pullRefreshIndicator" aria-hidden="true">
         <i class="bi bi-arrow-down"></i>
-        <span class="pull-refresh-label" id="pullRefreshLabel">@T("Zum Aktualisieren ziehen", "Pull to refresh", "Desliza para actualizar", "Puxe para atualizar")</span>
+        <span class="pull-refresh-label" id="pullRefreshLabel">@@SharedLocalizer["Feed.PullToRefresh"]</span>
     </div>
     @Html.AntiForgeryToken()
 
@@ -2715,7 +2716,7 @@
         <div class="feed-sections" id="feedSections">
             <section class="feed-section" id="creatorFeedSection">
                 <div class="creator-feed-panel" id="creatorFeedPanel">
-                    <div class="creator-feed-header" id="creatorFeedHeader">@T("Rezepte von", "Recipes by", "Recetas de", "Receitas de") <span id="creatorFeedName">Creator</span></div>
+                    <div class="creator-feed-header" id="creatorFeedHeader">@@SharedLocalizer["Feed.RecipesBy"] <span id="creatorFeedName">Creator</span></div>
                     <div id="creatorFeedItems"></div>
                     <div class="creator-feed-empty" id="creatorFeedEmpty" style="display:none;">
                         <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -2723,7 +2724,7 @@
                             <circle cx="40" cy="40" r="12" stroke="rgba(255,255,255,0.18)" stroke-width="2"/>
                             <polygon points="36,34 36,46 48,40" fill="rgba(255,255,255,0.22)"/>
                         </svg>
-                        <div style="margin-top:8px;font-weight:600;opacity:0.7;">@T("Keine Rezepte gefunden", "No recipes found", "No se encontraron recetas", "Nenhuma receita encontrada")</div>
+                        <div style="margin-top:8px;font-weight:600;opacity:0.7;">@@SharedLocalizer["Feed.NoRecipes"]</div>
                     </div>
                 </div>
             </section>
@@ -2794,7 +2795,7 @@
 
                     <div class="action-btn share-action-btn" role="button" aria-label="Teilen" onclick="shareRecipeFromButton(this)">
                         <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
-                        <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
+                        <span class="action-label">@@SharedLocalizer["Feed.Share"]</span>
                     </div>
 
                     <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
@@ -2816,8 +2817,8 @@
                 <div class="marketplace-panel">
                     <div class="marketplace-header">
                         <div>
-                            <h2 class="marketplace-title">@T("Marktplatz", "Marketplace", "Mercado", "Mercado")</h2>
-                            <p class="marketplace-sub" id="marketplaceActiveSeller">@T("Swipe nach links: Angebote vom aktuellen Creator", "Swipe left: listings from current creator", "Desliza a la izquierda: ofertas del creador actual", "Deslize para a esquerda: ofertas do criador atual")</p>
+                            <h2 class="marketplace-title">@@SharedLocalizer["Feed.Marketplace"]</h2>
+                            <p class="marketplace-sub" id="marketplaceActiveSeller">@@SharedLocalizer["Feed.MarketplaceSwipeLeft"]</p>
                         </div>
                     </div>
 
@@ -3135,17 +3136,17 @@
 
                 <div class="comment-sort-tabs">
                     <button id="commentSortTopBtn" class="active" onclick="changeCommentSort('top')">Top</button>
-                    <button id="commentSortNewBtn" onclick="changeCommentSort('new')">@T("Neueste", "Newest", "Recientes", "Recentes")</button>
+                    <button id="commentSortNewBtn" onclick="changeCommentSort('new')">@@SharedLocalizer["Feed.CommentsNewest"]</button>
                 </div>
 
                 <div id="commentsList" class="comment-list"></div>
-                <div id="commentsEmpty" class="comment-empty" style="display:none;">@T("Noch keine Kommentare. Sei der Erste!", "No comments yet. Be the first!", "Todavia no hay comentarios. Se el primero!", "Ainda nao ha comentarios. Seja o primeiro!")</div>
+                <div id="commentsEmpty" class="comment-empty" style="display:none;">@@SharedLocalizer["Feed.CommentsEmpty"]</div>
 
                 <div id="commentReplyTarget" class="comment-reply-target" style="display:none;"></div>
                 <div class="comment-input-bar" id="commentInputBar">
                     <div class="comment-input-avatar" id="commentInputAvatar">U</div>
                     <div class="comment-input-wrap">
-                        <input type="text" id="commentInput" maxlength="500" placeholder="@T("Kommentar hinzufuegen...", "Add a comment...", "Agregar un comentario...", "Adicionar um comentario...")" autocomplete="off">
+                        <input type="text" id="commentInput" maxlength="500" placeholder="@@SharedLocalizer["Feed.AddComment"]" autocomplete="off">
                         <button class="comment-send-btn" id="commentSubmitBtn" onclick="submitComment()">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
                         </button>
@@ -3160,7 +3161,7 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header border-0">
-                    <h5 class="modal-title">@T("Suche im Feed", "Search in feed", "Buscar en el feed", "Buscar no feed")</h5>
+                    <h5 class="modal-title">@@SharedLocalizer["Feed.SearchTitle"]</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <form method="get" action="@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })">
@@ -3170,21 +3171,21 @@
                         <div class="mb-3">
                             <label class="form-label">@T("Suchbegriff", "Search term", "Término de búsqueda", "Termo de pesquisa")</label>
                             <input type="text" name="searchTerm" class="form-control"
-                                   placeholder="@T("Name oder Keyword", "Name or keyword", "Nombre o palabra clave", "Nome ou palavra-chave")"
+                                   placeholder="@@SharedLocalizer["Feed.SearchPlaceholder"]"
                                    value="@ViewData["SearchTerm"]" />
                         </div>
                         <div class="mb-3">
                             <label class="form-label">@T("Kategorie", "Category", "Categoría", "Categoria")</label>
                             <select name="category" class="form-select">
                                 <option value="">@T("Alle Kategorien", "All categories", "Todas las categorías", "Todas as categorias")</option>
-                                <option value="appetizer" selected="@(selectedCategory == "appetizer")">@T("Vorspeise", "Appetizer", "Entrada", "Entrada")</option>
-                                <option value="main" selected="@(selectedCategory == "main")">@T("Hauptspeise", "Main course", "Plato principal", "Prato principal")</option>
-                                <option value="dessert" selected="@(selectedCategory == "dessert")">@T("Dessert", "Dessert", "Postre", "Sobremesa")</option>
+                                <option value="appetizer" selected="@(selectedCategory == "appetizer")">@@SharedLocalizer["Meal.Starter"]</option>
+                                <option value="main" selected="@(selectedCategory == "main")">@@SharedLocalizer["Meal.Main"]</option>
+                                <option value="dessert" selected="@(selectedCategory == "dessert")">@@SharedLocalizer["Meal.Dessert"]</option>
                             </select>
                         </div>
                     </div>
                     <div class="modal-footer border-0">
-                        <button type="submit" class="btn plan-btn-primary w-100">@T("Suchen", "Search", "Buscar", "Buscar")</button>
+                        <button type="submit" class="btn plan-btn-primary w-100">@@SharedLocalizer["Feed.Search"]</button>
                     </div>
                 </form>
             </div>
@@ -3556,7 +3557,7 @@
 
             const resetIndicator = () => {
                 indicator.classList.remove('is-visible', 'is-ready', 'is-refreshing');
-                label.textContent = '@T("Zum Aktualisieren ziehen", "Pull to refresh", "Desliza para actualizar", "Puxe para atualizar")';
+                label.textContent = '@@SharedLocalizer["Feed.PullToRefresh"]';
                 indicator.style.transform = 'translate(-50%, -18px) scale(0.92)';
                 isReady = false;
             };
@@ -3590,8 +3591,8 @@
                 indicator.classList.toggle('is-ready', isReady);
                 indicator.style.transform = `translate(-50%, ${Math.min(pullDistance - 18, 20)}px) scale(${0.92 + Math.min(pullDistance / 220, 0.12)})`;
                 label.textContent = isReady
-                    ? '@T("Loslassen zum Aktualisieren", "Release to refresh", "Suelta para actualizar", "Solte para atualizar")'
-                    : '@T("Zum Aktualisieren ziehen", "Pull to refresh", "Desliza para actualizar", "Puxe para atualizar")';
+                    ? '@@SharedLocalizer["Feed.ReleaseToRefresh"]'
+                    : '@@SharedLocalizer["Feed.PullToRefresh"]';
             }, { passive: true });
 
             const finishPull = () => {
@@ -3610,7 +3611,7 @@
                 isRefreshing = true;
                 indicator.classList.add('is-visible', 'is-refreshing');
                 indicator.classList.remove('is-ready');
-                label.textContent = '@T("Aktualisiere Feed...", "Refreshing feed...", "Actualizando feed...", "Atualizando feed...")';
+                label.textContent = '@@SharedLocalizer["Feed.RefreshingFeed"]';
                 indicator.style.transform = 'translate(-50%, 0) scale(1)';
                 window.location.reload();
             };
@@ -4415,9 +4416,15 @@
 
             // optional: du hattest einen endpoint - wenn du ihn willst, ist das hier ok:
             try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : null;
+
                 await fetch('/WorldMiniApp/Home/SaveFeedMealPlanDraft', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'RequestVerificationToken': token } : {})
+                    },
                     body: JSON.stringify({
                         mealPlanJson: JSON.stringify(payload),
                         personCount: personCount,
@@ -5034,10 +5041,16 @@
             const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
             if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden.", "warn"); return; }
 
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : null;
+
             const items = parseShoppingListText(text);
             const resp = await fetch('/WorldMiniApp/MealPlan/SaveSharedShoppingList', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'RequestVerificationToken': token } : {})
+                },
                 body: JSON.stringify({ itemsJson: JSON.stringify(items), userHash: window.worldUserHash || '' })
             });
             if (!resp.ok) { showToast("Fehler beim Erstellen des Links.", "error"); return; }
@@ -5504,7 +5517,7 @@
             const title = button?.previousElementSibling;
             if (!button || !title) return;
             const expanded = title.classList.toggle('is-expanded');
-            button.textContent = expanded ? '@T("Weniger", "Less", "Menos", "Menos")' : '@T("Mehr", "More", "Más", "Mais")';
+            button.textContent = expanded ? '@@SharedLocalizer["Feed.Less"]' : '@T("Mehr", "More", "Más", "Mais")';
         }
 
         function prepareExpandableTitles(root = document) {
@@ -5555,10 +5568,10 @@
         function timeAgo(dateStr) {
             if (!dateStr) return '';
             const diff = (Date.now() - new Date(dateStr).getTime()) / 1000;
-            if (diff < 60) return '@T("jetzt", "now", "ahora", "agora")';
+            if (diff < 60) return '@@SharedLocalizer["Feed.TimeNow"]';
             if (diff < 3600) return `${Math.floor(diff / 60)} Min.`;
-            if (diff < 86400) return `${Math.floor(diff / 3600)} @T("Std.", "h", "h", "h")`;
-            if (diff < 604800) return `${Math.floor(diff / 86400)} @T("T.", "d", "d", "d")`;
+            if (diff < 86400) return `${Math.floor(diff / 3600)} @@SharedLocalizer["Feed.TimeHours"]`;
+            if (diff < 604800) return `${Math.floor(diff / 86400)} @@SharedLocalizer["Feed.TimeDays"]`;
             return new Date(dateStr).toLocaleDateString();
         }
 
@@ -6310,7 +6323,7 @@
                         </div>
                         <div class="action-btn share-action-btn" role="button" aria-label="Teilen" onclick="event.stopPropagation(); shareRecipeFromButton(this);">
                             <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
-                            <span class="action-label">@T("Teilen", "Share", "Compartir", "Partilhar")</span>
+                            <span class="action-label">@@SharedLocalizer["Feed.Share"]</span>
                         </div>
                         <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
                             <div class="icon-circle"><i class="bi bi-plus-lg"></i></div>

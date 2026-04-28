@@ -275,6 +275,9 @@ namespace DelikatessenDrehbuch.Data
                 .HasIndex(x => new { x.UserHash, x.IsSeen, x.CreatedAtUtc });
 
             builder.Entity<WorldUserNotification>()
+                .HasIndex(x => new { x.UserHash, x.NotificationKey });
+
+            builder.Entity<WorldUserNotification>()
                 .Property(x => x.UserHash)
                 .HasMaxLength(256);
 
@@ -293,6 +296,22 @@ namespace DelikatessenDrehbuch.Data
             builder.Entity<WorldUserNotification>()
                 .Property(x => x.Href)
                 .HasMaxLength(600);
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.NotificationKey)
+                .HasMaxLength(300);
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.EventType)
+                .HasMaxLength(64);
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.LatestActorName)
+                .HasMaxLength(128);
+
+            builder.Entity<WorldUserNotification>()
+                .Property(x => x.ContextText)
+                .HasMaxLength(400);
 
             builder.Entity<WorldSharedShoppingList>()
                 .HasIndex(x => x.ShareToken);

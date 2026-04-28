@@ -36,6 +36,7 @@
     <PackageReference Include="Azure.Storage.Queues" Version="12.25.0" />
     <PackageReference Include="MessagePack" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <PackageReference Include="NuGet.Protocol" Version="7.3.1" />
 
     <!-- Fix für dein Downgrade-Problem: nur 1x, und auf 8.0.1 -->
     <PackageReference Include="System.Memory.Data" Version="8.0.1" />
@@ -64,11 +65,58 @@
     <PackageReference Include="Polly" Version="8.4.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="Stripe.net" Version="50.3.0" />
+    <PackageReference Include="System.Security.Cryptography.Xml" Version="8.0.3" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Data\Migrations\" />
     <Folder Include="MealPlaner\Models\" />
+  </ItemGroup>
+
+  <!-- Localization Resources -->
+  <ItemGroup>
+    <!-- Neutral resource file - generates Designer.cs with ResourceManager -->
+    <EmbeddedResource Update="Resources\SharedResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>SharedResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+
+    <Compile Update="Resources\SharedResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </Compile>
+
+    <EmbeddedResource Update="Resources\SharedResources.de.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.en.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.es.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.pt.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.id.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.nl.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.sv.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.da.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.nb.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Resources\SharedResources.ms.resx">
+      <DependentUpon>SharedResources.resx</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
 
 </Project>

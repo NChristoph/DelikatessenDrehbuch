@@ -347,6 +347,52 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return segments.Distinct(StringComparer.OrdinalIgnoreCase).Take(6).ToList();
         }
 
+        public async Task UpdatePreferredLanguageAsync(string userHash, string cultureCode)
+        {
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return;
+            }
+
+            var profile = await _context.WorldAdPreferenceProfiles
+                .FirstOrDefaultAsync(p => p.UserHash == userHash);
+
+            if (profile == null)
+            {
+                profile = new WorldAdPreferenceProfile
+                {
+                    UserHash = userHash,
+                    PreferredLanguage = NormalizeToCookieCode(cultureCode),
+                    AllowPersonalizedAds = false,
+                    AllowCategoryTargeting = true,
+                    AllowKeywordTargeting = true,
+                    AllowCreatorTargeting = true,
+                    CreatedAtUtc = DateTime.UtcNow,
+                    UpdatedAtUtc = DateTime.UtcNow
+                };
+                _context.WorldAdPreferenceProfiles.Add(profile);
+            }
+            else
+            {
+                profile.PreferredLanguage = NormalizeToCookieCode(cultureCode);
+                profile.UpdatedAtUtc = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+        }
+
+        private static string NormalizeToCookieCode(string cultureCode)
+        {
+            // ASP.NET Culture → Cookie-Code für JSON-Kompatibilität
+            return cultureCode.ToLowerInvariant() switch
+            {
+                "es" => "esp",
+                "pt" => "prt",
+                "nb" => "no",
+                _ => cultureCode.ToLowerInvariant()
+            };
+        }
+
         private static string NormalizeLanguage(string? preferredLanguage)
         {
             if (string.IsNullOrWhiteSpace(preferredLanguage))

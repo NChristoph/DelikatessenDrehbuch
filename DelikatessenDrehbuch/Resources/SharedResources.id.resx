@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common UI Elements -->
+  <data name="Common.Back" xml:space="preserve">
+    <value>Kembali</value>
+  </data>
+  <data name="Common.Save" xml:space="preserve">
+    <value>Simpan</value>
+  </data>
+  <data name="Common.Cancel" xml:space="preserve">
+    <value>Batal</value>
+  </data>
+  <data name="Common.Delete" xml:space="preserve">
+    <value>Hapus</value>
+  </data>
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Common.Loading" xml:space="preserve">
+    <value>Memuat...</value>
+  </data>
+  <data name="Common.Close" xml:space="preserve">
+    <value>Tutup</value>
+  </data>
+  <data name="Common.Open" xml:space="preserve">
+    <value>Buka</value>
+  </data>
+
+  <!-- Toast Messages -->
+  <data name="Toast.PlanSaved" xml:space="preserve">
+    <value>Rencana disimpan!</value>
+  </data>
+  <data name="Toast.RecipeAdded" xml:space="preserve">
+    <value>{0} ditambahkan</value>
+  </data>
+  <data name="Toast.RecipeRemoved" xml:space="preserve">
+    <value>{0} dihapus</value>
+  </data>
+  <data name="Toast.LinkCopied" xml:space="preserve">
+    <value>Tautan disalin</value>
+  </data>
+  <data name="Toast.UploadSuccess" xml:space="preserve">
+    <value>Unggahan berhasil</value>
+  </data>
+  <data name="Toast.UploadFailed" xml:space="preserve">
+    <value>Unggahan gagal</value>
+  </data>
+
+  <!-- Error Messages -->
+  <data name="Error.Generic" xml:space="preserve">
+    <value>Terjadi kesalahan.</value>
+  </data>
+  <data name="Error.LoadingFailed" xml:space="preserve">
+    <value>Gagal memuat</value>
+  </data>
+  <data name="Error.SavingFailed" xml:space="preserve">
+    <value>Gagal menyimpan</value>
+  </data>
+  <data name="Error.NetworkError" xml:space="preserve">
+    <value>Kesalahan jaringan</value>
+  </data>
+
+  <!-- Feed -->
+  <data name="Feed.Title" xml:space="preserve">
+    <value>Feed</value>
+  </data>
+  <data name="Feed.NoDish" xml:space="preserve">
+    <value>Tidak ada hidangan</value>
+  </data>
+  <data name="Feed.AddButton" xml:space="preserve">
+    <value>+ Tambah</value>
+  </data>
+  <data name="Feed.NoRecipes" xml:space="preserve">
+    <value>Tidak ada resep ditemukan</value>
+  </data>
+  <data name="Feed.NoResults" xml:space="preserve">
+    <value>Tidak ada hasil</value>
+  </data>
+  <data name="Feed.LoadMore" xml:space="preserve">
+    <value>Muat lebih banyak</value>
+  </data>
+  <data name="Feed.Following" xml:space="preserve">
+    <value>Mengikuti</value>
+  </data>
+  <data name="Feed.Followers" xml:space="preserve">
+    <value>Pengikut</value>
+  </data>
+  <data name="Feed.Likes" xml:space="preserve">
+    <value>Suka</value>
+  </data>
+  <data name="Feed.PullToRefresh" xml:space="preserve">
+    <value>Tarik untuk menyegarkan</value>
+  </data>
+  <data name="Feed.ReleaseToRefresh" xml:space="preserve">
+    <value>Lepaskan untuk menyegarkan</value>
+  </data>
+  <data name="Feed.RefreshingFeed" xml:space="preserve">
+    <value>Menyegarkan feed...</value>
+  </data>
+  <data name="Feed.RecipesBy" xml:space="preserve">
+    <value>Resep oleh</value>
+  </data>
+  <data name="Feed.More" xml:space="preserve">
+    <value>Lebih banyak</value>
+  </data>
+  <data name="Feed.Less" xml:space="preserve">
+    <value>Lebih sedikit</value>
+  </data>
+  <data name="Feed.Share" xml:space="preserve">
+    <value>Bagikan</value>
+  </data>
+  <data name="Feed.Marketplace" xml:space="preserve">
+    <value>Pasar</value>
+  </data>
+  <data name="Feed.MarketplaceSwipeLeft" xml:space="preserve">
+    <value>Geser ke kiri: penawaran dari kreator saat ini</value>
+  </data>
+  <data name="Feed.NoListingsYet" xml:space="preserve">
+    <value>Belum ada penawaran.</value>
+  </data>
+  <data name="Feed.CreatorNoListings" xml:space="preserve">
+    <value>Kreator ini saat ini tidak memiliki penawaran.</value>
+  </data>
+  <data name="Feed.Comments" xml:space="preserve">
+    <value>Komentar</value>
+  </data>
+  <data name="Feed.CommentsNewest" xml:space="preserve">
+    <value>Terbaru</value>
+  </data>
+  <data name="Feed.CommentsEmpty" xml:space="preserve">
+    <value>Belum ada komentar. Jadilah yang pertama!</value>
+  </data>
+  <data name="Feed.AddComment" xml:space="preserve">
+    <value>Tambahkan komentar...</value>
+  </data>
+  <data name="Feed.SearchTitle" xml:space="preserve">
+    <value>Cari di feed</value>
+  </data>
+  <data name="Feed.SearchTerm" xml:space="preserve">
+    <value>Kata pencarian</value>
+  </data>
+  <data name="Feed.SearchPlaceholder" xml:space="preserve">
+    <value>Nama atau kata kunci</value>
+  </data>
+  <data name="Feed.Category" xml:space="preserve">
+    <value>Kategori</value>
+  </data>
+  <data name="Feed.AllCategories" xml:space="preserve">
+    <value>Semua kategori</value>
+  </data>
+  <data name="Feed.Search" xml:space="preserve">
+    <value>Cari</value>
+  </data>
+  <data name="Feed.TimeNow" xml:space="preserve">
+    <value>sekarang</value>
+  </data>
+  <data name="Feed.TimeHours" xml:space="preserve">
+    <value>j</value>
+  </data>
+  <data name="Feed.TimeDays" xml:space="preserve">
+    <value>h</value>
+  </data>
+
+  <!-- Meal Plan -->
+  <data name="MealPlan.Title" xml:space="preserve">
+    <value>Rencana makan</value>
+  </data>
+  <data name="MealPlan.WeeklyPlan" xml:space="preserve">
+    <value>Rencana mingguan saya</value>
+  </data>
+  <data name="MealPlan.NoDish" xml:space="preserve">
+    <value>Tidak ada hidangan</value>
+  </data>
+  <data name="MealPlan.AddRecipe" xml:space="preserve">
+    <value>Tambah resep</value>
+  </data>
+  <data name="MealPlan.SharePlan" xml:space="preserve">
+    <value>Bagikan rencana</value>
+  </data>
+  <data name="MealPlan.ShoppingList" xml:space="preserve">
+    <value>Daftar belanja</value>
+  </data>
+  <data name="MealPlan.Persons" xml:space="preserve">
+    <value>Orang</value>
+  </data>
+  <data name="MealPlan.Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="MealPlan.PerServing" xml:space="preserve">
+    <value>Per porsi</value>
+  </data>
+
+  <!-- AI Messages -->
+  <data name="AI.PreviewCreating" xml:space="preserve">
+    <value>{0} sedang dibuat...</value>
+  </data>
+  <data name="AI.PreviewReady" xml:space="preserve">
+    <value>{0} siap.</value>
+  </data>
+  <data name="AI.PreviewTitle" xml:space="preserve">
+    <value>Pratinjau AI</value>
+  </data>
+  <data name="AI.PreviewError" xml:space="preserve">
+    <value>{0}: Kesalahan (buka lagi).</value>
+  </data>
+  <data name="AI.PreviewFinished" xml:space="preserve">
+    <value>Pratinjau AI selesai.</value>
+  </data>
+  <data name="AI.PreviewFailed" xml:space="preserve">
+    <value>Pratinjau AI gagal.</value>
+  </data>
+  <data name="AI.StillRunning" xml:space="preserve">
+    <value>AI masih berjalan. Silakan tunggu.</value>
+  </data>
+  <data name="AI.ResultNotReady" xml:space="preserve">
+    <value>Hasil AI belum siap.</value>
+  </data>
+  <data name="AI.ResultLoadFailed" xml:space="preserve">
+    <value>Tidak dapat memuat hasil AI.</value>
+  </data>
+
+  <!-- Days of Week -->
+  <data name="Day.Monday" xml:space="preserve">
+    <value>Senin</value>
+  </data>
+  <data name="Day.Tuesday" xml:space="preserve">
+    <value>Selasa</value>
+  </data>
+  <data name="Day.Wednesday" xml:space="preserve">
+    <value>Rabu</value>
+  </data>
+  <data name="Day.Thursday" xml:space="preserve">
+    <value>Kamis</value>
+  </data>
+  <data name="Day.Friday" xml:space="preserve">
+    <value>Jumat</value>
+  </data>
+  <data name="Day.Saturday" xml:space="preserve">
+    <value>Sabtu</value>
+  </data>
+  <data name="Day.Sunday" xml:space="preserve">
+    <value>Minggu</value>
+  </data>
+
+  <!-- Meal Types -->
+  <data name="Meal.Starter" xml:space="preserve">
+    <value>Pembuka</value>
+  </data>
+  <data name="Meal.Main" xml:space="preserve">
+    <value>Hidangan utama</value>
+  </data>
+  <data name="Meal.Dessert" xml:space="preserve">
+    <value>Penutup</value>
+  </data>
+
+  <!-- Navigation -->
+  <data name="Nav.Home" xml:space="preserve">
+    <value>Beranda</value>
+  </data>
+  <data name="Nav.Feed" xml:space="preserve">
+    <value>Feed</value>
+  </data>
+  <data name="Nav.Plan" xml:space="preserve">
+    <value>Rencana</value>
+  </data>
+  <data name="Nav.Upload" xml:space="preserve">
+    <value>Unggah</value>
+  </data>
+  <data name="Nav.Search" xml:space="preserve">
+    <value>Cari</value>
+  </data>
+  <data name="Nav.Profile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+
+  <!-- Home Menu -->
+  <data name="Home.WeeklyPlan" xml:space="preserve">
+    <value>Rencana mingguan saya</value>
+  </data>
+  <data name="Home.AutoCreate" xml:space="preserve">
+    <value>Buat otomatis (Device)</value>
+  </data>
+  <data name="Home.Discover" xml:space="preserve">
+    <value>Jelajahi</value>
+  </data>
+  <data name="Home.CommunityTrends" xml:space="preserve">
+    <value>Komunitas &amp; Tren (Device)</value>
+  </data>
+  <data name="Home.Marketplace" xml:space="preserve">
+    <value>Pasar</value>
+  </data>
+  <data name="Home.MarketplaceSubtitle" xml:space="preserve">
+    <value>Beli &amp; jual rencana diet</value>
+  </data>
+  <data name="Home.UploadRecipe" xml:space="preserve">
+    <value>Unggah resep</value>
+  </data>
+  <data name="Home.VerificationStatusID" xml:space="preserve">
+    <value>Status verifikasi ID</value>
+  </data>
+  <data name="Home.BecomeCreator" xml:space="preserve">
+    <value>Jadi kreator &amp; hasilkan (Orb diperlukan) 💰</value>
+  </data>
+  <data name="Home.MyArea" xml:space="preserve">
+    <value>Area saya</value>
+  </data>
+  <data name="Home.MyAreaSubtitle" xml:space="preserve">
+    <value>Rencana, daftar belanja &amp; lainnya</value>
+  </data>
+  <data name="Home.LoginNow" xml:space="preserve">
+    <value>Masuk sekarang</value>
+  </data>
+  <data name="Home.MadeWithLove" xml:space="preserve">
+    <value>Dibuat dengan &lt;i class='bi bi-heart-fill text-danger mx-1'&gt;&lt;/i&gt; untuk World App</value>
+  </data>
+
+  <!-- Login Modal -->
+  <data name="Login.SignInWithWorldID" xml:space="preserve">
+    <value>Masuk dengan World ID</value>
+  </data>
+  <data name="Login.AtDelikatessen" xml:space="preserve">
+    <value>di Delikatessen Drehbuch</value>
+  </data>
+  <data name="Login.AppWillSee" xml:space="preserve">
+    <value>Aplikasi akan melihat</value>
+  </data>
+  <data name="Login.UniqueHuman" xml:space="preserve">
+    <value>Manusia unik</value>
+  </data>
+  <data name="Login.AppDetects" xml:space="preserve">
+    <value>Aplikasi mendeteksi:</value>
+  </data>
+  <data name="Login.VerificationStatus" xml:space="preserve">
+    <value>Status verifikasi</value>
+  </data>
+  <data name="Login.RememberLogin" xml:space="preserve">
+    <value>Ingat login</value>
+  </data>
+  <data name="Login.Approve" xml:space="preserve">
+    <value>Setuju</value>
+  </data>
+  <data name="Login.Connecting" xml:space="preserve">
+    <value>Menghubungkan ke World App...</value>
+  </data>
+
+  <!-- Debug Mode -->
+  <data name="Debug.ActiveHash" xml:space="preserve">
+    <value>Hash debug aktif:</value>
+  </data>
+  <data name="Debug.NoHashActive" xml:space="preserve">
+    <value>Tidak ada hash debug aktif.</value>
+  </data>
+  <data name="Debug.SignInTestHashA" xml:space="preserve">
+    <value>Masuk dengan hash tes A</value>
+  </data>
+  <data name="Debug.SignInTestHashB" xml:space="preserve">
+    <value>Masuk dengan hash tes B</value>
+  </data>
+  <data name="Debug.SignOutDebug" xml:space="preserve">
+    <value>Keluar debug login</value>
+  </data>
+  <data name="Debug.OnlyVisibleInDebug" xml:space="preserve">
+    <value>Hanya terlihat dalam mode debug.</value>
+  </data>
+  <data name="Debug.TestLoginFailed" xml:space="preserve">
+    <value>Login tes gagal.</value>
+  </data>
+  <data name="Debug.LogoutFailed" xml:space="preserve">
+    <value>Logout debug gagal.</value>
+  </data>
+
+  <!-- Toast Messages (Additional) -->
+  <data name="Toast.RecipePublished" xml:space="preserve">
+    <value>Resep berhasil dipublikasikan!</value>
+  </data>
+</root>

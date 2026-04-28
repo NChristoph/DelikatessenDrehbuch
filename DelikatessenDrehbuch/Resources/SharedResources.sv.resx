@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" msdata:Ordinal="5" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <!-- Common UI Elements -->
+  <data name="Common.Back" xml:space="preserve">
+    <value>Tillbaka</value>
+  </data>
+  <data name="Common.Save" xml:space="preserve">
+    <value>Spara</value>
+  </data>
+  <data name="Common.Cancel" xml:space="preserve">
+    <value>Avbryt</value>
+  </data>
+  <data name="Common.Delete" xml:space="preserve">
+    <value>Ta bort</value>
+  </data>
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Redigera</value>
+  </data>
+  <data name="Common.Loading" xml:space="preserve">
+    <value>Laddar...</value>
+  </data>
+  <data name="Common.Close" xml:space="preserve">
+    <value>Stäng</value>
+  </data>
+  <data name="Common.Open" xml:space="preserve">
+    <value>Öppna</value>
+  </data>
+
+  <!-- Toast Messages -->
+  <data name="Toast.PlanSaved" xml:space="preserve">
+    <value>Plan sparad!</value>
+  </data>
+  <data name="Toast.RecipeAdded" xml:space="preserve">
+    <value>{0} tillagt</value>
+  </data>
+  <data name="Toast.RecipeRemoved" xml:space="preserve">
+    <value>{0} borttaget</value>
+  </data>
+  <data name="Toast.LinkCopied" xml:space="preserve">
+    <value>Länk kopierad</value>
+  </data>
+  <data name="Toast.UploadSuccess" xml:space="preserve">
+    <value>Uppladdning lyckades</value>
+  </data>
+  <data name="Toast.UploadFailed" xml:space="preserve">
+    <value>Uppladdning misslyckades</value>
+  </data>
+
+  <!-- Error Messages -->
+  <data name="Error.Generic" xml:space="preserve">
+    <value>Ett fel har uppstått.</value>
+  </data>
+  <data name="Error.LoadingFailed" xml:space="preserve">
+    <value>Laddning misslyckades</value>
+  </data>
+  <data name="Error.SavingFailed" xml:space="preserve">
+    <value>Sparning misslyckades</value>
+  </data>
+  <data name="Error.NetworkError" xml:space="preserve">
+    <value>Nätverksfel</value>
+  </data>
+
+  <!-- Feed -->
+  <data name="Feed.Title" xml:space="preserve">
+    <value>Flöde</value>
+  </data>
+  <data name="Feed.NoDish" xml:space="preserve">
+    <value>Ingen rätt</value>
+  </data>
+  <data name="Feed.AddButton" xml:space="preserve">
+    <value>+ Lägg till</value>
+  </data>
+  <data name="Feed.NoRecipes" xml:space="preserve">
+    <value>Inga recept hittades</value>
+  </data>
+  <data name="Feed.NoResults" xml:space="preserve">
+    <value>Inga resultat</value>
+  </data>
+  <data name="Feed.LoadMore" xml:space="preserve">
+    <value>Ladda mer</value>
+  </data>
+  <data name="Feed.Following" xml:space="preserve">
+    <value>Följer</value>
+  </data>
+  <data name="Feed.Followers" xml:space="preserve">
+    <value>Följare</value>
+  </data>
+  <data name="Feed.Likes" xml:space="preserve">
+    <value>Gilla-markeringar</value>
+  </data>
+  <data name="Feed.PullToRefresh" xml:space="preserve">
+    <value>Dra för att uppdatera</value>
+  </data>
+  <data name="Feed.ReleaseToRefresh" xml:space="preserve">
+    <value>Släpp för att uppdatera</value>
+  </data>
+  <data name="Feed.RefreshingFeed" xml:space="preserve">
+    <value>Uppdaterar flöde...</value>
+  </data>
+  <data name="Feed.RecipesBy" xml:space="preserve">
+    <value>Recept av</value>
+  </data>
+  <data name="Feed.More" xml:space="preserve">
+    <value>Mer</value>
+  </data>
+  <data name="Feed.Less" xml:space="preserve">
+    <value>Mindre</value>
+  </data>
+  <data name="Feed.Share" xml:space="preserve">
+    <value>Dela</value>
+  </data>
+  <data name="Feed.Marketplace" xml:space="preserve">
+    <value>Marknadsplats</value>
+  </data>
+  <data name="Feed.MarketplaceSwipeLeft" xml:space="preserve">
+    <value>Svep vänster: erbjudanden från nuvarande skapare</value>
+  </data>
+  <data name="Feed.NoListingsYet" xml:space="preserve">
+    <value>Inga erbjudanden ännu.</value>
+  </data>
+  <data name="Feed.CreatorNoListings" xml:space="preserve">
+    <value>Denna skapare har för närvarande inga erbjudanden.</value>
+  </data>
+  <data name="Feed.Comments" xml:space="preserve">
+    <value>Kommentarer</value>
+  </data>
+  <data name="Feed.CommentsNewest" xml:space="preserve">
+    <value>Senaste</value>
+  </data>
+  <data name="Feed.CommentsEmpty" xml:space="preserve">
+    <value>Inga kommentarer ännu. Var först!</value>
+  </data>
+  <data name="Feed.AddComment" xml:space="preserve">
+    <value>Lägg till kommentar...</value>
+  </data>
+  <data name="Feed.SearchTitle" xml:space="preserve">
+    <value>Sök i flödet</value>
+  </data>
+  <data name="Feed.SearchTerm" xml:space="preserve">
+    <value>Sökterm</value>
+  </data>
+  <data name="Feed.SearchPlaceholder" xml:space="preserve">
+    <value>Namn eller nyckelord</value>
+  </data>
+  <data name="Feed.Category" xml:space="preserve">
+    <value>Kategori</value>
+  </data>
+  <data name="Feed.AllCategories" xml:space="preserve">
+    <value>Alla kategorier</value>
+  </data>
+  <data name="Feed.Search" xml:space="preserve">
+    <value>Sök</value>
+  </data>
+  <data name="Feed.TimeNow" xml:space="preserve">
+    <value>nu</value>
+  </data>
+  <data name="Feed.TimeHours" xml:space="preserve">
+    <value>tim</value>
+  </data>
+  <data name="Feed.TimeDays" xml:space="preserve">
+    <value>d</value>
+  </data>
+
+  <!-- Meal Plan -->
+  <data name="MealPlan.Title" xml:space="preserve">
+    <value>Måltidsplan</value>
+  </data>
+  <data name="MealPlan.WeeklyPlan" xml:space="preserve">
+    <value>Min veckoplan</value>
+  </data>
+  <data name="MealPlan.NoDish" xml:space="preserve">
+    <value>Ingen rätt</value>
+  </data>
+  <data name="MealPlan.AddRecipe" xml:space="preserve">
+    <value>Lägg till recept</value>
+  </data>
+  <data name="MealPlan.SharePlan" xml:space="preserve">
+    <value>Dela plan</value>
+  </data>
+  <data name="MealPlan.ShoppingList" xml:space="preserve">
+    <value>Inköpslista</value>
+  </data>
+  <data name="MealPlan.Persons" xml:space="preserve">
+    <value>Personer</value>
+  </data>
+  <data name="MealPlan.Total" xml:space="preserve">
+    <value>Totalt</value>
+  </data>
+  <data name="MealPlan.PerServing" xml:space="preserve">
+    <value>Per portion</value>
+  </data>
+
+  <!-- AI Messages -->
+  <data name="AI.PreviewCreating" xml:space="preserve">
+    <value>{0} skapas...</value>
+  </data>
+  <data name="AI.PreviewReady" xml:space="preserve">
+    <value>{0} är klar.</value>
+  </data>
+  <data name="AI.PreviewTitle" xml:space="preserve">
+    <value>AI-förhandsgranskning</value>
+  </data>
+  <data name="AI.PreviewError" xml:space="preserve">
+    <value>{0}: Fel (öppna igen).</value>
+  </data>
+  <data name="AI.PreviewFinished" xml:space="preserve">
+    <value>AI-förhandsgranskning klar.</value>
+  </data>
+  <data name="AI.PreviewFailed" xml:space="preserve">
+    <value>AI-förhandsgranskning misslyckades.</value>
+  </data>
+  <data name="AI.StillRunning" xml:space="preserve">
+    <value>AI körs fortfarande. Vänta.</value>
+  </data>
+  <data name="AI.ResultNotReady" xml:space="preserve">
+    <value>AI-resultat är inte klart ännu.</value>
+  </data>
+  <data name="AI.ResultLoadFailed" xml:space="preserve">
+    <value>Kunde inte ladda AI-resultat.</value>
+  </data>
+
+  <!-- Days of Week -->
+  <data name="Day.Monday" xml:space="preserve">
+    <value>Måndag</value>
+  </data>
+  <data name="Day.Tuesday" xml:space="preserve">
+    <value>Tisdag</value>
+  </data>
+  <data name="Day.Wednesday" xml:space="preserve">
+    <value>Onsdag</value>
+  </data>
+  <data name="Day.Thursday" xml:space="preserve">
+    <value>Torsdag</value>
+  </data>
+  <data name="Day.Friday" xml:space="preserve">
+    <value>Fredag</value>
+  </data>
+  <data name="Day.Saturday" xml:space="preserve">
+    <value>Lördag</value>
+  </data>
+  <data name="Day.Sunday" xml:space="preserve">
+    <value>Söndag</value>
+  </data>
+
+  <!-- Meal Types -->
+  <data name="Meal.Starter" xml:space="preserve">
+    <value>Förrätt</value>
+  </data>
+  <data name="Meal.Main" xml:space="preserve">
+    <value>Huvudrätt</value>
+  </data>
+  <data name="Meal.Dessert" xml:space="preserve">
+    <value>Dessert</value>
+  </data>
+
+  <!-- Navigation -->
+  <data name="Nav.Home" xml:space="preserve">
+    <value>Hem</value>
+  </data>
+  <data name="Nav.Feed" xml:space="preserve">
+    <value>Flöde</value>
+  </data>
+  <data name="Nav.Plan" xml:space="preserve">
+    <value>Plan</value>
+  </data>
+  <data name="Nav.Upload" xml:space="preserve">
+    <value>Ladda upp</value>
+  </data>
+  <data name="Nav.Search" xml:space="preserve">
+    <value>Sök</value>
+  </data>
+  <data name="Nav.Profile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+
+  <!-- Home Menu -->
+  <data name="Home.WeeklyPlan" xml:space="preserve">
+    <value>Min veckoplan</value>
+  </data>
+  <data name="Home.AutoCreate" xml:space="preserve">
+    <value>Skapa automatiskt (Device)</value>
+  </data>
+  <data name="Home.Discover" xml:space="preserve">
+    <value>Upptäck</value>
+  </data>
+  <data name="Home.CommunityTrends" xml:space="preserve">
+    <value>Community &amp; Trender (Device)</value>
+  </data>
+  <data name="Home.Marketplace" xml:space="preserve">
+    <value>Marknadsplats</value>
+  </data>
+  <data name="Home.MarketplaceSubtitle" xml:space="preserve">
+    <value>Köp &amp; sälj kostplaner</value>
+  </data>
+  <data name="Home.UploadRecipe" xml:space="preserve">
+    <value>Ladda upp recept</value>
+  </data>
+  <data name="Home.VerificationStatusID" xml:space="preserve">
+    <value>Verifieringsstatus ID</value>
+  </data>
+  <data name="Home.BecomeCreator" xml:space="preserve">
+    <value>Bli skapare &amp; tjäna (Orb krävs) 💰</value>
+  </data>
+  <data name="Home.MyArea" xml:space="preserve">
+    <value>Mitt område</value>
+  </data>
+  <data name="Home.MyAreaSubtitle" xml:space="preserve">
+    <value>Planer, inköpslistor &amp; mer</value>
+  </data>
+  <data name="Home.LoginNow" xml:space="preserve">
+    <value>Logga in nu</value>
+  </data>
+  <data name="Home.MadeWithLove" xml:space="preserve">
+    <value>Gjord med &lt;i class='bi bi-heart-fill text-danger mx-1'&gt;&lt;/i&gt; för World App</value>
+  </data>
+
+  <!-- Login Modal -->
+  <data name="Login.SignInWithWorldID" xml:space="preserve">
+    <value>Logga in med World ID</value>
+  </data>
+  <data name="Login.AtDelikatessen" xml:space="preserve">
+    <value>på Delikatessen Drehbuch</value>
+  </data>
+  <data name="Login.AppWillSee" xml:space="preserve">
+    <value>Appen kommer då att se din</value>
+  </data>
+  <data name="Login.UniqueHuman" xml:space="preserve">
+    <value>Unik människa</value>
+  </data>
+  <data name="Login.AppDetects" xml:space="preserve">
+    <value>Appen upptäcker:</value>
+  </data>
+  <data name="Login.VerificationStatus" xml:space="preserve">
+    <value>Verifieringsstatus</value>
+  </data>
+  <data name="Login.RememberLogin" xml:space="preserve">
+    <value>Kom ihåg inloggning</value>
+  </data>
+  <data name="Login.Approve" xml:space="preserve">
+    <value>Godkänn</value>
+  </data>
+  <data name="Login.Connecting" xml:space="preserve">
+    <value>Ansluter till World App...</value>
+  </data>
+
+  <!-- Debug Mode -->
+  <data name="Debug.ActiveHash" xml:space="preserve">
+    <value>Aktiv debug hash:</value>
+  </data>
+  <data name="Debug.NoHashActive" xml:space="preserve">
+    <value>Ingen debug hash aktiv.</value>
+  </data>
+  <data name="Debug.SignInTestHashA" xml:space="preserve">
+    <value>Logga in med test hash A</value>
+  </data>
+  <data name="Debug.SignInTestHashB" xml:space="preserve">
+    <value>Logga in med test hash B</value>
+  </data>
+  <data name="Debug.SignOutDebug" xml:space="preserve">
+    <value>Logga ut debug login</value>
+  </data>
+  <data name="Debug.OnlyVisibleInDebug" xml:space="preserve">
+    <value>Endast synlig i debug-läge.</value>
+  </data>
+  <data name="Debug.TestLoginFailed" xml:space="preserve">
+    <value>Test login misslyckades.</value>
+  </data>
+  <data name="Debug.LogoutFailed" xml:space="preserve">
+    <value>Debug logout misslyckades.</value>
+  </data>
+
+  <!-- Toast Messages (Additional) -->
+  <data name="Toast.RecipePublished" xml:space="preserve">
+    <value>Recept publicerat!</value>
+  </data>
+</root>

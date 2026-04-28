@@ -1,17 +1,24 @@
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Localization
+@using Microsoft.AspNetCore.Localization
+@using DelikatessenDrehbuch
+@inject IViewLocalizer Localizer
+@inject IHtmlLocalizer<SharedResources> SharedLocalizer
+
 @{
     Layout = "_MiniAppLayout";
     ViewData["Title"] = "Start";
-    var language = Context.Request.Cookies["deli-lang"] ?? "de";
+
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var currentCulture = requestCulture?.RequestCulture.Culture ?? System.Globalization.CultureInfo.CurrentCulture;
+    var language = currentCulture.TwoLetterISOLanguageName;
+
     var isLocalRequest = string.Equals(Context.Request.Host.Host, "localhost", StringComparison.OrdinalIgnoreCase)
         || string.Equals(Context.Request.Host.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
+    var isDebugMode = System.Diagnostics.Debugger.IsAttached || isLocalRequest;
+    var activeDebugHash = Context.Request.Cookies["WorldMiniAppTestUserHash"];
     const string devTestHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
-    string T(string de, string en, string es, string pt) => language switch
-    {
-        "en" => en,
-        "es" => es,
-        "pt" => pt,
-        _ => de
-    };
+    const string altDevTestHash = "0x7c1f6a4be3c2d9aa51e4c0bf2a6e7d8f9b1c3d5e7f8091a2b3c4d5e6f7081920";
 }
 
 <div class="d-flex flex-column min-vh-100 justify-content-center p-4"
@@ -42,8 +49,8 @@
                     <i class="bi bi-magic text-white fs-4"></i>
                 </div>
                 <div class="text-white">
-                    <h5 class="fw-bold mb-0">@T("Mein Wochenplan", "My weekly plan", "Mi plan semanal", "Meu plano semanal")</h5>
-                    <small style="opacity: 0.85;">@T("Automatisch erstellen (Device)", "Auto-generate (Device)", "Generar automáticamente (Device)", "Gerar automaticamente (Device)")</small>
+                    <h5 class="fw-bold mb-0">@SharedLocalizer["Home.WeeklyPlan"]</h5>
+                    <small style="opacity: 0.85;">@SharedLocalizer["Home.AutoCreate"]</small>
                 </div>
             </div>
         </a>
@@ -62,8 +69,8 @@
                     <i class="bi bi-stars text-white fs-4"></i>
                 </div>
                 <div class="text-white">
-                    <h5 class="fw-bold mb-0">@T("Entdecken", "Discover", "Descubrir", "Descobrir")</h5>
-                    <small style="opacity: 0.85;">@T("Community & Trends (Device)", "Community & trends (Device)", "Comunidad y tendencias (Device)", "Comunidade e tendências (Device)")</small>
+                    <h5 class="fw-bold mb-0">@SharedLocalizer["Home.Discover"]</h5>
+                    <small style="opacity: 0.85;">@SharedLocalizer["Home.CommunityTrends"]</small>
                 </div>
             </div>
         </a>
@@ -82,8 +89,8 @@
                     <i class="bi bi-currency-exchange text-white fs-4"></i>
                 </div>
                 <div class="text-white">
-                    <h5 class="fw-bold mb-0">@T("Marketplace", "Marketplace", "Marketplace", "Marketplace")</h5>
-                    <small style="opacity: 0.9;">@T("Diätpläne kaufen & verkaufen", "Buy & sell diet plans", "Compra y vende planes de dieta", "Compre e venda planos de dieta")</small>
+                    <h5 class="fw-bold mb-0">@SharedLocalizer["Home.Marketplace"]</h5>
+                    <small style="opacity: 0.9;">@SharedLocalizer["Home.MarketplaceSubtitle"]</small>
                 </div>
             </div>
         </a>
@@ -103,13 +110,13 @@
                 </div>
                 <div class="text-white">
                     <div class="d-flex align-items-center gap-2 mb-1">
-                        <h5 class="fw-bold mb-0">@T("Rezept hochladen", "Upload recipe", "Subir receta", "Enviar receita")</h5>
+                        <h5 class="fw-bold mb-0">@SharedLocalizer["Home.UploadRecipe"]</h5>
                         <span class="badge bg-white text-primary rounded-pill fw-bold border border-white"
                               style="font-size: 9px; padding: 4px 8px;">
-                            <i class="bi bi-person-check-fill me-1"></i> @T("Verifikationsstatus-ID", "Verification status ID", "Estado de verificación ID", "Status de verificação ID")
+                            <i class="bi bi-person-check-fill me-1"></i> @SharedLocalizer["Home.VerificationStatusID"]
                         </span>
                     </div>
-                    <small style="opacity: 0.9;">@T("Werde Creator & verdiene (Orb Required) 💰", "Become a creator & earn (Orb required) 💰", "Conviértete en creador y gana (Orb requerido) 💰", "Torne-se criador e ganhe (Orb necessário) 💰")</small>
+                    <small style="opacity: 0.9;">@SharedLocalizer["Home.BecomeCreator"]</small>
                 </div>
             </div>
         </a>
@@ -122,8 +129,8 @@
                         <i class="bi bi-person-fill text-muted fs-5"></i>
                     </div>
                     <div>
-                        <h6 class="fw-bold text-dark mb-0">@T("Mein Bereich", "My area", "Mi área", "Minha área")</h6>
-                        <small class="text-muted" style="font-size: 0.75rem;">@T("Pläne, Einkaufslisten & mehr", "Plans, shopping lists & more", "Planes, listas de compras y más", "Planos, listas de compras e mais")</small>
+                        <h6 class="fw-bold text-dark mb-0">@SharedLocalizer["Home.MyArea"]</h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">@SharedLocalizer["Home.MyAreaSubtitle"]</small>
                     </div>
                 </div>
                 <i class="bi bi-chevron-right text-muted opacity-50"></i>
@@ -137,19 +144,49 @@
     <div class="mt-auto text-center pt-5">
         <button type="button" id="manualLoginButton" class="btn btn-dark rounded-pill px-4 mb-3 shadow-sm">
             <i class="bi bi-box-arrow-in-right me-1"></i>
-            @T("Jetzt einloggen", "Log in now", "Iniciar sesión ahora", "Entrar agora")
+            @SharedLocalizer["Home.LoginNow"]
         </button>
-        @if (isLocalRequest)
+        @if (isDebugMode)
         {
-            <div class="mb-3">
-                <button type="button" id="devTestLoginButton" class="btn btn-outline-secondary rounded-pill px-4 shadow-sm">
+            <div class="mb-3 d-flex flex-column gap-2 align-items-center">
+                <div class="small text-muted text-center px-3">
+                    @if (!string.IsNullOrWhiteSpace(activeDebugHash))
+                    {
+                        <span>
+                            @SharedLocalizer["Debug.ActiveHash"]
+                            <code id="activeDebugHashLabel">@activeDebugHash</code>
+                        </span>
+                    }
+                    else
+                    {
+                        <span id="activeDebugHashLabel">@SharedLocalizer["Debug.NoHashActive"]</span>
+                    }
+                </div>
+                <button type="button"
+                        class="btn btn-outline-secondary rounded-pill px-4 shadow-sm debug-test-login-button"
+                        data-user-hash="@devTestHash">
                     <i class="bi bi-wrench-adjustable-circle me-1"></i>
-                    @T("Mit Test-Hash anmelden", "Sign in with test hash", "Iniciar con hash de prueba", "Entrar com hash de teste")
+                    @SharedLocalizer["Debug.SignInTestHashA"]
                 </button>
+                <button type="button"
+                        class="btn btn-outline-dark rounded-pill px-4 shadow-sm debug-test-login-button"
+                        data-user-hash="@altDevTestHash">
+                    <i class="bi bi-person-bounding-box me-1"></i>
+                    @SharedLocalizer["Debug.SignInTestHashB"]
+                </button>
+                <button type="button"
+                        id="clearDebugTestLoginButton"
+                        class="btn btn-outline-danger rounded-pill px-4 shadow-sm">
+                    <i class="bi bi-box-arrow-left me-1"></i>
+                    @SharedLocalizer["Debug.SignOutDebug"]
+                </button>
+                <div class="small text-muted">
+                    @SharedLocalizer["Debug.OnlyVisibleInDebug"]
+                </div>
             </div>
         }
         <p class="text-muted opacity-50" style="font-size: 0.75rem;">
-            @Html.Raw(T("Gemacht mit <i class='bi bi-heart-fill text-danger mx-1'></i> für die World App", "Made with <i class='bi bi-heart-fill text-danger mx-1'></i> for World App", "Hecho con <i class='bi bi-heart-fill text-danger mx-1'></i> para World App", "Feito com <i class='bi bi-heart-fill text-danger mx-1'></i> para World App"))
+            @Html.Raw(SharedLocalizer["Home.MadeWithLove"])
         </p>
     </div>
 
@@ -168,34 +205,34 @@
             <div class="text-center mb-3">
                 <img src="https://worldcoin.org/icons/logo-small.svg" width="56" height="56" alt="World Wallet" onerror="this.src='https://cdn-icons-png.flaticon.com/512/3579/3579179.png'">
             </div>
-            <h5 class="fw-bold mb-1">@T("Mit World ID anmelden", "Sign in with World ID", "Iniciar sesión con World ID", "Entrar com World ID")</h5>
-            <p class="text-muted mb-3">@T("bei Delikatessen Drehbuch", "at Delikatessen Drehbuch", "en Delikatessen Drehbuch", "no Delikatessen Drehbuch")</p>
+            <h5 class="fw-bold mb-1">@SharedLocalizer["Login.SignInWithWorldID"]</h5>
+            <p class="text-muted mb-3">@SharedLocalizer["Login.AtDelikatessen"]</p>
             <hr class="text-muted" />
-            <p class="text-muted small mb-2">@T("Die App sieht danach deine", "The app will then see your", "La app verá entonces tu", "O app verá então seu")</p>
+            <p class="text-muted small mb-2">@SharedLocalizer["Login.AppWillSee"]</p>
             <div class="d-flex align-items-center gap-2 mb-3">
                 <span class="badge bg-dark rounded-circle p-2"><i class="bi bi-check text-white"></i></span>
-                <span class="fw-semibold">@T("Unverwechselbarer Mensch", "Unique human", "Humano único", "Humano único")</span>
+                <span class="fw-semibold">@SharedLocalizer["Login.UniqueHuman"]</span>
             </div>
 
             <div class="text-start small text-muted mb-3">
-                <div>@T("App erkennt:", "App detects:", "La app detecta:", "O app detecta:")</div>
+                <div>@SharedLocalizer["Login.AppDetects"]</div>
                 <div class="d-flex justify-content-between"><span>ID</span><span id="storedUserHash">-</span></div>
-                <div class="d-flex justify-content-between"><span>@T("Verifikationsstatus", "Verification status", "Estado de verificación", "Status de verificação")</span><span id="storedVerifyLevel">-</span></div>
+                <div class="d-flex justify-content-between"><span>@SharedLocalizer["Login.VerificationStatus"]</span><span id="storedVerifyLevel">-</span></div>
             </div>
 
             <div class="form-check form-switch d-flex justify-content-center align-items-center gap-2 mb-3">
                 <input class="form-check-input" type="checkbox" role="switch" id="rememberLoginToggle">
-                <label class="form-check-label small" for="rememberLoginToggle">@T("Login merken", "Remember login", "Recordar inicio", "Lembrar login")</label>
+                <label class="form-check-label small" for="rememberLoginToggle">@SharedLocalizer["Login.RememberLogin"]</label>
             </div>
 
             <button type="button" class="btn btn-dark w-100 rounded-pill mb-3" id="consentLoginButton">
-                @T("Genehmigen", "Approve", "Aprobar", "Aprovar")
+                @SharedLocalizer["Login.Approve"]
             </button>
 
             <div class="progress mb-2" style="height: 6px;">
                 <div class="progress-bar progress-bar-striped progress-bar-animated bg-dark" role="progressbar" style="width: 100%"></div>
             </div>
-            <div id="login-status" class="small text-muted fst-italic">@T("Verbinde mit World App...", "Connecting to World App...", "Conectando con World App...", "Conectando ao World App...")</div>
+            <div id="login-status" class="small text-muted fst-italic">@SharedLocalizer["Login.Connecting"]</div>
         </div>
     </div>
 </div>
@@ -238,15 +275,29 @@
         }
 
         document.addEventListener("DOMContentLoaded", function() {
+            const activeDebugHashLabel = document.getElementById('activeDebugHashLabel');
+            const clearDebugTestLoginButton = document.getElementById('clearDebugTestLoginButton');
+
+            function setActiveDebugHashLabel(hash) {
+                if (!activeDebugHashLabel) {
+                    return;
+                }
+
+                if (hash) {
+                    activeDebugHashLabel.textContent = hash;
+                } else {
+                    activeDebugHashLabel.textContent = '@SharedLocalizer["Debug.NoHashActive"]';
+                }
+            }
+
             // Toast bei ?toast= Parameter
             const toastParam = new URLSearchParams(window.location.search).get('toast');
             if (toastParam === 'published') {
-                showToastBottomRight('Rezept erfolgreich veröffentlicht!');
+                showToastBottomRight('@SharedLocalizer["Toast.RecipePublished"]');
                 // URL aufräumen
                 window.history.replaceState({}, '', window.location.pathname);
             }
 
-            const devTestHash = '@devTestHash';
             const rememberToggle = document.getElementById('rememberLoginToggle');
             if (rememberToggle) {
                 rememberToggle.checked = localStorage.getItem("remember_login") === "true";
@@ -275,10 +326,15 @@
                 });
             }
 
-            const devTestLoginButton = document.getElementById('devTestLoginButton');
-            if (devTestLoginButton) {
-                devTestLoginButton.addEventListener('click', async function () {
-                    devTestLoginButton.disabled = true;
+            document.querySelectorAll('.debug-test-login-button').forEach(function (button) {
+                button.addEventListener('click', async function () {
+                    const selectedHash = this.getAttribute('data-user-hash');
+                    if (!selectedHash) {
+                        return;
+                    }
+
+                    const originalText = this.innerHTML;
+                    this.disabled = true;
 
                     try {
                         const response = await fetch('/WorldMiniApp/Auth/SetTestHash', {
@@ -287,22 +343,52 @@
                                 'Content-Type': 'application/json'
                             },
                             body: JSON.stringify({
-                                userHash: devTestHash,
+                                userHash: selectedHash,
                                 rememberLogin: true
                             })
                         });
 
                         if (!response.ok) {
-                            throw new Error('Test-Login fehlgeschlagen.');
+                            throw new Error('@SharedLocalizer["Debug.TestLoginFailed"]');
                         }
 
-                        localStorage.setItem('UserToken', devTestHash);
-                        sessionStorage.setItem('UserToken', devTestHash);
+                        localStorage.setItem('UserToken', selectedHash);
+                        sessionStorage.setItem('UserToken', selectedHash);
+                        setActiveDebugHashLabel(selectedHash);
                         window.location.reload();
                     } catch (error) {
                         console.error(error);
-                        alert('Test-Login fehlgeschlagen.');
-                        devTestLoginButton.disabled = false;
+                        alert('@SharedLocalizer["Debug.TestLoginFailed"]');
+                        this.disabled = false;
+                        this.innerHTML = originalText;
+                    }
+                });
+            });
+
+            if (clearDebugTestLoginButton) {
+                clearDebugTestLoginButton.addEventListener('click', async function () {
+                    clearDebugTestLoginButton.disabled = true;
+
+                    try {
+                        const response = await fetch('/WorldMiniApp/Auth/ClearTestHash', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            }
+                        });
+
+                        if (!response.ok) {
+                            throw new Error('@SharedLocalizer["Debug.LogoutFailed"]');
+                        }
+
+                        localStorage.removeItem('UserToken');
+                        sessionStorage.removeItem('UserToken');
+                        setActiveDebugHashLabel('');
+                        window.location.reload();
+                    } catch (error) {
+                        console.error(error);
+                        alert('@SharedLocalizer["Debug.LogoutFailed"]');
+                        clearDebugTestLoginButton.disabled = false;
                     }
                 });
             }

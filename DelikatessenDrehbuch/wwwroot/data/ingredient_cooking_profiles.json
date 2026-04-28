@@ -1,67 +1,944 @@
 {
-  "version": "1.0",
-  "description": "Zutat-Gruppen-basierte Variable-Defaults. Überschreiben Rezepttyp-Defaults.",
+  "version": "2.0",
+  "description": "Zutat-Gruppen-basierte Variable-Defaults. Überschreiben Rezepttyp-Defaults. V2.0: Vollständig mehrsprachig (10 Sprachen).",
   "by_group": {
     "1": {
-      "_label": "Fleisch",
-      "COOK_SAUTE_01": { "duration": "6-8 Minuten", "state": "braun" },
-      "COOK_FRY_01":   { "duration": "4-6 Minuten", "state": "goldbraun" },
-      "COOK_ROAST_01": { "duration": "25-35 Minuten", "state": "durchgegart" },
-      "COOK_GRILL_01": { "duration": "8-12 Minuten", "state": "medium" },
-      "COOK_SEAR_01":  { "duration": "2-3 Minuten", "state": "angebraten" },
-      "COOK_BRAISE_01":{ "duration": "90-120 Minuten", "state": "zart" },
-      "PREP_CUT_01":   { "shape": "Streifen" }
+      "_label": {
+        "de": "Fleisch",
+        "en": "Meat",
+        "es": "Carne",
+        "pt": "Carne",
+        "id": "Daging",
+        "nl": "Vlees",
+        "sv": "Kött",
+        "da": "Kød",
+        "no": "Kjøtt",
+        "ms": "Daging"
+      },
+      "COOK_SAUTE_01": {
+        "duration": {
+          "de": "6-8 Minuten",
+          "en": "6-8 minutes",
+          "es": "6-8 minutos",
+          "pt": "6-8 minutos",
+          "id": "6-8 menit",
+          "nl": "6-8 minuten",
+          "sv": "6-8 minuter",
+          "da": "6-8 minutter",
+          "nb": "6-8 minutter",
+          "ms": "6-8 minit"
+        },
+        "state": {
+          "de": "braun",
+          "en": "browned",
+          "es": "dorado",
+          "pt": "dourado",
+          "id": "kecoklatan",
+          "nl": "bruin",
+          "sv": "brynt",
+          "da": "brun",
+          "nb": "brun",
+          "ms": "perang"
+        }
+      },
+      "COOK_FRY_01": {
+        "duration": {
+          "de": "4-6 Minuten",
+          "en": "4-6 minutes",
+          "es": "4-6 minutos",
+          "pt": "4-6 minutos",
+          "id": "4-6 menit",
+          "nl": "4-6 minuten",
+          "sv": "4-6 minuter",
+          "da": "4-6 minutter",
+          "nb": "4-6 minutter",
+          "ms": "4-6 minit"
+        },
+        "state": {
+          "de": "goldbraun",
+          "en": "golden brown",
+          "es": "dorado",
+          "pt": "dourado",
+          "id": "keemasan",
+          "nl": "goudbruin",
+          "sv": "gyllenbrun",
+          "da": "gylden",
+          "nb": "gyllen",
+          "ms": "keemasan"
+        }
+      },
+      "COOK_ROAST_01": {
+        "duration": {
+          "de": "25-35 Minuten",
+          "en": "25-35 minutes",
+          "es": "25-35 minutos",
+          "pt": "25-35 minutos",
+          "id": "25-35 menit",
+          "nl": "25-35 minuten",
+          "sv": "25-35 minuter",
+          "da": "25-35 minutter",
+          "nb": "25-35 minutter",
+          "ms": "25-35 minit"
+        },
+        "state": {
+          "de": "durchgegart",
+          "en": "cooked through",
+          "es": "bien cocido",
+          "pt": "bem cozido",
+          "id": "matang sempurna",
+          "nl": "gaar",
+          "sv": "genomstekt",
+          "da": "gennemstegt",
+          "nb": "gjennomstekt",
+          "ms": "masak sempurna"
+        }
+      },
+      "COOK_GRILL_01": {
+        "duration": {
+          "de": "8-12 Minuten",
+          "en": "8-12 minutes",
+          "es": "8-12 minutos",
+          "pt": "8-12 minutos",
+          "id": "8-12 menit",
+          "nl": "8-12 minuten",
+          "sv": "8-12 minuter",
+          "da": "8-12 minutter",
+          "nb": "8-12 minutter",
+          "ms": "8-12 minit"
+        },
+        "state": {
+          "de": "medium",
+          "en": "medium",
+          "es": "medio",
+          "pt": "médio",
+          "id": "sedang",
+          "nl": "medium",
+          "sv": "medium",
+          "da": "medium",
+          "nb": "medium",
+          "ms": "sederhana"
+        }
+      },
+      "COOK_SEAR_01": {
+        "duration": {
+          "de": "2-3 Minuten",
+          "en": "2-3 minutes",
+          "es": "2-3 minutos",
+          "pt": "2-3 minutos",
+          "id": "2-3 menit",
+          "nl": "2-3 minuten",
+          "sv": "2-3 minuter",
+          "da": "2-3 minutter",
+          "nb": "2-3 minutter",
+          "ms": "2-3 minit"
+        },
+        "state": {
+          "de": "angebraten",
+          "en": "seared",
+          "es": "sellado",
+          "pt": "selado",
+          "id": "dipanggang",
+          "nl": "aangebraden",
+          "sv": "brynt",
+          "da": "stegt",
+          "nb": "stekt",
+          "ms": "dipanggang"
+        }
+      },
+      "COOK_BRAISE_01": {
+        "duration": {
+          "de": "90-120 Minuten",
+          "en": "90-120 minutes",
+          "es": "90-120 minutos",
+          "pt": "90-120 minutos",
+          "id": "90-120 menit",
+          "nl": "90-120 minuten",
+          "sv": "90-120 minuter",
+          "da": "90-120 minutter",
+          "nb": "90-120 minutter",
+          "ms": "90-120 minit"
+        },
+        "state": {
+          "de": "zart",
+          "en": "tender",
+          "es": "tierno",
+          "pt": "macio",
+          "id": "empuk",
+          "nl": "mals",
+          "sv": "mört",
+          "da": "mørt",
+          "nb": "mørt",
+          "ms": "lembut"
+        }
+      },
+      "PREP_CUT_01": {
+        "shape": {
+          "de": "Streifen",
+          "en": "strips",
+          "es": "tiras",
+          "pt": "tiras",
+          "id": "potongan memanjang",
+          "nl": "reepjes",
+          "sv": "strimlor",
+          "da": "strimler",
+          "nb": "strimler",
+          "ms": "hirisan"
+        }
+      }
     },
     "2": {
-      "_label": "Gemüse",
-      "COOK_SAUTE_01": { "duration": "3-5 Minuten", "state": "weich" },
-      "COOK_STEAM_01": { "duration": "8-12 Minuten", "state": "bissfest" },
-      "COOK_BOIL_01":  { "duration": "10-15 Minuten", "state": "weich" },
-      "COOK_ROAST_01": { "duration": "20-25 Minuten", "state": "goldbraun" },
-      "COOK_GRILL_01": { "duration": "6-8 Minuten", "state": "leicht verkohlt" },
-      "PREP_CUT_01":   { "shape": "Würfel" }
+      "_label": {
+        "de": "Gemüse",
+        "en": "Vegetables",
+        "es": "Verduras",
+        "pt": "Legumes",
+        "id": "Sayuran",
+        "nl": "Groenten",
+        "sv": "Grönsaker",
+        "da": "Grøntsager",
+        "no": "Grønnsaker",
+        "ms": "Sayur-sayuran"
+      },
+      "COOK_SAUTE_01": {
+        "duration": {
+          "de": "3-5 Minuten",
+          "en": "3-5 minutes",
+          "es": "3-5 minutos",
+          "pt": "3-5 minutos",
+          "id": "3-5 menit",
+          "nl": "3-5 minuten",
+          "sv": "3-5 minuter",
+          "da": "3-5 minutter",
+          "nb": "3-5 minutter",
+          "ms": "3-5 minit"
+        },
+        "state": {
+          "de": "weich",
+          "en": "soft",
+          "es": "blando",
+          "pt": "macio",
+          "id": "lembut",
+          "nl": "zacht",
+          "sv": "mjuk",
+          "da": "blød",
+          "nb": "myk",
+          "ms": "lembut"
+        }
+      },
+      "COOK_STEAM_01": {
+        "duration": {
+          "de": "8-12 Minuten",
+          "en": "8-12 minutes",
+          "es": "8-12 minutos",
+          "pt": "8-12 minutos",
+          "id": "8-12 menit",
+          "nl": "8-12 minuten",
+          "sv": "8-12 minuter",
+          "da": "8-12 minutter",
+          "nb": "8-12 minutter",
+          "ms": "8-12 minit"
+        },
+        "state": {
+          "de": "bissfest",
+          "en": "al dente",
+          "es": "al dente",
+          "pt": "al dente",
+          "id": "al dente",
+          "nl": "beetgaar",
+          "sv": "al dente",
+          "da": "al dente",
+          "nb": "al dente",
+          "ms": "al dente"
+        }
+      },
+      "COOK_BOIL_01": {
+        "duration": {
+          "de": "10-15 Minuten",
+          "en": "10-15 minutes",
+          "es": "10-15 minutos",
+          "pt": "10-15 minutos",
+          "id": "10-15 menit",
+          "nl": "10-15 minuten",
+          "sv": "10-15 minuter",
+          "da": "10-15 minutter",
+          "nb": "10-15 minutter",
+          "ms": "10-15 minit"
+        },
+        "state": {
+          "de": "weich",
+          "en": "soft",
+          "es": "blando",
+          "pt": "macio",
+          "id": "lembut",
+          "nl": "zacht",
+          "sv": "mjuk",
+          "da": "blød",
+          "nb": "myk",
+          "ms": "lembut"
+        }
+      },
+      "COOK_ROAST_01": {
+        "duration": {
+          "de": "20-25 Minuten",
+          "en": "20-25 minutes",
+          "es": "20-25 minutos",
+          "pt": "20-25 minutos",
+          "id": "20-25 menit",
+          "nl": "20-25 minuten",
+          "sv": "20-25 minuter",
+          "da": "20-25 minutter",
+          "nb": "20-25 minutter",
+          "ms": "20-25 minit"
+        },
+        "state": {
+          "de": "goldbraun",
+          "en": "golden brown",
+          "es": "dorado",
+          "pt": "dourado",
+          "id": "keemasan",
+          "nl": "goudbruin",
+          "sv": "gyllenbrun",
+          "da": "gylden",
+          "nb": "gyllen",
+          "ms": "keemasan"
+        }
+      },
+      "COOK_GRILL_01": {
+        "duration": {
+          "de": "6-8 Minuten",
+          "en": "6-8 minutes",
+          "es": "6-8 minutos",
+          "pt": "6-8 minutos",
+          "id": "6-8 menit",
+          "nl": "6-8 minuten",
+          "sv": "6-8 minuter",
+          "da": "6-8 minutter",
+          "nb": "6-8 minutter",
+          "ms": "6-8 minit"
+        },
+        "state": {
+          "de": "leicht verkohlt",
+          "en": "lightly charred",
+          "es": "ligeramente carbonizado",
+          "pt": "levemente carbonizado",
+          "id": "sedikit hangus",
+          "nl": "licht geschroeid",
+          "sv": "lätt förkolnad",
+          "da": "let forkullet",
+          "nb": "lett forkullet",
+          "ms": "sedikit hangus"
+        }
+      },
+      "PREP_CUT_01": {
+        "shape": {
+          "de": "Würfel",
+          "en": "cubes",
+          "es": "cubos",
+          "pt": "cubos",
+          "id": "dadu",
+          "nl": "blokjes",
+          "sv": "tärningar",
+          "da": "tern",
+          "nb": "terninger",
+          "ms": "kiub"
+        }
+      }
     },
     "3": {
-      "_label": "Milchprodukte",
-      "COOK_MELT_01":  { "duration": "2-3 Minuten" },
-      "COOK_SAUTE_01": { "duration": "2-3 Minuten", "state": "geschmolzen" }
+      "_label": {
+        "de": "Milchprodukte",
+        "en": "Dairy",
+        "es": "Lácteos",
+        "pt": "Laticínios",
+        "id": "Produk susu",
+        "nl": "Zuivel",
+        "sv": "Mejeriprodukter",
+        "da": "Mejeriprodukter",
+        "no": "Meieriprodukter",
+        "ms": "Produk tenusu"
+      },
+      "COOK_MELT_01": {
+        "duration": {
+          "de": "2-3 Minuten",
+          "en": "2-3 minutes",
+          "es": "2-3 minutos",
+          "pt": "2-3 minutos",
+          "id": "2-3 menit",
+          "nl": "2-3 minuten",
+          "sv": "2-3 minuter",
+          "da": "2-3 minutter",
+          "nb": "2-3 minutter",
+          "ms": "2-3 minit"
+        }
+      },
+      "COOK_SAUTE_01": {
+        "duration": {
+          "de": "2-3 Minuten",
+          "en": "2-3 minutes",
+          "es": "2-3 minutos",
+          "pt": "2-3 minutos",
+          "id": "2-3 menit",
+          "nl": "2-3 minuten",
+          "sv": "2-3 minuter",
+          "da": "2-3 minutter",
+          "nb": "2-3 minutter",
+          "ms": "2-3 minit"
+        },
+        "state": {
+          "de": "geschmolzen",
+          "en": "melted",
+          "es": "derretido",
+          "pt": "derretido",
+          "id": "meleleh",
+          "nl": "gesmolten",
+          "sv": "smält",
+          "da": "smeltet",
+          "nb": "smeltet",
+          "ms": "cair"
+        }
+      }
     },
     "4": {
-      "_label": "Obst",
-      "COOK_SAUTE_01": { "duration": "2-3 Minuten", "state": "karamellisiert" },
-      "COOK_CARAMELIZE_01": { "duration": "5-8 Minuten", "state": "goldbraun" },
-      "PREP_CUT_01":   { "shape": "Scheiben" }
+      "_label": {
+        "de": "Obst",
+        "en": "Fruit",
+        "es": "Frutas",
+        "pt": "Frutas",
+        "id": "Buah-buahan",
+        "nl": "Fruit",
+        "sv": "Frukt",
+        "da": "Frugt",
+        "no": "Frukt",
+        "ms": "Buah-buahan"
+      },
+      "COOK_SAUTE_01": {
+        "duration": {
+          "de": "2-3 Minuten",
+          "en": "2-3 minutes",
+          "es": "2-3 minutos",
+          "pt": "2-3 minutos",
+          "id": "2-3 menit",
+          "nl": "2-3 minuten",
+          "sv": "2-3 minuter",
+          "da": "2-3 minutter",
+          "nb": "2-3 minutter",
+          "ms": "2-3 minit"
+        },
+        "state": {
+          "de": "karamellisiert",
+          "en": "caramelized",
+          "es": "caramelizado",
+          "pt": "caramelizado",
+          "id": "karamel",
+          "nl": "gekarameliseerd",
+          "sv": "karamelliserad",
+          "da": "karamelliseret",
+          "nb": "karamellisert",
+          "ms": "karamel"
+        }
+      },
+      "COOK_CARAMELIZE_01": {
+        "duration": {
+          "de": "5-8 Minuten",
+          "en": "5-8 minutes",
+          "es": "5-8 minutos",
+          "pt": "5-8 minutos",
+          "id": "5-8 menit",
+          "nl": "5-8 minuten",
+          "sv": "5-8 minuter",
+          "da": "5-8 minutter",
+          "nb": "5-8 minutter",
+          "ms": "5-8 minit"
+        },
+        "state": {
+          "de": "goldbraun",
+          "en": "golden brown",
+          "es": "dorado",
+          "pt": "dourado",
+          "id": "keemasan",
+          "nl": "goudbruin",
+          "sv": "gyllenbrun",
+          "da": "gylden",
+          "nb": "gyllen",
+          "ms": "keemasan"
+        }
+      },
+      "PREP_CUT_01": {
+        "shape": {
+          "de": "Scheiben",
+          "en": "slices",
+          "es": "rodajas",
+          "pt": "fatias",
+          "id": "irisan",
+          "nl": "plakjes",
+          "sv": "skivor",
+          "da": "skiver",
+          "nb": "skiver",
+          "ms": "hirisan"
+        }
+      }
     },
     "5": {
-      "_label": "Gewürze",
-      "COOK_SAUTE_01": { "duration": "30-60 Sekunden", "state": "duftend" },
-      "COOK_TOAST_01": { "duration": "1-2 Minuten", "state": "duftend" }
+      "_label": {
+        "de": "Gewürze",
+        "en": "Spices",
+        "es": "Especias",
+        "pt": "Especiarias",
+        "id": "Rempah-rempah",
+        "nl": "Kruiden",
+        "sv": "Kryddor",
+        "da": "Krydderier",
+        "no": "Krydder",
+        "ms": "Rempah"
+      },
+      "COOK_SAUTE_01": {
+        "duration": {
+          "de": "30-60 Sekunden",
+          "en": "30-60 seconds",
+          "es": "30-60 segundos",
+          "pt": "30-60 segundos",
+          "id": "30-60 detik",
+          "nl": "30-60 seconden",
+          "sv": "30-60 sekunder",
+          "da": "30-60 sekunder",
+          "nb": "30-60 sekunder",
+          "ms": "30-60 saat"
+        },
+        "state": {
+          "de": "duftend",
+          "en": "fragrant",
+          "es": "aromático",
+          "pt": "aromático",
+          "id": "harum",
+          "nl": "geurig",
+          "sv": "doftande",
+          "da": "duftende",
+          "nb": "duftende",
+          "ms": "wangi"
+        }
+      },
+      "COOK_TOAST_01": {
+        "duration": {
+          "de": "1-2 Minuten",
+          "en": "1-2 minutes",
+          "es": "1-2 minutos",
+          "pt": "1-2 minutos",
+          "id": "1-2 menit",
+          "nl": "1-2 minuten",
+          "sv": "1-2 minuter",
+          "da": "1-2 minutter",
+          "nb": "1-2 minutter",
+          "ms": "1-2 minit"
+        },
+        "state": {
+          "de": "duftend",
+          "en": "fragrant",
+          "es": "aromático",
+          "pt": "aromático",
+          "id": "harum",
+          "nl": "geurig",
+          "sv": "doftande",
+          "da": "duftende",
+          "nb": "duftende",
+          "ms": "wangi"
+        }
+      }
     },
     "6": {
-      "_label": "Fisch/Meeresfrüchte",
-      "COOK_SAUTE_01": { "duration": "3-4 Minuten", "state": "goldbraun" },
-      "COOK_FRY_01":   { "duration": "3-4 Minuten", "state": "knusprig" },
-      "COOK_STEAM_01": { "duration": "8-10 Minuten", "state": "gar" },
-      "COOK_GRILL_01": { "duration": "4-6 Minuten", "state": "gar" },
-      "COOK_POACH_01": { "duration": "8-12 Minuten", "state": "gar" },
-      "COOK_ROAST_01": { "duration": "15-20 Minuten", "state": "goldbraun" },
-      "COOK_SEAR_01":  { "duration": "2-3 Minuten", "state": "angebraten" },
-      "PREP_CUT_01":   { "shape": "Stücke" }
+      "_label": {
+        "de": "Fisch/Meeresfrüchte",
+        "en": "Fish/Seafood",
+        "es": "Pescado/Mariscos",
+        "pt": "Peixe/Frutos do mar",
+        "id": "Ikan/Makanan laut",
+        "nl": "Vis/Zeevruchten",
+        "sv": "Fisk/Skaldjur",
+        "da": "Fisk/Skaldyr",
+        "no": "Fisk/Sjømat",
+        "ms": "Ikan/Makanan laut"
+      },
+      "COOK_SAUTE_01": {
+        "duration": {
+          "de": "3-4 Minuten",
+          "en": "3-4 minutes",
+          "es": "3-4 minutos",
+          "pt": "3-4 minutos",
+          "id": "3-4 menit",
+          "nl": "3-4 minuten",
+          "sv": "3-4 minuter",
+          "da": "3-4 minutter",
+          "nb": "3-4 minutter",
+          "ms": "3-4 minit"
+        },
+        "state": {
+          "de": "goldbraun",
+          "en": "golden brown",
+          "es": "dorado",
+          "pt": "dourado",
+          "id": "keemasan",
+          "nl": "goudbruin",
+          "sv": "gyllenbrun",
+          "da": "gylden",
+          "nb": "gyllen",
+          "ms": "keemasan"
+        }
+      },
+      "COOK_FRY_01": {
+        "duration": {
+          "de": "3-4 Minuten",
+          "en": "3-4 minutes",
+          "es": "3-4 minutos",
+          "pt": "3-4 minutos",
+          "id": "3-4 menit",
+          "nl": "3-4 minuten",
+          "sv": "3-4 minuter",
+          "da": "3-4 minutter",
+          "nb": "3-4 minutter",
+          "ms": "3-4 minit"
+        },
+        "state": {
+          "de": "knusprig",
+          "en": "crispy",
+          "es": "crujiente",
+          "pt": "crocante",
+          "id": "renyah",
+          "nl": "knapperig",
+          "sv": "krispig",
+          "da": "sprød",
+          "nb": "sprø",
+          "ms": "rangup"
+        }
+      },
+      "COOK_STEAM_01": {
+        "duration": {
+          "de": "8-10 Minuten",
+          "en": "8-10 minutes",
+          "es": "8-10 minutos",
+          "pt": "8-10 minutos",
+          "id": "8-10 menit",
+          "nl": "8-10 minuten",
+          "sv": "8-10 minuter",
+          "da": "8-10 minutter",
+          "nb": "8-10 minutter",
+          "ms": "8-10 minit"
+        },
+        "state": {
+          "de": "gar",
+          "en": "cooked",
+          "es": "cocido",
+          "pt": "cozido",
+          "id": "matang",
+          "nl": "gaar",
+          "sv": "genomkokt",
+          "da": "gennemkogt",
+          "nb": "gjennomkokt",
+          "ms": "masak"
+        }
+      },
+      "COOK_GRILL_01": {
+        "duration": {
+          "de": "4-6 Minuten",
+          "en": "4-6 minutes",
+          "es": "4-6 minutos",
+          "pt": "4-6 minutos",
+          "id": "4-6 menit",
+          "nl": "4-6 minuten",
+          "sv": "4-6 minuter",
+          "da": "4-6 minutter",
+          "nb": "4-6 minutter",
+          "ms": "4-6 minit"
+        },
+        "state": {
+          "de": "gar",
+          "en": "cooked",
+          "es": "cocido",
+          "pt": "cozido",
+          "id": "matang",
+          "nl": "gaar",
+          "sv": "genomkokt",
+          "da": "gennemkogt",
+          "nb": "gjennomkokt",
+          "ms": "masak"
+        }
+      },
+      "COOK_POACH_01": {
+        "duration": {
+          "de": "8-12 Minuten",
+          "en": "8-12 minutes",
+          "es": "8-12 minutos",
+          "pt": "8-12 minutos",
+          "id": "8-12 menit",
+          "nl": "8-12 minuten",
+          "sv": "8-12 minuter",
+          "da": "8-12 minutter",
+          "nb": "8-12 minutter",
+          "ms": "8-12 minit"
+        },
+        "state": {
+          "de": "gar",
+          "en": "cooked",
+          "es": "cocido",
+          "pt": "cozido",
+          "id": "matang",
+          "nl": "gaar",
+          "sv": "genomkokt",
+          "da": "gennemkogt",
+          "nb": "gjennomkokt",
+          "ms": "masak"
+        }
+      },
+      "COOK_ROAST_01": {
+        "duration": {
+          "de": "15-20 Minuten",
+          "en": "15-20 minutes",
+          "es": "15-20 minutos",
+          "pt": "15-20 minutos",
+          "id": "15-20 menit",
+          "nl": "15-20 minuten",
+          "sv": "15-20 minuter",
+          "da": "15-20 minutter",
+          "nb": "15-20 minutter",
+          "ms": "15-20 minit"
+        },
+        "state": {
+          "de": "goldbraun",
+          "en": "golden brown",
+          "es": "dorado",
+          "pt": "dourado",
+          "id": "keemasan",
+          "nl": "goudbruin",
+          "sv": "gyllenbrun",
+          "da": "gylden",
+          "nb": "gyllen",
+          "ms": "keemasan"
+        }
+      },
+      "COOK_SEAR_01": {
+        "duration": {
+          "de": "2-3 Minuten",
+          "en": "2-3 minutes",
+          "es": "2-3 minutos",
+          "pt": "2-3 minutos",
+          "id": "2-3 menit",
+          "nl": "2-3 minuten",
+          "sv": "2-3 minuter",
+          "da": "2-3 minutter",
+          "nb": "2-3 minutter",
+          "ms": "2-3 minit"
+        },
+        "state": {
+          "de": "angebraten",
+          "en": "seared",
+          "es": "sellado",
+          "pt": "selado",
+          "id": "dipanggang",
+          "nl": "aangebraden",
+          "sv": "brynt",
+          "da": "stegt",
+          "nb": "stekt",
+          "ms": "dipanggang"
+        }
+      },
+      "PREP_CUT_01": {
+        "shape": {
+          "de": "Stücke",
+          "en": "pieces",
+          "es": "trozos",
+          "pt": "pedaços",
+          "id": "potongan",
+          "nl": "stukken",
+          "sv": "bitar",
+          "da": "stykker",
+          "nb": "stykker",
+          "ms": "kepingan"
+        }
+      }
     },
     "7": {
-      "_label": "Sonstiges",
-      "COOK_SAUTE_01": { "duration": "3-5 Minuten" }
+      "_label": {
+        "de": "Sonstiges",
+        "en": "Other",
+        "es": "Otros",
+        "pt": "Outros",
+        "id": "Lainnya",
+        "nl": "Overige",
+        "sv": "Övrigt",
+        "da": "Andet",
+        "no": "Annet",
+        "ms": "Lain-lain"
+      },
+      "COOK_SAUTE_01": {
+        "duration": {
+          "de": "3-5 Minuten",
+          "en": "3-5 minutes",
+          "es": "3-5 minutos",
+          "pt": "3-5 minutos",
+          "id": "3-5 menit",
+          "nl": "3-5 minuten",
+          "sv": "3-5 minuter",
+          "da": "3-5 minutter",
+          "nb": "3-5 minutter",
+          "ms": "3-5 minit"
+        }
+      }
     },
     "8": {
-      "_label": "Grundnahrungsmittel",
-      "COOK_BOIL_01":  { "duration": "laut Packungsangabe", "state": "al dente" },
-      "COOK_RICE_01":  { "duration": "12-15 Minuten", "state": "locker" },
-      "COOK_TOAST_01": { "duration": "2-3 Minuten", "state": "goldbraun" }
+      "_label": {
+        "de": "Grundnahrungsmittel",
+        "en": "Staples",
+        "es": "Alimentos básicos",
+        "pt": "Alimentos básicos",
+        "id": "Makanan pokok",
+        "nl": "Basisvoedingsmiddelen",
+        "sv": "Basvaror",
+        "da": "Basisfødevarer",
+        "no": "Basismat",
+        "ms": "Makanan asas"
+      },
+      "COOK_BOIL_01": {
+        "duration": {
+          "de": "laut Packungsangabe",
+          "en": "according to package instructions",
+          "es": "según las instrucciones del paquete",
+          "pt": "de acordo com as instruções da embalagem",
+          "id": "sesuai petunjuk kemasan",
+          "nl": "volgens pakketinstructies",
+          "sv": "enligt förpackningens anvisningar",
+          "da": "ifølge pakkens anvisninger",
+          "nb": "ifølge pakkens instruksjoner",
+          "ms": "mengikut arahan bungkusan"
+        },
+        "state": {
+          "de": "al dente",
+          "en": "al dente",
+          "es": "al dente",
+          "pt": "al dente",
+          "id": "al dente",
+          "nl": "al dente",
+          "sv": "al dente",
+          "da": "al dente",
+          "nb": "al dente",
+          "ms": "al dente"
+        }
+      },
+      "COOK_RICE_01": {
+        "duration": {
+          "de": "12-15 Minuten",
+          "en": "12-15 minutes",
+          "es": "12-15 minutos",
+          "pt": "12-15 minutos",
+          "id": "12-15 menit",
+          "nl": "12-15 minuten",
+          "sv": "12-15 minuter",
+          "da": "12-15 minutter",
+          "nb": "12-15 minutter",
+          "ms": "12-15 minit"
+        },
+        "state": {
+          "de": "locker",
+          "en": "fluffy",
+          "es": "suelto",
+          "pt": "solto",
+          "id": "pulen",
+          "nl": "luchtig",
+          "sv": "luftig",
+          "da": "luftig",
+          "nb": "luftig",
+          "ms": "gebu"
+        }
+      },
+      "COOK_TOAST_01": {
+        "duration": {
+          "de": "2-3 Minuten",
+          "en": "2-3 minutes",
+          "es": "2-3 minutos",
+          "pt": "2-3 minutos",
+          "id": "2-3 menit",
+          "nl": "2-3 minuten",
+          "sv": "2-3 minuter",
+          "da": "2-3 minutter",
+          "nb": "2-3 minutter",
+          "ms": "2-3 minit"
+        },
+        "state": {
+          "de": "goldbraun",
+          "en": "golden brown",
+          "es": "dorado",
+          "pt": "dourado",
+          "id": "keemasan",
+          "nl": "goudbruin",
+          "sv": "gyllenbrun",
+          "da": "gylden",
+          "nb": "gyllen",
+          "ms": "keemasan"
+        }
+      }
     },
     "9": {
-      "_label": "Nüsse, Samen & Hülsenfrüchte",
-      "COOK_TOAST_01": { "duration": "3-5 Minuten", "state": "goldbraun" },
-      "COOK_SAUTE_01": { "duration": "2-3 Minuten", "state": "geröstet" }
+      "_label": {
+        "de": "Nüsse, Samen & Hülsenfrüchte",
+        "en": "Nuts, Seeds & Legumes",
+        "es": "Nueces, Semillas y Legumbres",
+        "pt": "Nozes, Sementes e Leguminosas",
+        "id": "Kacang, Biji & Polong",
+        "nl": "Noten, Zaden & Peulvruchten",
+        "sv": "Nötter, Frön & Baljväxter",
+        "da": "Nødder, Frø & Bælgfrugter",
+        "no": "Nøtter, Frø & Belgfrukter",
+        "ms": "Kacang, Benih & Kekacang"
+      },
+      "COOK_TOAST_01": {
+        "duration": {
+          "de": "3-5 Minuten",
+          "en": "3-5 minutes",
+          "es": "3-5 minutos",
+          "pt": "3-5 minutos",
+          "id": "3-5 menit",
+          "nl": "3-5 minuten",
+          "sv": "3-5 minuter",
+          "da": "3-5 minutter",
+          "nb": "3-5 minutter",
+          "ms": "3-5 minit"
+        },
+        "state": {
+          "de": "goldbraun",
+          "en": "golden brown",
+          "es": "dorado",
+          "pt": "dourado",
+          "id": "keemasan",
+          "nl": "goudbruin",
+          "sv": "gyllenbrun",
+          "da": "gylden",
+          "nb": "gyllen",
+          "ms": "keemasan"
+        }
+      },
+      "COOK_SAUTE_01": {
+        "duration": {
+          "de": "2-3 Minuten",
+          "en": "2-3 minutes",
+          "es": "2-3 minutos",
+          "pt": "2-3 minutos",
+          "id": "2-3 menit",
+          "nl": "2-3 minuten",
+          "sv": "2-3 minuter",
+          "da": "2-3 minutter",
+          "nb": "2-3 minutter",
+          "ms": "2-3 minit"
+        },
+        "state": {
+          "de": "geröstet",
+          "en": "toasted",
+          "es": "tostado",
+          "pt": "torrado",
+          "id": "dipanggang",
+          "nl": "geroosterd",
+          "sv": "rostad",
+          "da": "ristet",
+          "nb": "ristet",
+          "ms": "panggang"
+        }
+      }
     }
   }
 }
