@@ -14,6 +14,8 @@
     let currentIngredientName = null;
     let currentProvider = 'openai';
 
+    const batchStorageKeyForRecipe = (recipeId) => `swap_batch_v1_${recipeId}`;
+
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
@@ -33,12 +35,161 @@
         }
 
         attachSwapButtonListeners();
+        renderBatchBarIfPresent();
     }
 
     function attachSwapButtonListeners() {
         document.querySelectorAll('[data-swap-ingredient]').forEach(btn => {
             btn.addEventListener('click', handleSwapClick);
         });
+    }
+
+    function getRecipeIdFromPage() {
+        const btn = document.querySelector('[data-swap-ingredient][data-recipe-id]');
+        if (!btn) return null;
+        const id = parseInt(btn.dataset.recipeId, 10);
+        return Number.isFinite(id) ? id : null;
+    }
+
+    function loadBatch(recipeId) {
+        try {
+            const raw = sessionStorage.getItem(batchStorageKeyForRecipe(recipeId));
+            const parsed = raw ? JSON.parse(raw) : [];
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function saveBatch(recipeId, swaps) {
+        try {
+            sessionStorage.setItem(batchStorageKeyForRecipe(recipeId), JSON.stringify(swaps || []));
+        } catch {
+        }
+    }
+
+    function upsertBatchSwap(recipeId, swap) {
+        const swaps = loadBatch(recipeId);
+        const idx = swaps.findIndex(s => s && s.fromIngredientId === swap.fromIngredientId);
+        if (idx >= 0) {
+            swaps[idx] = swap;
+        } else {
+            swaps.push(swap);
+        }
+        saveBatch(recipeId, swaps);
+        return swaps;
+    }
+
+    function clearBatch(recipeId) {
+        try {
+            sessionStorage.removeItem(batchStorageKeyForRecipe(recipeId));
+        } catch {
+        }
+    }
+
+    function renderBatchBarIfPresent() {
+        const recipeId = getRecipeIdFromPage();
+        const bar = document.getElementById('swapBatchBar');
+        if (!bar || !recipeId) {
+            console.debug('[swap-batch] skip render', { hasBar: !!bar, recipeId });
+            return;
+        }
+
+        const swaps = loadBatch(recipeId);
+        if (!swaps || swaps.length === 0) {
+            bar.style.display = 'none';
+            bar.innerHTML = '';
+            return;
+        }
+
+        console.debug('[swap-batch] render', { recipeId, count: swaps.length });
+        bar.style.display = 'block';
+        bar.innerHTML = `
+            <div class="d-flex align-items-center justify-content-between gap-2 rounded border bg-white px-3 py-2 shadow-sm">
+                <div class="small text-muted">
+                    <strong>Batch:</strong> ${swaps.length} Änderung(en) vorgemerkt
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary" id="swapBatchClearBtn">Leeren</button>
+                    <button type="button" class="btn btn-sm btn-success" id="swapBatchApplyBtn">Batch anwenden</button>
+                </div>
+            </div>
+        `;
+
+        const clearBtn = document.getElementById('swapBatchClearBtn');
+        const applyBtn = document.getElementById('swapBatchApplyBtn');
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => {
+                clearBatch(recipeId);
+                renderBatchBarIfPresent();
+                if (typeof showToast === 'function') showToast('Batch geleert.', 'info', 1500);
+            });
+        }
+
+        if (applyBtn) {
+            applyBtn.addEventListener('click', () => applyBatch(recipeId));
+        }
+    }
+
+    async function applyBatch(recipeId) {
+        const swaps = loadBatch(recipeId);
+        if (!swaps || swaps.length === 0) return;
+
+        if (!confirm(`Batch wirklich anwenden?\n\nÄnderungen: ${swaps.length}`)) {
+            return;
+        }
+
+        try {
+            const u = new URL(window.location.href);
+            const raw = u.searchParams.get('swapVariantId');
+            const swapVariantId = raw ? parseInt(raw, 10) : null;
+
+            const response = await fetch('/api/recipe-swap/apply-batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipeId,
+                    swapVariantId: Number.isFinite(swapVariantId) && swapVariantId > 0 ? swapVariantId : null,
+                    swaps: swaps.map(s => ({
+                        recipeId,
+                        swapVariantId: Number.isFinite(swapVariantId) && swapVariantId > 0 ? swapVariantId : null,
+                        fromIngredientId: s.fromIngredientId,
+                        fromName: s.fromName,
+                        toIngredientId: s.toIngredientId,
+                        toName: s.toName,
+                        newQuantity: s.newQuantity,
+                        unit: s.unit
+                    }))
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            const variantId = data.variant?.id;
+
+            clearBatch(recipeId);
+            renderBatchBarIfPresent();
+
+            if (typeof showToast === 'function') {
+                showToast('Batch gespeichert! Wird geladen...', 'success', 1800);
+            }
+
+            if (variantId) {
+                const baseUrl = window.location.pathname.split('?')[0];
+                const newUrl = `${baseUrl}?id=${recipeId}&swapVariantId=${variantId}`;
+                setTimeout(() => window.location.href = newUrl, 700);
+            } else {
+                setTimeout(() => window.location.reload(), 700);
+            }
+        } catch (err) {
+            console.error('Apply batch error:', err);
+            alert('Fehler beim Batch-Speichern: ' + getErrorMessage(err));
+        }
     }
 
     async function handleSwapClick(event) {
@@ -64,15 +215,35 @@
         currentProvider = 'openai';
         showLoadingModal(currentIngredientName, currentProvider);
 
+        const u = new URL(window.location.href);
+        const rawVariant = u.searchParams.get('swapVariantId');
+        const swapVariantId = rawVariant ? parseInt(rawVariant, 10) : null;
+
+        const batch = currentRecipeId ? loadBatch(currentRecipeId) : [];
+        const contextSwaps = Array.isArray(batch)
+            ? batch
+                .filter(s => s && Number.isFinite(s.fromIngredientId) && Number.isFinite(s.toIngredientId))
+                .map(s => ({
+                    fromIngredientId: s.fromIngredientId,
+                    fromName: s.fromName || '',
+                    toIngredientId: s.toIngredientId,
+                    toName: s.toName || '',
+                    newQuantity: s.newQuantity || 0,
+                    unit: s.unit || 'g'
+                }))
+            : [];
+
         const response = await fetch('/api/recipe-swap/suggest', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 originalIngredientId: currentIngredientId,
                 recipeId: currentRecipeId,
+                swapVariantId: Number.isFinite(swapVariantId) && swapVariantId > 0 ? swapVariantId : null,
                 goal: currentGoal,
                 language: currentLanguage,
-                aiProvider: 'openai'
+                aiProvider: 'openai',
+                contextSwaps
             })
         });
 
@@ -171,6 +342,10 @@
             btn.addEventListener('click', handleApplySwap);
         });
 
+        currentModal.querySelectorAll('[data-add-to-batch]').forEach(btn => {
+            btn.addEventListener('click', handleAddToBatch);
+        });
+
     }
 
     function renderSuggestionCard(suggestion, index) {
@@ -228,6 +403,11 @@
                             data-suggestion-index="${index}">
                         Diese Alternative verwenden
                     </button>
+                    <button class="btn btn-outline-success btn-sm w-100 mt-2"
+                            data-add-to-batch
+                            data-suggestion-index="${index}">
+                        Zum Batch hinzufügen
+                    </button>
                 </div>
             </div>
         `;
@@ -259,11 +439,16 @@
         }
 
         try {
+            const u = new URL(window.location.href);
+            const raw = u.searchParams.get('swapVariantId');
+            const swapVariantId = raw ? parseInt(raw, 10) : null;
+
             const response = await fetch('/api/recipe-swap/apply', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     recipeId: currentRecipeId,
+                    swapVariantId: Number.isFinite(swapVariantId) && swapVariantId > 0 ? swapVariantId : null,
                     fromIngredientId: currentIngredientId,
                     fromName: currentOriginalName,
                     toIngredientId: suggestion.ingredientId,
@@ -296,6 +481,64 @@
             console.error('Apply swap error:', error);
             alert('Fehler beim Speichern: ' + getErrorMessage(error));
         }
+    }
+
+    function handleAddToBatch(event) {
+        const button = event.currentTarget;
+        const suggestionIndex = parseInt(button.dataset.suggestionIndex, 10);
+        const recipeId = currentRecipeId;
+
+        if (!recipeId || !currentSuggestions || !currentSuggestions[suggestionIndex]) {
+            alert('Fehler: Vorschlagsdaten nicht verfügbar');
+            return;
+        }
+
+        const suggestion = currentSuggestions[suggestionIndex];
+        const swap = {
+            fromIngredientId: currentIngredientId,
+            fromName: currentOriginalName,
+            toIngredientId: suggestion.ingredientId,
+            toName: suggestion.name,
+            newQuantity: suggestion.quantity,
+            unit: suggestion.unit
+        };
+
+        const next = upsertBatchSwap(recipeId, swap);
+        renderBatchBarIfPresent();
+
+        if (typeof showToast === 'function') {
+            showToast(`Zum Batch hinzugefügt (${next.length})`, 'success', 1500);
+        }
+
+        closeModal();
+    }
+
+    function injectSwapUiStylesOnce() {
+        if (document.getElementById('swapModalStylesV1')) return;
+        const style = document.createElement('style');
+        style.id = 'swapModalStylesV1';
+        style.textContent = `
+            .swap-modal { border-radius: 18px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 28px 80px rgba(0,0,0,0.22); }
+            .swap-modal-header { background: radial-gradient(1200px 400px at 0% 0%, rgba(255,227,179,0.55) 0%, rgba(255,255,255,0.0) 55%), linear-gradient(180deg, #fff 0%, #fbfbfc 100%); border-bottom: 1px solid rgba(0,0,0,0.06); }
+            .swap-modal-kicker { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(0,0,0,0.55); font-weight: 800; }
+            .swap-modal-meta { font-size: 0.82rem; color: rgba(0,0,0,0.55); margin-top: 2px; }
+            .swap-modal-body { max-height: 60vh; overflow-y: auto; background: #fcfcfd; }
+            .swap-original { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 10px 26px rgba(0,0,0,0.06); margin-bottom: 14px; border: 1px solid rgba(0,0,0,0.06); }
+            .swap-original-label { font-size: 0.82rem; color: rgba(0,0,0,0.55); font-weight: 800; }
+            .swap-original-title { font-size: 1.08rem; font-weight: 900; margin-top: 2px; }
+            .swap-original-sub { font-size: 0.9rem; color: rgba(0,0,0,0.55); }
+            .swap-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+            .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-weight: 900; font-size: 0.82rem; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.96); }
+            .chip-muted { color: rgba(0,0,0,0.75); }
+            .chip-good { background: rgba(46, 204, 113, 0.12); border-color: rgba(46, 204, 113, 0.25); color: #1b7f45; }
+            .chip-info { background: rgba(52, 152, 219, 0.12); border-color: rgba(52, 152, 219, 0.25); color: #1b5e8a; }
+            .chip-warn { background: rgba(241, 196, 15, 0.18); border-color: rgba(241, 196, 15, 0.35); color: #7a5b00; }
+            .chip-bad { background: rgba(231, 76, 60, 0.12); border-color: rgba(231, 76, 60, 0.25); color: #a43126; }
+            .swap-suggestion { border-radius: 14px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 10px 26px rgba(0,0,0,0.06); overflow: hidden; background: #fff; }
+            .swap-reason { color: rgba(0,0,0,0.72); line-height: 1.35; }
+            @media (max-width: 576px) { .swap-modal-body { max-height: 66vh; } }
+        `;
+        document.head.appendChild(style);
     }
 
     function showErrorModal(ingredientName, errorMessage) {

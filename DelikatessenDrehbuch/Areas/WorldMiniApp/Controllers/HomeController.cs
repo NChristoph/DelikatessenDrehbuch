@@ -307,7 +307,7 @@ END;
             });
         }
 
-        public async Task<IActionResult> ShowRecipe(int id, int? aiVariantId = null, int? swapVariantId = null, bool original = false)
+        public async Task<IActionResult> ShowRecipe(int id, int? aiVariantId = null, int? swapVariantId = null, int? communityVariantId = null, bool original = false)
         {
             var model = await _context.RecipeBaseData
                 .IncludeFullRecipeDetails()
@@ -337,30 +337,127 @@ END;
                 }
             }
 
-            // Load ingredient swaps if swapVariantId is provided OR auto-load user's latest variant
-            RecipeUserVariant variant = null;
+            // Load swaps: only when explicitly requested via query params.
+            RecipeCommunityVariant communityVariant = null;
+            RecipeUserVariant userVariant = null;
 
-            if (swapVariantId.HasValue)
+            if (communityVariantId.HasValue)
+            {
+                communityVariant = await _context.RecipeCommunityVariants
+                    .FirstOrDefaultAsync(v => v.Id == communityVariantId.Value && v.OriginalRecipeId == id);
+            }
+            else if (swapVariantId.HasValue)
             {
                 // Explicit variant requested
-                variant = await _context.RecipeUserVariants
+                userVariant = await _context.RecipeUserVariants
                     .FirstOrDefaultAsync(v => v.Id == swapVariantId.Value && v.OriginalRecipeId == id);
             }
-            else if (!original && !aiVariantId.HasValue && !string.IsNullOrEmpty(userHash))
+
+            if (communityVariant != null)
             {
-                // Auto-load user's latest variant for this recipe (only if no AI variant requested)
-                variant = await _context.RecipeUserVariants
-                    .Where(v => v.UserHash == userHash && v.OriginalRecipeId == id)
-                    .OrderByDescending(v => v.CreatedAtUtc)
-                    .FirstOrDefaultAsync();
+                ViewData["SwapsJson"] = communityVariant.SwapsJson;
+                ViewData["VariantTitle"] = communityVariant.Title;
+                ViewData["VariantSummary"] = communityVariant.Summary;
+                ViewData["CommunityVariantId"] = communityVariant.Id;
+                ViewData["IsCommunityVariant"] = true;
+            }
+            else if (userVariant != null)
+            {
+                ViewData["SwapsJson"] = userVariant.SwapsJson;
+                ViewData["VariantTitle"] = userVariant.Title;
+                // userVariant currently doesn't persist a summary, so keep it empty.
+                ViewData["VariantSummary"] = null;
+                ViewData["SwapVariantId"] = userVariant.Id;
+                ViewData["IsCommunityVariant"] = false;
             }
 
-            if (variant != null)
+            // Nutrition override for swap-variants: recompute macros from swapped ingredient IDs + quantities.
+            if (ViewData["SwapsJson"] is string swapsJson && !string.IsNullOrWhiteSpace(swapsJson))
             {
-                ViewData["SwapsJson"] = variant.SwapsJson;
-                ViewData["VariantTitle"] = variant.Title;
-                ViewData["SwapVariantId"] = variant.Id;
+                try
+                {
+                    var swaps = System.Text.Json.JsonSerializer.Deserialize<List<IngredientSwap>>(swapsJson)
+                                ?? new List<IngredientSwap>();
+
+                    if (swaps.Count > 0)
+                    {
+                        var swapByFrom = swaps
+                            .Where(s => s.FromIngredientId > 0 && s.ToIngredientId > 0)
+                            .GroupBy(s => s.FromIngredientId)
+                            .ToDictionary(g => g.Key, g => g.Last());
+
+                        var replacementIds = swapByFrom.Values
+                            .Select(x => x.ToIngredientId)
+                            .Distinct()
+                            .ToList();
+
+                        var replacements = await _context.IngredientsAndNutrients
+                            .AsNoTracking()
+                            .Where(i => replacementIds.Contains(i.Id))
+                            .ToDictionaryAsync(i => i.Id);
+
+                        decimal totalCalories = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalSugar = 0, totalFiber = 0;
+
+                        foreach (var item in model.Ingredients)
+                        {
+                            var originalNutri = item.Ingredient?.IngredientsAndNutrients;
+                            if (originalNutri == null) continue;
+
+                            var ingredientId = originalNutri.Id;
+                            var quantity = (decimal)(item.Ingredient?.Quantity?.Quantitys ?? 0);
+                            var unit = (item.Ingredient?.Measure?.Metrics_DE ?? string.Empty).Trim().ToLowerInvariant();
+
+                            // If swapped: use replacement ingredient + new quantity/unit.
+                            if (swapByFrom.TryGetValue(ingredientId, out var swap) && replacements.TryGetValue(swap.ToIngredientId, out var replacementNutri))
+                            {
+                                quantity = swap.NewQuantity;
+                                unit = (swap.Unit ?? "g").Trim().ToLowerInvariant();
+                                // we treat ml like grams here (density not modeled) – consistent with your swap system prompt.
+                                var factor = quantity / 100m;
+
+                                totalCalories += replacementNutri.Calories_a_100g * factor;
+                                totalProtein += replacementNutri.Protein_a_100g * factor;
+                                totalFat += replacementNutri.Fat_a_100g * factor;
+                                totalCarbs += replacementNutri.Carbohydrates_a_100g * factor;
+                                totalSugar += replacementNutri.Sugar_a_100g * factor;
+                                totalFiber += replacementNutri.Fiber_a_100g * factor;
+                                continue;
+                            }
+
+                            // Original ingredient
+                            decimal origFactor = (unit == "stk" || unit == "stück")
+                                ? (quantity * originalNutri.Weight_per_piece) / 100m
+                                : quantity / 100m;
+
+                            totalCalories += originalNutri.Calories_a_100g * origFactor;
+                            totalProtein += originalNutri.Protein_a_100g * origFactor;
+                            totalFat += originalNutri.Fat_a_100g * origFactor;
+                            totalCarbs += originalNutri.Carbohydrates_a_100g * origFactor;
+                            totalSugar += originalNutri.Sugar_a_100g * origFactor;
+                            totalFiber += originalNutri.Fiber_a_100g * origFactor;
+                        }
+
+                        ViewData["NutritionOverride"] = new
+                        {
+                            calories = totalCalories,
+                            protein = totalProtein,
+                            fat = totalFat,
+                            carbs = totalCarbs,
+                            sugar = totalSugar,
+                            fiber = totalFiber
+                        };
+                    }
+                }
+                catch
+                {
+                    // Ignore nutrition override if swaps JSON is invalid.
+                }
             }
+
+            var communityVariantCount = await _context.RecipeCommunityVariants
+                .AsNoTracking()
+                .CountAsync(v => v.OriginalRecipeId == id && v.Language == language);
+            ViewData["CommunityVariantCount"] = communityVariantCount;
 
             return View(model);
         }

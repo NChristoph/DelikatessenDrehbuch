@@ -751,12 +751,14 @@
                 <div class="video-grid">
                     @foreach (var card in Model.AiEditedRecipes)
                     {
-                        var href = Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = card.BaseRecipeId, aiVariantId = card.AiVariantId });
-                        <div class="grid-item shadow-sm position-relative" onclick="window.location.href='@href'">
+                        // All cards are now swap variants (RecipeAiBaseRecipes removed)
+                                var href = $"/WorldMiniApp/Home/ShowRecipe?id={card.BaseRecipeId}&swapVariantId={card.AiVariantId}";
+
+                        <a href="@href" class="grid-item shadow-sm position-relative text-decoration-none" style="display: block; cursor: pointer;">
                             <img src="@card.ImageUrl" class="grid-img" loading="lazy">
                             <div class="position-absolute top-0 end-0 p-2" style="z-index:4;">
                                 <span class="badge rounded-pill" style="background: rgba(255,255,255,0.92); color:#111; font-weight:900;">
-                                    <i class="bi bi-stars text-warning me-1"></i>AI editiert
+                                    <i class="bi-arrow-left-right text-warning me-1"></i>Angepasst
                                 </span>
                             </div>
                             <div class="position-absolute start-0 end-0 bottom-0 p-2" style="z-index:3;">
@@ -765,7 +767,7 @@
                                     <span class="badge rounded-pill" style="background: rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.22); color:#fff; font-weight:800;">@card.VariantLabel</span>
                                 </div>
                             </div>
-                        </div>
+                        </a>
                     }
                 </div>
             }

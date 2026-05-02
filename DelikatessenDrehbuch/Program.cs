@@ -120,6 +120,10 @@ builder.Services.AddHttpClient<IRecipeSwapStepAiService, RecipeSwapStepAiService
 {
     client.Timeout = TimeSpan.FromSeconds(60);
 });
+builder.Services.AddHttpClient<IRecipeVariantSummaryAiService, RecipeVariantSummaryAiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 builder.Services.AddScoped<IWildCoinService, WildCoinService>();
 builder.Services.AddScoped<IWorldClipWatchService, WorldClipWatchService>();
 builder.Services.AddScoped<IWorldAdPreferenceService, WorldAdPreferenceService>();

@@ -67,6 +67,9 @@ Rewrite the preparation steps so they correctly match the swapped ingredients.
 Do not just do a 1:1 word replacement. Adjust technique, timing, and order if needed.
 If the main protein changed (e.g. pork -> chicken), you MUST adapt cooking method, temperature, and cooking time accordingly.
 Remove or replace steps that are inappropriate for the new ingredient (e.g. do not tell the user to score chicken like a roast with a fat cap).
+If there are multiple similar ingredients (e.g. red lentils AND green lentils), keep them clearly distinct in the steps.
+Only apply the swaps listed under ""Swaps applied""; do NOT assume other ingredients in the same category were swapped.
+Avoid vague generic references like ""add the lentils"" when more than one lentil/legume remains. Name the specific ingredient(s) as listed.
 
 Output language: {responseLanguage}
 

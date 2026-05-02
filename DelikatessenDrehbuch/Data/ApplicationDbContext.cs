@@ -58,10 +58,6 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeAiVariantJob> RecipeAiVariantJobs { get; set; }
 
         // New canonical AI recipe storage (v2)
-        public DbSet<RecipeAiBaseRecipe> RecipeAiBaseRecipes { get; set; }
-        public DbSet<RecipeAiBaseRecipeIngredient> RecipeAiBaseRecipeIngredients { get; set; }
-        public DbSet<RecipeAiBaseRecipeStep> RecipeAiBaseRecipeSteps { get; set; }
-        public DbSet<RecipeAiBaseRecipeSelectedIngredient> RecipeAiBaseRecipeSelectedIngredients { get; set; }
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
         public DbSet<JoinIngredientPreparationStep> JoinIngredientPreparationStep { get; set; }
@@ -70,6 +66,8 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<MealPlanPurchase> MealPlanPurchases { get; set; }
         public DbSet<WorldSharedShoppingList> WorldSharedShoppingList { get; set; }
         public DbSet<WorldUserNotification> WorldUserNotifications { get; set; }
+        public DbSet<RecipeUserVariant> RecipeUserVariants { get; set; }
+        public DbSet<RecipeCommunityVariant> RecipeCommunityVariants { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -480,6 +478,27 @@ namespace DelikatessenDrehbuch.Data
                     .WithMany()
                     .HasForeignKey(x => x.BaseRecipeId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<RecipeCommunityVariant>(e =>
+            {
+                e.ToTable("RecipeCommunityVariants");
+                e.Property(x => x.Title).IsRequired().HasMaxLength(256);
+                e.Property(x => x.Summary).HasMaxLength(400);
+                e.Property(x => x.Language).IsRequired().HasMaxLength(12);
+                e.Property(x => x.CreatedByUserHash).IsRequired().HasMaxLength(256);
+
+                e.HasIndex(x => new { x.OriginalRecipeId, x.CreatedAtUtc });
+
+                e.HasOne(x => x.OriginalRecipe)
+                    .WithMany()
+                    .HasForeignKey(x => x.OriginalRecipeId)
+                    .OnDelete(DeleteBehavior.Cascade);
+
+                e.HasOne(x => x.ParentCommunityVariant)
+                    .WithMany()
+                    .HasForeignKey(x => x.ParentCommunityVariantId)
+                    .OnDelete(DeleteBehavior.NoAction);
             });
 
             builder.Entity<Queries>().ToTable("Querys");

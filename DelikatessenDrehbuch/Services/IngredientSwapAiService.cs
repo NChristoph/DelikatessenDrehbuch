@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using DelikatessenDrehbuch.Data;
@@ -17,6 +18,7 @@ namespace DelikatessenDrehbuch.Services
             RecipeBaseData recipe,
             string? goal,
             string language,
+            IReadOnlyList<IngredientSwap>? contextSwaps = null,
             string? preferredProvider = null
         );
     }
@@ -26,8 +28,9 @@ namespace DelikatessenDrehbuch.Services
         private const string OpenAiEndpoint = "https://api.openai.com/v1/responses";
         private const string DefaultOpenAiModel = "gpt-4o-mini";
         private const int AiRequestTimeoutSeconds = 45;
-        private const string IngredientListCacheKey = "swap_ingredients_list_v2";
-        private static readonly TimeSpan IngredientListCacheDuration = TimeSpan.FromHours(24);
+        // NOTE: We intentionally do not cache the ingredient candidate list.
+        // The DB is the source of truth, and caching caused stale/incorrect candidates during tuning.
+        private const int MaxSwapSuggestions = 8;
 
         private readonly HttpClient _httpClient;
         private readonly string _openaiApiKey;
@@ -37,6 +40,32 @@ namespace DelikatessenDrehbuch.Services
         private readonly ILogger<IngredientSwapAiService> _logger;
 
         private sealed record OriginalUsageInfo(decimal DisplayQuantity, string DisplayUnit, decimal QuantityInGrams);
+
+        private sealed class IngredientListItem
+        {
+            public int Id { get; set; }
+            public string Name_DE { get; set; } = string.Empty;
+            public string Name_EN { get; set; } = string.Empty;
+            public string Name_PRT { get; set; } = string.Empty;
+            public string Name_ESP { get; set; } = string.Empty;
+            public string Name_ID { get; set; } = string.Empty;
+            public string Name_NL { get; set; } = string.Empty;
+            public string Name_SE { get; set; } = string.Empty;
+            public string Name_DK { get; set; } = string.Empty;
+            public string Name_NO { get; set; } = string.Empty;
+            public string Name_MS { get; set; } = string.Empty;
+            public int Calories { get; set; }
+            public decimal Protein { get; set; }
+            public decimal Carbs { get; set; }
+            public decimal Fat { get; set; }
+            public int? FoodCategoryId { get; set; }
+            public int? GroupId { get; set; }
+            public bool IsLiquid { get; set; }
+            public bool IsFat { get; set; }
+            public bool IsPowder { get; set; }
+            public bool IsHard { get; set; }
+            public bool IsSoft { get; set; }
+        }
 
         public IngredientSwapAiService(
             HttpClient httpClient,
@@ -58,6 +87,7 @@ namespace DelikatessenDrehbuch.Services
             RecipeBaseData recipe,
             string? goal,
             string language,
+            IReadOnlyList<IngredientSwap>? contextSwaps = null,
             string? preferredProvider = null)
         {
             var stopwatch = Stopwatch.StartNew();
@@ -65,14 +95,17 @@ namespace DelikatessenDrehbuch.Services
             var normalizedLanguage = NormalizeLanguage(language);
             var normalizedGoal = string.IsNullOrWhiteSpace(goal) ? "default" : goal.Trim().ToLowerInvariant();
 
-            var cacheKey = $"swap_{provider}_{original.Id}_{recipe.Id}_{normalizedGoal}_{normalizedLanguage}";
+            // Context matters: if the user has already queued/applied other swaps in the same recipe,
+            // suggestions should reflect that. Include a short context key in caching so we don't serve stale suggestions.
+            var contextKey = BuildContextKey(contextSwaps);
+            var cacheKey = $"swap_{provider}_{original.Id}_{recipe.Id}_{normalizedGoal}_{normalizedLanguage}_{contextKey}";
             if (_cache.TryGetValue<List<IngredientSwapOption>>(cacheKey, out var cachedSuggestions) && cachedSuggestions != null)
             {
                 stopwatch.Stop();
                 return (cachedSuggestions, provider, (int)stopwatch.ElapsedMilliseconds);
             }
 
-            var suggestions = await GetSwapSuggestionsFromOpenAiAsync(original, recipe, goal, normalizedLanguage);
+            var suggestions = await GetSwapSuggestionsFromOpenAiAsync(original, recipe, goal, normalizedLanguage, contextSwaps);
 
             _cache.Set(cacheKey, suggestions, TimeSpan.FromMinutes(30));
 
@@ -84,11 +117,12 @@ namespace DelikatessenDrehbuch.Services
             IngredientsAndNutrients original,
             RecipeBaseData recipe,
             string? goal,
-            string language)
+            string language,
+            IReadOnlyList<IngredientSwap>? contextSwaps)
         {
             EnsureApiKeyConfigured(_openaiApiKey, "OpenAI");
 
-            var prompt = await BuildOptimizedSwapPromptAsync(original, recipe, goal, language);
+            var prompt = await BuildOptimizedSwapPromptAsync(original, recipe, goal, language, contextSwaps);
             var requestBody = new
             {
                 model = string.IsNullOrWhiteSpace(_openAiModel) ? DefaultOpenAiModel : _openAiModel,
@@ -153,7 +187,12 @@ namespace DelikatessenDrehbuch.Services
                 return new List<IngredientSwapOption>();
             }
 
-            return await ParseAndValidateSuggestionsAsync(outputText, original, language);
+            var parsed = await ParseAndValidateSuggestionsAsync(outputText, original, language, recipe);
+            var hasCommunityVariants = await _context.RecipeCommunityVariants
+                .AsNoTracking()
+                .AnyAsync(v => v.OriginalRecipeId == recipe.Id);
+            var maxSuggestions = hasCommunityVariants ? 4 : MaxSwapSuggestions;
+            return parsed.Take(maxSuggestions).ToList();
         }
 
         private async Task<HttpResponseMessage> SendWithTimeoutAsync(HttpRequestMessage request)
@@ -177,11 +216,40 @@ namespace DelikatessenDrehbuch.Services
             IngredientsAndNutrients original,
             RecipeBaseData recipe,
             string? goal,
-            string language)
+            string language,
+            IReadOnlyList<IngredientSwap>? contextSwaps)
         {
-            var relevantGroupIds = GetRelevantGroupsForSwap(original.GroupId, goal);
-            var availableIngredients = await GetCachedIngredientListAsync(language, relevantGroupIds);
+            var hasCommunityVariants = await _context.RecipeCommunityVariants
+                .AsNoTracking()
+                .AnyAsync(v => v.OriginalRecipeId == recipe.Id);
+            var maxSuggestions = hasCommunityVariants ? 4 : MaxSwapSuggestions;
+
             var originalUsage = GetOriginalUsage(recipe, original);
+
+            // For liquids we intentionally avoid group-filtering (GroupId tagging can be noisy),
+            // and let the score pick the best liquid-like items from a larger pool.
+            var relevantGroupIds = IsLiquidUnit(originalUsage.DisplayUnit)
+                ? new List<int?> { null }
+                : GetRelevantGroupsForSwap(original.GroupId, goal);
+
+            // Avoid suggesting ingredients that are already used as swap targets elsewhere in this recipe.
+            // (But don't exclude the swap target for THIS ingredient, so users can still see their current pick.)
+            var excludeIngredientIds = new HashSet<int> { original.Id };
+            var otherContextSwaps = (contextSwaps ?? Array.Empty<IngredientSwap>())
+                .Where(s => s != null && s.FromIngredientId > 0 && s.ToIngredientId > 0 && s.FromIngredientId != original.Id)
+                .ToList();
+            foreach (var s in otherContextSwaps)
+            {
+                excludeIngredientIds.Add(s.ToIngredientId);
+            }
+
+            var availableIngredients = await GetCachedIngredientListAsync(
+                language,
+                original,
+                goal,
+                originalUsage.DisplayUnit,
+                relevantGroupIds,
+                excludeIngredientIds);
             var responseLanguage = GetResponseLanguageName(language);
 
             var goalInstruction = goal?.Trim().ToLowerInvariant() switch
@@ -193,17 +261,31 @@ namespace DelikatessenDrehbuch.Services
                 _ => "HEALTHIER OR MORE INTERESTING"
             };
 
+            var unitRule = IsLiquidUnit(originalUsage.DisplayUnit) ? "ml" : "g";
+
+            var contextBlock = string.Empty;
+            if (otherContextSwaps.Count > 0)
+            {
+                // Keep it compact: this is context, not the main task.
+                var lines = otherContextSwaps
+                    .Take(10)
+                    .Select(s => $"- {s.FromName} -> {s.ToName} ({FormatDecimal(s.NewQuantity)} {s.Unit})");
+                contextBlock = "\n\nAlready selected swaps (context for this recipe):\n" + string.Join("\n", lines);
+            }
+
             return $@"Swap ingredient ""{GetIngredientName(original, language)}"" in recipe ""{recipe.Title}"".
 Goal: {goalInstruction}
 Original nutrition per 100g: {original.Calories_a_100g} kcal, protein {original.Protein_a_100g} g, carbs {original.Carbohydrates_a_100g} g, fat {original.Fat_a_100g} g.
 Amount used in this recipe: {FormatDecimal(originalUsage.DisplayQuantity)} {originalUsage.DisplayUnit} (about {FormatDecimal(originalUsage.QuantityInGrams)} g).
+{contextBlock}
 
 Rules:
-- Suggest at most 5 real alternatives from the available ingredient list.
+- Suggest at most {maxSuggestions} real alternatives from the available ingredient list.
 - Keep the recipe style plausible.
 - Prefer similar culinary use, not random ingredients.
 - Suggested quantity must realistically replace the full amount used in this recipe, not a generic 100 g default.
-- Use grams as unit.
+- Prefer alternatives that match the original ingredient's type (liquid/fat/powder/solid) and culinary role.
+- Use unit '{unitRule}' for quantity.
 - Do not suggest the original ingredient itself.
 - Keep reasons short and concrete.
 - Write every natural-language field in {responseLanguage}.
@@ -222,12 +304,15 @@ Available ingredients:
 
             if (originalGroupId == 1 || originalGroupId == 7)
             {
-                return new List<int?> { 1, 4, 7, 8, 9 };
+                // In this project, all meat variants are stored under the same meat group.
+                // Keep it simple and don't restrict further here, otherwise the candidate pool can collapse to one animal only.
+                return new List<int?> { 1 };
             }
 
             if (originalGroupId == 3)
             {
-                return new List<int?> { 2, 3, 9 };
+                // Seafood-family: keep it seafood.
+                return new List<int?> { 3 };
             }
 
             return new List<int?> { originalGroupId, 9 };
@@ -235,47 +320,273 @@ Available ingredients:
 
         private async Task<List<(int Id, string Name, string Nutrition)>> GetCachedIngredientListAsync(
             string language,
-            List<int?> relevantGroupIds)
+            IngredientsAndNutrients original,
+            string? goal,
+            string? originalUnit,
+            List<int?> relevantGroupIds,
+            ISet<int>? excludeIngredientIds)
         {
-            var cacheKey = $"{IngredientListCacheKey}_{language}_{string.Join("_", relevantGroupIds.Select(x => x?.ToString() ?? "null"))}";
-            if (_cache.TryGetValue<List<(int Id, string Name, string Nutrition)>>(cacheKey, out var ingredientList) && ingredientList != null)
+            var unitHint = IsLiquidUnit(originalUnit) ? "liquid" : "solid";
+            var normalizedGoal = string.IsNullOrWhiteSpace(goal) ? "default" : goal.Trim().ToLowerInvariant();
+            // No caching here on purpose.
+            List<(int Id, string Name, string Nutrition)> ingredientList;
+
+            // Two-stage selection:
+            // 1) DB preselection by "shared true flags" (fallback cascade: all flags match -> 1 may miss -> 2 may miss ...)
+            // 2) Score ranking to pick the final compact candidate list sent to the AI.
+            var baseQuery = _context.IngredientsAndNutrients.AsQueryable();
+
+            if (excludeIngredientIds != null && excludeIngredientIds.Count > 0)
             {
-                return ingredientList;
+                baseQuery = baseQuery.Where(i => !excludeIngredientIds.Contains(i.Id));
             }
 
-            var loaded = await _context.IngredientsAndNutrients
-                .Where(i => relevantGroupIds.Contains(i.GroupId))
-                .OrderBy(i => i.Id)
-                .Take(80)
-                .Select(i => new IngredientListItem
-                {
-                    Id = i.Id,
-                    Name_DE = i.Name_DE,
-                    Name_EN = i.Name_EN,
-                    Name_ESP = i.Name_ESP,
-                    Name_PRT = i.Name_PRT,
-                    Name_ID = i.Name_ID,
-                    Name_NL = i.Name_NL,
-                    Name_SE = i.Name_SE,
-                    Name_DK = i.Name_DK,
-                    Name_NO = i.Name_NO,
-                    Name_MS = i.Name_MS,
-                    Calories = i.Calories_a_100g,
-                    Protein = i.Protein_a_100g,
-                    Carbs = i.Carbohydrates_a_100g,
-                    Fat = i.Fat_a_100g
-                })
-                .ToListAsync();
+            if (!(relevantGroupIds.Count == 1 && relevantGroupIds[0] == null))
+            {
+                baseQuery = baseQuery.Where(i => relevantGroupIds.Contains(i.GroupId));
+            }
 
-            ingredientList = loaded
+            // For vegan swaps, don't narrow too much; otherwise prefer same broad neighborhood when possible.
+            if (!string.Equals(goal, "vegan", StringComparison.OrdinalIgnoreCase))
+            {
+                if (original.FoodCategoryId.HasValue)
+                {
+                    baseQuery = baseQuery.Where(i => i.FoodCategoryId == original.FoodCategoryId.Value || i.GroupId == original.GroupId);
+                }
+                else if (original.GroupId.HasValue)
+                {
+                    baseQuery = baseQuery.Where(i => i.GroupId == original.GroupId.Value);
+                }
+            }
+
+            var unitLiquid = IsLiquidUnit(originalUnit);
+            var requiredFlags = 0;
+            if (unitLiquid) requiredFlags++;
+            if (original.is_fat) requiredFlags++;
+            if (original.is_powder) requiredFlags++;
+            if (original.is_hard) requiredFlags++;
+            if (original.is_soft) requiredFlags++;
+
+            var pool = new List<IngredientListItem>(capacity: 650);
+            var usedIds = new HashSet<int>();
+
+            // If we don't have any "true" flags, just take a reasonable pool and let score + diversification do the work.
+            // (This avoids useless extra DB roundtrips.)
+            var maxPool = 600;
+            var roundTake = 260;
+
+            if (requiredFlags == 0)
+            {
+                var round = await baseQuery
+                    .OrderBy(i => i.Id)
+                    .Take(maxPool)
+                    .Select(i => new IngredientListItem
+                    {
+                        Id = i.Id,
+                        Name_DE = i.Name_DE,
+                        Name_EN = i.Name_EN,
+                        Name_ESP = i.Name_ESP,
+                        Name_PRT = i.Name_PRT,
+                        Name_ID = i.Name_ID,
+                        Name_NL = i.Name_NL,
+                        Name_SE = i.Name_SE,
+                        Name_DK = i.Name_DK,
+                        Name_NO = i.Name_NO,
+                        Name_MS = i.Name_MS,
+                        Calories = i.Calories_a_100g,
+                        Protein = i.Protein_a_100g,
+                        Carbs = i.Carbohydrates_a_100g,
+                        Fat = i.Fat_a_100g,
+                        FoodCategoryId = i.FoodCategoryId,
+                        GroupId = i.GroupId,
+                        IsLiquid = i.is_liquid,
+                        IsFat = i.is_fat,
+                        IsPowder = i.is_powder,
+                        IsHard = i.is_hard,
+                        IsSoft = i.is_soft
+                    })
+                    .ToListAsync();
+
+                foreach (var item in round)
+                {
+                    if (usedIds.Add(item.Id))
+                    {
+                        pool.Add(item);
+                    }
+                }
+            }
+            else
+            {
+                // Fallback cascade: require >= threshold shared-true flags.
+                // missing=0 => threshold=requiredFlags (strict)
+                // missing=1 => threshold=requiredFlags-1 (looser) ...
+                var maxMissing = Math.Min(requiredFlags, 3); // don't explode DB work; score will handle the rest
+                for (var missing = 0; missing <= maxMissing && pool.Count < maxPool; missing++)
+                {
+                    var threshold = Math.Max(1, requiredFlags - missing);
+
+                    var round = await baseQuery
+                        .Select(i => new
+                        {
+                            i,
+                            MatchCount =
+                                (unitLiquid ? (i.is_liquid ? 1 : 0) : 0) +
+                                (original.is_fat ? (i.is_fat ? 1 : 0) : 0) +
+                                (original.is_powder ? (i.is_powder ? 1 : 0) : 0) +
+                                (original.is_hard ? (i.is_hard ? 1 : 0) : 0) +
+                                (original.is_soft ? (i.is_soft ? 1 : 0) : 0)
+                        })
+                        .Where(x => x.MatchCount >= threshold)
+                        .OrderByDescending(x => x.MatchCount)
+                        .ThenBy(x => x.i.Id)
+                        .Take(roundTake)
+                        .Select(x => new IngredientListItem
+                        {
+                            Id = x.i.Id,
+                            Name_DE = x.i.Name_DE,
+                            Name_EN = x.i.Name_EN,
+                            Name_ESP = x.i.Name_ESP,
+                            Name_PRT = x.i.Name_PRT,
+                            Name_ID = x.i.Name_ID,
+                            Name_NL = x.i.Name_NL,
+                            Name_SE = x.i.Name_SE,
+                            Name_DK = x.i.Name_DK,
+                            Name_NO = x.i.Name_NO,
+                            Name_MS = x.i.Name_MS,
+                            Calories = x.i.Calories_a_100g,
+                            Protein = x.i.Protein_a_100g,
+                            Carbs = x.i.Carbohydrates_a_100g,
+                            Fat = x.i.Fat_a_100g,
+                            FoodCategoryId = x.i.FoodCategoryId,
+                            GroupId = x.i.GroupId,
+                            IsLiquid = x.i.is_liquid,
+                            IsFat = x.i.is_fat,
+                            IsPowder = x.i.is_powder,
+                            IsHard = x.i.is_hard,
+                            IsSoft = x.i.is_soft
+                        })
+                        .ToListAsync();
+
+                    foreach (var item in round)
+                    {
+                        if (usedIds.Add(item.Id))
+                        {
+                            pool.Add(item);
+                            if (pool.Count >= maxPool)
+                            {
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+
+            _logger.LogInformation(
+                "Swap candidates pool size={Count} scoring=true cascade=true requiredFlags={RequiredFlags} unitHint={UnitHint} relevantGroups=[{Groups}]",
+                pool.Count,
+                requiredFlags,
+                unitHint,
+                string.Join(",", relevantGroupIds.Select(x => x?.ToString() ?? "null")));
+
+            var scored = pool
+                .Where(x => x.Id != original.Id)
+                .Select(x => new { Item = x, Score = ComputeMatchScore(original, originalUnit, x) })
+                .OrderByDescending(x => x.Score)
+                .ThenByDescending(x => x.Item.Protein)
+                .ThenBy(x => x.Item.Id)
+                .Take(90)
+                .Where(x => x.Score >= (IsLiquidUnit(originalUnit) ? 10m : -9999m))
+                .Select(x => x.Item)
+                .ToList();
+
+            var diversified = DiversifyCandidates(scored, maxTotal: 55, maxPerFoodCategory: 10);
+
+            ingredientList = diversified
                 .Select(i => (
                     i.Id,
                     GetIngredientName(i, language),
-                    $"{i.Calories}kcal,P{i.Protein}g,C{i.Carbs}g,F{i.Fat}g"))
+                    $"{i.Calories}kcal,P{i.Protein}g"))
+                .ToList();
+            return ingredientList;
+        }
+
+        private static string BuildContextKey(IReadOnlyList<IngredientSwap>? contextSwaps)
+        {
+            if (contextSwaps == null || contextSwaps.Count == 0)
+            {
+                return "ctx0";
+            }
+
+            var normalized = contextSwaps
+                .Where(s => s != null && s.FromIngredientId > 0 && s.ToIngredientId > 0)
+                .OrderBy(s => s.FromIngredientId)
+                .Select(s => $"{s.FromIngredientId}>{s.ToIngredientId}")
+                .ToArray();
+
+            if (normalized.Length == 0)
+            {
+                return "ctx0";
+            }
+
+            var raw = string.Join(",", normalized);
+            var bytes = Encoding.UTF8.GetBytes(raw);
+            var hash = SHA256.HashData(bytes);
+
+            // Short, stable key (avoid long cache keys).
+            var shortHex = Convert.ToHexString(hash.AsSpan(0, 6)).ToLowerInvariant();
+            return $"ctx{normalized.Length}_{shortHex}";
+        }
+
+        private static List<IngredientListItem> DiversifyCandidates(
+            List<IngredientListItem> pool,
+            int maxTotal,
+            int maxPerFoodCategory)
+        {
+            if (pool == null || pool.Count == 0)
+            {
+                return new List<IngredientListItem>();
+            }
+
+            maxTotal = Math.Max(1, maxTotal);
+            maxPerFoodCategory = Math.Max(1, maxPerFoodCategory);
+
+            // Take a few from each food category to avoid "all pork cuts" bias.
+            var grouped = pool
+                .GroupBy(x => x.FoodCategoryId ?? -1)
+                .OrderByDescending(g => g.Count())
                 .ToList();
 
-            _cache.Set(cacheKey, ingredientList, IngredientListCacheDuration);
-            return ingredientList;
+            var result = new List<IngredientListItem>(capacity: Math.Min(maxTotal, pool.Count));
+            foreach (var g in grouped)
+            {
+                foreach (var item in g.Take(maxPerFoodCategory))
+                {
+                    result.Add(item);
+                    if (result.Count >= maxTotal)
+                    {
+                        return result;
+                    }
+                }
+            }
+
+            // Fill remaining with best of the rest (still ordered by protein desc from the query).
+            if (result.Count < maxTotal)
+            {
+                var used = result.Select(x => x.Id).ToHashSet();
+                foreach (var item in pool)
+                {
+                    if (used.Add(item.Id))
+                    {
+                        result.Add(item);
+                        if (result.Count >= maxTotal)
+                        {
+                            break;
+                        }
+                    }
+                }
+            }
+
+            return result;
         }
 
         private async Task<List<IngredientSwapOption>> ParseAndValidateSuggestionsAsync(
@@ -319,6 +630,7 @@ Available ingredients:
 
             var validated = new List<IngredientSwapOption>();
             var originalUsage = GetOriginalUsage(recipe, original);
+            var isLiquidSwap = IsLiquidUnit(originalUsage.DisplayUnit);
 
             foreach (var suggestion in parsed.Suggestions)
             {
@@ -342,7 +654,7 @@ Available ingredients:
                     IngredientId = suggestion.IngredientId,
                     Name = GetIngredientName(ingredient, language),
                     Quantity = suggestion.Quantity,
-                    Unit = string.IsNullOrWhiteSpace(suggestion.Unit) ? "g" : suggestion.Unit.Trim(),
+                    Unit = NormalizeSwapUnit(isLiquidSwap, suggestion.Unit),
                     Reason = string.IsNullOrWhiteSpace(suggestion.Reason) ? "Good culinary alternative for this recipe." : suggestion.Reason.Trim(),
                     CompatibilityScore = Math.Clamp(suggestion.CompatibilityScore, 0d, 1d),
                     PreparationChange = string.IsNullOrWhiteSpace(suggestion.PreparationChange) ? null : suggestion.PreparationChange.Trim(),
@@ -356,7 +668,7 @@ Available ingredients:
             return validated
                 .OrderByDescending(s => s.CompatibilityScore)
                 .ThenByDescending(s => s.Delta.ProteinDelta)
-                .Take(5)
+                .Take(MaxSwapSuggestions)
                 .ToList();
         }
 
@@ -465,6 +777,47 @@ Available ingredients:
             };
         }
 
+        private static string NormalizeSwapUnit(bool isLiquidSwap, string? suggestedUnit)
+        {
+            _ = suggestedUnit; // We keep output units stable for UI consistency.
+            return isLiquidSwap ? "ml" : "g";
+        }
+
+        private static bool IsLiquidUnit(string? unit)
+        {
+            var u = (unit ?? string.Empty).Trim().ToLowerInvariant();
+            return u is "ml" or "l" or "liter" or "litre";
+        }
+
+        private static decimal ComputeMatchScore(IngredientsAndNutrients original, string? originalUnit, IngredientListItem candidate)
+        {
+            var score = 0m;
+            var unitLiquid = IsLiquidUnit(originalUnit);
+
+            // Unit hint is the strongest signal: if the recipe uses ml/l, liquids should float to the top.
+            if (unitLiquid)
+            {
+                // Keep this decisive, otherwise solids can leak into liquid swaps when DB tags are sparse.
+                score += candidate.IsLiquid ? 60m : -80m;
+            }
+            else
+            {
+                score += candidate.IsLiquid ? -25m : 10m;
+            }
+
+            // Match physical flags where present (DB tagging can be imperfect, so keep weights moderate).
+            if (original.is_fat && candidate.IsFat) score += 15m;
+            if (original.is_powder && candidate.IsPowder) score += 15m;
+            if (original.is_hard && candidate.IsHard) score += 6m;
+            if (original.is_soft && candidate.IsSoft) score += 6m;
+
+            // Prefer same group/category when available, but don't hard-lock (keeps "pork only" from happening).
+            if (original.GroupId.HasValue && candidate.GroupId == original.GroupId) score += 12m;
+            if (original.FoodCategoryId.HasValue && candidate.FoodCategoryId == original.FoodCategoryId) score += 8m;
+
+            return score;
+        }
+
         private static object BuildOpenAiSchema()
         {
             return new
@@ -476,7 +829,7 @@ Available ingredients:
                     suggestions = new
                     {
                         type = "array",
-                        maxItems = 5,
+                        maxItems = MaxSwapSuggestions,
                         items = new
                         {
                             type = "object",
@@ -665,23 +1018,5 @@ Available ingredients:
             };
         }
 
-        private sealed class IngredientListItem
-        {
-            public int Id { get; set; }
-            public string Name_DE { get; set; } = string.Empty;
-            public string Name_EN { get; set; } = string.Empty;
-            public string Name_ESP { get; set; } = string.Empty;
-            public string Name_PRT { get; set; } = string.Empty;
-            public string Name_ID { get; set; } = string.Empty;
-            public string Name_NL { get; set; } = string.Empty;
-            public string Name_SE { get; set; } = string.Empty;
-            public string Name_DK { get; set; } = string.Empty;
-            public string Name_NO { get; set; } = string.Empty;
-            public string Name_MS { get; set; } = string.Empty;
-            public decimal Calories { get; set; }
-            public decimal Protein { get; set; }
-            public decimal Carbs { get; set; }
-            public decimal Fat { get; set; }
-        }
     }
 }

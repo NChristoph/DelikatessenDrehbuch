@@ -7,7 +7,11 @@
 
 @{
     Layout = "_MiniAppLayout";
-    ViewData["Title"] = Model.Title;
+    var variantTitle = (ViewData["VariantTitle"] as string ?? string.Empty).Trim();
+    var variantSummary = (ViewData["VariantSummary"] as string ?? string.Empty).Trim();
+    var displayTitle = string.IsNullOrWhiteSpace(variantTitle) ? Model.Title : variantTitle;
+
+    ViewData["Title"] = displayTitle;
 
     decimal totalCalories = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalSugar = 0, totalFiber = 0;
 
@@ -27,6 +31,23 @@
         totalCarbs += nutri.Carbohydrates_a_100g * factor;
         totalSugar += nutri.Sugar_a_100g * factor;
         totalFiber += nutri.Fiber_a_100g * factor;
+    }
+
+    // If this page is rendered with swaps (user/community variant), the controller provides
+    // an override computed from SwapsJson + IngredientsAndNutrients DB. Use it for correct macros.
+    if (ViewData["NutritionOverride"] is { } nutritionOverride)
+    {
+        try
+        {
+            var t = nutritionOverride.GetType();
+            totalCalories = (decimal)(t.GetProperty("calories")?.GetValue(nutritionOverride) ?? totalCalories);
+            totalProtein = (decimal)(t.GetProperty("protein")?.GetValue(nutritionOverride) ?? totalProtein);
+            totalFat = (decimal)(t.GetProperty("fat")?.GetValue(nutritionOverride) ?? totalFat);
+            totalCarbs = (decimal)(t.GetProperty("carbs")?.GetValue(nutritionOverride) ?? totalCarbs);
+            totalSugar = (decimal)(t.GetProperty("sugar")?.GetValue(nutritionOverride) ?? totalSugar);
+            totalFiber = (decimal)(t.GetProperty("fiber")?.GetValue(nutritionOverride) ?? totalFiber);
+        }
+        catch { }
     }
 
     var basePortions = Math.Max(1, Model.PersonCount);
@@ -324,11 +345,23 @@
 
         @if (Model.Images != null && Model.Images.Any())
         {
-            <img src="@Model.Images.First().Image" class="hero-image" alt="@Model.Title" />
+            <img src="@Model.Images.First().Image" class="hero-image" alt="@displayTitle" />
         }
         else if (ViewData["PostingThumbnailUrl"] is string thumbUrl && !string.IsNullOrWhiteSpace(thumbUrl))
         {
-            <img src="@thumbUrl" class="hero-image" alt="@Model.Title" />
+            // Some environments have only the full thumbnail (no *_thumb_small.webp) or CDN propagation delays.
+            // Provide fallbacks to keep the hero image from breaking.
+            var fallbackThumb1 = thumbUrl.Replace("_thumb_small.webp", "_thumb.webp").Replace(" ", "%20");
+            var fallbackThumb2 = fallbackThumb1.Replace(
+                "https://DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net/",
+                "https://blobdelikatessendrehbuch.blob.core.windows.net/");
+
+            <img src="@thumbUrl"
+                 class="hero-image"
+                 alt="@Model.Title"
+                 data-fallback-1="@fallbackThumb1"
+                 data-fallback-2="@fallbackThumb2"
+                 onerror="(function(img){ if(!img) return; const f1=img.dataset.fallback1||''; const f2=img.dataset.fallback2||''; const cur=img.getAttribute('src')||''; if(f1 && cur!==f1){ img.onerror=null; img.src=f1; img.onerror=function(){ if(f2 && img.src!==f2){ img.onerror=null; img.src=f2; } }; } })(this);" />
         }
         else
         {
@@ -342,7 +375,25 @@
         <div class="drag-handle"></div>
 
         <div class="title-section text-center">
-            <h1 class="display-6 mb-3">@Model.Title</h1>
+            <h1 class="display-6 mb-3" id="recipeDisplayTitle">@displayTitle</h1>
+            <!-- Summary/description is meant for variant cards (discovery), not for the main ShowRecipe header. -->
+
+            @{
+                var communityCount = ViewData["CommunityVariantCount"] as int? ?? 0;
+            }
+            @if (communityCount > 0)
+            {
+                <div class="mb-2 d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button"
+                            class="btn btn-sm btn-outline-dark px-3 py-2 shadow-sm"
+                            data-bs-toggle="offcanvas"
+                            data-bs-target="#communityVariantsCanvas"
+                            aria-controls="communityVariantsCanvas"
+                            style="border-radius: 999px; font-weight: 800;">
+                        <i class="bi bi-layers me-1"></i> Varianten (@communityCount)
+                    </button>
+                </div>
+            }
 
             @if (ViewData["SwapsJson"] is string)
             {
@@ -352,6 +403,21 @@
                        style="border-radius: 999px; font-weight: 700;">
                         <i class="bi bi-arrow-counterclockwise me-1"></i> Originalrezept anzeigen
                     </a>
+                </div>
+            }
+
+            @if (ViewData["SwapVariantId"] is int swapVariantId && swapVariantId > 0)
+            {
+                <div class="mb-3 d-flex justify-content-center gap-2 flex-wrap">
+                    <button type="button"
+                            class="btn btn-sm btn-success px-3 py-2 shadow-sm"
+                            id="publishCommunityVariantBtn"
+                            data-recipe-id="@Model.Id"
+                            data-swap-variant-id="@swapVariantId"
+                            data-parent-community-variant-id="@(ViewData["CommunityVariantId"] as int? ?? 0)"
+                            style="border-radius: 999px; font-weight: 800;">
+                        <i class="bi bi-check2-circle me-1"></i> Akzeptieren &amp; als Variante speichern
+                    </button>
                 </div>
             }
 
@@ -462,6 +528,8 @@
                         }
                     }
                 </div>
+
+                <div id="swapBatchBar" class="px-4 pb-3" style="display:none;"></div>
             </div>
 
             <div class="tab-pane fade" id="preparation" role="tabpanel">
@@ -508,9 +576,111 @@
     </div>
 </div>
 
+<div class="offcanvas offcanvas-bottom" tabindex="-1" id="communityVariantsCanvas" aria-labelledby="communityVariantsCanvasLabel" style="height: 75vh; border-top-left-radius: 18px; border-top-right-radius: 18px;">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title" id="communityVariantsCanvasLabel" style="font-weight:900;">Varianten entdecken</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body">
+        <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
+            <input id="variantSearchInput" class="form-control" placeholder="Suchen (Titel oder Beschreibung)..." style="max-width: 420px; border-radius: 14px;" />
+            <div class="btn-group" role="group" aria-label="Sortierung">
+                <button type="button" class="btn btn-outline-secondary active" id="variantSortNewBtn">Neu</button>
+                <button type="button" class="btn btn-outline-secondary" id="variantSortTopBtn">Top</button>
+            </div>
+            <span class="text-muted small" id="variantResultMeta"></span>
+        </div>
+
+        <div id="variantList" class="variant-card-grid"></div>
+
+        <div id="variantListEmpty" class="text-center text-muted py-5" style="display:none;">
+            Keine Varianten gefunden.
+        </div>
+    </div>
+</div>
+
 <script src="~/js/ingredient-swap.js"></script>
 
+<style>
+    .variant-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 760px; margin: 0 auto; }
+    @@media (max-width: 576px) { .variant-card-grid { grid-template-columns: 1fr; } }
+
+    /* Important for CSS-grid: allow items to shrink instead of overflowing the container */
+    .variant-card-grid > a { min-width: 0; }
+
+    .variant-card {
+        border-radius: 16px;
+        border: 1px solid rgba(0,0,0,0.06);
+        background: #fff;
+        box-shadow: 0 10px 26px rgba(0,0,0,0.06);
+        overflow: hidden;
+        transition: transform 140ms ease, box-shadow 140ms ease;
+        width: 100%;
+        min-width: 0;
+    }
+    .variant-card:hover { transform: translateY(-1px); box-shadow: 0 14px 34px rgba(0,0,0,0.10); }
+
+    .variant-card__body { padding: 14px 14px 12px; }
+    .variant-card__header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+    .variant-card__titleWrap { min-width: 0; flex: 1 1 auto; }
+    .variant-card__title {
+        font-weight: 950;
+        color: #0f172a;
+        line-height: 1.15;
+        font-size: 1.02rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+    .variant-card__summary {
+        margin-top: 8px;
+        color: rgba(15, 23, 42, 0.66);
+        font-size: 0.92rem;
+        line-height: 1.25;
+        display: -webkit-box;
+        -webkit-line-clamp: 3;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        min-height: 3.45em;
+    }
+    .variant-card__meta {
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        color: rgba(15, 23, 42, 0.55);
+        font-size: 0.82rem;
+        flex-wrap: wrap;
+    }
+    .variant-badges { display: flex; gap: 8px; flex-wrap: wrap; }
+    .variant-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-weight: 900;
+        border: 1px solid rgba(0,0,0,0.06);
+        background: rgba(255,255,255,0.96);
+        max-width: 100%;
+    }
+    .variant-badge--lang { background: rgba(0,0,0,0.03); }
+    .variant-badge--like { background: rgba(231, 76, 60, 0.10); border-color: rgba(231, 76, 60, 0.22); color: #b83a2c; }
+    .variant-badge--swap { background: rgba(52, 152, 219, 0.10); border-color: rgba(52, 152, 219, 0.22); color: #1b5e8a; }
+    .variant-badge--time { background: rgba(46, 204, 113, 0.10); border-color: rgba(46, 204, 113, 0.22); color: #1b7f45; }
+</style>
+
 <script>
+    // Shared helper (some sections are conditionally rendered).
+    // Keep it on window so any handler can use it safely.
+    window.escapeHtml = window.escapeHtml || function (text) {
+        const div = document.createElement('div');
+        div.textContent = text == null ? '' : String(text);
+        return div.innerHTML;
+    };
+
     const basePortionCount = @basePortions;
 
     function toggleCheck(element) {
@@ -725,6 +895,64 @@
                         `).join('');
 
                         hideInlineStepLoader();
+
+                        // Separate call: ask AI for a good title/summary after steps are updated.
+                        // (No fallback: if it fails, we simply keep the current title/summary.)
+                        try {
+                            const publishBtn = document.getElementById('publishCommunityVariantBtn');
+                            if (publishBtn) {
+                                publishBtn.disabled = true;
+                                publishBtn.dataset.metaStatus = 'loading';
+                            }
+                            fetch('/api/recipe-swap/generate-meta', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    recipeId: @Model.Id,
+                                    swapVariantId: getSwapVariantId(),
+                                    language: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(language))
+                                })
+                            })
+                            .then(async r => {
+                                const body = await r.json().catch(() => null);
+                                if (!r.ok) {
+                                    console.warn('generate-meta failed:', r.status, body);
+                                    return null;
+                                }
+                                return body;
+                            })
+                            .then(meta => {
+                                if (!meta) {
+                                    if (publishBtn) {
+                                        publishBtn.disabled = false;
+                                        publishBtn.dataset.metaStatus = 'failed';
+                                    }
+                                    return;
+                                }
+                                const t = (meta.title || '').toString().trim();
+                                const s = (meta.summary || '').toString().trim();
+                                if (t) {
+                                    const h = document.getElementById('recipeDisplayTitle');
+                                    if (h) h.textContent = t;
+                                    window.__swapVariantMeta = window.__swapVariantMeta || {};
+                                    window.__swapVariantMeta.title = t;
+                                }
+                                if (s) {
+                                    window.__swapVariantMeta = window.__swapVariantMeta || {};
+                                    window.__swapVariantMeta.summary = s;
+                                }
+                                if (publishBtn) {
+                                    publishBtn.disabled = !(t && s);
+                                    publishBtn.dataset.metaStatus = (t && s) ? 'ready' : 'failed';
+                                }
+                            })
+                            .catch(() => {
+                                if (publishBtn) {
+                                    publishBtn.disabled = false;
+                                    publishBtn.dataset.metaStatus = 'failed';
+                                }
+                            });
+                        } catch { }
                     })
                     .catch(err => {
                         console.error('AI step rewrite failed:', err);
@@ -748,4 +976,173 @@
         });
         </text>
     }
+
+    // Publish current user swap-variant as a shared community variant
+    document.addEventListener('DOMContentLoaded', function () {
+        const btn = document.getElementById('publishCommunityVariantBtn');
+        if (!btn) return;
+
+        btn.addEventListener('click', async function () {
+            // Require AI meta to be ready. We don't want to store fallback titles like "... (Variante)".
+            const metaReady = (window.__swapVariantMeta && window.__swapVariantMeta.title && window.__swapVariantMeta.summary);
+            if (!metaReady) {
+                alert('Bitte kurz warten: Titel/Beschreibung werden noch generiert.');
+                return;
+            }
+            const recipeId = parseInt(btn.getAttribute('data-recipe-id') || '0', 10);
+            const swapVariantId = parseInt(btn.getAttribute('data-swap-variant-id') || '0', 10);
+            const parentRaw = parseInt(btn.getAttribute('data-parent-community-variant-id') || '0', 10);
+            const parentCommunityVariantId = Number.isFinite(parentRaw) && parentRaw > 0 ? parentRaw : null;
+
+            if (!Number.isFinite(recipeId) || recipeId <= 0 || !Number.isFinite(swapVariantId) || swapVariantId <= 0) {
+                return;
+            }
+
+            btn.disabled = true;
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Speichern...';
+
+            try {
+                const res = await fetch('/api/recipe-swap/publish', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        recipeId,
+                        swapVariantId,
+                        parentCommunityVariantId,
+                        title: (window.__swapVariantMeta && window.__swapVariantMeta.title) ? window.__swapVariantMeta.title : null,
+                        summary: (window.__swapVariantMeta && window.__swapVariantMeta.summary) ? window.__swapVariantMeta.summary : null,
+                        language: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(language))
+                    })
+                });
+
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok || !data?.success || !data?.communityVariant?.id) {
+                    throw new Error(data?.error || `HTTP ${res.status}`);
+                }
+
+                // Require title + summary before allowing a save redirect.
+                const t = (data?.communityVariant?.title || '').toString().trim();
+                const s = (data?.communityVariant?.summary || '').toString().trim();
+                if (!t || !s) {
+                    throw new Error('Variante hat keinen Titel/Beschreibung (AI). Bitte erneut versuchen.');
+                }
+
+                const id = data.communityVariant.id;
+                window.location.href = `/WorldMiniApp/Home/ShowRecipe?id=${recipeId}&communityVariantId=${id}`;
+            } catch (e) {
+                console.error(e);
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+                alert('Konnte Variante nicht speichern. Bitte erneut versuchen.');
+            }
+        });
+    });
+
+    // Community variants browser (search + sort)
+    document.addEventListener('DOMContentLoaded', function () {
+        const listEl = document.getElementById('variantList');
+        const emptyEl = document.getElementById('variantListEmpty');
+        const qEl = document.getElementById('variantSearchInput');
+        const metaEl = document.getElementById('variantResultMeta');
+        const sortNewBtn = document.getElementById('variantSortNewBtn');
+        const sortTopBtn = document.getElementById('variantSortTopBtn');
+
+        if (!listEl || !qEl || !metaEl || !sortNewBtn || !sortTopBtn) return;
+
+        const escapeHtml = (text) => {
+            const div = document.createElement('div');
+            div.textContent = text == null ? '' : String(text);
+            return div.innerHTML;
+        };
+
+        let currentSort = 'new';
+        let debounce = null;
+
+        function setSort(next) {
+            currentSort = next;
+            sortNewBtn.classList.toggle('active', next === 'new');
+            sortTopBtn.classList.toggle('active', next === 'top');
+            load();
+        }
+
+        sortNewBtn.addEventListener('click', () => setSort('new'));
+        sortTopBtn.addEventListener('click', () => setSort('top'));
+
+        qEl.addEventListener('input', () => {
+            if (debounce) clearTimeout(debounce);
+            debounce = setTimeout(load, 220);
+        });
+
+        async function load() {
+            const q = (qEl.value || '').trim();
+            metaEl.textContent = 'Lade...';
+            listEl.innerHTML = '';
+            emptyEl.style.display = 'none';
+
+            try {
+                const url = `/api/recipe-swap/community-variants?recipeId=@Model.Id&lang=${encodeURIComponent(@Html.Raw(System.Text.Json.JsonSerializer.Serialize(language)))}&sort=${encodeURIComponent(currentSort)}&q=${encodeURIComponent(q)}`;
+                const res = await fetch(url, { method: 'GET' });
+                const data = await res.json().catch(() => ({}));
+                if (!res.ok) throw new Error(data?.error || `HTTP ${res.status}`);
+
+                const items = Array.isArray(data?.items) ? data.items : [];
+                const total = Number.isFinite(data?.total) ? data.total : items.length;
+                metaEl.textContent = `${items.length}/${total}`;
+
+                if (!items.length) {
+                    emptyEl.style.display = 'block';
+                    return;
+                }
+
+                listEl.innerHTML = items.map(i => {
+                    const title = escapeHtml(i.title || '');
+                    const summary = escapeHtml(i.summary || '');
+                    const lang = escapeHtml(i.language || '');
+                    const like = Number.isFinite(i.likeCount) ? i.likeCount : 0;
+                    const swapCount = Number.isFinite(i.swapCount) ? i.swapCount : 0;
+                    const prep = Number.isFinite(i.preparationTime) ? i.preparationTime : 0;
+
+                    return `
+                        <a class="text-decoration-none" href="/WorldMiniApp/Home/ShowRecipe?id=@Model.Id&communityVariantId=${i.id}">
+                            <div class="variant-card">
+                                <div class="variant-card__body">
+                                    <div class="variant-card__header">
+                                        <div class="variant-card__titleWrap">
+                                            <div class="variant-card__title">${title}</div>
+                                        </div>
+                                        ${lang ? `<span class="variant-badge variant-badge--lang">${lang.toUpperCase()}</span>` : ''}
+                                    </div>
+
+                                    ${summary ? `<div class="variant-card__summary">${summary}</div>` : `<div class="variant-card__summary">Variante ohne Beschreibung.</div>`}
+
+                                    <div class="variant-card__meta">
+                                        <div class="variant-badges">
+                                            <span class="variant-badge variant-badge--like"><i class="bi bi-heart-fill"></i> ${like}</span>
+                                            <span class="variant-badge variant-badge--swap"><i class="bi bi-arrow-left-right"></i> ${swapCount}</span>
+                                            ${prep > 0 ? `<span class="variant-badge variant-badge--time"><i class="bi bi-clock"></i> ${prep} min</span>` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </a>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.error(e);
+                metaEl.textContent = 'Fehler';
+            }
+        }
+
+        // Lazy-load when the offcanvas is opened the first time
+        let loadedOnce = false;
+        const canvas = document.getElementById('communityVariantsCanvas');
+        if (canvas) {
+            canvas.addEventListener('shown.bs.offcanvas', () => {
+                if (loadedOnce) return;
+                loadedOnce = true;
+                load();
+            });
+        }
+    });
 </script>
