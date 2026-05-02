@@ -1277,10 +1277,10 @@ END;
             }
             
             // AI variants created by this user (one card per variant; users can have multiple highprotein versions).
-            var rawAiVariants = await _context.RecipeAiBaseRecipes
+            var rawAiVariants = await _context.RecipeAiVariants
                 .AsNoTracking()
                 .Where(x => x.CreatedByUserHash == userHash)
-                .Select(x => new { x.Id, x.BaseRecipeId, x.VariantType, x.Title, x.UpdatedAtUtc })
+                .Select(x => new { x.Id, x.BaseRecipeId, x.VariantType, Title = x.RenderedTitle, x.UpdatedAtUtc })
                 .ToListAsync();
 
             var aiRecipeIds = rawAiVariants.Select(x => x.BaseRecipeId).Distinct().ToList();
