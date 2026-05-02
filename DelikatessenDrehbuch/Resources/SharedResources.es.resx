@@ -432,4 +432,39 @@
   <data name="Toast.RecipePublished" xml:space="preserve">
     <value>¡Receta publicada con éxito!</value>
   </data>
+
+  <!-- Recipe (ShowRecipe) -->
+  <data name="Recipe.Ingredients" xml:space="preserve">
+    <value>Ingredientes</value>
+  </data>
+  <data name="Recipe.Steps" xml:space="preserve">
+    <value>Pasos</value>
+  </data>
+  <data name="Recipe.Nutrition" xml:space="preserve">
+    <value>Nutricion</value>
+  </data>
+  <data name="Recipe.ServingsFor" xml:space="preserve">
+    <value>Porciones para</value>
+  </data>
+  <data name="Recipe.SwapIngredient" xml:space="preserve">
+    <value>Cambiar ingrediente</value>
+  </data>
+  <data name="Recipe.Step" xml:space="preserve">
+    <value>Paso</value>
+  </data>
+  <data name="Recipe.Protein" xml:space="preserve">
+    <value>Proteina</value>
+  </data>
+  <data name="Recipe.Carbs" xml:space="preserve">
+    <value>Carbohidratos</value>
+  </data>
+  <data name="Recipe.Fat" xml:space="preserve">
+    <value>Grasa</value>
+  </data>
+  <data name="Recipe.Sugar" xml:space="preserve">
+    <value>Azucar</value>
+  </data>
+  <data name="Recipe.NutritionDisclaimer" xml:space="preserve">
+    <value>Los valores nutricionales son estimaciones y pueden variar.</value>
+  </data>
 </root>

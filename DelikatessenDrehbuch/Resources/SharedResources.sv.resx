@@ -432,4 +432,39 @@
   <data name="Toast.RecipePublished" xml:space="preserve">
     <value>Recept publicerat!</value>
   </data>
+
+  <!-- Recipe (ShowRecipe) -->
+  <data name="Recipe.Ingredients" xml:space="preserve">
+    <value>Ingredienser</value>
+  </data>
+  <data name="Recipe.Steps" xml:space="preserve">
+    <value>Steg</value>
+  </data>
+  <data name="Recipe.Nutrition" xml:space="preserve">
+    <value>Naring</value>
+  </data>
+  <data name="Recipe.ServingsFor" xml:space="preserve">
+    <value>Portioner for</value>
+  </data>
+  <data name="Recipe.SwapIngredient" xml:space="preserve">
+    <value>Byt ingrediens</value>
+  </data>
+  <data name="Recipe.Step" xml:space="preserve">
+    <value>Steg</value>
+  </data>
+  <data name="Recipe.Protein" xml:space="preserve">
+    <value>Protein</value>
+  </data>
+  <data name="Recipe.Carbs" xml:space="preserve">
+    <value>Kolhydrater</value>
+  </data>
+  <data name="Recipe.Fat" xml:space="preserve">
+    <value>Fett</value>
+  </data>
+  <data name="Recipe.Sugar" xml:space="preserve">
+    <value>Socker</value>
+  </data>
+  <data name="Recipe.NutritionDisclaimer" xml:space="preserve">
+    <value>Naringsvarden ar uppskattningar och kan variera.</value>
+  </data>
 </root>

@@ -432,4 +432,39 @@
   <data name="Toast.RecipePublished" xml:space="preserve">
     <value>Resep berhasil dipublikasikan!</value>
   </data>
+
+  <!-- Recipe (ShowRecipe) -->
+  <data name="Recipe.Ingredients" xml:space="preserve">
+    <value>Bahan</value>
+  </data>
+  <data name="Recipe.Steps" xml:space="preserve">
+    <value>Langkah</value>
+  </data>
+  <data name="Recipe.Nutrition" xml:space="preserve">
+    <value>Nutrisi</value>
+  </data>
+  <data name="Recipe.ServingsFor" xml:space="preserve">
+    <value>Porsi untuk</value>
+  </data>
+  <data name="Recipe.SwapIngredient" xml:space="preserve">
+    <value>Tukar bahan</value>
+  </data>
+  <data name="Recipe.Step" xml:space="preserve">
+    <value>Langkah</value>
+  </data>
+  <data name="Recipe.Protein" xml:space="preserve">
+    <value>Protein</value>
+  </data>
+  <data name="Recipe.Carbs" xml:space="preserve">
+    <value>Karbohidrat</value>
+  </data>
+  <data name="Recipe.Fat" xml:space="preserve">
+    <value>Lemak</value>
+  </data>
+  <data name="Recipe.Sugar" xml:space="preserve">
+    <value>Gula</value>
+  </data>
+  <data name="Recipe.NutritionDisclaimer" xml:space="preserve">
+    <value>Nilai nutrisi adalah perkiraan dan dapat bervariasi.</value>
+  </data>
 </root>

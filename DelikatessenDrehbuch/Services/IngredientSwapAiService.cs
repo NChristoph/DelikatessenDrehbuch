@@ -315,7 +315,9 @@ Available ingredients:
                 return new List<int?> { 3 };
             }
 
-            return new List<int?> { originalGroupId, 9 };
+            // Default: keep it to the same group. (We intentionally do NOT add a "generic" group here,
+            // because that leaks unrelated vegetables for herbs/spices.)
+            return new List<int?> { originalGroupId };
         }
 
         private async Task<List<(int Id, string Name, string Nutrition)>> GetCachedIngredientListAsync(
@@ -346,12 +348,18 @@ Available ingredients:
                 baseQuery = baseQuery.Where(i => relevantGroupIds.Contains(i.GroupId));
             }
 
-            // For vegan swaps, don't narrow too much; otherwise prefer same broad neighborhood when possible.
+            // For vegan swaps, don't narrow too much; otherwise keep the pool close to the original.
+            // IMPORTANT: If FoodCategoryId is set, prefer it strongly (herbs/spices often share a food-category,
+            // while GroupId can be broad like "vegetables" and would leak weird options such as cauliflower for coriander).
             if (!string.Equals(goal, "vegan", StringComparison.OrdinalIgnoreCase))
             {
                 if (original.FoodCategoryId.HasValue)
                 {
-                    baseQuery = baseQuery.Where(i => i.FoodCategoryId == original.FoodCategoryId.Value || i.GroupId == original.GroupId);
+                    var strict = baseQuery.Where(i => i.FoodCategoryId == original.FoodCategoryId.Value);
+                    var strictCount = await strict.Take(25).CountAsync();
+                    baseQuery = strictCount >= 8
+                        ? strict
+                        : strict.Union(baseQuery.Where(i => i.GroupId == original.GroupId));
                 }
                 else if (original.GroupId.HasValue)
                 {
