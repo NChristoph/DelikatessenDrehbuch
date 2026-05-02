@@ -459,78 +459,7 @@ namespace DelikatessenDrehbuch.Data
                     .OnDelete(DeleteBehavior.NoAction);
             });
 
-            builder.Entity<RecipeAiBaseRecipe>(e =>
-            {
-                e.ToTable("RecipeAiBaseRecipes");
-                e.Property(x => x.VariantType).IsRequired().HasMaxLength(64);
-                e.Property(x => x.Language).IsRequired().HasMaxLength(12);
-                e.Property(x => x.AiProvider).IsRequired().HasMaxLength(32);
-                e.Property(x => x.SelectedIngredientKey).IsRequired().HasMaxLength(400);
-                e.Property(x => x.CreatedByUserHash).HasMaxLength(256);
-                e.Property(x => x.LatestUserNote).HasMaxLength(1000);
-                e.Property(x => x.Title).IsRequired().HasMaxLength(256);
-                e.Property(x => x.Summary).HasMaxLength(4000);
-                e.Property(x => x.PreparationText).HasMaxLength(16000);
-
-                e.HasOne(x => x.BaseRecipe)
-                    .WithMany()
-                    .HasForeignKey(x => x.BaseRecipeId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                e.HasOne(x => x.ParentAiRecipe)
-                    .WithMany()
-                    .HasForeignKey(x => x.ParentAiRecipeId)
-                    .OnDelete(DeleteBehavior.NoAction);
-
-                e.HasMany(x => x.Ingredients)
-                    .WithOne(x => x.RecipeAiBaseRecipe)
-                    .HasForeignKey(x => x.RecipeAiBaseRecipeId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                e.HasMany(x => x.Steps)
-                    .WithOne(x => x.RecipeAiBaseRecipe)
-                    .HasForeignKey(x => x.RecipeAiBaseRecipeId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                e.HasMany(x => x.SelectedIngredients)
-                    .WithOne(x => x.RecipeAiBaseRecipe)
-                    .HasForeignKey(x => x.RecipeAiBaseRecipeId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                e.HasIndex(x => new { x.BaseRecipeId, x.Language, x.VariantType, x.AiProvider, x.SelectedIngredientKey, x.IsSharedCanonical });
-                e.HasIndex(x => new { x.BaseRecipeId, x.Language, x.VariantType, x.AiProvider, x.SelectedIngredientKey, x.CreatedByUserHash });
-            });
-
-            builder.Entity<RecipeAiBaseRecipeIngredient>(e =>
-            {
-                e.ToTable("RecipeAiBaseRecipeIngredients");
-                e.Property(x => x.ChangeHint).HasMaxLength(256);
-                e.HasIndex(x => new { x.RecipeAiBaseRecipeId, x.SortOrder });
-
-                e.HasOne(x => x.IngredientMeasureQuantity)
-                    .WithMany()
-                    .HasForeignKey(x => x.IngredientMeasureQuantityId)
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
-
-            builder.Entity<RecipeAiBaseRecipeStep>(e =>
-            {
-                e.ToTable("RecipeAiBaseRecipeSteps");
-                e.Property(x => x.Text).IsRequired().HasMaxLength(4000);
-                e.HasIndex(x => new { x.RecipeAiBaseRecipeId, x.StepIndex });
-            });
-
-            builder.Entity<RecipeAiBaseRecipeSelectedIngredient>(e =>
-            {
-                e.ToTable("RecipeAiBaseRecipeSelectedIngredients");
-                e.HasIndex(x => new { x.RecipeAiBaseRecipeId, x.SortOrder });
-                e.HasIndex(x => new { x.RecipeAiBaseRecipeId, x.IngredientId }).IsUnique();
-
-                e.HasOne(x => x.Ingredient)
-                    .WithMany()
-                    .HasForeignKey(x => x.IngredientId)
-                    .OnDelete(DeleteBehavior.NoAction);
-            });
+            // REMOVED: RecipeAiBaseRecipe* entities - feature deprecated in favor of RecipeUserVariants
 
             builder.Entity<RecipeAiVariantJob>(e =>
             {

@@ -1574,7 +1574,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 SchemaName = "recipe_ai_concept_pick",
                 ModelTier = AiModelTier.Cheap,
                 AllowTools = true,
-                MaxToolRounds = 4,
+                // Cheap/fast: allow at most one tool-call, then force the model to return final JSON.
+                // (round 0: optional tool call; round 1: tools disabled)
+                MaxToolRounds = 1,
                 AllowedToolCategoryKeys = normalizedPreferredKeys
                     .Concat(new[] { "oils", "fats", "spices", "herbs", "sauces", "broths" })
                     .Select(NormalizeCategoryKey)
@@ -2993,10 +2995,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var maxToolRounds = Math.Max(1, promptRequest.MaxToolRounds);
 
             var runningInput = BuildOpenAiInitialInput(promptRequest);
+            var toolCallsExecuted = 0;
 
             for (var round = 0; round <= maxToolRounds; round++)
             {
-                var requestBody = BuildOpenAiRequestBody(promptRequest, runningInput);
+                // Cheap/fast behavior:
+                // After we executed any tool call, we disable tools and require final JSON-schema output.
+                var allowToolsThisRequest = promptRequest.AllowTools && toolCallsExecuted == 0;
+                var requestBody = allowToolsThisRequest
+                    ? BuildOpenAiRequestBody(promptRequest, runningInput)
+                    : BuildOpenAiRequestBodyWithoutTools(promptRequest, runningInput);
                 var responseMaybe = await ExecuteStructuredOpenAiRawAsync(requestBody, apiKey, cancellationToken);
                 var response = responseMaybe!.Value;
 
@@ -3049,6 +3057,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     throw new InvalidOperationException($"AI returned neither final output nor tool calls for schema '{promptRequest.SchemaName}'.");
                 }
 
+                toolCallsExecuted += toolCalls.Count;
                 foreach (var call in toolCalls)
                 {
                     // Echo the function call into the next input so OpenAI can map call_id -> output reliably.
@@ -3099,8 +3108,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                             type = "input_text",
                             text = promptRequest.SystemPrompt +
                                    " Du darfst bei Bedarf die Funktion get_ingredients(categoryKeys, take) aufrufen, um zusaetzliche DB-Zutaten (Gewuerze/Kraeuter/Oel/Fette/Getreide usw.) zu laden. " +
+                                   "Rufe get_ingredients wenn moeglich HOECHSTENS EINMAL auf und gib dabei ALLE benoetigten categoryKeys in einem einzigen Call mit. " +
                                     $"Erlaubte categoryKeys fuer get_ingredients sind genau diese: {categoryKeyListForPrompt}. " +
-                                    "Wenn du eine Zutat verwendest, muss sie als ingredientId in ingredients[] vorkommen; nutze dafuer get_ingredients statt frei zu erfinden."
+                                     "Wenn du eine Zutat verwendest, muss sie als ingredientId in ingredients[] vorkommen; nutze dafuer get_ingredients statt frei zu erfinden."
                         }
                     }
                 },
@@ -3454,7 +3464,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 {
                     take = t;
                 }
-                take = Math.Clamp(take, 1, 400);
+                // The model often picks tiny `take` values (e.g. 5-12) which triggers repeated tool calls
+                // and blows up latency/cost. Normalize to a useful default, keep an upper bound for token cost.
+                if (take < 50)
+                {
+                    take = 120;
+                }
+                take = Math.Clamp(take, 1, 200);
 
                 var excludeIds = new List<int>();
                 if (root.TryGetProperty("excludeIngredientIds", out var ex) && ex.ValueKind == JsonValueKind.Array)

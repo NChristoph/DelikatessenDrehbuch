@@ -112,6 +112,14 @@ builder.Services.AddScoped<IUserManager, UserManager>();
 builder.Services.AddScoped<IBlobUploadService, BlobUploadService>();
 builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
+builder.Services.AddHttpClient<IIngredientSwapAiService, IngredientSwapAiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
+builder.Services.AddHttpClient<IRecipeSwapStepAiService, RecipeSwapStepAiService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
+});
 builder.Services.AddScoped<IWildCoinService, WildCoinService>();
 builder.Services.AddScoped<IWorldClipWatchService, WorldClipWatchService>();
 builder.Services.AddScoped<IWorldAdPreferenceService, WorldAdPreferenceService>();
@@ -183,7 +191,11 @@ var stripeApiKey = Environment.GetEnvironmentVariable("STRIPE_API_KEY");
 StripeConfiguration.ApiKey = stripeApiKey;
 
 // Füge Dienste hinzu (z.B. für MVC/Controllers)
-builder.Services.AddControllersWithViews().AddNewtonsoftJson();
+builder.Services.AddControllersWithViews().AddNewtonsoftJson(options =>
+{
+    // camelCase für JSON API-Endpoints (Standard für moderne Web APIs)
+    options.SerializerSettings.ContractResolver = new Newtonsoft.Json.Serialization.CamelCasePropertyNamesContractResolver();
+});
 
 var app = builder.Build();
 

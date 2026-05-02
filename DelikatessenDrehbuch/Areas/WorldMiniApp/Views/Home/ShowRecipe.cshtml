@@ -1,11 +1,14 @@
 @model DelikatessenDrehbuch.Models.RecipeBaseData
 @using System.Globalization
+@using Microsoft.AspNetCore.Localization
+@using DelikatessenDrehbuch
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<SharedResources> SharedLocalizer
 
 @{
     Layout = "_MiniAppLayout";
     ViewData["Title"] = Model.Title;
 
-    // --- C# Berechnung der Initial-Werte (Basis) ---
     decimal totalCalories = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalSugar = 0, totalFiber = 0;
 
     foreach (var item in Model.Ingredients)
@@ -26,22 +29,23 @@
         totalFiber += nutri.Fiber_a_100g * factor;
     }
 
-    var basePortions = Model.PersonCount;
-    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+    var basePortions = Math.Max(1, Model.PersonCount);
 
-    string T(string de, string en, string es, string pt) => language switch
-    {
-        "en" => en,
-        "es" => es,
-        "pt" => pt,
-        _ => de
-    };
+    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
+    var currentCulture = requestCulture?.RequestCulture.Culture ?? CultureInfo.CurrentCulture;
+    var language = currentCulture.TwoLetterISOLanguageName;
 
     string IngredientName(DelikatessenDrehbuch.Models.IngredientsAndNutrients item) => language switch
     {
         "en" => item.Name_EN,
         "es" => item.Name_ESP,
         "pt" => item.Name_PRT,
+        "id" => item.Name_ID,
+        "nl" => item.Name_NL,
+        "sv" => item.Name_SE,
+        "da" => item.Name_DK,
+        "nb" => item.Name_NO,
+        "ms" => item.Name_MS,
         _ => item.Name_DE
     };
 
@@ -55,17 +59,6 @@
 
     var canPublishToFeed = ViewData["CanPublishToFeed"] as bool? == true;
     var existingPostingId = ViewData["ExistingPostingId"] as int?;
-    var savedAiVariantsJson = ViewData["SavedAiVariantsJson"] as string ?? "[]";
-    var savedAiVariantCount = ViewData["SavedAiVariantCount"] as int? ?? 0;
-    var autoApplyAiVariantId = ViewData["AutoApplyAiVariantId"] as int?;
-    var originalNutritionJson = System.Text.Json.JsonSerializer.Serialize(new
-    {
-        calories = totalCalories,
-        protein = totalProtein,
-        carbs = totalCarbs,
-        fat = totalFat,
-        sugar = totalSugar
-    });
 }
 
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
@@ -74,9 +67,8 @@
     :root {
         --deli-primary: #2D4F1E;
         --deli-gold: #D4AF37;
-        --deli-cream: #FEFFF2;
-        --deli-dark: #1A1A1A;
         --deli-bg: #F8F9F5;
+        --deli-dark: #1A1A1A;
         --shadow-sm: 0 4px 12px rgba(0,0,0,0.05);
         --shadow-md: 0 12px 24px rgba(0,0,0,0.08);
         --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -95,7 +87,6 @@
         font-weight: 700;
     }
 
-    /* --- Immersive Hero Header --- */
     .hero-container {
         position: relative;
         height: 50vh;
@@ -108,15 +99,11 @@
         width: 100%;
         height: 100%;
         object-fit: cover;
-        transition: transform 0.5s ease;
     }
 
     .header-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%, rgba(0,0,0,0.6) 100%);
     }
 
@@ -127,9 +114,8 @@
         z-index: 100;
         width: 45px;
         height: 45px;
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255,255,255,0.9);
         backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
         border-radius: 14px;
         display: flex;
         align-items: center;
@@ -138,7 +124,6 @@
         color: var(--deli-dark);
     }
 
-    /* --- Content Body --- */
     .recipe-main-content {
         position: relative;
         margin-top: -45px;
@@ -180,10 +165,8 @@
         gap: 8px;
         font-weight: 600;
         font-size: 0.85rem;
-        border: 1px solid rgba(212, 175, 55, 0.1);
     }
 
-    /* --- Custom Tab Navigation --- */
     .nav-pills-custom {
         background: #EEEFEA;
         padding: 6px;
@@ -192,25 +175,24 @@
         display: flex;
     }
 
-        .nav-pills-custom .nav-link {
-            flex: 1;
-            border-radius: 18px;
-            color: #707070;
-            font-weight: 700;
-            border: none;
-            padding: 14px 5px;
-            font-size: 0.9rem;
-            transition: var(--transition);
-            background: transparent;
-        }
+    .nav-pills-custom .nav-link {
+        flex: 1;
+        border-radius: 18px;
+        color: #707070;
+        font-weight: 700;
+        border: none;
+        padding: 14px 5px;
+        font-size: 0.9rem;
+        transition: var(--transition);
+        background: transparent;
+    }
 
-            .nav-pills-custom .nav-link.active {
-                background: white;
-                color: var(--deli-primary);
-                box-shadow: var(--shadow-sm);
-            }
+    .nav-pills-custom .nav-link.active {
+        background: white;
+        color: var(--deli-primary);
+        box-shadow: var(--shadow-sm);
+    }
 
-    /* --- Ingredients Section --- */
     .portion-selector-wrapper {
         margin-bottom: 25px;
     }
@@ -222,7 +204,6 @@
         display: inline-flex;
         align-items: center;
         box-shadow: var(--shadow-sm);
-        border: 1px solid rgba(0,0,0,0.03);
     }
 
     .ingredient-card {
@@ -233,77 +214,73 @@
         display: flex;
         align-items: center;
         transition: var(--transition);
-        border: 1px solid transparent;
         cursor: pointer;
     }
 
-        .ingredient-card.checked {
-            background: #F1F1F1;
-            opacity: 0.5;
-            transform: scale(0.98);
-        }
+    .ingredient-card.checked {
+        background: #F1F1F1;
+        opacity: 0.5;
+        transform: scale(0.98);
+    }
 
     .check-box {
         width: 28px;
         height: 28px;
-        border-radius: 10px;
-        border: 2px solid var(--deli-gold);
-        margin-right: 18px;
+        border-radius: 50%;
+        background: #D7DCD3;
+        margin-right: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
-        transition: var(--transition);
+        flex-shrink: 0;
     }
 
-    .checked .check-box {
+    .ingredient-card.checked .check-box {
         background: var(--deli-primary);
-        border-color: var(--deli-primary);
     }
 
-    /* --- Preparation Steps --- */
     .step-container {
-        padding: 0 20px;
+        padding: 0 20px 20px;
+        display: grid;
+        gap: 14px;
     }
 
     .step-card {
-        position: relative;
-        padding: 25px;
         background: white;
         border-radius: 24px;
-        margin-bottom: 20px;
+        padding: 20px;
         box-shadow: var(--shadow-sm);
-        border-left: 5px solid var(--deli-gold);
     }
 
     .step-badge {
-        font-size: 0.75rem;
-        font-weight: 800;
-        text-transform: uppercase;
-        color: var(--deli-gold);
-        letter-spacing: 1.5px;
+        display: inline-block;
         margin-bottom: 10px;
-        display: block;
+        padding: 7px 12px;
+        border-radius: 999px;
+        background: rgba(45,79,30,0.08);
+        color: var(--deli-primary);
+        font-weight: 700;
+        font-size: 0.8rem;
     }
 
-    /* --- Nutrition Grid --- */
     .nutri-grid {
+        padding: 0 20px 20px;
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        padding: 0 20px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
     }
 
     .nutri-item {
         background: white;
-        padding: 22px;
         border-radius: 24px;
+        padding: 22px 16px;
         text-align: center;
         box-shadow: var(--shadow-sm);
     }
 
     .nutri-item-main {
-        grid-column: span 2;
-        background: var(--deli-primary);
+        grid-column: 1 / -1;
+        background: linear-gradient(145deg, #2D4F1E, #426B2E);
         color: white;
     }
 
@@ -322,407 +299,28 @@
         letter-spacing: 1px;
     }
 
-    .ai-fan-section {
-        margin: 26px 20px 0;
-        background: linear-gradient(180deg, rgba(45,79,30,0.06) 0%, rgba(212,175,55,0.12) 100%);
-        border: 1px solid rgba(45,79,30,0.08);
-        border-radius: 26px;
-        padding: 18px;
-        box-shadow: var(--shadow-sm);
-    }
-
-    .ai-fan-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 14px;
-        margin-bottom: 14px;
-    }
-
-    .ai-fan-kicker {
-        font-size: 0.72rem;
-        text-transform: uppercase;
-        letter-spacing: 1.6px;
-        color: var(--deli-primary);
-        font-weight: 800;
-        margin-bottom: 4px;
-    }
-
-    .ai-fan-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: var(--deli-dark);
-        margin: 0;
-    }
-
-    .ai-fan-sub {
-        font-size: 0.82rem;
-        color: #5f6657;
-        margin: 0;
-    }
-
-    .ai-fan-grid {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-    }
-
-    .ai-fan-btn {
-        border: none;
-        border-radius: 18px;
-        padding: 14px 12px;
-        background: white;
-        color: var(--deli-dark);
-        font-weight: 700;
-        box-shadow: var(--shadow-sm);
-        transition: var(--transition);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .ai-fan-btn:hover,
-    .ai-fan-btn:focus-visible {
-        transform: translateY(-2px);
-        box-shadow: var(--shadow-md);
-        outline: none;
-    }
-
-    .ai-fan-btn i {
-        color: var(--deli-primary);
-    }
-
-    .ai-preview-modal .modal-content {
-        border: none;
-        border-radius: 28px;
-        overflow: hidden;
-        box-shadow: 0 24px 80px rgba(0,0,0,0.22);
-        max-height: min(88vh, 960px);
-    }
-
-    .ai-preview-modal .modal-dialog {
-        margin: 1rem auto;
-    }
-
-    .ai-preview-modal .modal-dialog-scrollable {
-        height: calc(100% - 2rem);
-    }
-
-    .ai-preview-modal .modal-dialog-scrollable .modal-content {
-        max-height: 100%;
-    }
-
-    .ai-preview-head {
-        padding: 22px 22px 18px;
-        background: linear-gradient(180deg, #24381d 0%, #304d24 100%);
-        color: white;
-    }
-
-    .ai-preview-mode {
-        font-size: 0.72rem;
-        letter-spacing: 1.4px;
-        text-transform: uppercase;
-        opacity: 0.78;
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .ai-preview-title {
-        font-family: 'Playfair Display', serif;
-        font-size: 1.5rem;
-        line-height: 1.15;
-        margin: 8px 0 10px;
-    }
-
-    .ai-preview-summary {
-        font-size: 0.94rem;
-        line-height: 1.55;
-        opacity: 0.9;
-        margin: 0;
-    }
-
-    .ai-preview-body {
-        padding: 20px 22px 22px;
-        background: #f7f8f2;
-        overflow-y: auto;
-        overscroll-behavior: contain;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .ai-preview-meta {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 16px;
-    }
-
-    .ai-preview-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        background: white;
-        border-radius: 999px;
-        padding: 8px 12px;
-        box-shadow: var(--shadow-sm);
-        font-size: 0.78rem;
-        font-weight: 700;
-        color: #45503c;
-    }
-
-    .ai-preview-block {
-        background: white;
-        border-radius: 22px;
-        padding: 18px;
-        box-shadow: var(--shadow-sm);
-        margin-bottom: 14px;
-    }
-
-    .ai-suggestion-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-        gap: 10px;
-    }
-
-    .ai-suggestion-card {
-        border: 1px solid rgba(45,79,30,0.12);
-        border-radius: 18px;
-        padding: 14px;
-        background: #f8faf4;
-        cursor: pointer;
-        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease, background 0.18s ease;
-    }
-
-    .ai-suggestion-card:hover,
-    .ai-suggestion-card:focus-visible {
-        transform: translateY(-1px);
-        box-shadow: var(--shadow-sm);
-        border-color: rgba(45,79,30,0.28);
-    }
-
-    .ai-suggestion-card.is-selected {
-        border-color: rgba(45,79,30,0.45);
-        background: #eef7e7;
-        box-shadow: 0 0 0 4px rgba(45,79,30,0.08);
-    }
-
-    .ai-suggestion-category {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        border-radius: 999px;
-        padding: 5px 9px;
-        background: rgba(45,79,30,0.08);
-        color: var(--deli-primary);
-        font-size: 0.72rem;
-        font-weight: 700;
-        margin-bottom: 8px;
-    }
-
-    .ai-suggestion-macros {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-        margin-top: 10px;
-        font-size: 0.78rem;
-        color: #66705f;
-    }
-
-    .ai-suggestion-empty {
-        font-size: 0.9rem;
-        color: #66705f;
-    }
-
-    .ai-preview-block h6 {
-        font-size: 0.78rem;
-        letter-spacing: 1.4px;
-        text-transform: uppercase;
-        color: #67725d;
-        font-weight: 800;
-        margin-bottom: 12px;
-    }
-
-    .ai-preview-list {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-        display: grid;
-        gap: 10px;
-    }
-
-    .ai-preview-ingredient,
-    .ai-preview-step {
-        border-radius: 16px;
-        background: #f6f7f2;
-        padding: 12px 14px;
-    }
-
-    .ai-preview-ingredient.is-modified {
-        background: #eef7e7;
-        border: 1px solid rgba(45,79,30,0.12);
-    }
-
-    .ai-preview-step-index {
-        width: 28px;
-        height: 28px;
-        border-radius: 999px;
-        background: rgba(212,175,55,0.18);
-        color: var(--deli-primary);
-        font-weight: 800;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 10px;
-        flex-shrink: 0;
-    }
-
-    .ai-preview-highlight-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-
-    .ai-preview-highlight {
-        background: rgba(45,79,30,0.08);
-        color: var(--deli-primary);
-        border-radius: 999px;
-        padding: 7px 10px;
-        font-size: 0.78rem;
-        font-weight: 700;
-    }
-
-    .ai-preview-note {
-        border: 1px solid rgba(45,79,30,0.12);
-        border-radius: 18px;
-        padding: 14px 16px;
-        width: 100%;
-        min-height: 96px;
-        resize: vertical;
-        font-size: 0.94rem;
-        outline: none;
-    }
-
-    .ai-preview-note:focus {
-        border-color: rgba(45,79,30,0.35);
-        box-shadow: 0 0 0 4px rgba(45,79,30,0.08);
-    }
-
-    .ai-preview-actions {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        flex-wrap: wrap;
-    }
-
-    .ai-preview-loading {
-        display: none;
-        text-align: center;
-        padding: 26px 0;
-        color: #58624d;
-    }
-
-    .ai-preview-loading.is-visible {
-        display: block;
-    }
-
-    .ai-preview-error {
-        display: none;
-        margin-bottom: 14px;
-    }
-
-    .ai-preview-error.is-visible {
-        display: block;
-    }
-
-    .recipe-ai-badge {
-        display: none;
-        margin-top: 14px;
-    }
-
-    .recipe-ai-badge.is-visible {
-        display: inline-flex;
-    }
-
-    .ai-reset-btn {
-        font-size: 0.75rem;
-        padding: 0.2rem 0.7rem;
-        margin-top: 14px;
-    }
-
-    .ai-bottom-bar {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        right: 0;
-        z-index: 1040;
-        background: linear-gradient(135deg, #1a2e13 0%, #2d4f1e 100%);
-        color: white;
-        padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-        box-shadow: 0 -4px 24px rgba(0,0,0,0.18);
-        transform: translateY(100%);
-        animation: aiBarSlideUp 0.35s cubic-bezier(0.4,0,0.2,1) forwards;
-    }
-
-    @@keyframes aiBarSlideUp {
-        to { transform: translateY(0); }
-    }
-
-    .ai-bottom-bar-content {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 12px;
-        padding: 14px 20px;
-    }
-
-    .ai-bottom-bar-left {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        font-size: 0.88rem;
-        font-weight: 600;
-        min-width: 0;
-    }
-
-    .ai-bottom-bar-left .spinner-border {
-        width: 18px;
-        height: 18px;
-        border-width: 2px;
-        flex-shrink: 0;
-    }
-
-    .ai-bottom-bar-actions {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-shrink: 0;
-    }
-
-    @@media (max-width: 576px) {
-        .ai-fan-grid {
-            grid-template-columns: 1fr;
-        }
-
-        .ai-preview-modal .modal-content {
-            border-radius: 22px;
-            max-height: 92vh;
-        }
-
-        .ai-preview-body {
-            padding: 18px 16px 18px;
+    @@media (max-width: 768px) {
+        .hero-container {
+            min-height: 320px;
         }
     }
 </style>
 
 <div class="min-vh-100 pb-5">
-
     <div class="hero-container">
         <div class="header-overlay"></div>
         <a href="#" class="back-btn text-decoration-none" id="backToFeedBtn">
             <i class="bi bi-chevron-left fs-5"></i>
         </a>
+
+        @if (ViewData["SwapsJson"] is string)
+        {
+            <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = Model.Id, original = true })"
+               class="btn btn-sm btn-light shadow-sm"
+               style="position: absolute; top: 20px; right: 20px; z-index: 20; border-radius: 20px; font-weight: 600; padding: 8px 16px;">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>Original
+            </a>
+        }
 
         @if (Model.Images != null && Model.Images.Any())
         {
@@ -734,7 +332,9 @@
         }
         else
         {
-            <img src="https://cdn.pixabay.com/photo/2014/12/21/23/28/recipe-575434_640.png" class="hero-image" alt="Recipe" />
+            <div class="hero-image d-flex align-items-center justify-content-center" style="background: linear-gradient(145deg, #d9dfd3, #eef2e9);">
+                <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+            </div>
         }
     </div>
 
@@ -742,18 +342,48 @@
         <div class="drag-handle"></div>
 
         <div class="title-section text-center">
-            <h1 class="display-6 mb-3" id="recipeTitleValue">@Model.Title</h1>
+            <h1 class="display-6 mb-3">@Model.Title</h1>
 
-            <div class="badge-row">
+            @if (ViewData["SwapsJson"] is string)
+            {
+                <div class="mb-3">
+                    <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = Model.Id, original = true })"
+                       class="btn btn-dark btn-sm px-3 py-2 shadow-sm"
+                       style="border-radius: 999px; font-weight: 700;">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i> Originalrezept anzeigen
+                    </a>
+                </div>
+            }
+
+            <div class="badge-row mb-3">
+                @if (ViewData["SwapsJson"] is string swapsJsonBadge)
+                {
+                    var swapCount = 0;
+                    try
+                    {
+                        var swaps = System.Text.Json.JsonSerializer.Deserialize<List<DelikatessenDrehbuch.Models.IngredientSwap>>(swapsJsonBadge);
+                        swapCount = swaps?.Count ?? 0;
+                    }
+                    catch { }
+
+                    if (swapCount > 0)
+                    {
+                        <div class="premium-badge" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; font-weight: 700;">
+                            <i class="bi bi-arrow-left-right"></i> @swapCount Angepasst
+                        </div>
+                    }
+                }
+                <div class="premium-badge">
+                    <i class="bi bi-people text-primary"></i> @Model.PersonCount
+                </div>
                 <div class="premium-badge">
                     <i class="bi bi-clock text-warning"></i> @Model.PreparationTime Min.
                 </div>
                 <div class="premium-badge">
                     <i class="bi bi-fire text-danger"></i>
-                    <span id="headerCalories" data-base="@(totalCalories / Model.PersonCount)">@Math.Round(totalCalories / Model.PersonCount)</span> kcal
+                    <span id="headerCalories" data-base="@((totalCalories / basePortions).ToString(CultureInfo.InvariantCulture))">@Math.Round(totalCalories / basePortions)</span> kcal
                 </div>
             </div>
-
 
             @if (canPublishToFeed)
             {
@@ -779,72 +409,53 @@
             }
         </div>
 
-        <div class="ai-fan-section">
-            <div class="ai-fan-header">
-                <div>
-                    <div class="ai-fan-kicker">AI Fächer</div>
-                    <p class="ai-fan-title">Varianten aus diesem Rezept bauen</p>
-                    <p class="ai-fan-sub">Vorschau mit bis zu 5 vorgeschlagenen Zutaten, ohne den Originaleintrag direkt kaputt zu machen.</p>
-                </div>
-                <div class="d-flex align-items-center gap-2">
-                    <span class="premium-badge recipe-ai-badge" id="recipeAiAppliedBadge">
-                        <i class="bi bi-stars text-warning"></i> AI-Vorschau aktiv
-                    </span>
-                    <button type="button" class="btn btn-sm btn-outline-secondary rounded-pill ai-reset-btn" id="aiResetBtn" style="display:none;" onclick="resetAiPreview()">
-                        <i class="bi bi-arrow-counterclockwise"></i> Original
-                    </button>
-                </div>
-            </div>
-            <div class="ai-fan-grid">
-                <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('vegan')"><i class="bi bi-flower1"></i> Vegan</button>
-                <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('mealprep')"><i class="bi bi-box-seam"></i> Meal Prep</button>
-                <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('lowcarb')"><i class="bi bi-lightning-charge"></i> Low Carb</button>
-                <button type="button" class="ai-fan-btn" onclick="openAiTransformModal('highprotein')"><i class="bi bi-battery-charging"></i> Mehr Protein</button>
-            </div>
-            @if (savedAiVariantCount > 0)
-            {
-                <div class="mt-3 small text-muted fw-semibold">
-                    Du hast bereits <span class="fw-bold">@savedAiVariantCount</span> AI-Version@(savedAiVariantCount == 1 ? "" : "en") davon.
-                    <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp" })#tab-ai" class="ms-1 text-decoration-none" style="color: var(--deli-primary); font-weight:800;">
-                        Im Profil ansehen <i class="bi bi-chevron-right"></i>
-                    </a>
-                </div>
-            }
-        </div>
-
         <nav class="nav nav-pills-custom" id="recipeTab" role="tablist">
-            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#ingredients" type="button">@T("Einkauf", "Ingredients", "Compra", "Compras")</button>
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#preparation" type="button">@T("Schritte", "Steps", "Pasos", "Passos")</button>
-            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#nutrition" type="button">@T("Nährwerte", "Nutrition", "Nutrición", "Nutrição")</button>
+            <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#ingredients" type="button">@SharedLocalizer["Recipe.Ingredients"]</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#preparation" type="button">@SharedLocalizer["Recipe.Steps"]</button>
+            <button class="nav-link" data-bs-toggle="pill" data-bs-target="#nutrition" type="button">@SharedLocalizer["Recipe.Nutrition"]</button>
         </nav>
 
         <div class="tab-content">
-
             <div class="tab-pane fade show active" id="ingredients" role="tabpanel">
                 <div class="text-center portion-selector-wrapper">
                     <div class="portion-stepper">
-                        <span class="me-2 fw-bold text-muted small">@T("Zutaten für", "Servings for", "Personas:", "Pessoas:")</span>
-                        <input type="number" id="portionInput" class="fw-bold text-center" value="@Model.PersonCount" min="1" onchange="updatePortions()"
-                               style="width: 45px; border:none; background:transparent; color:var(--deli-primary); font-size: 1.1rem;">
+                        <span class="me-2 fw-bold text-muted small">@SharedLocalizer["Recipe.ServingsFor"]</span>
+                        <input type="number"
+                               id="portionInput"
+                               class="fw-bold text-center"
+                               value="@basePortions"
+                               min="1"
+                               onchange="updatePortions()"
+                               style="width:45px; border:none; background:transparent; color:var(--deli-primary); font-size:1.1rem;">
                     </div>
                 </div>
 
                 <div id="ingredientListContainer">
                     @foreach (var group in Model.Ingredients.GroupBy(i => i.Ingredient.IngredientsAndNutrients.Group?.Name ?? "General"))
                     {
-                        <h6 class="text-uppercase fw-bold opacity-50 mb-3 px-4" style="font-size: 0.7rem; letter-spacing: 2px;">@group.Key</h6>
+                        <h6 class="text-uppercase fw-bold opacity-50 mb-3 px-4" style="font-size:0.7rem; letter-spacing:2px;">@group.Key</h6>
                         @foreach (var item in group)
                         {
-                            <div class="ingredient-card shadow-sm" onclick="toggleCheck(this)">
-                                <div class="check-box">
+                            <div class="ingredient-card shadow-sm" data-ingredient-id="@item.Ingredient.IngredientsAndNutrients.Id">
+                                <div class="check-box" onclick="toggleCheck(this.parentElement)" style="cursor: pointer;">
                                     <i class="bi bi-check-lg text-white d-none"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="fw-bold fs-6">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
-                                        <span class="text-muted small">
-                                            <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> @item.Ingredient.Measure.Metrics_DE
-                                        </span>
+                                        <span class="ingredient-name fw-bold fs-6">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <span class="text-muted small ingredient-quantity">
+                                                <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> <span class="ingredient-unit">@item.Ingredient.Measure.Metrics_DE</span>
+                                            </span>
+                                            <button class="btn btn-sm btn-outline-primary swap-btn"
+                                                    data-swap-ingredient="@item.Ingredient.IngredientsAndNutrients.Id"
+                                                    data-recipe-id="@Model.Id"
+                                                    data-ingredient-name="@IngredientName(item.Ingredient.IngredientsAndNutrients)"
+                                                    title="@SharedLocalizer["Recipe.SwapIngredient"]"
+                                                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 12px;">
+                                                <i class="bi bi-arrow-left-right"></i>
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -858,8 +469,8 @@
                     @foreach (var step in Model.Steps.OrderBy(s => s.StepIndex))
                     {
                         <div class="step-card">
-                            <span class="step-badge">@T("Schritt", "Step", "Paso", "Passo") @step.StepIndex</span>
-                            <p class="mb-0 lh-lg" style="font-size: 1.05rem; color: #444;">@StepText(step.RecipePreparationStep)</p>
+                            <span class="step-badge">@SharedLocalizer["Recipe.Step"] @step.StepIndex</span>
+                            <p class="mb-0 lh-lg" style="font-size:1.05rem; color:#444;">@StepText(step.RecipePreparationStep)</p>
                         </div>
                     }
                 </div>
@@ -868,219 +479,44 @@
             <div class="tab-pane fade" id="nutrition" role="tabpanel">
                 <div class="nutri-grid">
                     <div class="nutri-item nutri-item-main shadow-lg">
-                        <span class="nutri-val dyn-nutri" data-base="@totalCalories" style="font-size: 3rem;">@Math.Round(totalCalories)</span>
+                        <span class="nutri-val dyn-nutri" data-base="@totalCalories.ToString(CultureInfo.InvariantCulture)" style="font-size:3rem;">@Math.Round(totalCalories)</span>
                         <span class="nutri-label">Gesamt Kcal</span>
                     </div>
                     <div class="nutri-item">
-                        <span class="nutri-val dyn-nutri" data-base="@totalProtein">@Math.Round(totalProtein)</span>
-                        <span class="nutri-label">@T("Protein (g)", "Protein", "Proteína", "Proteína")</span>
+                        <span class="nutri-val dyn-nutri" data-base="@totalProtein.ToString(CultureInfo.InvariantCulture)">@Math.Round(totalProtein)</span>
+                        <span class="nutri-label">@SharedLocalizer["Recipe.Protein"]</span>
                     </div>
                     <div class="nutri-item">
-                        <span class="nutri-val dyn-nutri" data-base="@totalCarbs">@Math.Round(totalCarbs)</span>
-                        <span class="nutri-label">@T("Carbs (g)", "Carbs", "Carbo", "Carbo")</span>
+                        <span class="nutri-val dyn-nutri" data-base="@totalCarbs.ToString(CultureInfo.InvariantCulture)">@Math.Round(totalCarbs)</span>
+                        <span class="nutri-label">@SharedLocalizer["Recipe.Carbs"]</span>
                     </div>
                     <div class="nutri-item">
-                        <span class="nutri-val dyn-nutri" data-base="@totalFat">@Math.Round(totalFat)</span>
-                        <span class="nutri-label">@T("Fett (g)", "Fat", "Grasa", "Gordura")</span>
+                        <span class="nutri-val dyn-nutri" data-base="@totalFat.ToString(CultureInfo.InvariantCulture)">@Math.Round(totalFat)</span>
+                        <span class="nutri-label">@SharedLocalizer["Recipe.Fat"]</span>
                     </div>
                     <div class="nutri-item">
-                        <span class="nutri-val dyn-nutri" data-base="@totalSugar">@Math.Round(totalSugar, 1)</span>
-                        <span class="nutri-label">@T("Zucker (g)", "Sugar", "Azúcar", "Açúcar")</span>
+                        <span class="nutri-val dyn-nutri" data-base="@totalSugar.ToString(CultureInfo.InvariantCulture)">@Math.Round(totalSugar, 1)</span>
+                        <span class="nutri-label">@SharedLocalizer["Recipe.Sugar"]</span>
                     </div>
                 </div>
 
                 <div class="text-center mt-5 px-4 text-muted small fst-italic">
-                    @T("Alle Werte basieren auf Standard-Nährwertangaben.", "Values based on standard estimates.", "Valores estimados.", "Valores estimados.")
-                </div>
-            </div>
-
-        </div>
-    </div>
-</div>
-
-@Html.AntiForgeryToken()
-
-<div class="modal fade ai-preview-modal" id="aiTransformModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-scrollable modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <div class="ai-preview-head">
-                <div class="d-flex justify-content-between align-items-start gap-3">
-                    <div>
-                        <div class="ai-preview-mode" id="aiPreviewModeLabel">AI Vorschau</div>
-                        <div class="ai-preview-title" id="aiPreviewTitle">Neue Rezeptidee wird geladen...</div>
-                        <p class="ai-preview-summary" id="aiPreviewSummary">Wir bauen gerade eine stimmige Variante aus deinem Rezept.</p>
-                        <div class="small text-muted" id="aiDebugStamp" style="opacity:0.75; margin-top:6px;"></div>
-                    </div>
-                    <button type="button" class="btn btn-sm btn-light rounded-pill px-3" data-bs-dismiss="modal">Schließen</button>
-                </div>
-            </div>
-            <div class="ai-preview-body">
-                <div class="alert alert-danger ai-preview-error" id="aiPreviewError"></div>
-
-                <div class="ai-preview-loading is-visible" id="aiPreviewLoading">
-                    <div class="spinner-border text-success mb-3" role="status"></div>
-                    <div id="aiPreviewLoadingText">AI transformiert gerade dein Rezept...</div>
-                </div>
-
-                <div id="aiPreviewContent" style="display:none;">
-                    <div class="ai-preview-block" id="aiConceptBlock">
-                        <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
-                            <h6 class="mb-0">Rezeptidee wählen</h6>
-                            <span class="small text-muted" id="aiSuggestionStrategyLabel"></span>
-                        </div>
-                        <div class="small text-muted mb-3" id="aiSuggestionReasoning">Wir suchen stimmige Rezeptideen.</div>
-                        <div class="ai-suggestion-grid" id="aiSuggestionList"></div>
-                        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-3 mt-3">
-                            <div class="small text-muted" id="aiSelectionStatus">Wähle eine Rezeptidee und bestätige danach.</div>
-                            <button type="button" class="btn btn-success rounded-pill px-4" id="aiConfirmSelectionBtn" disabled>Rezeptidee wählen & generieren</button>
-                        </div>
-                    </div>
-
-                    <div id="aiPreviewDetails" style="display:none;">
-                    <div class="ai-preview-meta" id="aiPreviewMeta"></div>
-
-                    <div class="ai-preview-block">
-                        <h6>Highlights</h6>
-                        <div class="ai-preview-highlight-list" id="aiPreviewHighlights"></div>
-                    </div>
-
-                    <div class="ai-preview-block">
-                        <h6>Zutaten</h6>
-                        <ul class="ai-preview-list" id="aiPreviewIngredients"></ul>
-                    </div>
-
-                    <div class="ai-preview-block">
-                        <h6>Schritte</h6>
-                        <ul class="ai-preview-list" id="aiPreviewSteps"></ul>
-                    </div>
-
-                    <div class="ai-preview-block">
-                        <div class="d-flex justify-content-between align-items-center gap-3 mb-2">
-                            <h6 class="mb-0">Noch feiner anpassen</h6>
-                            <span class="small text-muted" id="aiPreviewChangesLeft">Noch 2 Änderungen</span>
-                        </div>
-                        <textarea class="ai-preview-note" id="aiPreviewUserNote" placeholder="z. B. Ersetze die Beilage durch Kartoffeln"></textarea>
-                        <div class="small text-muted mt-2">Maximal 2 Änderungswünsche pro Vorschau. Das hält den Flow schnell und kontrollierbar.</div>
-                    </div>
-
-                    <div class="ai-preview-actions">
-                        <button type="button" class="btn btn-outline-secondary rounded-pill px-4" id="aiPreviewRegenerateBtn">Änderung anwenden</button>
-                        <button type="button" class="btn btn-success rounded-pill px-4" id="aiPreviewApplyBtn">Vorschau übernehmen</button>
-                    </div>
-                    </div>
+                    @SharedLocalizer["Recipe.NutritionDisclaimer"]
                 </div>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Local AI Bottom-Bar removed (we use the global resume bar + toast in _MiniAppLayout.cshtml) -->
-<div class="ai-bottom-bar" id="aiBottomBar" style="display:none">
-    <div class="ai-bottom-bar-content">
-        <div class="ai-bottom-bar-left" id="aiBottomBarStatus">
-            <span class="spinner-border spinner-border-sm text-light"></span>
-            <span>AI transformiert...</span>
-        </div>
-        <div class="ai-bottom-bar-actions">
-            <button class="btn btn-sm btn-light rounded-pill" id="aiBottomBarOpenBtn"
-                    onclick="openAiPreviewFromBar()">Vorschau öffnen</button>
-            <button class="btn btn-sm btn-outline-light rounded-pill" onclick="dismissAiBottomBar()">
-                <i class="bi bi-x-lg"></i>
-            </button>
-        </div>
-    </div>
-</div>
+<script src="~/js/ingredient-swap.js"></script>
 
 <script>
     const basePortionCount = @basePortions;
-    let savedAiVariants = @Html.Raw(savedAiVariantsJson);
-    const autoApplyAiVariantId = @(autoApplyAiVariantId.HasValue ? autoApplyAiVariantId.Value.ToString(CultureInfo.InvariantCulture) : "null");
-    const recipeId = @Model.Id;
-    // Expose for the global AI resume bar (layout) so it can open the modal directly on this page.
-    window.recipeId = recipeId;
-    const originalRecipeState = {
-        title: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.Title)),
-        ingredientMarkup: document.getElementById('ingredientListContainer')?.innerHTML || '',
-        stepMarkup: document.getElementById('preparationListContainer')?.innerHTML || '',
-        nutrition: @Html.Raw(originalNutritionJson)
-    };
-    const aiPreviewState = {
-        variantType: '',
-        aiProvider: 'openai',
-        appliedChangeCount: 0,
-        latestUserNote: '',
-        lastErrorStage: null, // 'suggestions' | 'preview' | null
-        suggestionResponse: null,
-        suggestions: [],
-        selectedConcept: null,
-        selectedIngredientIds: [],
-        preview: null,
-        jobId: null,
-        saveInFlight: false,
-        suggestionInFlight: false,
-        previewInFlight: false,
-        suggestionRequestId: 0,
-        previewRequestId: 0,
-        modalSessionId: 0,
-        suggestionAbortController: null,
-        previewAbortController: null,
-        suppressResumeBarOnce: false
-    };
-
-    let aiTransformModalInstance = null;
-
-    const AI_RESUME_STAGE = {
-        queued: 'queued',
-        running: 'running',
-        ready: 'ready',
-        error: 'error'
-    };
-
-    function setGlobalAiResume(stage, titleOverride = '') {
-        const api = window.WorldMiniAppAiResume;
-        if (!api?.setState) return;
-        api.setState({
-            recipeId,
-            variantType: aiPreviewState.variantType || '',
-            aiProvider: aiPreviewState.aiProvider || 'openai',
-            stage,
-            jobId: aiPreviewState.jobId || null,
-            title: titleOverride || aiPreviewState.preview?.title || originalRecipeState.title || ''
-        });
-    }
-
-    function clearGlobalAiResume() {
-        window.WorldMiniAppAiResume?.clearState?.();
-    }
 
     function toggleCheck(element) {
         element.classList.toggle('checked');
         const icon = element.querySelector('.bi-check-lg');
         if (icon) icon.classList.toggle('d-none');
-    }
-
-    function setAiDebugStamp(message) {
-        const el = document.getElementById('aiDebugStamp');
-        if (!el) return;
-        const now = new Date();
-        const ts = now.toLocaleTimeString('de-AT', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-        el.textContent = message ? `[${ts}] ${message}` : '';
-    }
-
-    function getPayloadBool(payload, camelKey, pascalKey) {
-        if (!payload) return false;
-        if (payload[camelKey] === true || payload[pascalKey] === true) return true;
-        return false;
-    }
-
-    async function readJsonOrText(response) {
-        const text = await response.text().catch(() => '');
-        if (!text) return { rawText: '' };
-        try {
-            return JSON.parse(text);
-        } catch {
-            return { rawText: text };
-        }
     }
 
     function updatePortions() {
@@ -1090,1175 +526,26 @@
 
         const ratio = newCount / basePortionCount;
 
-        // 1. Update Mengen (Zutaten)
         document.querySelectorAll('.dyn-qty').forEach(el => {
             const baseQty = parseFloat(el.getAttribute('data-base-qty').replace(',', '.'));
-            if(!isNaN(baseQty)) {
-                let newVal = (baseQty * ratio);
+            if (!isNaN(baseQty)) {
+                const newVal = baseQty * ratio;
                 el.innerText = (Math.round(newVal * 100) / 100).toString().replace('.', ',');
             }
         });
 
-        // 2. Update Kcal im Header
         const headerCal = document.getElementById('headerCalories');
         const baseHeaderCal = parseFloat(headerCal.getAttribute('data-base').replace(',', '.'));
         headerCal.innerText = Math.round(baseHeaderCal * (newCount / basePortionCount)).toString();
 
-        // 3. Update Nährwert-Tab
         document.querySelectorAll('.dyn-nutri').forEach(el => {
             const baseNutri = parseFloat(el.getAttribute('data-base').replace(',', '.'));
-            if(!isNaN(baseNutri)) {
+            if (!isNaN(baseNutri)) {
                 el.innerText = Math.round(baseNutri * ratio).toString();
             }
         });
     }
 
-    function formatScaledQuantity(value) {
-        if (!Number.isFinite(value)) return '';
-        const rounded = Math.round(value * 100) / 100;
-        return rounded.toString().replace('.', ',');
-    }
-
-    function parseAiQuantityParts(quantityText) {
-        const text = (quantityText || '').trim();
-        if (!text) {
-            return null;
-        }
-
-        const fractionMatch = text.match(/^(\d+)\s*\/\s*(\d+)(.*)$/);
-        if (fractionMatch) {
-            const numerator = Number(fractionMatch[1]);
-            const denominator = Number(fractionMatch[2]);
-            if (denominator) {
-                return {
-                    numericValue: numerator / denominator,
-                    suffix: (fractionMatch[3] || '').trim()
-                };
-            }
-        }
-
-        const decimalMatch = text.match(/^(\d+(?:[.,]\d+)?)(.*)$/);
-        if (decimalMatch) {
-            const numericValue = Number((decimalMatch[1] || '').replace(',', '.'));
-            if (Number.isFinite(numericValue)) {
-                return {
-                    numericValue,
-                    suffix: (decimalMatch[2] || '').trim()
-                };
-            }
-        }
-
-        return null;
-    }
-
-    function buildAiIngredientMarkup(item) {
-        const quantityText = (item?.quantity || '').toString().trim();
-        const displayQuantity = formatIngredientQuantity(item);
-        const quantityParts = parseAiQuantityParts(quantityText);
-        let quantityMarkup = escapeHtml(displayQuantity);
-
-        if (quantityParts && displayQuantity) {
-            const suffixText = displayQuantity.startsWith(quantityText)
-                ? displayQuantity.slice(quantityText.length).trim()
-                : quantityParts.suffix;
-            const suffixMarkup = suffixText ? ` ${escapeHtml(suffixText)}` : '';
-            quantityMarkup = `<span class="dyn-qty fw-bold text-dark" data-base-qty="${quantityParts.numericValue.toString().replace(',', '.')}">${formatScaledQuantity(quantityParts.numericValue)}</span>${suffixMarkup}`;
-        }
-
-        return `
-            <div class="ingredient-card shadow-sm">
-                <div class="check-box">${item.isModified ? '<i class="bi bi-stars text-success"></i>' : ''}</div>
-                <div class="flex-grow-1">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <span class="fw-bold fs-6">${escapeHtml(item.name || '')}</span>
-                        <span class="text-muted small">${quantityMarkup}</span>
-                    </div>
-                    ${renderChangeHint(item.changeHint, 'small text-success mt-1')}
-                </div>
-            </div>`;
-    }
-
-    function setNutritionBases(nutrition) {
-        const source = nutrition || originalRecipeState.nutrition;
-        const headerCal = document.getElementById('headerCalories');
-        if (headerCal) {
-            const perPersonCalories = basePortionCount > 0
-                ? (Number(source.calories || 0) / basePortionCount)
-                : Number(source.calories || 0);
-            headerCal.setAttribute('data-base', perPersonCalories.toString().replace(',', '.'));
-        }
-
-        const nutritionValues = [
-            Number(source.calories || 0),
-            Number(source.protein || 0),
-            Number(source.carbs || 0),
-            Number(source.fat || 0),
-            Number(source.sugar || 0)
-        ];
-
-        document.querySelectorAll('.dyn-nutri').forEach((el, index) => {
-            const nextValue = nutritionValues[index] || 0;
-            el.setAttribute('data-base', nextValue.toString().replace(',', '.'));
-        });
-    }
-
-    window.renderSavedAiVariantButtons = function renderSavedAiVariantButtons() {
-        const container = document.getElementById('savedAiVariantList');
-        if (!container) return;
-
-        if (!Array.isArray(savedAiVariants) || !savedAiVariants.length) {
-            container.innerHTML = '';
-            return;
-        }
-
-        container.innerHTML = savedAiVariants.map((item, index) => {
-            const label = escapeHtml(item.variantLabel || item.variantType || 'AI');
-            const provider = 'GPT';
-            const ownerHint = item.isOwnedByCurrentUser ? 'Meine Version' : 'Gespeichert';
-            const title = escapeHtml(item.title || 'Gespeicherte Variante');
-            return `
-                <button type="button" class="ai-fan-btn text-start" onclick="applySavedAiVariant(${index})">
-                    <div class="fw-bold">${label}</div>
-                    <div class="small opacity-75">${escapeHtml(provider)} · ${escapeHtml(ownerHint)}</div>
-                    <div class="small opacity-75">${title}</div>
-                </button>`;
-        }).join('');
-    };
-
-    function upsertSavedAiVariant(preview, saveResult) {
-        if (!preview) return;
-
-        const variantId = saveResult?.variantId || 0;
-        const variantType = preview.variantType || aiPreviewState.variantType || '';
-        const aiProvider = preview.aiProvider || aiPreviewState.aiProvider || 'openai';
-        const selectedIngredientKey = preview.selectedIngredientKey || '';
-
-        const item = {
-            variantId,
-            variantType,
-            variantLabel: preview.variantLabel || variantType || 'AI',
-            aiProvider,
-            title: preview.title || originalRecipeState.title,
-            summary: preview.summary || '',
-            selectedIngredientKey,
-            updatedAtUtc: new Date().toISOString(),
-            isOwnedByCurrentUser: true,
-            preview
-        };
-
-        savedAiVariants = (Array.isArray(savedAiVariants) ? savedAiVariants : [])
-            .filter(existing => {
-                if (variantId && existing.variantId === variantId) {
-                    return false;
-                }
-
-                return !(
-                    (existing.variantType || '') === variantType &&
-                    (existing.aiProvider || 'openai') === aiProvider &&
-                    (existing.selectedIngredientKey || '') === selectedIngredientKey &&
-                    !!existing.isOwnedByCurrentUser
-                );
-            });
-
-        savedAiVariants.unshift(item);
-        savedAiVariants = savedAiVariants.slice(0, 12);
-        renderSavedAiVariantButtons();
-    }
-
-    function getAiTransformModal() {
-        if (!aiTransformModalInstance) {
-            const modalElement = document.getElementById('aiTransformModal');
-            aiTransformModalInstance = new bootstrap.Modal(modalElement);
-        }
-
-        return aiTransformModalInstance;
-    }
-
-    window.openAiTransformModal = function openAiTransformModal(variantType, aiProvider = 'openai') {
-        aiPreviewState.modalSessionId += 1;
-        aiPreviewState.variantType = variantType;
-        aiPreviewState.aiProvider = aiProvider || 'openai';
-        aiPreviewState.appliedChangeCount = 0;
-        aiPreviewState.latestUserNote = '';
-        aiPreviewState.suggestionResponse = null;
-        aiPreviewState.suggestions = [];
-        aiPreviewState.selectedConcept = null;
-        aiPreviewState.selectedIngredientIds = [];
-        aiPreviewState.preview = null;
-        aiPreviewState.saveInFlight = false;
-        aiPreviewState.suggestionInFlight = false;
-        aiPreviewState.previewInFlight = false;
-        aiPreviewState.suggestionAbortController?.abort();
-        aiPreviewState.previewAbortController?.abort();
-        aiPreviewState.suggestionAbortController = null;
-        aiPreviewState.previewAbortController = null;
-        setAiDebugStamp(`openAiTransformModal(${variantType})`);
-
-        const noteInput = document.getElementById('aiPreviewUserNote');
-        if (noteInput) noteInput.value = '';
-
-        document.getElementById('aiPreviewModeLabel').textContent = 'OpenAI Vorschau';
-        document.getElementById('aiPreviewTitle').textContent = 'Rezeptideen werden gesucht...';
-        document.getElementById('aiPreviewSummary').textContent = 'Wähle gleich eine Richtung aus. Erst danach baut die AI das fertige Rezept.';
-        setAiConceptBlockVisible(true);
-        renderAiIngredientSuggestions(null);
-        setAiPreviewDetailsVisible(false);
-        getAiTransformModal().show();
-        requestAiIngredientSuggestions().catch(error => {
-            setAiPreviewError(error.message || 'AI-Zutatenvorschläge konnten nicht geladen werden.');
-            setAiDebugStamp(`suggestions error: ${error && error.message ? error.message : error}`);
-        });
-    };
-
-    function hasAiResumeState() {
-        const errorVisible = document.getElementById('aiPreviewError')?.classList.contains('is-visible') === true;
-        return aiPreviewState.suggestionInFlight
-            || aiPreviewState.previewInFlight
-            || !!aiPreviewState.preview
-            || !!aiPreviewState.suggestionResponse
-            || errorVisible
-            || (aiPreviewState.selectedIngredientIds?.length || 0) > 0;
-    }
-
-    function syncAiBottomBarForCurrentState() {
-        if (!hasAiResumeState()) {
-            hideAiBottomBar();
-            return;
-        }
-
-        if (aiPreviewState.previewInFlight) {
-            showAiBottomBar('pending');
-            return;
-        }
-
-        if (aiPreviewState.suggestionInFlight) {
-            showAiBottomBar('suggestions');
-            return;
-        }
-
-        const errorVisible = document.getElementById('aiPreviewError')?.classList.contains('is-visible') === true;
-        if (errorVisible && !aiPreviewState.preview) {
-            showAiBottomBar('error');
-            return;
-        }
-
-        if (aiPreviewState.preview) {
-            showAiBottomBar('ready');
-            return;
-        }
-
-        showAiBottomBar('selection');
-    }
-
-    async function requestAiIngredientSuggestions() {
-        if (aiPreviewState.suggestionInFlight) {
-            return;
-        }
-
-        aiPreviewState.suggestionInFlight = true;
-        aiPreviewState.lastErrorStage = null;
-        setGlobalAiResume(AI_RESUME_STAGE.suggestions);
-        const requestId = ++aiPreviewState.suggestionRequestId;
-        const sessionId = aiPreviewState.modalSessionId;
-        setAiDebugStamp(`suggestions fetch start (req=${requestId})`);
-        aiPreviewState.suggestionAbortController?.abort();
-        aiPreviewState.suggestionAbortController = new AbortController();
-        setAiPreviewLoading(true);
-        setAiPreviewError('');
-
-        try {
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            const response = await fetch('@Url.Action("SuggestAiVariantIngredients", "Home", new { area = "WorldMiniApp" })', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': token
-                },
-                signal: aiPreviewState.suggestionAbortController.signal,
-                body: JSON.stringify({
-                    recipeId,
-                    variantType: aiPreviewState.variantType,
-                    aiProvider: aiPreviewState.aiProvider,
-                    userNote: aiPreviewState.latestUserNote || null
-                })
-            });
-
-            const payload = await readJsonOrText(response);
-            setAiDebugStamp(`suggestions fetch done (req=${requestId}, http=${response.status})`);
-            if (!response.ok) {
-                const msg = payload?.message || payload?.title || payload?.rawText || 'AI-Zutatenvorschläge konnten nicht geladen werden.';
-                throw new Error(msg);
-            }
-
-            // If the backend had to fall back, treat this as an error in the UI (debug).
-            // We want a clear message instead of silently showing default concepts.
-            if ((payload?.usedFallback === true) || (payload?.UsedFallback === true)) {
-                throw new Error(payload?.message || 'AI ist gerade nicht verfÃ¼gbar (lokaler Fallback). Bitte erneut versuchen.');
-            }
-
-            if (requestId !== aiPreviewState.suggestionRequestId || sessionId !== aiPreviewState.modalSessionId) {
-                return;
-            }
-
-            aiPreviewState.suggestionResponse = payload;
-            aiPreviewState.suggestions = payload?.suggestions || [];
-            aiPreviewState.selectedConcept = null;
-            aiPreviewState.selectedIngredientIds = [];
-            aiPreviewState.preview = null;
-            renderAiIngredientSuggestions(payload);
-            setAiPreviewDetailsVisible(false);
-            setAiPreviewLoading(false);
-            setGlobalAiResume(AI_RESUME_STAGE.selection);
-        } catch (error) {
-            if (error?.name === 'AbortError') {
-                return;
-            }
-
-            aiPreviewState.lastErrorStage = 'suggestions';
-            // Clear potentially stale data so we don't render old concepts after errors.
-            aiPreviewState.suggestionResponse = null;
-            aiPreviewState.suggestions = [];
-            aiPreviewState.selectedConcept = null;
-            aiPreviewState.selectedIngredientIds = [];
-            aiPreviewState.preview = null;
-            setAiDebugStamp(`suggestions failed (req=${requestId}): ${error && error.message ? error.message : error}`);
-            setGlobalAiResume(AI_RESUME_STAGE.error);
-            throw error;
-        } finally {
-            if (requestId === aiPreviewState.suggestionRequestId) {
-                aiPreviewState.suggestionInFlight = false;
-                aiPreviewState.suggestionAbortController = null;
-            }
-        }
-    }
-
-    async function fetchGeneratedVariant(userNote = '') {
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-        const response = await fetch('@Url.Action("GenerateAiRecipeVariant", "Home", new { area = "WorldMiniApp" })', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': token
-            },
-            signal: aiPreviewState.previewAbortController?.signal,
-            body: JSON.stringify({
-                recipeId,
-                variantType: aiPreviewState.variantType,
-                aiProvider: aiPreviewState.aiProvider,
-                userNote: userNote || '',
-                selectedConceptKey: aiPreviewState.selectedConcept?.conceptKey || null,
-                selectedConceptTitle: aiPreviewState.selectedConcept?.conceptTitle || null,
-                selectedConceptSummary: aiPreviewState.selectedConcept?.conceptSummary || null,
-                selectedConceptApproach: aiPreviewState.selectedConcept?.conceptApproach || null,
-                selectedConceptIngredientPlan: aiPreviewState.selectedConcept?.conceptIngredientPlan || null,
-                selectedIngredientIds: aiPreviewState.selectedIngredientIds,
-                appliedChangeCount: aiPreviewState.appliedChangeCount
-            })
-        });
-
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) {
-            throw new Error(payload?.message || 'AI-Variante konnte nicht generiert werden.');
-        }
-        return payload;
-    }
-
-    async function startAiVariantJob(userNote = '') {
-        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-        const response = await fetch('@Url.Action("StartAiRecipeVariantJob", "Home", new { area = "WorldMiniApp" })', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': token
-            },
-            body: JSON.stringify({
-                recipeId,
-                variantType: aiPreviewState.variantType,
-                aiProvider: aiPreviewState.aiProvider,
-                userNote: userNote || '',
-                selectedConceptKey: aiPreviewState.selectedConcept?.conceptKey || null,
-                selectedConceptTitle: aiPreviewState.selectedConcept?.conceptTitle || null,
-                selectedConceptSummary: aiPreviewState.selectedConcept?.conceptSummary || null,
-                selectedConceptApproach: aiPreviewState.selectedConcept?.conceptApproach || null,
-                selectedConceptIngredientPlan: aiPreviewState.selectedConcept?.conceptIngredientPlan || null,
-                selectedIngredientIds: aiPreviewState.selectedIngredientIds,
-                appliedChangeCount: aiPreviewState.appliedChangeCount
-            })
-        });
-
-        const payload = await response.json().catch(() => null);
-        if (!response.ok) {
-            throw new Error(payload?.message || 'AI-Job konnte nicht gestartet werden.');
-        }
-        return payload;
-    }
-
-    async function requestAiPreview(userNote = '') {
-        if (!aiPreviewState.selectedConcept) {
-            throw new Error('Wähle zuerst eine Rezeptidee aus.');
-        }
-
-        setAiPreviewLoading(true, true);
-        setAiPreviewError('');
-
-        const payload = await fetchGeneratedVariant(userNote);
-        renderAiPreview(payload);
-        setAiPreviewLoading(false);
-        aiPreviewState.preview = payload;
-
-        if (userNote) {
-            aiPreviewState.latestUserNote = userNote;
-        }
-    }
-
-    async function requestAiPreviewInBackground(userNote = '') {
-        if (aiPreviewState.previewInFlight) {
-            return;
-        }
-
-        aiPreviewState.previewInFlight = true;
-        aiPreviewState.lastErrorStage = null;
-        setGlobalAiResume(AI_RESUME_STAGE.preview);
-        const requestId = ++aiPreviewState.previewRequestId;
-        const sessionId = aiPreviewState.modalSessionId;
-        aiPreviewState.previewAbortController?.abort();
-        aiPreviewState.previewAbortController = new AbortController();
-        updateAiConfirmButtonState();
-
-        try {
-            const payload = await fetchGeneratedVariant(userNote);
-            if (requestId !== aiPreviewState.previewRequestId || sessionId !== aiPreviewState.modalSessionId) {
-                return;
-            }
-            renderAiPreview(payload);
-            setAiPreviewLoading(false);
-            aiPreviewState.preview = payload;
-            if (userNote) aiPreviewState.latestUserNote = userNote;
-            showAiBottomBar('ready');
-            setGlobalAiResume(AI_RESUME_STAGE.ready, payload?.title || '');
-
-            // If the user closed the modal while the request was running, show a toast when ready.
-            const modalVisible = document.getElementById('aiTransformModal')?.classList.contains('show') === true;
-            if (!modalVisible) {
-                window.WorldMiniAppAiResume?.toast?.('AI Vorschau ist fertig. Tippe unten auf „Öffnen“.');
-            }
-        } catch (error) {
-            if (error?.name === 'AbortError') {
-                return;
-            }
-            console.warn('AI background preview failed:', error);
-            aiPreviewState.lastErrorStage = 'preview';
-            setAiPreviewLoading(false);
-            setAiPreviewError(error?.message || 'AI-Variante konnte nicht generiert werden.');
-            showAiBottomBar('error');
-            setGlobalAiResume(AI_RESUME_STAGE.error);
-        } finally {
-            if (requestId === aiPreviewState.previewRequestId) {
-                aiPreviewState.previewInFlight = false;
-                aiPreviewState.previewAbortController = null;
-                updateAiConfirmButtonState();
-            }
-        }
-    }
-
-    const aiLoadingQuips = [
-        '🔪 Messer werden geschliffen...',
-        '🧅 Zwiebeln werden geschnitten...',
-        '🍳 Pfannen werden vorgeheizt...',
-        '👨‍🍳 Schürze wird umgebunden...',
-        '🧄 Knoblauch wird geschält...',
-        '📖 Rezeptbuch wird durchblättert...',
-        '🌿 Kräuter werden gezupft...',
-        '🥄 Töpfe werden rausgeholt...',
-        '⏲️ Timer wird gestellt...',
-        '🧈 Butter wird geschmolzen...',
-        '🫕 Herd wird angeschaltet...',
-        '💡 Küchenlampe flackert noch kurz...',
-        '🧂 Wo ist das Salz schon wieder...',
-        '🥕 Gemüse wird gewaschen...',
-        '🍋 Zitronen werden ausgepresst...',
-        '👃 Mmh, riecht schon gut...',
-        '🫶 Wird mit Liebe zubereitet...',
-        '🎵 Küchenradio wird angemacht...'
-    ];
-    let aiLoadingQuipTimer = null;
-
-    function startAiLoadingQuips() {
-        const el = document.getElementById('aiPreviewLoadingText');
-        const barSpans = document.querySelectorAll('#aiBottomBarStatus span:not(.spinner-border)');
-        if (!el) return;
-        let idx = Math.floor(Math.random() * aiLoadingQuips.length);
-        const tick = () => {
-            const text = aiLoadingQuips[idx % aiLoadingQuips.length];
-            el.textContent = text;
-            if (barSpans.length) barSpans[barSpans.length - 1].textContent = text;
-            idx++;
-        };
-        tick();
-        aiLoadingQuipTimer = setInterval(tick, 3000);
-    }
-
-    function stopAiLoadingQuips() {
-        if (aiLoadingQuipTimer) { clearInterval(aiLoadingQuipTimer); aiLoadingQuipTimer = null; }
-        const el = document.getElementById('aiPreviewLoadingText');
-        if (el) el.textContent = 'AI transformiert gerade dein Rezept...';
-        const barSpans = document.querySelectorAll('#aiBottomBarStatus span:not(.spinner-border)');
-        if (barSpans.length) barSpans[barSpans.length - 1].textContent = 'AI transformiert...';
-    }
-
-    function setAiPreviewLoading(isLoading, keepContentVisible = false) {
-        document.getElementById('aiPreviewLoading')?.classList.toggle('is-visible', isLoading);
-        const content = document.getElementById('aiPreviewContent');
-
-        if (isLoading) {
-            startAiLoadingQuips();
-        } else {
-            stopAiLoadingQuips();
-        }
-
-        if (!content) return;
-
-        if (isLoading && !keepContentVisible) {
-            content.style.display = 'none';
-            return;
-        }
-
-        if (!isLoading) {
-            content.style.display = '';
-        }
-    }
-
-    function setAiPreviewError(message) {
-        const errorEl = document.getElementById('aiPreviewError');
-        if (!errorEl) return;
-
-        errorEl.textContent = message || '';
-        errorEl.classList.toggle('is-visible', !!message);
-        if (message) {
-            setAiPreviewLoading(false);
-            const content = document.getElementById('aiPreviewContent');
-            if (content) content.style.display = aiPreviewState.suggestions.length > 0 ? '' : 'none';
-        }
-    }
-
-    function setAiPreviewDetailsVisible(isVisible) {
-        const details = document.getElementById('aiPreviewDetails');
-        if (details) {
-            details.style.display = isVisible ? '' : 'none';
-        }
-    }
-
-    function setAiConceptBlockVisible(isVisible) {
-        const block = document.getElementById('aiConceptBlock');
-        if (block) {
-            block.style.display = isVisible ? '' : 'none';
-        }
-    }
-
-    async function pollAiJobUntilReady(jobId, maxWaitMs = 120000) {
-        const id = (jobId || '').toString().trim();
-        if (!id) throw new Error('jobId fehlt.');
-
-        const startedAt = Date.now();
-        let attempt = 0;
-
-        while (Date.now() - startedAt < maxWaitMs) {
-            attempt += 1;
-            const statusUrl = '@Url.Action("GetAiRecipeVariantJobStatus", "Home", new { area = "WorldMiniApp" })' + '?jobId=' + encodeURIComponent(id);
-            const statusRes = await fetch(statusUrl, { method: 'GET', headers: { 'Accept': 'application/json' } });
-            const statusPayload = await readJsonOrText(statusRes);
-
-            if (statusRes.status === 404) {
-                throw new Error(statusPayload?.message || 'Job nicht gefunden (abgelaufen).');
-            }
-
-            if (!statusRes.ok) {
-                // Keep trying briefly; transient errors happen.
-                const msg = statusPayload?.message || statusPayload?.rawText || 'AI-Status konnte nicht geladen werden.';
-                if (attempt >= 3) throw new Error(msg);
-            } else {
-                const state = (statusPayload?.state || '').toString().toLowerCase();
-                if (state === 'ready') return;
-                if (state === 'error') {
-                    throw new Error(statusPayload?.message || 'AI-Job ist fehlgeschlagen.');
-                }
-            }
-
-            // Backoff: 800ms -> 2.5s
-            const delay = Math.min(2500, 800 + attempt * 220);
-            await new Promise(r => setTimeout(r, delay));
-        }
-
-        throw new Error('AI braucht länger als erwartet. Bitte später erneut öffnen.');
-    }
-
-    window.openAiJobResult = async function openAiJobResult(jobId, variantType, aiProvider = 'openai') {
-        const id = (jobId || '').toString().trim();
-        if (!id) return;
-
-        aiPreviewState.variantType = (variantType || aiPreviewState.variantType || '').toString();
-        aiPreviewState.aiProvider = (aiProvider || 'openai').toString();
-        aiPreviewState.jobId = id;
-        setGlobalAiResume(AI_RESUME_STAGE.running);
-
-        setAiPreviewError('');
-        setAiPreviewDetailsVisible(false);
-        setAiPreviewLoading(true);
-        getAiTransformModal().show();
-
-        try {
-            // Do not call "result" immediately; it returns 404 while the job is still running.
-            await pollAiJobUntilReady(id, 120000);
-            const url = '@Url.Action("GetAiRecipeVariantJobResult", "Home", new { area = "WorldMiniApp" })' + '?jobId=' + encodeURIComponent(id);
-            const res = await fetch(url, { method: 'GET', headers: { 'Accept': 'application/json' } });
-            const payload = await readJsonOrText(res);
-            if (!res.ok) {
-                throw new Error(payload?.message || payload?.rawText || 'AI-Ergebnis ist noch nicht bereit.');
-            }
-
-            renderAiPreview(payload);
-            aiPreviewState.preview = payload;
-            setAiPreviewLoading(false);
-            setGlobalAiResume(AI_RESUME_STAGE.ready, payload?.title || '');
-        } catch (err) {
-            setAiPreviewLoading(false);
-            setAiPreviewError(err?.message || 'AI-Ergebnis konnte nicht geladen werden.');
-            setGlobalAiResume(AI_RESUME_STAGE.error);
-        }
-    };
-
-    function renderAiPreview(preview) {
-        setAiPreviewDetailsVisible(true);
-        setAiConceptBlockVisible(false);
-        document.getElementById('aiPreviewModeLabel').textContent = preview.variantLabel || 'AI Vorschau';
-        document.getElementById('aiPreviewTitle').textContent = preview.title || originalRecipeState.title;
-        document.getElementById('aiPreviewSummary').textContent = preview.summary || 'Neue Variante bereit.';
-
-        // Once we have a real preview, the concept cards are no longer needed.
-        aiPreviewState.suggestionResponse = null;
-        aiPreviewState.suggestions = [];
-        const suggestionGrid = document.getElementById('aiSuggestionList');
-        if (suggestionGrid) suggestionGrid.innerHTML = '';
-        const reasoning = document.getElementById('aiSuggestionReasoning');
-        if (reasoning) reasoning.style.display = 'none';
-        const strategyLabel = document.getElementById('aiSuggestionStrategyLabel');
-        if (strategyLabel) strategyLabel.style.display = 'none';
-        const selectionStatus = document.getElementById('aiSelectionStatus');
-        if (selectionStatus) selectionStatus.style.display = 'none';
-
-        const meta = [];
-        meta.push(`<span class="ai-preview-pill"><i class="bi bi-stars"></i>${escapeHtml(preview.variantLabel || 'AI')}</span>`);
-        meta.push(`<span class="ai-preview-pill"><i class="bi bi-arrow-repeat"></i>${preview.remainingChanges} Änderungen übrig</span>`);
-        if (preview.userNoteApplied) {
-            meta.push('<span class="ai-preview-pill"><i class="bi bi-chat-left-text"></i>User-Wunsch drin</span>');
-        }
-        if (preview.isCached) {
-            meta.push('<span class="ai-preview-pill"><i class="bi bi-archive"></i>Aus Rezept-Pool</span>');
-        }
-        if (preview.usedFallback) {
-            meta.push('<span class="ai-preview-pill"><i class="bi bi-cpu"></i>Lokaler Fallback</span>');
-        }
-        document.getElementById('aiPreviewMeta').innerHTML = meta.join('');
-
-        document.getElementById('aiPreviewHighlights').innerHTML = (preview.highlights || [])
-            .map(item => `<span class="ai-preview-highlight">${escapeHtml(item)}</span>`)
-            .join('');
-
-        document.getElementById('aiPreviewIngredients').innerHTML = (preview.ingredients || [])
-            .map(item => `
-                <li class="ai-preview-ingredient${item.isModified ? ' is-modified' : ''}">
-                    <div class="fw-bold">${escapeHtml(item.name || '')}</div>
-                    <div class="small text-muted">${escapeHtml(formatIngredientQuantity(item))}</div>
-                    ${renderChangeHint(item.changeHint, 'small mt-1 text-success-emphasis')}
-                </li>`)
-            .join('');
-
-        document.getElementById('aiPreviewSteps').innerHTML = (preview.steps || [])
-            .map(item => `
-                <li class="ai-preview-step d-flex align-items-start">
-                    <span class="ai-preview-step-index">${item.index}</span>
-                    <span>${escapeHtml(item.text || '')}</span>
-                </li>`)
-            .join('');
-
-        const changesText = preview.remainingChanges === 1
-            ? 'Noch 1 Änderung'
-            : `Noch ${preview.remainingChanges} Änderungen`;
-        document.getElementById('aiPreviewChangesLeft').textContent = changesText;
-        document.getElementById('aiPreviewRegenerateBtn').disabled = preview.remainingChanges <= 0;
-    }
-
-    function formatMacro(value) {
-        const number = Number(value || 0);
-        if (!Number.isFinite(number)) return '0';
-        return Number.isInteger(number) ? number.toString() : number.toFixed(1).replace(/\\.0$/, '');
-    }
-
-    async function saveAiPreview(isSilent = false) {
-        if (!aiPreviewState.preview || aiPreviewState.saveInFlight) {
-            return null;
-        }
-
-        aiPreviewState.saveInFlight = true;
-        const applyButton = document.getElementById('aiPreviewApplyBtn');
-        const originalButtonText = applyButton?.textContent || 'Vorschau übernehmen';
-        if (applyButton && !isSilent) {
-            applyButton.disabled = true;
-            applyButton.textContent = 'Speichert...';
-        }
-
-        try {
-            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            const response = await fetch('@Url.Action("SaveAiRecipeVariant", "Home", new { area = "WorldMiniApp" })', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'RequestVerificationToken': token
-                },
-                body: JSON.stringify({
-                    baseRecipeId: recipeId,
-                    latestUserNote: aiPreviewState.latestUserNote || null,
-                    aiProvider: aiPreviewState.aiProvider,
-                    selectedConceptKey: aiPreviewState.selectedConcept?.conceptKey || null,
-                    selectedIngredientIds: aiPreviewState.selectedIngredientIds,
-                    preview: aiPreviewState.preview
-                })
-            });
-
-            const payload = await response.json().catch(() => null);
-            if (!response.ok || !payload?.success) {
-                throw new Error(payload?.message || 'AI-Variante konnte nicht gespeichert werden.');
-            }
-            return payload;
-        } finally {
-            aiPreviewState.saveInFlight = false;
-            if (applyButton && !isSilent) {
-                applyButton.disabled = false;
-                applyButton.textContent = originalButtonText;
-            }
-        }
-    }
-
-    function renderPreviewToPage(preview) {
-        document.getElementById('recipeTitleValue').textContent = preview.title || originalRecipeState.title;
-        document.getElementById('ingredientListContainer').innerHTML = (preview.ingredients || [])
-            .map(item => buildAiIngredientMarkup(item))
-            .join('');
-
-        document.getElementById('preparationListContainer').innerHTML = (preview.steps || [])
-            .map(step => `
-                <div class="step-card">
-                    <span class="step-badge">@T("Schritt", "Step", "Paso", "Passo") ${step.index}</span>
-                    <p class="mb-0 lh-lg" style="font-size: 1.05rem; color: #444;">${escapeHtml(step.text || '')}</p>
-                </div>`)
-            .join('');
-
-        setNutritionBases(preview.nutrition);
-        document.getElementById('recipeAiAppliedBadge')?.classList.add('is-visible');
-        const resetBtn = document.getElementById('aiResetBtn');
-        if (resetBtn) resetBtn.style.display = '';
-        updatePortions();
-        aiPreviewState.suppressResumeBarOnce = true;
-        getAiTransformModal().hide();
-        hideAiBottomBar();
-    }
-
-    window.applySavedAiVariant = function applySavedAiVariant(index) {
-        const item = Array.isArray(savedAiVariants) ? savedAiVariants[index] : null;
-        if (!item?.preview) return;
-
-        aiPreviewState.preview = item.preview;
-        aiPreviewState.variantType = item.preview.variantType || '';
-        aiPreviewState.aiProvider = item.preview.aiProvider || 'openai';
-        aiPreviewState.selectedIngredientIds = [];
-        renderPreviewToPage(item.preview);
-    };
-
-    async function applyAiPreviewToPage() {
-        if (!aiPreviewState.preview) return;
-
-        const saveResult = await saveAiPreview();
-        upsertSavedAiVariant(aiPreviewState.preview, saveResult);
-        renderPreviewToPage(aiPreviewState.preview);
-    }
-
-    // --- Bottom-Bar Functions ---
-    function showAiBottomBar(state) {
-        // Use only the global resume bar (layout). Keep local bar hidden to avoid duplicates.
-        // For any in-flight UI state we show "running" globally.
-        if (state === 'ready') setGlobalAiResume(AI_RESUME_STAGE.ready, aiPreviewState.preview?.title || '');
-        else if (state === 'error') setGlobalAiResume(AI_RESUME_STAGE.error);
-        else setGlobalAiResume(AI_RESUME_STAGE.running);
-        return;
-
-        const bar = document.getElementById('aiBottomBar');
-        const status = document.getElementById('aiBottomBarStatus');
-        const openBtn = document.getElementById('aiBottomBarOpenBtn');
-        if (!bar || !status) return;
-
-        if (state === 'pending') {
-            status.innerHTML = '<span class="spinner-border spinner-border-sm text-light"></span><span>AI transformiert...</span>';
-            if (openBtn) openBtn.textContent = 'Vorschau öffnen';
-        } else if (state === 'suggestions') {
-            status.innerHTML = '<span class="spinner-border spinner-border-sm text-light"></span><span>AI sucht Zutaten...</span>';
-            if (openBtn) openBtn.textContent = 'Auswahl öffnen';
-        } else if (state === 'selection') {
-            status.innerHTML = '<i class="bi bi-list-check"></i><span>AI-Auswahl wartet auf dich</span>';
-            if (openBtn) openBtn.textContent = 'Auswahl öffnen';
-        } else if (state === 'ready') {
-            status.innerHTML = '<i class="bi bi-check-circle-fill"></i><span>AI-Vorschau bereit</span>';
-            if (openBtn) openBtn.textContent = 'Vorschau öffnen';
-        } else if (state === 'error') {
-            status.innerHTML = '<i class="bi bi-exclamation-triangle-fill"></i><span>AI fehlgeschlagen</span>';
-            if (openBtn) openBtn.textContent = 'Erneut versuchen';
-        }
-
-        bar.dataset.state = state;
-        bar.style.display = '';
-        // Re-trigger slide-up animation
-        bar.style.animation = 'none';
-        bar.offsetHeight; // reflow
-        bar.style.animation = '';
-
-        // Mirror into the global resume bar (layout), so users can reopen even after closing the modal.
-        if (state === 'pending') setGlobalAiResume(AI_RESUME_STAGE.pending);
-        else if (state === 'suggestions') setGlobalAiResume(AI_RESUME_STAGE.suggestions);
-        else if (state === 'selection') setGlobalAiResume(AI_RESUME_STAGE.selection);
-        else if (state === 'ready') setGlobalAiResume(AI_RESUME_STAGE.ready, aiPreviewState.preview?.title || '');
-        else if (state === 'error') setGlobalAiResume(AI_RESUME_STAGE.error);
-    }
-
-    function hideAiBottomBar() {
-        // Local bar is kept hidden; global resume bar is controlled via sessionStorage.
-    }
-
-    window.dismissAiBottomBar = function dismissAiBottomBar() {
-        resetAiPreview();
-        clearGlobalAiResume();
-    };
-
-    window.openAiPreviewFromBar = function openAiPreviewFromBar() {
-        // Global bar open button is handled in _MiniAppLayout.cshtml.
-        // Fallback: just open the modal on this page.
-        getAiTransformModal().show();
-        return;
-
-        const bar = document.getElementById('aiBottomBar');
-        const state = bar?.dataset.state;
-
-        if (state === 'error') {
-            // Retry the stage that actually failed.
-            if (aiPreviewState.lastErrorStage === 'suggestions') {
-                setAiPreviewError('');
-                setAiPreviewLoading(true);
-                getAiTransformModal().show();
-                showAiBottomBar('suggestions');
-                requestAiIngredientSuggestions()
-                    .then(() => showAiBottomBar('selection'))
-                    .catch(error => {
-                        setAiPreviewError(error?.message || 'AI-ZutatenvorschlÃ¤ge konnten nicht geladen werden.');
-                        showAiBottomBar('error');
-                    });
-                return;
-            }
-
-            showAiBottomBar('pending');
-            requestAiPreviewInBackground().catch(() => {});
-            return;
-        }
-
-        if (state === 'ready') {
-            // Preview already rendered — ensure loading is off and content visible
-            setAiPreviewLoading(false);
-            const content = document.getElementById('aiPreviewContent');
-            if (content) content.style.display = '';
-        } else if (state === 'pending' || state === 'suggestions') {
-            // Still loading — show spinner inside modal
-            setAiPreviewLoading(true);
-            const content = document.getElementById('aiPreviewContent');
-            if (content) content.style.display = '';
-        } else if (state === 'selection') {
-            setAiPreviewLoading(false);
-            const content = document.getElementById('aiPreviewContent');
-            if (content) content.style.display = '';
-        }
-        getAiTransformModal().show();
-    };
-
-    function resetAiPreview() {
-        document.getElementById('recipeTitleValue').textContent = originalRecipeState.title;
-        document.getElementById('ingredientListContainer').innerHTML = originalRecipeState.ingredientMarkup;
-        document.getElementById('preparationListContainer').innerHTML = originalRecipeState.stepMarkup;
-        setNutritionBases(originalRecipeState.nutrition);
-        document.getElementById('recipeAiAppliedBadge')?.classList.remove('is-visible');
-        const resetBtn = document.getElementById('aiResetBtn');
-        if (resetBtn) resetBtn.style.display = 'none';
-        aiPreviewState.suggestionResponse = null;
-        aiPreviewState.suggestions = [];
-        aiPreviewState.selectedConcept = null;
-        aiPreviewState.selectedIngredientIds = [];
-        aiPreviewState.preview = null;
-        aiPreviewState.suppressResumeBarOnce = false;
-        updatePortions();
-        hideAiBottomBar();
-    }
-
-    function escapeHtml(value) {
-        return (value || '')
-            .replaceAll('&', '&amp;')
-            .replaceAll('<', '&lt;')
-            .replaceAll('>', '&gt;')
-            .replaceAll('\"', '&quot;')
-            .replaceAll('\'', '&#39;');
-    }
-
-    function isGenericAutoAddedHint(value) {
-        const text = (value || '').toString().trim().toLowerCase();
-        if (!text) return false;
-        // UI noise: this hint is an internal detail and shouldn't be shown to users.
-        if (text === 'aus zutatenliste ergänzt' || text === 'aus zutatenliste ergaenzt') return true;
-        if (text.startsWith('aus zutatenliste')) return true;
-        return false;
-    }
-
-    function renderChangeHint(value, className) {
-        if (!value || isGenericAutoAddedHint(value)) return '';
-        return `<div class="${className}">${escapeHtml(value)}</div>`;
-    }
-
-    function formatIngredientQuantity(item) {
-        const qRaw = (item?.quantity || '').toString().trim();
-        const mRaw = (item?.measure || '').toString().trim();
-        if (!qRaw) return '';
-        if (!mRaw) return qRaw;
-
-        // Avoid "2 Stk. Stk." when quantity already includes the unit (common for base recipe ingredients).
-        const normalizeUnit = (s) => (s || '').toString().trim().replace(/\.+$/, '').toLowerCase();
-        const qTokens = qRaw.split(/\s+/).filter(Boolean);
-        const lastToken = qTokens.length ? qTokens[qTokens.length - 1] : '';
-        if (normalizeUnit(lastToken) === normalizeUnit(mRaw)) return qRaw;
-
-        return `${qRaw} ${mRaw}`.trim();
-    }
-
-    window.selectAiConcept = function selectAiConcept(conceptKey) {
-        const concept = (aiPreviewState.suggestions || []).find(item => item.conceptKey === conceptKey);
-        if (!concept) return;
-
-        aiPreviewState.selectedConcept = {
-            conceptKey: concept.conceptKey,
-            conceptTitle: concept.conceptTitle || concept.name || '',
-            conceptSummary: concept.conceptSummary || concept.aiReason || '',
-            conceptApproach: concept.conceptApproach || '',
-            conceptIngredientPlan: Array.isArray(concept.conceptIngredientPlan) ? concept.conceptIngredientPlan : []
-        };
-        aiPreviewState.selectedIngredientIds = [];
-        aiPreviewState.preview = null;
-        renderAiIngredientSuggestions(aiPreviewState.suggestionResponse);
-    };
-
-    function renderAiIngredientSuggestions(payload) {
-        const list = document.getElementById('aiSuggestionList');
-        const strategyLabel = document.getElementById('aiSuggestionStrategyLabel');
-        const reasoning = document.getElementById('aiSuggestionReasoning');
-        const selectionStatus = document.getElementById('aiSelectionStatus');
-        const confirmButton = document.getElementById('aiConfirmSelectionBtn');
-
-        if (!list || !strategyLabel || !reasoning || !selectionStatus || !confirmButton) return;
-
-        if (!payload) {
-            setAiConceptBlockVisible(true);
-            strategyLabel.textContent = '';
-            reasoning.textContent = 'Wir suchen stimmige Rezeptideen.';
-            list.innerHTML = '';
-            selectionStatus.textContent = 'Wähle gleich eine Rezeptidee aus und bestätige danach.';
-            confirmButton.textContent = 'Rezeptidee wählen & generieren';
-            confirmButton.disabled = true;
-            return;
-        }
-
-        document.getElementById('aiPreviewModeLabel').textContent = payload.variantLabel || 'AI Vorschau';
-        document.getElementById('aiPreviewTitle').textContent = 'Wähle deine Rezeptidee';
-        document.getElementById('aiPreviewSummary').textContent = 'Die AI hat mehrere Richtungen vorbereitet. Nach deiner Auswahl bauen wir daraus das eigentliche Rezept.';
-
-        strategyLabel.textContent = payload.strategy === 'replace' ? 'AI empfiehlt eher umbauen' : 'AI empfiehlt eher ergänzen';
-        const baseReasoning = payload.reasoning || 'Wähle eine Richtung aus und bestätige danach.';
-        const fallbackHint = payload.usedFallback
-            ? ' (Lokaler Fallback: Kein erfolgreicher AI-Call oder kein AI-Key konfiguriert.)'
-            : '';
-        reasoning.textContent = baseReasoning + fallbackHint;
-
-        const suggestions = payload.suggestions || [];
-        confirmButton.textContent = 'Rezeptidee wählen & generieren';
-
-        if (!suggestions.length) {
-            list.innerHTML = '<div class="ai-suggestion-empty">Keine passende Rezeptidee gefunden.</div>';
-            selectionStatus.textContent = 'Es gibt gerade keine passende Auswahl zum Bestätigen.';
-            confirmButton.disabled = true;
-            return;
-        }
-
-        list.innerHTML = suggestions.map(item => {
-            const isSelected = aiPreviewState.selectedConcept?.conceptKey === item.conceptKey;
-            const plan = Array.isArray(item.conceptIngredientPlan) ? item.conceptIngredientPlan : [];
-            const planLines = plan
-                .slice(0, 20)
-                .map(p => {
-                    const qty = (p.quantity || '').toString().trim();
-                    const unit = (p.measure || '').toString().trim();
-                    const name = (p.ingredientName || p.ingredientId || '').toString().trim();
-                    const replacesName = (p.replacesIngredientName || p.replacesIngredientId || '').toString().trim();
-                    const action = (p.action || 'add').toString().trim().toLowerCase();
-
-                    if (action === 'replace') {
-                        const rhs = [qty, unit, name].filter(Boolean).join(' ').trim();
-                        return `Ersetzt ${escapeHtml(replacesName)} durch ${escapeHtml(rhs)}`;
-                    }
-                    if (action === 'remove') {
-                        return `Entfernt ${escapeHtml(replacesName || name)}`;
-                    }
-                    const addText = [qty, unit, name].filter(Boolean).join(' ').trim();
-                    return `+ ${escapeHtml(addText)}`;
-                })
-                .filter(Boolean);
-
-            return `
-                <button type="button" class="ai-suggestion-card${isSelected ? ' is-selected' : ''}" onclick="selectAiConcept('${escapeHtml(item.conceptKey || '')}')">
-                    <span class="ai-suggestion-category"><i class="bi bi-stars"></i>${escapeHtml(item.conceptTitle || item.name || 'Konzept')}</span>
-                    <div class="fw-bold">${escapeHtml(item.conceptSummary || item.aiReason || '')}</div>
-                    <div class="small text-muted mt-1">${escapeHtml(item.conceptApproach || '')}</div>
-                    ${planLines.length ? `<div class="small mt-2" style="opacity:0.9; text-align:left;">
-                        <div class="fw-semibold" style="opacity:0.8;">Zutaten (Änderungsplan)</div>
-                        ${planLines.map(line => `<div>• ${line}</div>`).join('')}
-                    </div>` : ''}
-                </button>`;
-        }).join('');
-
-        updateAiConfirmButtonState();
-    }
-
-    function updateAiConfirmButtonState() {
-        const selectionStatus = document.getElementById('aiSelectionStatus');
-        const confirmButton = document.getElementById('aiConfirmSelectionBtn');
-        if (!selectionStatus || !confirmButton) return;
-
-        if (aiPreviewState.previewInFlight) {
-            selectionStatus.textContent = 'AI generiert gerade die Variante...';
-            confirmButton.disabled = true;
-            return;
-        }
-
-        if (!aiPreviewState.selectedConcept) {
-            selectionStatus.textContent = 'Wähle eine Rezeptidee und bestätige danach.';
-        } else {
-            selectionStatus.textContent = `„${aiPreviewState.selectedConcept.conceptTitle}“ gewählt. Mit Bestätigen starten wir die Generierung.`;
-        }
-
-        confirmButton.textContent = 'Rezeptidee wählen & generieren';
-        confirmButton.disabled = !aiPreviewState.selectedConcept || aiPreviewState.suggestionInFlight;
-    }
-
-    function confirmAiIngredientSelection() {
-        if (!aiPreviewState.selectedConcept) {
-            setAiPreviewError('Wähle zuerst eine Rezeptidee aus.');
-            return;
-        }
-
-        if (aiPreviewState.previewInFlight) {
-            return;
-        }
-
-        setAiPreviewError('');
-        setAiPreviewDetailsVisible(false);
-        aiPreviewState.suppressResumeBarOnce = true;
-        getAiTransformModal().hide();
-
-        // Start async background job: user can continue browsing immediately.
-        (async () => {
-            try {
-                aiPreviewState.previewInFlight = true;
-                aiPreviewState.jobId = null;
-                setGlobalAiResume(AI_RESUME_STAGE.queued);
-                window.WorldMiniAppAiResume?.toast?.('AI läuft im Hintergrund. Du kannst weiter scrollen.');
-
-                const started = await startAiVariantJob(aiPreviewState.latestUserNote || '');
-                aiPreviewState.jobId = started?.jobId || null;
-                setGlobalAiResume(AI_RESUME_STAGE.running);
-                aiPreviewState.previewInFlight = false;
-            } catch (err) {
-                aiPreviewState.previewInFlight = false;
-                setAiPreviewError(err?.message || 'AI-Job konnte nicht gestartet werden.');
-                setGlobalAiResume(AI_RESUME_STAGE.error);
-            }
-        })();
-    }
-
-    document.getElementById('aiPreviewRegenerateBtn')?.addEventListener('click', async () => {
-        if (!aiPreviewState.preview || aiPreviewState.preview.remainingChanges <= 0) return;
-
-        const noteInput = document.getElementById('aiPreviewUserNote');
-        const userNote = (noteInput?.value || '').trim();
-        if (!userNote) {
-            setAiPreviewError('Schreib kurz, was noch angepasst werden soll.');
-            return;
-        }
-
-        aiPreviewState.appliedChangeCount += 1;
-
-        try {
-            await requestAiPreview(userNote);
-            if (noteInput) noteInput.value = '';
-        } catch (error) {
-            aiPreviewState.appliedChangeCount = Math.max(0, aiPreviewState.appliedChangeCount - 1);
-            setAiPreviewError(error.message || 'AI-Änderung konnte nicht angewendet werden.');
-        }
-    });
-
-    document.getElementById('aiPreviewApplyBtn')?.addEventListener('click', async () => {
-        try {
-            await applyAiPreviewToPage();
-        } catch (error) {
-            setAiPreviewError(error.message || 'AI-Variante konnte nicht gespeichert werden.');
-        }
-    });
-
-    document.getElementById('aiConfirmSelectionBtn')?.addEventListener('click', () => {
-        confirmAiIngredientSelection();
-    });
-
-    document.getElementById('aiTransformModal')?.addEventListener('hidden.bs.modal', () => {
-        if (aiPreviewState.suppressResumeBarOnce) {
-            aiPreviewState.suppressResumeBarOnce = false;
-            return;
-        }
-
-        syncAiBottomBarForCurrentState();
-    });
-
-    // If we navigated here from the global resume bar, auto-open the modal.
-    (function autoResumeAiModal() {
-        try {
-            const params = new URLSearchParams(window.location.search || '');
-            if (params.get('aiResume') !== '1') return;
-
-            const resumeState = window.WorldMiniAppAiResume?.readState?.() || null;
-            const variant = ((params.get('variantType') || resumeState?.variantType || '') + '').trim();
-            const jobId = ((params.get('jobId') || resumeState?.jobId || '') + '').trim();
-            const provider = ((params.get('aiProvider') || resumeState?.aiProvider || 'openai') + '').trim() || 'openai';
-
-            if (jobId && variant && typeof window.openAiJobResult === 'function') {
-                window.openAiJobResult(jobId, variant, provider);
-                return;
-            }
-            if (variant && typeof window.openAiTransformModal === 'function') {
-                window.openAiTransformModal(variant, provider);
-            }
-        } catch {
-            // ignore
-        }
-    })();
-
-    // ----------------- Back To Feed (restore scroll position) -----------------
     (function bindBackToFeedRestore() {
         const FEED_STATE_KEY = 'worldminiapp.feed.state.v1';
         const FEED_RESTORE_FLAG_KEY = 'worldminiapp.feed.restore.v1';
@@ -2279,20 +566,186 @@
                     return;
                 }
             } catch {
-                // ignore parse errors and fall back
             }
 
             history.back();
         });
     })();
 
-    renderSavedAiVariantButtons();
+    // Apply ingredient swaps if variant loaded
+    @if (ViewData["SwapsJson"] is string swapsJson)
+    {
+        <text>
+        document.addEventListener('DOMContentLoaded', function() {
+            try {
+                const swapsJsonString = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(swapsJson));
+                const swaps = JSON.parse(swapsJsonString);
 
-    // If we navigated here from the profile AI tab, auto-apply the requested variant silently.
-    if (autoApplyAiVariantId && Array.isArray(savedAiVariants) && savedAiVariants.length) {
-        const idx = savedAiVariants.findIndex(x => Number(x?.variantId || 0) === Number(autoApplyAiVariantId));
-        if (idx >= 0 && typeof window.applySavedAiVariant === 'function') {
-            try { window.applySavedAiVariant(idx); } catch { /* ignore */ }
-        }
+                if (!swaps || !Array.isArray(swaps) || swaps.length === 0) {
+                    return;
+                }
+
+                const escapeRegExp = (value) => String(value || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+                const applyIngredientSwapMarkup = (text, fromName, toName) => {
+                    if (!text || !fromName || !toName) return text;
+
+                    const re = new RegExp(escapeRegExp(fromName), 'g');
+                    return String(text).replace(re,
+                        `<span style="text-decoration: line-through; opacity: 0.55;">${fromName}</span> → <span style="color: #28a745; font-weight: 700;">${toName}</span>`
+                    );
+                };
+
+                const stepParagraphs = Array.from(document.querySelectorAll('#preparationListContainer .step-card p'));
+                const preparationContainer = document.getElementById('preparationListContainer');
+                const stepLabel = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(SharedLocalizer["Recipe.Step"].Value));
+
+                const escapeHtml = (text) => {
+                    const div = document.createElement('div');
+                    div.textContent = text == null ? '' : String(text);
+                    return div.innerHTML;
+                };
+
+                const getSwapVariantId = () => {
+                    try {
+                        const u = new URL(window.location.href);
+                        const raw = u.searchParams.get('swapVariantId');
+                        const id = raw ? parseInt(raw, 10) : NaN;
+                        return Number.isFinite(id) ? id : null;
+                    } catch {
+                        return null;
+                    }
+                };
+
+                const showInlineStepLoader = (text) => {
+                    if (!preparationContainer) return;
+                    let el = document.getElementById('swapStepAiLoader');
+                    if (!el) {
+                        el = document.createElement('div');
+                        el.id = 'swapStepAiLoader';
+                        el.className = 'd-flex align-items-center gap-2 py-2 px-3 mb-3 rounded border bg-white small';
+                        el.style.boxShadow = '0 6px 18px rgba(0,0,0,0.06)';
+                        preparationContainer.parentElement?.insertBefore(el, preparationContainer);
+                    }
+
+                    // Dim existing steps so the user sees "something is happening" without hiding content.
+                    preparationContainer.style.opacity = '0.55';
+
+                    el.innerHTML = `
+                        <span class="spinner-border spinner-border-sm text-primary" role="status" aria-hidden="true"></span>
+                        <span><strong>AI:</strong> ${escapeHtml(text)}</span>
+                    `;
+                };
+
+                const hideInlineStepLoader = () => {
+                    const el = document.getElementById('swapStepAiLoader');
+                    if (el) el.remove();
+                    if (preparationContainer) {
+                        preparationContainer.style.opacity = '1';
+                    }
+                };
+
+                swaps.forEach(swap => {
+                    const card = document.querySelector(`[data-ingredient-id="${swap.FromIngredientId}"]`);
+                    if (!card) {
+                        return;
+                    }
+
+                    const nameEl = card.querySelector('.ingredient-name');
+                    const qtyEl = card.querySelector('.dyn-qty');
+                    const unitEl = card.querySelector('.ingredient-unit');
+                    const swapBtn = card.querySelector('.swap-btn');
+
+                    if (nameEl) {
+                        // Strike through old name and add new name in green
+                        nameEl.innerHTML = `<span style="text-decoration: line-through; opacity: 0.5;">${swap.FromName}</span> → <span style="color: #28a745; font-weight: 700;">${swap.ToName}</span>`;
+                    }
+
+                    if (qtyEl && swap.NewQuantity) {
+                        qtyEl.textContent = swap.NewQuantity;
+                        qtyEl.style.color = '#28a745';
+                    }
+
+                    if (unitEl && swap.Unit) {
+                        unitEl.textContent = swap.Unit;
+                    }
+
+                    // Add badge
+                    card.style.borderLeft = '4px solid #28a745';
+                    card.style.background = 'linear-gradient(to right, rgba(40, 167, 69, 0.05), white)';
+
+                    // Hide swap button for already swapped ingredients
+                    if (swapBtn) {
+                        swapBtn.style.display = 'none';
+                    }
+
+                    // Apply swap to preparation steps (text only; we keep it robust and lightweight)
+                    if (swap.FromName && swap.ToName && stepParagraphs.length > 0) {
+                        stepParagraphs.forEach(p => {
+                            const originalText = p.getAttribute('data-original-step') || p.textContent || '';
+                            if (!p.getAttribute('data-original-step')) {
+                                p.setAttribute('data-original-step', originalText);
+                            }
+
+                            const nextHtml = applyIngredientSwapMarkup(originalText, swap.FromName, swap.ToName);
+                            if (nextHtml !== originalText) {
+                                p.innerHTML = nextHtml;
+                            }
+                        });
+                    }
+                });
+
+                // After the lightweight text-markup swap, ask the AI to rewrite steps properly
+                // (technique + times + order), so protein swaps don't stay "word replaced" only.
+                if (swaps.length > 0 && preparationContainer) {
+                    const payload = {
+                        recipeId: @Model.Id,
+                        swapVariantId: getSwapVariantId(),
+                        language: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(language))
+                    };
+
+                    showInlineStepLoader('Zubereitung wird an die getauschten Zutaten angepasst...');
+                    fetch('/api/recipe-swap/rewrite-steps', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    })
+                    .then(r => r.ok ? r.json() : r.text().then(t => Promise.reject(new Error(t || `HTTP ${r.status}`))))
+                    .then(data => {
+                        const steps = (data && Array.isArray(data.steps)) ? data.steps : [];
+                        if (!steps || steps.length === 0) {
+                            hideInlineStepLoader();
+                            return;
+                        }
+
+                        preparationContainer.innerHTML = steps.map((s, idx) => `
+                            <div class="step-card">
+                                <span class="step-badge">${escapeHtml(stepLabel)} ${idx + 1}</span>
+                                <p class="mb-0 lh-lg" style="font-size:1.05rem; color:#444;">${escapeHtml(s)}</p>
+                            </div>
+                        `).join('');
+
+                        hideInlineStepLoader();
+                    })
+                    .catch(err => {
+                        console.error('AI step rewrite failed:', err);
+                        // Show a short message (no spinner) then restore
+                        if (preparationContainer) {
+                            preparationContainer.style.opacity = '1';
+                        }
+                        const el = document.getElementById('swapStepAiLoader');
+                        if (el) {
+                            el.innerHTML = `<span class="text-muted"><strong>AI:</strong> Konnte Steps nicht automatisch anpassen (Fallback aktiv).</span>`;
+                        } else {
+                            showInlineStepLoader('Konnte Steps nicht automatisch anpassen (Fallback aktiv).');
+                        }
+                        setTimeout(hideInlineStepLoader, 3500);
+                    });
+                }
+
+            } catch (err) {
+                console.error('Failed to apply swaps:', err);
+            }
+        });
+        </text>
     }
 </script>
