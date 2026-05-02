@@ -23,14 +23,18 @@
     }
 
     function init() {
-        const cultureCookie = document.cookie
-            .split('; ')
-            .find(row => row.startsWith('.AspNetCore.Culture='));
-
-        if (cultureCookie) {
-            const match = cultureCookie.match(/c=([a-z]{2})/);
-            if (match) {
-                currentLanguage = match[1];
+        // Prefer our app-specific language cookie first (used across the WorldMiniApp).
+        // Fallback to ASP.NET culture cookie if present.
+        const cookies = document.cookie.split('; ').filter(Boolean);
+        const deliLangCookie = cookies.find(row => row.startsWith('deli-lang='));
+        if (deliLangCookie) {
+            const raw = (deliLangCookie.split('=')[1] || '').trim().toLowerCase();
+            if (raw) currentLanguage = raw;
+        } else {
+            const cultureCookie = cookies.find(row => row.startsWith('.AspNetCore.Culture='));
+            if (cultureCookie) {
+                const match = cultureCookie.match(/c=([a-z]{2})/);
+                if (match) currentLanguage = match[1];
             }
         }
 
@@ -264,7 +268,7 @@
                         <div class="modal-body text-center py-5">
                             <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
                             <h5 class="mb-2">Alternativen werden gesucht...</h5>
-                            <p class="text-muted mb-0">Fur: <strong>${escapeHtml(ingredientName)}</strong></p>
+                            <p class="text-muted mb-0">Fuer: <strong>${escapeHtml(ingredientName)}</strong></p>
                             <small class="text-muted d-block mt-2">${getProviderLabel(provider)} wird abgefragt</small>
                         </div>
                     </div>
@@ -292,7 +296,7 @@
                     <div class="modal-content" style="border-radius: 16px;">
                         <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px 16px 0 0;">
                             <div>
-                                <h5 class="modal-title mb-1">Alternativen fur ${escapeHtml(ingredientName)}</h5>
+                                <h5 class="modal-title mb-1">Alternativen fuer ${escapeHtml(ingredientName)}</h5>
                                 <small style="opacity: 0.9;">
                                     ${getProviderLabel(currentProvider)} • ${processingTimeMs}ms
                                 </small>
@@ -551,7 +555,7 @@
                             <button type="button" class="btn-close btn-close-white" data-dismiss="modal"></button>
                         </div>
                         <div class="modal-body">
-                            <p>Konnte keine Alternativen fur <strong>${escapeHtml(ingredientName)}</strong> finden.</p>
+                            <p>Konnte keine Alternativen fuer <strong>${escapeHtml(ingredientName)}</strong> finden.</p>
                             <p class="text-muted small mb-0">Fehler: ${escapeHtml(errorMessage)}</p>
                         </div>
                         <div class="modal-footer">
