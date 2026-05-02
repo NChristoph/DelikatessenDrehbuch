@@ -38,6 +38,12 @@ namespace DelikatessenDrehbuch.Services
         private readonly ApplicationDbContext _context;
         private readonly IMemoryCache _cache;
         private readonly ILogger<IngredientSwapAiService> _logger;
+        private static readonly string[] SeasoningGroupNameHints = new[]
+        {
+            // Keep ASCII in code; DB values may include umlauts.
+            "gewuerz", "gewürz", "spice",
+            "kraeuter", "kräuter", "herb"
+        };
 
         private sealed record OriginalUsageInfo(decimal DisplayQuantity, string DisplayUnit, decimal QuantityInGrams);
 
@@ -348,12 +354,17 @@ Available ingredients:
                 baseQuery = baseQuery.Where(i => relevantGroupIds.Contains(i.GroupId));
             }
 
+            // If the ingredient belongs to a seasoning group (herbs/spices), do NOT use FoodCategoryId
+            // to narrow down candidates. FoodCategory is often too broad (e.g. "vegetables") and
+            // causes nonsense suggestions like cauliflower for coriander.
+            var isSeasoningGroup = await IsSeasoningGroupAsync(original.GroupId);
+
             // For vegan swaps, don't narrow too much; otherwise keep the pool close to the original.
             // IMPORTANT: If FoodCategoryId is set, prefer it strongly (herbs/spices often share a food-category,
             // while GroupId can be broad like "vegetables" and would leak weird options such as cauliflower for coriander).
             if (!string.Equals(goal, "vegan", StringComparison.OrdinalIgnoreCase))
             {
-                if (original.FoodCategoryId.HasValue)
+                if (!isSeasoningGroup && original.FoodCategoryId.HasValue)
                 {
                     var strict = baseQuery.Where(i => i.FoodCategoryId == original.FoodCategoryId.Value);
                     var strictCount = await strict.Take(25).CountAsync();
@@ -516,6 +527,35 @@ Available ingredients:
                     $"{i.Calories}kcal,P{i.Protein}g"))
                 .ToList();
             return ingredientList;
+        }
+
+        private async Task<bool> IsSeasoningGroupAsync(int? groupId)
+        {
+            if (!groupId.HasValue)
+            {
+                return false;
+            }
+
+            // Cheap cache: group ids are stable and rarely change.
+            var cacheKey = "swap_seasoning_group_ids_v1";
+            if (!_cache.TryGetValue<HashSet<int>>(cacheKey, out var ids) || ids == null)
+            {
+                var all = await _context.Group
+                    .AsNoTracking()
+                    .Select(g => new { g.Id, g.Name })
+                    .ToListAsync();
+
+                ids = all
+                    .Where(g =>
+                        SeasoningGroupNameHints.Any(h =>
+                            (!string.IsNullOrWhiteSpace(g.Name) && g.Name.Contains(h, StringComparison.OrdinalIgnoreCase))))
+                    .Select(g => g.Id)
+                    .ToHashSet();
+
+                _cache.Set(cacheKey, ids, TimeSpan.FromHours(6));
+            }
+
+            return ids.Contains(groupId.Value);
         }
 
         private static string BuildContextKey(IReadOnlyList<IngredientSwap>? contextSwaps)
