@@ -722,6 +722,20 @@
         const btn = document.getElementById('backToFeedBtn');
         if (!btn) return;
 
+        const currentRecipeId = Number(@Model.Id) || 0;
+
+        function buildReferrerReturnUrl() {
+            try {
+                const ref = (document.referrer || '').toString();
+                if (!ref || !ref.includes('/WorldMiniApp/Feed')) return null;
+                const u = new URL(ref);
+                if (currentRecipeId) u.searchParams.set('scrollToId', String(currentRecipeId));
+                return u.pathname + u.search;
+            } catch {
+                return null;
+            }
+        }
+
         function tryMarkRestoreFlagIfCameFromFeed() {
             try {
                 const raw = sessionStorage.getItem(FEED_STATE_KEY);
@@ -732,6 +746,11 @@
                     return returnUrl;
                 }
             } catch {
+            }
+            const referrerUrl = buildReferrerReturnUrl();
+            if (referrerUrl) {
+                sessionStorage.setItem(FEED_RESTORE_FLAG_KEY, '1');
+                return referrerUrl;
             }
             return null;
         }
