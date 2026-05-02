@@ -722,16 +722,26 @@
         const btn = document.getElementById('backToFeedBtn');
         if (!btn) return;
 
-        btn.addEventListener('click', (event) => {
-            event.preventDefault();
-
+        function tryMarkRestoreFlagIfCameFromFeed() {
             try {
                 const raw = sessionStorage.getItem(FEED_STATE_KEY);
                 const state = raw ? JSON.parse(raw) : null;
                 const returnUrl = (state?.returnUrl || '').toString();
-
                 if (returnUrl && returnUrl.includes('/WorldMiniApp/Feed')) {
                     sessionStorage.setItem(FEED_RESTORE_FLAG_KEY, '1');
+                    return returnUrl;
+                }
+            } catch {
+            }
+            return null;
+        }
+
+        btn.addEventListener('click', (event) => {
+            event.preventDefault();
+
+            try {
+                const returnUrl = tryMarkRestoreFlagIfCameFromFeed();
+                if (returnUrl) {
                     window.location.href = returnUrl;
                     return;
                 }
@@ -739,6 +749,12 @@
             }
 
             history.back();
+        });
+
+        // Also handle OS/browser back gestures (Android back, swipe back, browser back button):
+        // mark restore flag when leaving this page, but only if we actually came from the feed.
+        window.addEventListener('pagehide', () => {
+            tryMarkRestoreFlagIfCameFromFeed();
         });
     })();
 
