@@ -83,15 +83,15 @@ Section is "complete" when ≥ 2 ingredients are added.
 
 ### 4. Steps
 
-**Purpose:** Build the step-by-step instructions, with AI assistance.
+**Purpose:** Build the step-by-step instructions, with AI assistance. **All step-related tooling lives in this single section** — no separate "Smart Step" tab.
 
-**Layout:**
-1. **"Was könnte es sein?"** card — cream tile that shows AI-detected recipe types as percentage chips: `[★ 8% Suppe] [7% Eintopf] [5% Curry] [4% Pasta-Gericht]`. The top match is dark-ink filled with a gold star, the rest are white.
+**Layout (top → bottom, all inside the same section card):**
+1. **"Was könnte es sein?"** card — cream tile that shows AI-detected recipe types as percentage chips: `[★ 8% Suppe] [7% Eintopf] [5% Curry] [4% Pasta-Gericht]`. The top match is dark-ink filled with a gold star, the rest are white. Selecting a type seeds the step templates below.
 2. **Erkannte Steps** — list of detected step cards. Each has:
    - small caps label "ERKANNTER STEP #N" + two buttons (`✕` ghost / `✓ Akzeptieren` solid dark)
    - body text formatted like a script: action verb in **coral**, ingredient/object **bold with dotted coral underline**, hint in muted gray
-3. **Smart Step Creator** — dark forest-green panel `#14391f` with category filter chips (Alle, ⭐ Beste, 🥕 Vorbereitung, 🔥 Kochen, ✨ Finishing, 🍽️ Servieren). Active chip is white-on-dark.
-4. **Templates** — list of step templates, each showing emoji tile + title + body text + star rating.
+3. **Smart Step Creator** (inline, not a separate tab/section) — dark forest-green panel `#14391f` with category filter chips (Alle, ⭐ Beste, 🥕 Vorbereitung, 🔥 Kochen, ✨ Finishing, 🍽️ Servieren). Active chip is white-on-dark.
+4. **Templates** — list of step templates, each showing emoji tile + title + body text + star rating. Choosing one creates a new step from that template.
 
 ### 5. Keywords
 

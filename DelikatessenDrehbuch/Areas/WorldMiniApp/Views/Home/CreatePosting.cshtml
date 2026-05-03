@@ -24,22 +24,37 @@
     </div>
 
     <div class="cp-container">
-        <!-- Top Bar -->
-        <div class="cp-topbar">
-            <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="cp-topbar-back" aria-label="Zurück">
-                <i class="bi bi-chevron-left"></i>
-            </a>
-            <div class="cp-topbar-title">
-                <div class="cp-topbar-label label-lang"
-                     data-de="Rezept erstellen"
-                     data-en="Create recipe"
-                     data-esp="Crear receta"
-                     data-prt="Criar receita">Rezept erstellen</div>
-                <div class="cp-topbar-progress" id="creatorTopbarProgress">0/5 bereit</div>
+        <!-- Hero Bar (Variant B) -->
+        <div class="cp-hero">
+            <div class="cp-hero-toprow">
+                <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="cp-hero-back" aria-label="Zurück">
+                    <i class="bi bi-chevron-left"></i>
+                </a>
+                <div class="cp-hero-label label-lang"
+                     data-de="Neues Posting"
+                     data-en="New posting"
+                     data-esp="Nueva publicación"
+                     data-prt="Nova publicação">Neues Posting</div>
+                <button type="button" class="cp-hero-lang" id="langToggle" aria-label="Sprache wechseln">
+                    DE <i class="bi bi-chevron-down" style="font-size:9px;"></i>
+                </button>
             </div>
-            <button type="button" class="cp-topbar-lang" id="langToggle" aria-label="Sprache wechseln">
-                DE <i class="bi bi-chevron-down" style="font-size:9px;"></i>
-            </button>
+            <h1 class="cp-hero-title" id="heroTitle">@(isEditMode ? Model.Title : "Neues Posting")</h1>
+            <div class="cp-hero-meta">
+                <span class="cp-hero-category" id="heroCategory">
+                    <span id="heroCategoryEmoji">🍽️</span>
+                    <span id="heroCategoryLabel" class="label-lang" data-de="Kategorie wählen" data-en="Select category">Kategorie wählen</span>
+                </span>
+                <span class="cp-hero-stat" id="heroPersons">· 2 Pers.</span>
+                <span class="cp-hero-stat" id="heroDuration">· 30 Min</span>
+                <span class="cp-hero-progress-wrapper">
+                    <span class="cp-hero-progress-number" id="heroProgressNum">0</span>
+                    <span class="cp-hero-progress-total">/ 5</span>
+                </span>
+            </div>
+            <div class="cp-hero-progressbar">
+                <div class="cp-hero-progressbar-fill" id="heroProgressBar" style="width:0%"></div>
+            </div>
         </div>
 
         <!-- Sticky Tab Bar -->
@@ -124,6 +139,7 @@
                                 <div class="cp-input-wrapper">
                                     <i class="bi bi-fonts cp-input-icon"></i>
                                     <input asp-for="Title"
+                                           id="basisTitleInput"
                                            class="cp-input lang-ph"
                                            placeholder="Titel"
                                            data-ph-de="Titel"
@@ -142,7 +158,7 @@
                                            data-en="Category">Kategorie</label>
                                     <div class="cp-select-wrapper">
                                         <i class="bi bi-grid cp-input-icon"></i>
-                                        <select asp-for="Recipe.Category" class="cp-select">
+                                        <select asp-for="Recipe.Category" id="basisCategorySelect" class="cp-select">
                                             <option value="" selected disabled class="lang-opt"
                                                     data-txt-de="Kategorie"
                                                     data-txt-en="Category">Kategorie</option>
@@ -185,6 +201,7 @@
                                     <div class="cp-input-wrapper">
                                         <i class="bi bi-people cp-input-icon"></i>
                                         <input asp-for="Recipe.PersonCount"
+                                               id="basisPersonsInput"
                                                type="number"
                                                class="cp-input lang-ph"
                                                placeholder="Personen"
@@ -200,6 +217,7 @@
                                     <div class="cp-input-wrapper">
                                         <i class="bi bi-clock cp-input-icon"></i>
                                         <input asp-for="Recipe.PreparationTime"
+                                               id="basisDurationInput"
                                                type="number"
                                                class="cp-input lang-ph"
                                                placeholder="Minuten"
@@ -373,7 +391,6 @@
                                          data-is-blendable="@item.is_blendable.ToString().ToLower()"
                                          data-is-powder="@item.is_powder.ToString().ToLower()"
                                          data-selected-qty="1"
-                                         data-theme="navy"
                                          data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metrics_DE ?? "")"
                                          style="border:1px solid rgba(173,207,255,0.3);background:rgba(15,23,42,0.92);border-radius:14px;padding:10px 12px;margin-bottom:0;cursor:pointer;">
 
@@ -551,7 +568,7 @@
 /* Performance optimizations */
 .cp-section { content-visibility: auto; }
 button, input, select, textarea { touch-action: manipulation; }
-.cp-topbar, .cp-tabbar, .cp-publishbar { will-change: transform; }
+.cp-hero, .cp-tabbar, .cp-publishbar { will-change: transform; }
 
 /* Ingredient row styles for selected zone */
 .ingredient-row.dynamic-item {
@@ -755,21 +772,23 @@ button, input, select, textarea { touch-action: manipulation; }
                 }
             });
 
-            // Update top bar
-            const topProgress = document.getElementById('creatorTopbarProgress');
-            topProgress.textContent = `${completedCount}/5 bereit`;
+            // Update hero progress
+            const heroProgressNum = document.getElementById('heroProgressNum');
+            const heroProgressBar = document.getElementById('heroProgressBar');
+            if (heroProgressNum) heroProgressNum.textContent = completedCount;
+            const percentage = (completedCount / total) * 100;
+            if (heroProgressBar) heroProgressBar.style.width = `${percentage}%`;
 
             // Update publish bar
-            const progressBar = document.getElementById('publishProgressBar');
+            const publishProgressBar = document.getElementById('publishProgressBar');
             const publishBtn = document.getElementById('publishBtn');
-            const percentage = (completedCount / total) * 100;
-            progressBar.style.width = `${percentage}%`;
+            publishProgressBar.style.width = `${percentage}%`;
 
             if (completedCount === total) {
-                progressBar.classList.add('complete');
+                publishProgressBar.classList.add('complete');
                 publishBtn.disabled = false;
             } else {
-                progressBar.classList.remove('complete');
+                publishProgressBar.classList.remove('complete');
                 publishBtn.disabled = true;
             }
 
@@ -838,10 +857,73 @@ button, input, select, textarea { touch-action: manipulation; }
             }
         }
 
+        // ========================================
+        // Live Hero Updates
+        // ========================================
+
+        function setupHeroLiveUpdates() {
+            // Title live update
+            const titleInput = document.getElementById('basisTitleInput');
+            const heroTitle = document.getElementById('heroTitle');
+            if (titleInput && heroTitle) {
+                titleInput.addEventListener('input', (e) => {
+                    const val = e.target.value.trim();
+                    heroTitle.textContent = val || '@(isEditMode ? "" : "Neues Posting")';
+                });
+            }
+
+            // Category live update (with emoji mapping)
+            const categorySelect = document.getElementById('basisCategorySelect');
+            const heroCategoryEmoji = document.getElementById('heroCategoryEmoji');
+            const heroCategoryLabel = document.getElementById('heroCategoryLabel');
+            const categoryEmojis = {
+                'Appetizer': '🥗',
+                'Main': '🍽️',
+                'Dessert': '🍰'
+            };
+            if (categorySelect && heroCategoryEmoji && heroCategoryLabel) {
+                categorySelect.addEventListener('change', (e) => {
+                    const val = e.target.value;
+                    if (val) {
+                        heroCategoryEmoji.textContent = categoryEmojis[val] || '🍽️';
+                        const selectedOption = e.target.options[e.target.selectedIndex];
+                        const currentLang = document.documentElement.lang || 'de';
+                        const label = selectedOption.getAttribute(`data-txt-${currentLang}`) || selectedOption.textContent;
+                        heroCategoryLabel.textContent = label;
+                    } else {
+                        heroCategoryEmoji.textContent = '🍽️';
+                        const currentLang = document.documentElement.lang || 'de';
+                        heroCategoryLabel.textContent = heroCategoryLabel.getAttribute(`data-${currentLang}`) || 'Kategorie wählen';
+                    }
+                });
+            }
+
+            // Persons live update
+            const personsInput = document.getElementById('basisPersonsInput');
+            const heroPersons = document.getElementById('heroPersons');
+            if (personsInput && heroPersons) {
+                personsInput.addEventListener('input', (e) => {
+                    const val = parseInt(e.target.value) || 2;
+                    heroPersons.textContent = `· ${val} Pers.`;
+                });
+            }
+
+            // Duration live update
+            const durationInput = document.getElementById('basisDurationInput');
+            const heroDuration = document.getElementById('heroDuration');
+            if (durationInput && heroDuration) {
+                durationInput.addEventListener('input', (e) => {
+                    const val = parseInt(e.target.value) || 30;
+                    heroDuration.textContent = `· ${val} Min`;
+                });
+            }
+        }
+
         // Init on page load
         document.addEventListener('DOMContentLoaded', () => {
             initScrollSpy();
             setupCompletionMonitoring();
+            setupHeroLiveUpdates();
             updateCompletionStates();
         });
     </script>

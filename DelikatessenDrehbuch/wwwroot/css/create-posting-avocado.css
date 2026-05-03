@@ -1,6 +1,6 @@
 /* ========================================
    Create Posting — Avocado Design System
-   Variante A: Scroll Stack
+   Variante B: Hybrid Hero
    ======================================== */
 
 :root {
@@ -72,75 +72,132 @@
 }
 
 /* ========================================
-   Top Bar
+   Hero Bar (Variant B)
    ======================================== */
 
-.cp-topbar {
+.cp-hero {
+  flex-shrink: 0;
+  background: var(--cp-gradient-hero);
+  padding: 14px 16px 18px;
+  color: white;
+}
+
+.cp-hero-toprow {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 14px 16px 6px;
-  flex-shrink: 0;
-  background: var(--cp-bg-cream);
-  position: sticky;
-  top: 0;
-  z-index: 10;
+  margin-bottom: 14px;
 }
 
-.cp-topbar-back {
-  width: 36px;
-  height: 36px;
-  background: white;
+.cp-hero-back {
+  width: 34px;
+  height: 34px;
   border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
   border: none;
+  cursor: pointer;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  box-shadow: var(--cp-shadow-sm);
-  cursor: pointer;
   transition: all 0.15s;
 }
 
-.cp-topbar-back:hover {
-  transform: scale(1.05);
+.cp-hero-back:hover {
+  background: rgba(255, 255, 255, 0.15);
 }
 
-.cp-topbar-title {
-  flex: 1;
-  text-align: center;
-  padding: 0 12px;
-}
-
-.cp-topbar-label {
-  font-size: 11px;
-  color: var(--cp-ink-mute);
+.cp-hero-label {
+  font-size: 10px;
+  opacity: 0.6;
   font-weight: 600;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  text-align: center;
 }
 
-.cp-topbar-progress {
-  font-family: var(--cp-font-serif);
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--cp-ink-deep);
-  margin-top: 1px;
-}
-
-.cp-topbar-lang {
-  background: white;
+.cp-hero-lang {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
   border: none;
   border-radius: 999px;
   padding: 6px 10px;
   font-size: 11px;
   font-weight: 700;
-  color: var(--cp-ink-deep);
   display: inline-flex;
   align-items: center;
   gap: 3px;
   cursor: pointer;
-  box-shadow: var(--cp-shadow-sm);
   font-family: var(--cp-font-sans);
+  transition: all 0.15s;
+}
+
+.cp-hero-lang:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.cp-hero-title {
+  font-family: var(--cp-font-serif);
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.05;
+}
+
+.cp-hero-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.cp-hero-category {
+  background: rgba(255, 120, 73, 0.22);
+  color: var(--cp-orange);
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.cp-hero-stat {
+  opacity: 0.6;
+}
+
+.cp-hero-progress-wrapper {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.cp-hero-progress-number {
+  font-family: var(--cp-font-serif);
+  font-size: 22px;
+  font-weight: 600;
+  color: var(--cp-orange);
+}
+
+.cp-hero-progress-total {
+  font-size: 11px;
+  opacity: 0.5;
+}
+
+.cp-hero-progressbar {
+  margin-top: 12px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.cp-hero-progressbar-fill {
+  height: 100%;
+  background: var(--cp-gradient-coral);
+  transition: width 0.3s ease;
 }
 
 /* ========================================
@@ -154,10 +211,10 @@
   padding: 4px 14px 8px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  background: var(--cp-bg-cream);
-  position: sticky;
-  top: 56px;
+  background: transparent;
+  position: relative;
   z-index: 9;
+  margin-top: -10px;
 }
 
 .cp-tabbar::-webkit-scrollbar {
@@ -558,8 +615,12 @@
    ======================================== */
 
 @media (max-width: 768px) {
-  .cp-topbar {
-    padding: 12px 14px 4px;
+  .cp-hero {
+    padding: 12px 14px 16px;
+  }
+
+  .cp-hero-title {
+    font-size: 28px;
   }
 
   .cp-feed {

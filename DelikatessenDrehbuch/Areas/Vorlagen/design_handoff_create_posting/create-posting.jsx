@@ -663,6 +663,7 @@ function CPZutatenBody({ ingredients, setIngredients }) {
   );
 }
 
+// Section 4 · Steps  (Rezepttyp + erkannte Steps)
 function CPStepsBody({ steps, setSteps }) {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -745,9 +746,20 @@ function CPStepsBody({ steps, setSteps }) {
         </div>
       </div>
 
-      {/* Smart Step Creator */}
+      {/* Smart Step Creator - inline */}
+      <CPSmartStepBody />
+    </div>
+  );
+}
+
+// Section 5 · Smart Step Creator (eigenständige Karte)
+function CPSmartStepBody() {
+  const [activeCat, setActiveCat] = cpUseState('Beste');
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+      {/* Dark filter panel */}
       <div style={{
-        background: '#14391f',
+        background: 'linear-gradient(135deg, #14391f, #0e2415)',
         borderRadius: 16,
         padding: 16,
         color: 'white',
@@ -756,33 +768,57 @@ function CPStepsBody({ steps, setSteps }) {
           <span style={{ fontSize: 16 }}>✨</span>
           <div style={{ fontFamily: "'Fraunces',serif", fontSize: 16, fontWeight: 600 }}>Smart Step Creator</div>
         </div>
-        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 10 }}>Zutat + Template wie im Creator-Flow</div>
-        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-          {['Alle','⭐ Beste','🥕 Vorbereitung','🔥 Kochen','✨ Finishing','🍽️ Servieren'].map((c, i) => (
-            <button key={c} style={{
+        <div style={{ fontSize: 12, opacity: 0.7, marginBottom: 12 }}>Zutat + Template wie im Creator-Flow</div>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 12 }}>
+          {[
+            { id: 'Alle', label: 'Alle' },
+            { id: 'Beste', label: '⭐ Beste' },
+            { id: 'Vorbereitung', label: '🥕 Vorbereitung' },
+            { id: 'Kochen', label: '🔥 Kochen' },
+            { id: 'Finishing', label: '✨ Finishing' },
+            { id: 'Servieren', label: '🍽️ Servieren' },
+          ].map(c => (
+            <button key={c.id} onClick={() => setActiveCat(c.id)} style={{
               padding: '6px 11px',
               borderRadius: 999,
-              background: i === 1 ? 'white' : 'rgba(255,255,255,0.08)',
-              color: i === 1 ? '#14391f' : 'white',
-              border: i === 1 ? 'none' : '1px solid rgba(255,255,255,0.2)',
+              background: activeCat === c.id ? 'white' : 'rgba(255,255,255,0.08)',
+              color: activeCat === c.id ? '#14391f' : 'white',
+              border: activeCat === c.id ? 'none' : '1px solid rgba(255,255,255,0.2)',
               fontSize: 11, fontWeight: 600,
               cursor: 'pointer', fontFamily: 'inherit',
-            }}>{c}</button>
+            }}>{c.label}</button>
           ))}
+        </div>
+        {/* Search inside dark panel */}
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 8,
+          background: 'rgba(255,255,255,0.08)',
+          border: '1px solid rgba(255,255,255,0.16)',
+          borderRadius: 12,
+          padding: '9px 12px',
+        }}>
+          <span style={{ fontSize: 12, opacity: 0.7 }}>🔍</span>
+          <input placeholder="Step suchen (z.B. anbraten, schneiden)…"
+            style={{
+              flex: 1, border: 'none', outline: 'none', background: 'transparent',
+              fontSize: 12, color: 'white', fontFamily: 'inherit',
+            }} />
         </div>
       </div>
 
-      {/* Templates */}
+      {/* Templates list */}
       <div>
-        <CPLabel>Templates</CPLabel>
+        <CPLabel>Templates · zum Antippen</CPLabel>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
           {CP_STEP_TEMPLATES.slice(0, 3).map(t => (
-            <div key={t.id} style={{
+            <button key={t.id} style={{
               background: 'white',
               border: '1px solid rgba(20,57,31,0.1)',
               borderRadius: 14,
               padding: 12,
               display: 'flex', alignItems: 'center', gap: 10,
+              cursor: 'pointer', fontFamily: 'inherit', textAlign: 'left',
+              width: '100%',
             }}>
               <div style={{
                 width: 38, height: 38, borderRadius: 10,
@@ -794,8 +830,16 @@ function CPStepsBody({ steps, setSteps }) {
                 <div style={{ fontSize: 13, fontWeight: 700, color: '#14391f' }}>{t.title}</div>
                 <div style={{ fontSize: 11, color: '#6b7868', marginTop: 2 }}>{t.body}</div>
               </div>
-              <div style={{ fontSize: 10, color: '#f5b942' }}>{'★'.repeat(t.stars)}</div>
-            </div>
+              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 4 }}>
+                <div style={{ fontSize: 10, color: '#f5b942' }}>{'★'.repeat(t.stars)}</div>
+                <span style={{
+                  width: 22, height: 22, borderRadius: '50%',
+                  background: '#ff7849', color: 'white',
+                  display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+                  fontSize: 13, fontWeight: 700,
+                }}>+</span>
+              </div>
+            </button>
           ))}
         </div>
       </div>
@@ -934,7 +978,7 @@ function CreatePostingA() {
         <CPSection id="cp-zutaten" idx={3} total={5} title="Zutaten" subtitle="Suche & konfiguriere" icon="🛒" complete={completion.zutaten}>
           <CPZutatenBody ingredients={ingredients} setIngredients={setIngredients} />
         </CPSection>
-        <CPSection id="cp-steps" idx={4} total={5} title="Steps" subtitle="Sortiere & bearbeite wie ein Script" icon="📝" complete={completion.steps}>
+        <CPSection id="cp-steps" idx={4} total={5} title="Steps" subtitle="Rezepttyp, erkannte & eigene Steps" icon="📝" complete={completion.steps}>
           <CPStepsBody steps={steps} setSteps={() => {}} />
         </CPSection>
         <CPSection id="cp-keywords" idx={5} total={5} title="Keywords" subtitle="Hilft beim Feed & bei der Suche" icon="#" complete={completion.keywords}>
@@ -1073,7 +1117,7 @@ function CreatePostingB() {
         <CPSection id="cpb-zutaten" idx={3} total={5} title="Zutaten" subtitle="Suche & konfiguriere" icon="🛒" complete={completion.zutaten}>
           <CPZutatenBody ingredients={ingredients} setIngredients={setIngredients} />
         </CPSection>
-        <CPSection id="cpb-steps" idx={4} total={5} title="Steps" subtitle="Sortiere & bearbeite wie ein Script" icon="📝" complete={completion.steps}>
+        <CPSection id="cpb-steps" idx={4} total={5} title="Steps" subtitle="Rezepttyp, erkannte & eigene Steps" icon="📝" complete={completion.steps}>
           <CPStepsBody steps={[]} setSteps={() => {}} />
         </CPSection>
         <CPSection id="cpb-keywords" idx={5} total={5} title="Keywords" subtitle="Hilft beim Feed & bei der Suche" icon="#" complete={completion.keywords}>
@@ -1113,7 +1157,7 @@ function CreatePostingC() {
     { id: 'basis',    title: 'Basis',    sub: 'Titel, Kategorie, Personen, Dauer', body: <CPBasisBody data={data} setData={setData} /> },
     { id: 'media',    title: 'Media',    sub: 'Video oder Bild für den Feed',      body: <CPMediaBody media={media} setMedia={setMedia} /> },
     { id: 'zutaten',  title: 'Zutaten',  sub: 'Suche & konfiguriere',              body: <CPZutatenBody ingredients={ingredients} setIngredients={setIngredients} /> },
-    { id: 'steps',    title: 'Steps',    sub: 'Sortiere & bearbeite wie ein Script', body: <CPStepsBody steps={[]} setSteps={() => {}} /> },
+    { id: 'steps',    title: 'Steps',    sub: 'Rezepttyp, erkannte & eigene Steps', body: <CPStepsBody steps={[]} setSteps={() => {}} /> },
     { id: 'keywords', title: 'Keywords', sub: 'Hilft beim Feed & bei der Suche',   body: <CPKeywordsBody selected={keywords} setSelected={setKeywords} /> },
   ];
   const cur = STEPS[stepIdx];
@@ -1239,6 +1283,6 @@ function CreatePostingC() {
 
 Object.assign(window, {
   CreatePostingA, CreatePostingB, CreatePostingC,
-  CPBasisBody, CPMediaBody, CPZutatenBody, CPStepsBody, CPKeywordsBody,
+  CPBasisBody, CPMediaBody, CPZutatenBody, CPStepsBody, CPSmartStepBody, CPKeywordsBody,
   CPSection, CPTabBar, CPPublishBar,
 });
