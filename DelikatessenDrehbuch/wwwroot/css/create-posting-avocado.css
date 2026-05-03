@@ -28,15 +28,17 @@
   /* Shadows */
   --cp-shadow-sm: 0 2px 8px rgba(20, 57, 31, 0.06);
   --cp-shadow-md: 0 8px 24px rgba(20, 57, 31, 0.10);
+  --cp-shadow-card: 0 8px 24px rgba(20, 57, 31, 0.06);
+  --cp-shadow-bar: 0 12px 30px rgba(20, 57, 31, 0.16);
   --cp-shadow-lg: 0 20px 60px rgba(20, 57, 31, 0.16);
   --cp-shadow-coral-cta: 0 6px 20px rgba(255, 120, 73, 0.4);
   --cp-shadow-publish: 0 12px 30px rgba(20, 57, 31, 0.16);
 
   /* Radii */
   --cp-radius-sm: 10px;
-  --cp-radius-md: 16px;
-  --cp-radius-lg: 22px;
-  --cp-radius-xl: 28px;
+  --cp-radius-md: 14px;
+  --cp-radius-lg: 18px;
+  --cp-radius-xl: 22px;
 
   /* Typography */
   --cp-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
@@ -78,7 +80,7 @@
 
 .cp-hero {
   flex-shrink: 0;
-  background: var(--cp-gradient-hero);
+  background: linear-gradient(180deg, var(--cp-ink-deep) 0%, var(--cp-ink-deep-2) 100%);
   padding: 14px 16px 18px;
   color: white;
 }
@@ -212,10 +214,11 @@
   padding: 4px 14px 8px;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
-  background: transparent;
+  background: var(--cp-bg-cream);
   position: relative;
   z-index: 9;
   margin-top: -10px;
+  padding-top: 4px;
 }
 
 .cp-tabbar::-webkit-scrollbar {
@@ -265,7 +268,7 @@
 .cp-feed {
   flex: 1;
   overflow-y: auto;
-  padding: 4px 14px 140px;
+  padding: 4px 14px 130px;
   scroll-behavior: smooth;
 }
 
@@ -275,8 +278,8 @@
 
 .cp-section {
   background: white;
-  border-radius: var(--cp-radius-lg);
-  box-shadow: var(--cp-shadow-md);
+  border-radius: var(--cp-radius-xl);
+  box-shadow: var(--cp-shadow-card);
   margin-bottom: 14px;
   overflow: hidden;
   scroll-margin-top: 88px;
@@ -369,8 +372,8 @@
   align-items: center;
   gap: 10px;
   background: white;
-  border: 1px solid rgba(20, 57, 31, 0.1);
-  border-radius: 14px;
+  border: 1px solid rgba(20, 57, 31, 0.10);
+  border-radius: var(--cp-radius-md);
   padding: 12px 14px;
   transition: all 0.15s;
 }
@@ -413,8 +416,8 @@
   align-items: center;
   gap: 10px;
   background: white;
-  border: 1px solid rgba(20, 57, 31, 0.1);
-  border-radius: 14px;
+  border: 1px solid rgba(20, 57, 31, 0.10);
+  border-radius: var(--cp-radius-md);
   padding: 12px 14px;
   cursor: pointer;
   transition: all 0.15s;
@@ -494,9 +497,9 @@
   max-width: 692px;
   margin: 0 auto;
   background: white;
-  border-radius: 18px;
+  border-radius: var(--cp-radius-lg);
   padding: 8px 8px 8px 16px;
-  box-shadow: var(--cp-shadow-publish);
+  box-shadow: var(--cp-shadow-bar);
   display: flex;
   align-items: center;
   gap: 10px;
@@ -543,7 +546,7 @@
   background: var(--cp-gradient-coral);
   color: white;
   border: none;
-  border-radius: 14px;
+  border-radius: var(--cp-radius-md);
   padding: 12px 18px;
   font-size: 14px;
   font-weight: 700;
@@ -585,6 +588,20 @@
   gap: 14px;
 }
 
+.cp-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cp-stack--sm {
+  gap: 8px;
+}
+
+.cp-stack--md {
+  gap: 16px;
+}
+
 .cp-hidden {
   display: none !important;
 }
@@ -609,6 +626,24 @@
 
 .cp-section.complete .cp-section-icon svg {
   animation: cp-checkmark 0.4s ease;
+}
+
+/* ========================================
+   Media Upload Icon
+   ======================================== */
+
+.cp-media-upload-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 12px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--cp-orange), var(--cp-coral));
+  box-shadow: 0 10px 24px rgba(255, 120, 73, 0.40);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 28px;
 }
 
 /* ========================================
