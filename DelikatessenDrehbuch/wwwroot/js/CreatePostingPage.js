@@ -3701,19 +3701,19 @@
                     <div class="duration-editor mt-2 ingredient-db-details d-none">
                         <div class="d-flex gap-2 align-items-center">
                             <input type="text" inputmode="decimal"
-                                   class="form-control form-control-sm js-db-qty js-decimal-input candy-purple-input"
-                                   style="max-width:85px; border-radius: 12px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important; border:1px solid rgba(15,23,42,0.18) !important;" placeholder="1"
+                                   class="cp-input js-db-qty js-decimal-input"
+                                   style="max-width:85px;" placeholder="1"
                                    oninput="$(this).closest('.preview-step-card').attr('data-selected-qty', this.value)" />
-                            <select class="form-select form-select-sm js-db-unit candy-purple-input"
-                                    style="max-width:140px; border-radius: 12px; cursor: pointer; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; text-shadow:none !important; border:1px solid rgba(15,23,42,0.18) !important;"
+                            <select class="cp-select js-db-unit"
+                                    style="max-width:140px;"
                                     onchange="$(this).closest('.preview-step-card').attr('data-selected-unit', this.value)">
                                 ${getCatalogUnitOptionsHtml()}
                             </select>
                         </div>
                         <div class="common-unit-chips mt-2" role="group" aria-label="Schnelle Einheiten">
-                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="g">g.</button>
-                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="ml">ml.</button>
-                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="piece">Stk.</button>
+                            <button type="button" class="cp-pill common-unit-chip js-common-unit-chip" data-unit-key="g">g.</button>
+                            <button type="button" class="cp-pill common-unit-chip js-common-unit-chip" data-unit-key="ml">ml.</button>
+                            <button type="button" class="cp-pill common-unit-chip js-common-unit-chip" data-unit-key="piece">Stk.</button>
                         </div>
                     </div>
                 </div>`;
