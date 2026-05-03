@@ -73,6 +73,26 @@
         background: rgba(12, 16, 28, 0.28);
     }
 
+    .smart-step-creator[data-theme="navy"] .creator-top-head {
+        background: var(--cp-card-soft);
+        border-bottom: 1px solid var(--creator-border);
+    }
+
+    .smart-step-creator[data-theme="navy"] .text-muted {
+        color: var(--creator-sub) !important;
+    }
+
+    .smart-step-creator[data-theme="navy"] .btn-outline-light {
+        border-color: var(--creator-border) !important;
+        color: var(--creator-text) !important;
+    }
+
+    .smart-step-creator[data-theme="navy"] .btn-outline-light:hover {
+        background: var(--cp-card-soft) !important;
+        border-color: var(--creator-accent) !important;
+        color: var(--creator-text) !important;
+    }
+
     .sheet-title { font-weight: 800; }
 
     .sheet-sub {
@@ -357,11 +377,11 @@
             <div class="sheet-title label-lang" data-de="Arbeitsschritte" data-en="Steps">Arbeitsschritte</div>
             <div class="sheet-sub label-lang" data-de="Sortiere & bearbeite wie ein Script" data-en="Order & edit like a script">Sortiere & bearbeite wie ein Script</div>
         </div>
-        <span class="badge rounded-pill bg-transparent border border-light text-light">4/5</span>
+        <span class="badge rounded-pill bg-transparent border" style="border-color:var(--creator-border) !important;color:var(--creator-text);">5/6</span>
     </div>
 
     <div class="creator-preview-canvas" style="min-height:auto; padding:14px 16px;">
-        <div id="sc2MasterPreviewCanvas" style="border-bottom:1px solid rgba(255,255,255,0.12);padding-bottom:16px;margin-bottom:16px;">
+        <div id="sc2MasterPreviewCanvas" style="border-bottom:1px solid var(--creator-border);padding-bottom:16px;margin-bottom:16px;">
             <div class="d-flex align-items-center justify-content-between mb-3">
                 <div>
                     <div class="sheet-title" style="font-size:14px;">Smart Step Creator</div>

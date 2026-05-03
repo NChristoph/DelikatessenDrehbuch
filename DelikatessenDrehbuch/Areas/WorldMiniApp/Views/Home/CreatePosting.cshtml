@@ -49,7 +49,7 @@
                 <span class="cp-hero-stat" id="heroDuration">· 30 Min</span>
                 <span class="cp-hero-progress-wrapper">
                     <span class="cp-hero-progress-number" id="heroProgressNum">0</span>
-                    <span class="cp-hero-progress-total">/ 5</span>
+                    <span class="cp-hero-progress-total">/ 6</span>
                 </span>
             </div>
             <div class="cp-hero-progressbar">
@@ -67,6 +67,9 @@
             </button>
             <button type="button" class="cp-tab" data-section="card-ingredients">
                 <span>🛒</span> <span class="label-lang" data-de="Zutaten" data-en="Ingredients">Zutaten</span>
+            </button>
+            <button type="button" class="cp-tab" data-section="card-probability">
+                <span>💡</span> <span class="label-lang" data-de="Vorschläge" data-en="Suggestions">Vorschläge</span>
             </button>
             <button type="button" class="cp-tab" data-section="card-steps">
                 <span>📝</span> <span class="label-lang" data-de="Steps" data-en="Steps">Steps</span>
@@ -443,21 +446,21 @@
                     </div>
                 </section>
 
-                <!-- Section 4: Steps (Probability + SmartStepCreator) -->
-                <section class="cp-section" id="card-steps">
+                <!-- Section 4a: Arbeitschritte (Probability) -->
+                <section class="cp-section" id="card-probability">
                     <div class="cp-section-header">
                         <div class="cp-section-icon">
-                            <i class="bi bi-list-ol"></i>
+                            <i class="bi bi-lightbulb"></i>
                         </div>
                         <div class="cp-section-info">
                             <h2 class="cp-section-title label-lang"
-                                data-de="Zubereitungsschritte"
-                                data-en="Preparation Steps">Zubereitungsschritte</h2>
+                                data-de="Rezept-Vorschläge"
+                                data-en="Recipe Suggestions">Rezept-Vorschläge</h2>
                             <p class="cp-section-subtitle label-lang"
-                               data-de="Rezepttyp-Erkennung & Step-Auswahl"
-                               data-en="Recipe type detection & step selection">Rezepttyp-Erkennung & Step-Auswahl</p>
+                               data-de="KI-Erkennung & Vorschläge"
+                               data-en="AI detection & suggestions">KI-Erkennung & Vorschläge</p>
                         </div>
-                        <div class="cp-section-counter">4/5</div>
+                        <div class="cp-section-counter">4/6</div>
                     </div>
                     <div class="cp-section-body">
                         <!-- Probability Area -->
@@ -468,13 +471,32 @@
                             <div id="ingredientProbabilityBadges" style="font-size:13px;color:var(--cp-ink-mute);">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
                             <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
                         </div>
+                    </div>
+                </section>
 
+                <!-- Section 4b: Zubereitungsschritte (SmartStepCreator) -->
+                <section class="cp-section" id="card-steps">
+                    <div class="cp-section-header">
+                        <div class="cp-section-icon">
+                            <i class="bi bi-list-check"></i>
+                        </div>
+                        <div class="cp-section-info">
+                            <h2 class="cp-section-title label-lang"
+                                data-de="Zubereitungsschritte"
+                                data-en="Preparation Steps">Zubereitungsschritte</h2>
+                            <p class="cp-section-subtitle label-lang"
+                               data-de="Erstelle & bearbeite deine Steps"
+                               data-en="Create & edit your steps">Erstelle & bearbeite deine Steps</p>
+                        </div>
+                        <div class="cp-section-counter">5/6</div>
+                    </div>
+                    <div class="cp-section-body">
                         <!-- SmartStepCreator Partial -->
                         @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Home/_SmartStepCreatorPartial.cshtml")
                     </div>
                 </section>
 
-                <!-- Section 5: Keywords -->
+                <!-- Section 6: Keywords -->
                 <section class="cp-section" id="card-keywords">
                     <div class="cp-section-header">
                         <div class="cp-section-icon">
@@ -488,7 +510,7 @@
                                data-de="Hilft beim Feed & bei Suche"
                                data-en="Helps feed & search">Hilft beim Feed & bei Suche</p>
                         </div>
-                        <div class="cp-section-counter">5/5</div>
+                        <div class="cp-section-counter">6/6</div>
                     </div>
                     <div class="cp-section-body">
                         <div style="display:flex;flex-wrap:wrap;gap:8px;">
@@ -675,6 +697,7 @@ button, input, select, textarea { touch-action: manipulation; }
             'card-basics': false,
             'card-media': false,
             'card-ingredients': false,
+            'card-probability': false,
             'card-steps': false,
             'card-keywords': false
         };
@@ -736,6 +759,9 @@ button, input, select, textarea { touch-action: manipulation; }
             const selectedIngredients = document.getElementById('selectedIngredients');
             completionStates['card-ingredients'] = selectedIngredients.children.length > 0;
 
+            // Probability (optional - always true for now)
+            completionStates['card-probability'] = true;
+
             // Steps (check if SmartStepCreator has steps)
             const stepsList = document.getElementById('smartStepCreatorStepsList') || document.getElementById('selectedSteps');
             completionStates['card-steps'] = stepsList && stepsList.children.length > 0;
@@ -750,7 +776,7 @@ button, input, select, textarea { touch-action: manipulation; }
 
         function updateCompletionUI() {
             let completedCount = 0;
-            const total = 5;
+            const total = 6;
 
             Object.keys(completionStates).forEach((id, index) => {
                 const isComplete = completionStates[id];
@@ -766,7 +792,7 @@ button, input, select, textarea { touch-action: manipulation; }
                 } else {
                     section.classList.remove('complete');
                     // Restore original icon
-                    const icons = ['bi-ui-checks-grid', 'bi-camera-reels', 'bi-basket', 'bi-list-ol', 'bi-hash'];
+                    const icons = ['bi-ui-checks-grid', 'bi-camera-reels', 'bi-basket', 'bi-lightbulb', 'bi-list-check', 'bi-hash'];
                     icon.innerHTML = `<i class="bi ${icons[index]}"></i>`;
                 }
             });
