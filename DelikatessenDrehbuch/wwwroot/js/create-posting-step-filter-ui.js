@@ -3,36 +3,7 @@
 
     const $ = window.jQuery;
 
-    function injectFilterUI(containerSelector) {
-        const container = $(containerSelector);
-        if (!container.length || container.prev('.step-filter-controls').length) {
-            return; // Already injected or container not found
-        }
-
-        const theme = window.getCreatePostingTheme && window.getCreatePostingTheme() || 'dark';
-
-        const filterHTML = `
-            <div class="step-filter-controls" data-theme="${theme}">
-                <div class="step-search-wrapper">
-                    <input type="text"
-                           class="step-search-input"
-                           placeholder="🔍 Step suchen (z.B. 'anbraten', 'schneiden')..."
-                           autocomplete="off">
-                    <button type="button" class="step-search-clear d-none" aria-label="Suche leeren">&times;</button>
-                </div>
-                <div class="phase-tabs">
-                    <button type="button" class="phase-tab active" data-phase="all">Alle</button>
-                    <button type="button" class="phase-tab" data-phase="best">⭐ Beste</button>
-                    <button type="button" class="phase-tab" data-phase="1">🔪 Vorbereitung</button>
-                    <button type="button" class="phase-tab" data-phase="2">🔥 Kochen</button>
-                    <button type="button" class="phase-tab" data-phase="3">✨ Finishing</button>
-                    <button type="button" class="phase-tab" data-phase="4">🍽️ Servieren</button>
-                </div>
-            </div>
-        `;
-
-        container.before(filterHTML);
-    }
+ 
 
     function attachFilterEventHandlers() {
         // Search input handler
@@ -66,9 +37,7 @@
     }
 
     function initStepFilterUI() {
-        // Inject UI before #sc2MasterTemplateCards
-        injectFilterUI('#sc2MasterTemplateCards');
-
+    
         // Attach event handlers
         attachFilterEventHandlers();
 
@@ -85,7 +54,6 @@
 
     window.CreatePostingStepFilterUI = {
         init: initStepFilterUI,
-        injectFilterUI: injectFilterUI,
         attachFilterEventHandlers: attachFilterEventHandlers
     };
 

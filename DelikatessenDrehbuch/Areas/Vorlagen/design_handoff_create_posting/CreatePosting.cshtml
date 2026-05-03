@@ -28,12 +28,12 @@
       public bool KeywordsComplete { get; set; }
   }
 *@
-@model CreatePostingViewModel
+@* @model CreatePostingViewModel
 @{
     Layout = null;
     var pct = (int)Math.Round((double)Model.DoneCount / Model.TotalSteps * 100);
     var ready = Model.DoneCount == Model.TotalSteps;
-}
+} *@
 <!DOCTYPE html>
 <html lang="de">
 <head>
@@ -1006,7 +1006,7 @@
         </div>
 
         <div class="cp-hero__progress">
-            <div class="cp-hero__progress-fill" style="width: @(pct)%;"></div>
+            <div class="cp-hero__progress-fill" style="width:;"></div>
         </div>
     </header>
 
@@ -1262,9 +1262,9 @@
                             @if (Model.Suggestions != null)
                             {
                                 @foreach (var s in Model.Suggestions.Take(10))
-                                {
-                                    var added = Model.Ingredients != null && Model.Ingredients.Any(i => i.Name == s.Name);
-                                    <button type="button" class="cp-suggest-pill @(added ? "is-added" : "")">
+                                        {
+                                            var added = false;// Model.Ingredients != null && Model.Ingredients.Any(i => i.Name == s.Name);
+                                            <button type="button" class="cp-suggest-pill @(added ? "is-added" : "")">
                                         <span style="font-size:14px;">@s.Emoji</span>
                                         @s.Name
                                         @if (added)
@@ -1410,6 +1410,9 @@
                                     </button>
                                 }
                             }
+                            else{
+                             <span style="background-color:red"> Keine steps Gefunde</span>
+                            }
                         </div>
                     </div>
 
@@ -1475,7 +1478,7 @@
     <div class="cp-publish">
         <div class="cp-publish__card">
             <div class="cp-publish__info">
-                <div class="cp-publish__label">
+               @*  <div class="cp-publish__label">
                     @(ready ? "Bereit zum Posten ✨" : $"{Model.DoneCount}/{Model.TotalSteps} Schritte fertig")
                 </div>
                 <div class="cp-publish__progress">
@@ -1487,7 +1490,7 @@
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
                 </svg>
-            </button>
+            </button> *@
         </div>
     </div>
 

@@ -71,6 +71,7 @@
     gap: 8px;
 }
 
+
 .phase-tab {
     padding: 8px 14px;
     border-radius: 999px;
@@ -90,12 +91,14 @@
     transform: translateY(-1px);
 }
 
-.phase-tab.active {
-    background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
-    border-color: rgba(141, 99, 255, 0.8);
-    box-shadow: 0 2px 8px rgba(141, 99, 255, 0.3);
-    color: #ffffff;
-}
+    .phase-tab.active {
+        --ink-deep: #14391f;
+        --ink-deep-2: #0e2415;
+        background: linear-gradient(180deg, var(--ink-deep) 0%, var(--ink-deep-2) 100%);
+        border-color: rgba(141, 99, 255, 0.8);
+        box-shadow: 0 2px 8px rgba(141, 99, 255, 0.3);
+        color: #ffffff;
+    }
 
 /* ===== Theme: Light ===== */
 .step-filter-controls[data-theme="light"] {

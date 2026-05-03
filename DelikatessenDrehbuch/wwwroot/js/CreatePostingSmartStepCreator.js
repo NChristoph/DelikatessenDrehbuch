@@ -6,6 +6,8 @@
 // Optional:
 // - <select id="LangSelect"></select>
 
+
+
 (() => {
     const DEFAULT_LANG = "de";
     const VISIBLE_RANKED_OPTIONS = 3;
@@ -1266,20 +1268,42 @@
                         : affScore === 1 ? '<span class="step-affinity-badge low" title="M\u00f6glich">\u2605</span>'
                         : '';
 
+                    // Dynamisches Icon basierend auf dem Titel oder Theme (optional)
+                    const icon = theme === 'vorbereitung' ? '🔪' : '🥕';
+
                     container.insertAdjacentHTML("beforeend", `
-                      <button type="button"
-                              class="template-card w-100 mb-2"
-                              data-theme="${theme}"
-                              data-step-id="${escapeHtml(step.master_id ?? "")}"
-                              data-title="${escapeHtml(title)}"
-                              data-template-raw="${encodeAttr(templateRaw)}">
-                        <div class="template-title">
-                          ${escapeHtml(title)} ${scoreBadge}
-                        </div>
-                        <div class="template-snippet">
-                          ${snippetPreview(templateRaw)}
-                        </div>
-                      </button>
+                                <button type="button" 
+                                        class="template-card-modern template-card w-100 mb-2"
+
+                                        data-step-id="${escapeHtml(step.master_id ?? "")}" 
+                                        data-title="${escapeHtml(title)}" 
+                                        data-template-raw="${encodeAttr(templateRaw)}">
+            
+                                    <!-- Linke Seite: Icon -->
+                                    <div class="template-card-icon">
+                                        ${icon}
+                                    </div>
+        
+                                    <!-- Mitte: Textinhalt -->
+                                    <div class="template-card-content">
+                                        <div class="template-card-title">
+                                            ${escapeHtml(title)}
+                                        </div>
+                                        <div class="template-card-snippet">
+                                            ${snippetPreview(templateRaw)}
+                                        </div>
+                                    </div>
+        
+                                    <!-- Rechte Seite: Badge & Plus -->
+                                    <div class="template-card-meta">
+                                        <div class="template-card-score">
+                                            ${scoreBadge} 
+                                        </div>
+                                        <span class="template-card-plus">
+                                            <span>+</span>
+                                        </span>
+                                    </div>
+                                </button>
                     `);
                 });
             }
@@ -2943,22 +2967,18 @@
         } else if (context.type === 'probability') {
             // Probability Area: Update probability state object and re-render (UNIFIED!)
             const masterId = context.probabilityMasterId || context.masterId;
-            console.log('[updateContextValue] ━━━ PROBABILITY UPDATE ━━━');
-            console.log('[updateContextValue] masterId:', masterId);
-            console.log('[updateContextValue] varName:', varName);
-            console.log('[updateContextValue] value:', value);
+        
 
             ensureProbabilityDraftForEditing(masterId);
 
             // Get probability state from global dictionary (in CreatePostingPage.js)
             if (!window.probabilityStates || !window.probabilityStates[masterId]) {
-                console.error('[updateContextValue] ❌ No probability state found for:', masterId);
-                console.log('[updateContextValue] Available states:', Object.keys(window.probabilityStates || {}));
+                
                 return;
             }
 
             const prob = ensureProbabilityDraftForEditing(masterId);
-            console.log('[updateContextValue] prob.values BEFORE:', JSON.stringify(prob.values));
+            
 
             // Save value to probability state (wie activeStep!)
             if (draftEngine && typeof draftEngine.setProbabilityValue === 'function') {
@@ -2969,16 +2989,8 @@
                     prob.values['pronoun'] = extras.pronoun;
                 }
             }
-            console.log('[updateContextValue] prob.values AFTER:', JSON.stringify(prob.values));
-
-            // Re-render probability template (wie renderMasterText!)
-            if (typeof window.renderProbabilityTemplate === 'function') {
-                console.log('[updateContextValue] ✅ Calling renderProbabilityTemplate...');
-                window.renderProbabilityTemplate(masterId);
-                console.log('[updateContextValue] ✅ renderProbabilityTemplate completed');
-            } else {
-                console.error('[updateContextValue] ❌ renderProbabilityTemplate not available!');
-            }
+         
+        
         }
     }
 
