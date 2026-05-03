@@ -696,8 +696,11 @@ button, input, select, textarea { touch-action: manipulation; }
     <script src="~/js/create-posting-template-builder.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-template-draft-engine.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-step-filter-ui.js" asp-append-version="true"></script>
-    <script defer src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script>
     <script defer src="~/js/master-step-renderer.js" asp-append-version="true"></script>
+    <script defer src="~/js/smart-step-data.js" asp-append-version="true"></script>
+    <script defer src="~/js/smart-step-logic.js" asp-append-version="true"></script>
+    <script defer src="~/js/variable-editor-modal.js" asp-append-version="true"></script>
+    <script defer src="~/js/smart-step-init.js" asp-append-version="true"></script>
     <script defer src="~/js/recipe-step-suggest.js" asp-append-version="true"></script>
     <script>
         window.CreatePostingPageConfig = {
@@ -968,11 +971,19 @@ button, input, select, textarea { touch-action: manipulation; }
         }
 
         // Init on page load
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             initScrollSpy();
             setupCompletionMonitoring();
             setupHeroLiveUpdates();
             updateCompletionStates();
+
+            // Smart Step Creator initialisieren
+            if (window.SmartStepInit) {
+                await SmartStepInit.init({
+                    lang: 'de',
+                    ingredientGroupIds: []
+                });
+            }
         });
     </script>
 }

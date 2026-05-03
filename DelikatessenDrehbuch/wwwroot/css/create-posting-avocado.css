@@ -679,3 +679,29 @@ html {
 .cp-feed {
   scroll-behavior: smooth;
 }
+
+/* ========================================
+   GRÜNE VARIABLEN-TOKENS
+   ======================================== */
+.token-green,
+.token-variable,
+.template-var.token-green {
+    background: linear-gradient(135deg, #faf6ec, #f5efe1) !important;
+    color: #14391f !important;
+    padding: 2px 8px !important;
+    border-radius: 4px !important;
+    border-bottom: 2px dotted #5fa052 !important;
+    cursor: pointer !important;
+    font-weight: 600 !important;
+    display: inline-block !important;
+    margin: 0 2px !important;
+    transition: all 0.15s ease !important;
+}
+
+.token-green:hover,
+.token-variable:hover,
+.template-var.token-green:hover {
+    background: linear-gradient(135deg, #14391f, #0e2415) !important;
+    color: #faf6ec !important;
+    border-bottom-color: #90EE90 !important;
+}
