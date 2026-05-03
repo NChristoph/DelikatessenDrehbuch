@@ -1,0 +1,584 @@
+/* ========================================
+   Create Posting — Avocado Design System
+   Variante A: Scroll Stack
+   ======================================== */
+
+:root {
+  /* Colors */
+  --cp-bg-cream: #f5efe1;
+  --cp-bg-cream-2: #ede5d2;
+  --cp-card: #ffffff;
+  --cp-card-soft: #faf6ec;
+
+  --cp-ink-deep: #14391f;
+  --cp-ink-deep-2: #0f2c18;
+  --cp-ink-mid: #2a4a32;
+  --cp-ink-text: #1a2e20;
+  --cp-ink-mute: #6b7868;
+  --cp-ink-line: rgba(20, 57, 31, 0.12);
+
+  --cp-avocado: #5fa052;
+  --cp-coral: #ff7849;
+  --cp-coral-soft: #ffb494;
+  --cp-orange: #ff9a3c;
+  --cp-gold: #f5b942;
+  --cp-premium: #c8a45c;
+
+  /* Shadows */
+  --cp-shadow-sm: 0 2px 8px rgba(20, 57, 31, 0.06);
+  --cp-shadow-md: 0 8px 24px rgba(20, 57, 31, 0.10);
+  --cp-shadow-lg: 0 20px 60px rgba(20, 57, 31, 0.16);
+  --cp-shadow-coral-cta: 0 6px 20px rgba(255, 120, 73, 0.4);
+  --cp-shadow-publish: 0 12px 30px rgba(20, 57, 31, 0.16);
+
+  /* Radii */
+  --cp-radius-sm: 10px;
+  --cp-radius-md: 16px;
+  --cp-radius-lg: 22px;
+  --cp-radius-xl: 28px;
+
+  /* Typography */
+  --cp-font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --cp-font-serif: 'Fraunces', 'Playfair Display', Georgia, serif;
+
+  /* Gradients */
+  --cp-gradient-coral: linear-gradient(135deg, #ff9a3c, #ff7849);
+  --cp-gradient-hero: linear-gradient(180deg, #14391f, #0e2415);
+  --cp-gradient-weiter: linear-gradient(135deg, #14391f, #1a4a2a);
+  --cp-gradient-dropzone: linear-gradient(180deg, #faf6ec, #f5efe1);
+  --cp-gradient-fade: linear-gradient(180deg, rgba(245,239,225,0) 0%, rgba(245,239,225,0.95) 30%, #f5efe1 100%);
+}
+
+/* ========================================
+   Base Layout
+   ======================================== */
+
+.cp-screen {
+  width: 100%;
+  min-height: 100vh;
+  background: var(--cp-bg-cream);
+  font-family: var(--cp-font-sans);
+  color: var(--cp-ink-text);
+  position: relative;
+}
+
+.cp-container {
+  max-width: 720px;
+  margin: 0 auto;
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ========================================
+   Top Bar
+   ======================================== */
+
+.cp-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px 6px;
+  flex-shrink: 0;
+  background: var(--cp-bg-cream);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.cp-topbar-back {
+  width: 36px;
+  height: 36px;
+  background: white;
+  border-radius: 50%;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--cp-shadow-sm);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cp-topbar-back:hover {
+  transform: scale(1.05);
+}
+
+.cp-topbar-title {
+  flex: 1;
+  text-align: center;
+  padding: 0 12px;
+}
+
+.cp-topbar-label {
+  font-size: 11px;
+  color: var(--cp-ink-mute);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cp-topbar-progress {
+  font-family: var(--cp-font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--cp-ink-deep);
+  margin-top: 1px;
+}
+
+.cp-topbar-lang {
+  background: white;
+  border: none;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--cp-ink-deep);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  box-shadow: var(--cp-shadow-sm);
+  font-family: var(--cp-font-sans);
+}
+
+/* ========================================
+   Sticky Tab Bar
+   ======================================== */
+
+.cp-tabbar {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding: 4px 14px 8px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  background: var(--cp-bg-cream);
+  position: sticky;
+  top: 56px;
+  z-index: 9;
+}
+
+.cp-tabbar::-webkit-scrollbar {
+  display: none;
+}
+
+.cp-tab {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: var(--cp-font-sans);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  background: white;
+  color: var(--cp-ink-deep);
+  border: 1px solid var(--cp-ink-line);
+  white-space: nowrap;
+}
+
+.cp-tab.active {
+  background: var(--cp-ink-deep);
+  color: white;
+  border-color: var(--cp-ink-deep);
+  box-shadow: 0 4px 14px rgba(20, 57, 31, 0.18);
+}
+
+.cp-tab-check {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--cp-avocado);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 2px;
+}
+
+/* ========================================
+   Scrolling Content
+   ======================================== */
+
+.cp-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px 14px 140px;
+  scroll-behavior: smooth;
+}
+
+/* ========================================
+   Section Card
+   ======================================== */
+
+.cp-section {
+  background: white;
+  border-radius: var(--cp-radius-lg);
+  box-shadow: var(--cp-shadow-md);
+  margin-bottom: 14px;
+  overflow: hidden;
+  scroll-margin-top: 88px;
+}
+
+.cp-section-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 18px 18px 12px;
+  border-bottom: 1px solid rgba(20, 57, 31, 0.06);
+}
+
+.cp-section-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: var(--cp-card-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  flex-shrink: 0;
+  transition: all 0.3s;
+}
+
+.cp-section.complete .cp-section-icon {
+  background: var(--cp-ink-deep);
+  color: white;
+}
+
+.cp-section-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cp-section-title {
+  font-family: var(--cp-font-serif);
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--cp-ink-deep);
+  margin: 0;
+  line-height: 1.1;
+}
+
+.cp-section-subtitle {
+  font-size: 12px;
+  color: var(--cp-ink-mute);
+  margin-top: 3px;
+}
+
+.cp-section-counter {
+  background: var(--cp-card-soft);
+  color: var(--cp-ink-deep);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+  font-family: var(--cp-font-serif);
+  transition: all 0.3s;
+}
+
+.cp-section.complete .cp-section-counter {
+  background: var(--cp-avocado);
+  color: white;
+}
+
+.cp-section-body {
+  padding: 18px;
+}
+
+/* ========================================
+   Form Elements
+   ======================================== */
+
+.cp-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cp-ink-mute);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.cp-input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: 1px solid rgba(20, 57, 31, 0.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  transition: all 0.15s;
+}
+
+.cp-input-wrapper:focus-within {
+  border-color: var(--cp-ink-deep);
+  box-shadow: 0 0 0 3px rgba(20, 57, 31, 0.06);
+}
+
+.cp-input-icon {
+  font-size: 16px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.cp-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--cp-ink-deep);
+  font-family: var(--cp-font-sans);
+}
+
+.cp-input::placeholder {
+  color: #9ba59c;
+}
+
+.cp-input-suffix {
+  font-size: 12px;
+  color: var(--cp-ink-mute);
+  font-weight: 600;
+  flex-shrink: 0;
+}
+
+.cp-select-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: white;
+  border: 1px solid rgba(20, 57, 31, 0.1);
+  border-radius: 14px;
+  padding: 12px 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cp-select-wrapper:hover {
+  border-color: var(--cp-ink-deep);
+}
+
+.cp-select {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cp-ink-deep);
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.cp-select option:first-child {
+  color: #9ba59c;
+}
+
+/* ========================================
+   Pill Buttons
+   ======================================== */
+
+.cp-pill {
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: white;
+  color: var(--cp-ink-deep);
+  border: 1px solid var(--cp-ink-line);
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: var(--cp-font-sans);
+  white-space: nowrap;
+  transition: all 0.15s;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.cp-pill:hover {
+  border-color: var(--cp-ink-deep);
+  transform: translateY(-1px);
+}
+
+.cp-pill.active {
+  background: var(--cp-ink-deep);
+  color: white;
+  border-color: var(--cp-ink-deep);
+}
+
+/* ========================================
+   Sticky Publish Bar
+   ======================================== */
+
+.cp-publishbar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px 16px 28px;
+  background: var(--cp-gradient-fade);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  z-index: 8;
+}
+
+.cp-publishbar-inner {
+  max-width: 692px;
+  margin: 0 auto;
+  background: white;
+  border-radius: 18px;
+  padding: 8px 8px 8px 16px;
+  box-shadow: var(--cp-shadow-publish);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgba(20, 57, 31, 0.08);
+}
+
+.cp-publishbar-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.cp-publishbar-label {
+  font-family: var(--cp-font-serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cp-ink-deep);
+  line-height: 1.1;
+}
+
+.cp-publishbar-progress {
+  position: relative;
+  height: 4px;
+  background: rgba(20, 57, 31, 0.08);
+  border-radius: 2px;
+  margin-top: 6px;
+  overflow: hidden;
+}
+
+.cp-publishbar-progress-bar {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  background: var(--cp-gradient-coral);
+  border-radius: 2px;
+  transition: width 0.3s ease;
+}
+
+.cp-publishbar-progress-bar.complete {
+  background: var(--cp-avocado);
+}
+
+.cp-publishbar-btn {
+  background: var(--cp-gradient-coral);
+  color: white;
+  border: none;
+  border-radius: 14px;
+  padding: 12px 18px;
+  font-size: 14px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  box-shadow: var(--cp-shadow-coral-cta);
+  font-family: var(--cp-font-sans);
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.cp-publishbar-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(255, 120, 73, 0.5);
+}
+
+.cp-publishbar-btn:disabled {
+  background: rgba(20, 57, 31, 0.08);
+  color: var(--cp-ink-mute);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+
+.cp-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.cp-field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.cp-hidden {
+  display: none !important;
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+
+@keyframes cp-checkmark {
+  0% {
+    transform: scale(0);
+    opacity: 0;
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.cp-section.complete .cp-section-icon svg {
+  animation: cp-checkmark 0.4s ease;
+}
+
+/* ========================================
+   Responsive
+   ======================================== */
+
+@media (max-width: 768px) {
+  .cp-topbar {
+    padding: 12px 14px 4px;
+  }
+
+  .cp-feed {
+    padding: 4px 12px 140px;
+  }
+
+  .cp-publishbar {
+    padding: 12px 14px 24px;
+  }
+}
+
+/* ========================================
+   Smooth Scrolling
+   ======================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+.cp-feed {
+  scroll-behavior: smooth;
+}

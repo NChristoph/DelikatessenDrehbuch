@@ -9,10 +9,11 @@
     Layout = "_MiniAppLayout";
 }
 
+<link rel="stylesheet" href="~/css/create-posting-avocado.css" asp-append-version="true" />
 <link rel="stylesheet" href="~/css/create-posting-step-filter.css" asp-append-version="true" />
 
-<div class="creator-bg min-vh-100 position-relative">
-    <div id="datatableLoadingOverlay" class="creator-loading">
+<div class="cp-screen">
+    <div id="datatableLoadingOverlay" class="creator-loading d-none">
         <div class="creator-loading-card">
             <div class="spinner-border text-primary" role="status">
                 <span class="visually-hidden">Lade...</span>
@@ -22,2386 +23,594 @@
         </div>
     </div>
 
-    <div class="creator-topbar px-3 py-3" style="visibility:hidden" data-theme="navy">
-        <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="topbar-btn" aria-label="Zurück">
-            <i class="bi bi-chevron-left"></i>
-        </a>
-
-        <div class="topbar-title">
-            <div class="fw-bold text-truncate" id="creatorTopbarProgress" style="color:#172033 !important; text-shadow:none;">0/5 bereit</div>
-            <div class="small text-muted text-truncate">@(isEditMode ? "Edit Posting" : "Create Posting")</div>
+    <div class="cp-container">
+        <!-- Top Bar -->
+        <div class="cp-topbar">
+            <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="cp-topbar-back" aria-label="Zurück">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+            <div class="cp-topbar-title">
+                <div class="cp-topbar-label label-lang"
+                     data-de="Rezept erstellen"
+                     data-en="Create recipe"
+                     data-esp="Crear receta"
+                     data-prt="Criar receita">Rezept erstellen</div>
+                <div class="cp-topbar-progress" id="creatorTopbarProgress">0/5 bereit</div>
+            </div>
+            <button type="button" class="cp-topbar-lang" id="langToggle" aria-label="Sprache wechseln">
+                DE <i class="bi bi-chevron-down" style="font-size:9px;"></i>
+            </button>
         </div>
 
+        <!-- Sticky Tab Bar -->
+        <div class="cp-tabbar" id="sectionTabBar">
+            <button type="button" class="cp-tab active" data-section="card-basics">
+                <span>🧩</span> <span class="label-lang" data-de="Basis" data-en="Basics">Basis</span>
+            </button>
+            <button type="button" class="cp-tab" data-section="card-media">
+                <span>🎬</span> <span class="label-lang" data-de="Media" data-en="Media">Media</span>
+            </button>
+            <button type="button" class="cp-tab" data-section="card-ingredients">
+                <span>🛒</span> <span class="label-lang" data-de="Zutaten" data-en="Ingredients">Zutaten</span>
+            </button>
+            <button type="button" class="cp-tab" data-section="card-steps">
+                <span>📝</span> <span class="label-lang" data-de="Steps" data-en="Steps">Steps</span>
+            </button>
+            <button type="button" class="cp-tab" data-section="card-keywords">
+                <span>#</span> <span class="label-lang" data-de="Keywords" data-en="Keywords">Keywords</span>
+            </button>
+        </div>
 
-        <button type="submit" form="recipeForm" class="topbar-btn topbar-primary" aria-label="@(isEditMode ? "Speichern" : "Veröffentlichen")">
-            <i class="bi bi-@(isEditMode ? "check-lg" : "send-fill")"></i>
-        </button>
-    </div>
+        <!-- Scrolling Content -->
+        <div class="cp-feed" id="cpFeed">
+            <form asp-action="@(isEditMode ? "UpdateRecipeFromCreateForm" : "UploadNewVideo")" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="@(isEditMode ? "return prepareBinding()" : "event.preventDefault(); publishAsync()")">
+                @Html.AntiForgeryToken()
+                @if (isEditMode)
+                {
+                    <input type="hidden" name="EditPostingId" value="@ViewData["PostingId"]" />
+                    <input type="hidden" name="EditRecipeId" value="@ViewData["RecipeId"]" />
+                }
+                <input type="hidden" name="userHash" id="hiddenUserTokenField" />
 
-    <div class="feed-shell mx-auto" style="visibility:hidden" data-theme="navy">
-        <form asp-action="@(isEditMode ? "UpdateRecipeFromCreateForm" : "UploadNewVideo")" method="post" enctype="multipart/form-data" id="recipeForm" onsubmit="@(isEditMode ? "return prepareBinding()" : "event.preventDefault(); publishAsync()")">
-            @Html.AntiForgeryToken()
-            @if (isEditMode)
-            {
-                <input type="hidden" name="EditPostingId" value="@ViewData["PostingId"]" />
-                <input type="hidden" name="EditRecipeId" value="@ViewData["RecipeId"]" />
-            }
-            <input type="hidden" name="userHash" id="hiddenUserTokenField" />
-            <div id="draftRestoreBanner" class="draft-restore-banner d-none" @(isEditMode ? "style=display:none !important" : "")>
-                <div class="draft-restore-content">
-                    <span class="draft-restore-text">
-                        <i class="bi bi-clock-history me-1"></i>
-                        <span class="label-lang"
-                              data-de="Gespeicherte Session gefunden"
-                              data-en="Saved session found"
-                              data-esp="Sesión guardada encontrada"
-                              data-prt="Sessão guardada encontrada"
-                              data-id="Sesi tersimpan ditemukan"
-                              data-nl="Opgeslagen sessie gevonden"
-                              data-sv="Sparad session hittad"
-                              data-da="Gemt session fundet"
-                              data-no="Lagret økt funnet"
-                              data-ms="Sesi tersimpan ditemui">Gespeicherte Session gefunden</span>
-                    </span>
-                    <div class="d-flex gap-2">
-                        <button type="button" id="restoreDraftBtn" class="btn btn-sm btn-outline-success rounded-pill">
-                            <i class="bi bi-arrow-counterclockwise me-1"></i>
-                            <span class="label-lang"
-                                  data-de="Wiederherstellen"
-                                  data-en="Restore"
-                                  data-esp="Restaurar"
-                                  data-prt="Restaurar"
-                                  data-id="Pulihkan"
-                                  data-nl="Herstellen"
-                                  data-sv="Återställ"
-                                  data-da="Gendan"
-                                  data-no="Gjenopprett"
-                                  data-ms="Pulihkan">Wiederherstellen</span>
-                        </button>
-                        <button type="button" id="discardDraftBtn" class="btn btn-sm btn-outline-secondary rounded-pill">
-                            <i class="bi bi-x-lg me-1"></i>
-                            <span class="label-lang"
-                                  data-de="Verwerfen"
-                                  data-en="Discard"
-                                  data-esp="Descartar"
-                                  data-prt="Descartar"
-                                  data-id="Buang"
-                                  data-nl="Verwerpen"
-                                  data-sv="Förkasta"
-                                  data-da="Kassér"
-                                  data-no="Forkast"
-                                  data-ms="Buang">Verwerfen</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <section class="creator-card mb-3" data-theme="navy" id="card-basics">
-                <div class="creator-card-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-blue"><i class="bi bi-ui-checks-grid"></i></div>
-                        <div>
-                            <div class="creator-card-title label-lang" data-de="Basis" data-en="Basics" data-esp="Básico" data-prt="Base">Basis</div>
-                            <div class="creator-card-sub label-lang" data-de="Titel, Kategorie, Personen, Dauer" data-en="Title, category, persons, time" data-esp="Título, categoría, personas, tiempo" data-prt="Título, categoria, pessoas, tempo">
-                                Titel, Kategorie, Personen, Dauer
-                            </div>
+                <!-- Draft Restore Banner -->
+                <div id="draftRestoreBanner" class="d-none" style="background:#fff7ed;border:1px solid #ffedd5;border-radius:16px;padding:14px 16px;margin-bottom:14px;" @(isEditMode ? "style=display:none !important" : "")>
+                    <div class="d-flex align-items-center justify-content-between gap-3">
+                        <div class="d-flex align-items-center gap-2 flex-1">
+                            <i class="bi bi-clock-history" style="color:#ea580c;font-size:18px;"></i>
+                            <span style="font-weight:600;font-size:14px;color:#9a3412;" class="label-lang"
+                                  data-de="Gespeicherte Session gefunden"
+                                  data-en="Saved session found">Gespeicherte Session gefunden</span>
                         </div>
-                    </div>
-                    <span class="badge rounded-pill text-bg-light border">1/5</span>
-                </div>
-
-                <div class="creator-card-body">
-                    <div class="mb-3">
-                        <label class="form-label small text-muted mb-2 label-lang"
-                               data-de="Titel"
-                               data-en="Title"
-                               data-esp="Título"
-                               data-prt="Título">Titel</label>
-
-                        <div class="input-pill" data-theme="navy">
-                            <i class="bi bi-fonts text-muted"></i>
-                            <input asp-for="Title"
-                                   class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
-                                   placeholder="Titel"
-                                   data-ph-de="Titel" data-ph-en="Title" data-ph-esp="Título" data-ph-prt="Título" data-ph-id="Judul" data-ph-nl="Titel" data-ph-sv="Titel" data-ph-da="Titel" data-ph-no="Tittel" data-ph-ms="Tajuk"
-                                   required />
-                        </div>
-                    </div>
-
-                    <div class="row g-2 mb-2">
-                        <div class="col-6">
-                            <label class="form-label small text-muted mb-2 label-lang"
-                                   data-de="Kategorie"
-                                   data-en="Category"
-                                   data-esp="Categoría"
-                                   data-prt="Categoria">Kategorie</label>
-
-                            <div class="select-pill" data-theme="navy">
-                                <i class="bi bi-grid text-muted"></i>
-                                <select asp-for="Recipe.Category" class="form-select border-0 bg-transparent fw-bold shadow-none cursor-pointer">
-                                    <option value="" selected disabled class="lang-opt"
-                                            data-txt-de="Kategorie"
-                                            data-txt-en="Category"
-                                            data-txt-esp="Categoría"
-                                            data-txt-prt="Categoria">Kategorie</option>
-
-                                    <option value="Appetizer" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer" data-txt-esp="Entrada" data-txt-prt="Entrada">Vorspeise</option>
-                                    <option value="Main" class="lang-opt" data-txt-de="Hauptspeise" data-txt-en="Main Course" data-txt-esp="Plato principal" data-txt-prt="Prato principal">Hauptspeise</option>
-                                    <option value="Dessert" class="lang-opt" data-txt-de="Dessert" data-txt-en="Dessert" data-txt-esp="Postre" data-txt-prt="Sobremesa">Dessert</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="col-6">
-                            <label class="form-label small text-muted mb-2 label-lang"
-                                   data-de="Präferenz"
-                                   data-en="Preference"
-                                   data-esp="Preferencia"
-                                   data-prt="Preferência">Präferenz</label>
-
-                            <div class="select-pill" data-theme="navy">
-                                <i class="bi bi-heart text-muted"></i>
-                                <select asp-for="Recipe.Preferences" class="form-select border-0 bg-transparent fw-bold shadow-none cursor-pointer">
-                                    <option value="" selected disabled class="lang-opt"
-                                            data-txt-de="Präferenz"
-                                            data-txt-en="Preference"
-                                            data-txt-esp="Preferencia"
-                                            data-txt-prt="Preferência">Präferenz</option>
-
-                                    <option value="Vegan" class="lang-opt" data-txt-de="Vegan" data-txt-en="Vegan" data-txt-esp="Vegano" data-txt-prt="Vegano">Vegan</option>
-                                    <option value="Vegetarian" class="lang-opt" data-txt-de="Vegetarisch" data-txt-en="Vegetarian" data-txt-esp="Vegetariano" data-txt-prt="Vegetariano">Vegetarisch</option>
-                                    <option value="Fish" class="lang-opt" data-txt-de="Fisch" data-txt-en="Fish" data-txt-esp="Pescado" data-txt-prt="Peixe">Fisch</option>
-                                    <option value="Pork" class="lang-opt" data-txt-de="Schwein" data-txt-en="Pork" data-txt-esp="Cerdo" data-txt-prt="Porco">Schwein</option>
-                                    <option value="Beef" class="lang-opt" data-txt-de="Rind" data-txt-en="Beef" data-txt-esp="Res" data-txt-prt="Carne">Rind</option>
-                                    <option value="OtherMeat" class="lang-opt" data-txt-de="Anderes Fleisch" data-txt-en="Other Meat" data-txt-esp="Otra carne" data-txt-prt="Outra carne">Anderes Fleisch</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row g-2">
-                        <div class="col-6">
-                            <label class="form-label small text-muted mb-2 label-lang"
-                                   data-de="Personen"
-                                   data-en="Persons"
-                                   data-esp="Personas"
-                                   data-prt="Pessoas">Personen</label>
-
-                            <div class="input-pill" data-theme="navy">
-                                <i class="bi bi-people text-muted"></i>
-                                <input asp-for="Recipe.PersonCount"
-                                       type="number"
-                                       class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
-                                       placeholder="Personen"
-                                       data-ph-de="Personen" data-ph-en="Persons" data-ph-esp="Personas" data-ph-prt="Pessoas" data-ph-id="Orang" data-ph-nl="Personen" data-ph-sv="Personer" data-ph-da="Personer" data-ph-no="Personer" data-ph-ms="Orang" />
-                            </div>
-                        </div>
-
-                        <div class="col-6">
-                            <label class="form-label small text-muted mb-2 label-lang"
-                                   data-de="Dauer (Min)"
-                                   data-en="Time (min)"
-                                   data-esp="Tiempo (min)"
-                                   data-prt="Tempo (min)">Dauer (Min)</label>
-
-                            <div class="input-pill" data-theme="navy">
-                                <i class="bi bi-clock text-muted"></i>
-                                <input asp-for="Recipe.PreparationTime"
-                                       type="number"
-                                       class="form-control border-0 bg-transparent fw-bold shadow-none lang-ph"
-                                       placeholder="Minuten"
-                                       data-ph-de="Minuten" data-ph-en="Minutes" data-ph-esp="Minutos" data-ph-prt="Minutos" data-ph-id="Menit" data-ph-nl="Minuten" data-ph-sv="Minuter" data-ph-da="Minutter" data-ph-no="Minutter" data-ph-ms="Minit" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <section class="creator-card mb-3" data-theme="navy" id="card-media">
-                <div class="creator-card-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-pink"><i class="bi bi-camera-reels"></i></div>
-                        <div>
-                            <div class="creator-card-title label-lang" data-de="Media" data-en="Media" data-esp="Medios" data-prt="Mídia">Media</div>
-                            <div class="creator-card-sub label-lang" data-de="Video oder Bild für den Feed" data-en="Video or image for the feed" data-esp="Video o imagen para el feed" data-prt="Vídeo ou imagem para o feed">
-                                Video oder Bild für den Feed
-                            </div>
-                        </div>
-                    </div>
-                    <span class="badge rounded-pill text-bg-light border">2/5</span>
-                </div>
-
-                <div class="creator-card-body">
-                    <div id="videoPreviewContainer" class="d-none mb-3">
-                        <div class="media-preview">
-                            <img id="imagePreview" class="w-100 d-none" style="max-height: 320px; object-fit: cover;" alt="Preview" />
-                            <video id="videoPreview" class="w-100" style="max-height: 320px; object-fit: cover;" controls></video>
-                            <button type="button" class="btn btn-light btn-sm media-reset" onclick="resetVideo()">
-                                <i class="bi bi-x-lg"></i>
+                        <div class="d-flex gap-2">
+                            <button type="button" id="restoreDraftBtn" style="padding:6px 12px;border-radius:999px;border:none;background:#14391f;color:white;font-size:12px;font-weight:700;cursor:pointer;">
+                                <i class="bi bi-arrow-counterclockwise me-1"></i>
+                                <span class="label-lang" data-de="Wiederherstellen" data-en="Restore">Wiederherstellen</span>
+                            </button>
+                            <button type="button" id="discardDraftBtn" style="padding:6px 12px;border-radius:999px;border:1px solid #14391f;background:transparent;color:#14391f;font-size:12px;font-weight:700;cursor:pointer;">
+                                <i class="bi bi-x-lg me-1"></i>
+                                <span class="label-lang" data-de="Verwerfen" data-en="Discard">Verwerfen</span>
                             </button>
                         </div>
                     </div>
-
-                    @if (isEditMode)
-                    {
-                        <div id="editCurrentMediaPreview" class="mb-3">
-                            <div class="small text-muted mb-2 label-lang" data-de="Aktuelles Bild/Video" data-en="Current image/video">Aktuelles Bild/Video</div>
-                            <img id="editCurrentImage" class="w-100 rounded" style="max-height: 200px; object-fit: cover;" alt="Current media" />
-                            <div class="small text-muted mt-2 label-lang" data-de="Optional: neues Bild/Video hochladen" data-en="Optional: upload new image/video">Optional: neues Bild/Video hochladen</div>
-                        </div>
-                    }
-
-                    <label id="uploadLabel" class="upload-drop" data-theme="navy" for="videoInput">
-                        <div class="upload-icon">
-                            <i class="bi bi-cloud-arrow-up-fill"></i>
-                        </div>
-                        <div class="fw-bold mb-1 label-lang"
-                             data-de="Upload starten"
-                             data-en="Start upload"
-                             data-esp="Iniciar subida"
-                             data-prt="Iniciar envio">
-                            Upload starten
-                        </div>
-
-                        <div class="small text-muted label-lang"
-                             data-de="Wähle ein Video oder Bild (Feed-Style)."
-                             data-en="Choose a video or image (feed style)."
-                             data-esp="Elige un video o imagen (estilo feed)."
-                             data-prt="Escolha um vídeo oder imagem (estilo feed).">
-                            Wähle ein Video oder Bild (Feed-Style).
-                        </div>
-
-                        <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
-                    </label>
-                </div>
-            </section>
-
-            <section class="smart-step-creator mb-3" id="card-ingredients" data-theme="navy">
-                <div class="creator-top-head sheet-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-green"><i class="bi bi-basket"></i></div>
-                        <div>
-                            <div class="sheet-title label-lang" data-de="Zutaten Auswahl" data-en="Ingredients Selection">Zutaten Auswahl</div>
-                            <div class="sheet-sub label-lang" data-de="Suche & konfiguriere deine Zutaten" data-en="Search & configure your ingredients">Suche & konfiguriere deine Zutaten</div>
-                        </div>
-                    </div>
-                    <span class="badge rounded-pill bg-transparent border border-light text-light">3/5</span>
                 </div>
 
-                <div class="creator-preview-canvas">
-                    <div class="mb-4">
-                        <div class="input-pill ingredient-search-pill" data-theme="navy">
-                            <i class="bi bi-search text-white-50"></i>
-                            <input type="text" id="ingredientSearch" class="form-control border-0 bg-transparent text-white shadow-none lang-ph" placeholder="Zutat suchen..."
-                                   data-ph-de="Zutat suchen..." data-ph-en="Search ingredient..." data-ph-esp="Buscar ingrediente..." data-ph-prt="Buscar ingrediente..."
-                                   data-ph-id="Cari bahan..." data-ph-nl="Ingrediënt zoeken..." data-ph-sv="Sök ingrediens..." data-ph-da="Søg ingrediens..."
-                                   data-ph-no="Søg ingrediens..." data-ph-ms="Cari bahan..." />
-                            <button type="button" id="clearIngredientSearch" class="ingredient-search-clear d-none" aria-label="Suche leeren" title="Suche leeren">
-                                <i class="bi bi-x-lg"></i>
-                            </button>
+                <!-- Section 1: Basis -->
+                <section class="cp-section" id="card-basics">
+                    <div class="cp-section-header">
+                        <div class="cp-section-icon">
+                            <i class="bi bi-ui-checks-grid"></i>
                         </div>
-                        <div class="small text-white-50 text-center mt-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit" data-esp="Toca para editar" data-prt="Toque para editar">Zum Bearbeiten antippen</div>
+                        <div class="cp-section-info">
+                            <h2 class="cp-section-title label-lang"
+                                data-de="Basis"
+                                data-en="Basics"
+                                data-esp="Básico"
+                                data-prt="Base">Basis</h2>
+                            <p class="cp-section-subtitle label-lang"
+                               data-de="Titel, Kategorie, Personen, Dauer"
+                               data-en="Title, category, persons, time">Titel, Kategorie, Personen, Dauer</p>
+                        </div>
+                        <div class="cp-section-counter">1/5</div>
                     </div>
-
-                    <div class="ingredient-ai-assist mb-4" data-theme="navy">
-                        <button type="button" id="btnToggleMissingIngredientPanel" class="btn btn-sm btn-outline-light rounded-pill ingredient-ai-toggle">
-                            <i class="bi bi-stars me-1"></i>
-                            <span class="label-lang"
-                                  data-de="Deine Zutat ist nicht dabei?"
-                                  data-en="Your ingredient is missing?"
-                                  data-esp="¿Falta tu ingrediente?"
-                                  data-prt="Seu ingrediente não está aqui?">Deine Zutat ist nicht dabei?</span>
-                        </button>
-
-                        <div id="missingIngredientPanel" class="ingredient-ai-panel d-none mt-3">
-                            <div class="small text-white-50 mb-2 label-lang"
-                                 data-de="Zum Testen: Zutat eingeben, erst im Katalog suchen, sonst KI-Vorschlag holen."
-                                 data-en="For testing: enter an ingredient, search the catalog first, otherwise get an AI suggestion.">
-                                Zum Testen: Zutat eingeben, erst im Katalog suchen, sonst KI-Vorschlag holen.
+                    <div class="cp-section-body">
+                        <div class="cp-field-group">
+                            <!-- Titel -->
+                            <div>
+                                <label class="cp-label label-lang"
+                                       data-de="Titel"
+                                       data-en="Title"
+                                       data-esp="Título"
+                                       data-prt="Título">Titel</label>
+                                <div class="cp-input-wrapper">
+                                    <i class="bi bi-fonts cp-input-icon"></i>
+                                    <input asp-for="Title"
+                                           class="cp-input lang-ph"
+                                           placeholder="Titel"
+                                           data-ph-de="Titel"
+                                           data-ph-en="Title"
+                                           data-ph-esp="Título"
+                                           data-ph-prt="Título"
+                                           required />
+                                </div>
                             </div>
 
-                            <div class="d-flex flex-column flex-md-row gap-2 align-items-stretch">
-                                <input type="text"
-                                       id="missingIngredientInput"
-                                       class="form-control border-0 shadow-none"
-                                       placeholder="z.B. Kochbanane grün"
-                                       spellcheck="true"
-                                       autocapitalize="words"
-                                       autocomplete="off" />
-                                <button type="button" id="btnAnalyzeMissingIngredient" class="btn creator-cta-primary px-3">
-                                    <span class="spinner-border spinner-border-sm me-2 d-none" id="missingIngredientButtonSpinner" role="status" aria-hidden="true"></span>
-                                    <i class="bi bi-magic me-1"></i>Prüfen
-                                </button>
-                            </div>
-
-                            <div id="missingIngredientResult" class="ingredient-ai-result d-none mt-3"></div>
-                        </div>
-                    </div>
-
-                    <div class="template-library ingredient-catalog-scroll" id="ingredientsCatalog">
-                        @if (Model.ToSelectIngredientsAndNutrients != null)
-                        {
-                            foreach (var item in Model.ToSelectIngredientsAndNutrients)
-                            {
-                                <div class="preview-step-card mb-1  ingredient-db-row"
-                                     data-ingredient-id="@item.Id"
-                                     data-name-de="@item.Name_DE"
-                                     data-name-en="@item.Name_EN"
-                                     data-name-esp="@item.Name_ESP"
-                                     data-name-prt="@item.Name_PRT"
-                                     data-name-id="@item.Name_ID"
-                                     data-name-nl="@item.Name_NL"
-                                     data-name-sv="@item.Name_SE"
-                                     data-name-da="@item.Name_DK"
-                                     data-name-no="@item.Name_NO"
-                                     data-name-ms="@item.Name_MS"
-                                     data-genus-de="@item.Genus_DE"
-                                     data-genus-en="@item.Genus_EN"
-                                     data-genus-esp="@item.Genus_ESP"
-                                     data-genus-prt="@item.Genus_PRT"
-                                     data-genus-id="@item.Genus_ID"
-                                     data-genus-nl="@item.Genus_NL"
-                                     data-genus-sv="@item.Genus_SE"
-                                     data-genus-da="@item.Genus_DK"
-                                     data-genus-no="@item.Genus_NO"
-                                     data-genus-ms="@item.Genus_MS"
-                                     data-group-id="@item.GroupId"
-                                     data-group-icon="@(item.Icon ?? item.Group?.Icon)"
-                                     data-is-liquid="@item.is_liquid.ToString().ToLower()"
-                                     data-is-fat="@item.is_fat.ToString().ToLower()"
-                                     data-is-hard="@item.is_hard.ToString().ToLower()"
-                                     data-is-soft="@item.is_soft.ToString().ToLower()"
-                                     data-is-peelable="@item.is_peelable.ToString().ToLower()"
-                                     data-is-cuttable="@item.is_cuttable.ToString().ToLower()"
-                                     data-is-grateable="@item.is_grateable.ToString().ToLower()"
-                                     data-is-fryable="@item.is_fryable.ToString().ToLower()"
-                                     data-is-roastable="@item.is_roastable.ToString().ToLower()"
-                                     data-is-grillable="@item.is_grillable.ToString().ToLower()"
-                                     data-is-steamable="@item.is_steamable.ToString().ToLower()"
-                                     data-is-boilable="@item.is_boilable.ToString().ToLower()"
-                                     data-is-searable="@item.is_searable.ToString().ToLower()"
-                                     data-is-poachable="@item.is_poachable.ToString().ToLower()"
-                                     data-is-smokable="@item.is_smokable.ToString().ToLower()"
-                                     data-is-flambeable="@item.is_flambeable.ToString().ToLower()"
-                                     data-is-blendable="@item.is_blendable.ToString().ToLower()"
-                                     data-is-powder="@item.is_powder.ToString().ToLower()"
-                                     data-selected-qty="1"
-                                     data-theme="navy"
-                                     data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metrics_DE ?? "")">
-
-                                    <div class="d-flex align-items-center gap-2 mb-1 ingredient-card-head" style="min-height:max-content">
-                                        <div class="preview-step-text display-name mb-0 flex-grow-1 d-flex align-items-center gap-2" style="min-height:max-content"><span class="ingredient-group-icon">@Html.Raw(item.Icon ?? item.Group?.Icon)</span><span class="ingredient-name-text">@item.Name_DE</span></div>
-                                        <button type="button" class="btn btn-sm creator-cta-primary ms-auto" onclick="addIngredient('@item.Id', this)" title="Zutat hinzufügen" aria-label="Zutat hinzufügen">
-                                            <i class="bi bi-plus-lg"></i>
-                                        </button>
-                                    </div>
-
-                                    <div class="duration-editor mt-2 ingredient-db-details d-none">
-                                        <div class="d-flex gap-2 align-items-center">
-                                            <input type="text" inputmode="decimal"
-                                                   class="form-control form-control-sm js-db-qty js-decimal-input candy-purple-input"
-                                                   style="max-width:85px; border-radius: 12px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important; border:1px solid rgba(15,23,42,0.18) !important;" placeholder="1"
-                                                   oninput="$(this).closest('.preview-step-card').attr('data-selected-qty', this.value)" />
-
-                                            <select class="form-select form-select-sm js-db-unit candy-purple-input"
-                                                    style="max-width:140px; border-radius: 12px; cursor: pointer; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; text-shadow:none !important; border:1px solid rgba(15,23,42,0.18) !important;"
-                                                    onchange="$(this).closest('.preview-step-card').attr('data-selected-unit', this.value)">
-                                                @if (Model.Measure != null)
-                                                {
-                                                    foreach (var m in Model.Measure)
-                                                    {
-                                                        <option value="@m.Metrics_DE">@m.Metrics_DE</option>
-                                                    }
-                                                }
-                                            </select>
-                                        </div>
-                                        <div class="common-unit-chips mt-2" role="group" aria-label="Schnelle Einheiten">
-                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="g">g.</button>
-                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="ml">ml.</button>
-                                            <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="piece">Stk.</button>
-                                        </div>
+                            <!-- Kategorie & Präferenz -->
+                            <div class="cp-grid-2">
+                                <div>
+                                    <label class="cp-label label-lang"
+                                           data-de="Kategorie"
+                                           data-en="Category">Kategorie</label>
+                                    <div class="cp-select-wrapper">
+                                        <i class="bi bi-grid cp-input-icon"></i>
+                                        <select asp-for="Recipe.Category" class="cp-select">
+                                            <option value="" selected disabled class="lang-opt"
+                                                    data-txt-de="Kategorie"
+                                                    data-txt-en="Category">Kategorie</option>
+                                            <option value="Appetizer" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer">Vorspeise</option>
+                                            <option value="Main" class="lang-opt" data-txt-de="Hauptspeise" data-txt-en="Main Course">Hauptspeise</option>
+                                            <option value="Dessert" class="lang-opt" data-txt-de="Dessert" data-txt-en="Dessert">Dessert</option>
+                                        </select>
+                                        <i class="bi bi-chevron-down cp-input-icon"></i>
                                     </div>
                                 </div>
-                            }
-                        }
-                    </div>
 
-                    <div id="ingredientFlyGhost" class="template-fly-ghost" aria-hidden="true"></div>
-
-                    <div class="ingredient-top-strip mt-4">
-                        <div class="ingredient-top-title">Ausgewählte Zutaten</div>
-                        <div class="small text-white-50 mt-1 mb-2 label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit">Zum Bearbeiten antippen</div>
-                        <div id="selectedIngredients" class="selected-zone mt-2"></div>
-                        <div id="selectedIngredientsSuggestions" class="d-flex flex-wrap gap-2 mt-2"></div>
-                    </div>
-                </div>
-            </section>
-
-            @*was könnte es sein bereich oben*@
-            <section class="smart-step-creator mb-3" data-theme="dark" id="card-probability">
-                <div class="creator-top-head sheet-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon" style="background:linear-gradient(135deg,#8d63ff,#5b6df9);border-radius:12px;width:36px;height:36px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
-                            <i class="bi bi-graph-up-arrow text-white"></i>
-                        </div>
-                        <div>
-                            <div class="sheet-title label-lang" data-de="Was könnte es sein?" data-en="What could it be?">
-                                Was könnte es sein?
+                                <div>
+                                    <label class="cp-label label-lang"
+                                           data-de="Präferenz"
+                                           data-en="Preference">Präferenz</label>
+                                    <div class="cp-select-wrapper">
+                                        <i class="bi bi-heart cp-input-icon"></i>
+                                        <select asp-for="Recipe.Preferences" class="cp-select">
+                                            <option value="" selected disabled class="lang-opt"
+                                                    data-txt-de="Präferenz"
+                                                    data-txt-en="Preference">Präferenz</option>
+                                            <option value="Vegan" class="lang-opt" data-txt-de="Vegan" data-txt-en="Vegan">Vegan</option>
+                                            <option value="Vegetarian" class="lang-opt" data-txt-de="Vegetarisch" data-txt-en="Vegetarian">Vegetarisch</option>
+                                            <option value="Fish" class="lang-opt" data-txt-de="Fisch" data-txt-en="Fish">Fisch</option>
+                                            <option value="Pork" class="lang-opt" data-txt-de="Schwein" data-txt-en="Pork">Schwein</option>
+                                            <option value="Beef" class="lang-opt" data-txt-de="Rind" data-txt-en="Beef">Rind</option>
+                                            <option value="OtherMeat" class="lang-opt" data-txt-de="Anderes Fleisch" data-txt-en="Other Meat">Anderes Fleisch</option>
+                                        </select>
+                                        <i class="bi bi-chevron-down cp-input-icon"></i>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="sheet-sub label-lang" data-de="Rezepttyp-Erkennung & Step-Vorschläge" data-en="Recipe type detection & step suggestions">
-                                Rezepttyp-Erkennung & Step-Vorschläge
+
+                            <!-- Personen & Dauer -->
+                            <div class="cp-grid-2">
+                                <div>
+                                    <label class="cp-label label-lang"
+                                           data-de="Personen"
+                                           data-en="Persons">Personen</label>
+                                    <div class="cp-input-wrapper">
+                                        <i class="bi bi-people cp-input-icon"></i>
+                                        <input asp-for="Recipe.PersonCount"
+                                               type="number"
+                                               class="cp-input lang-ph"
+                                               placeholder="Personen"
+                                               data-ph-de="Personen"
+                                               data-ph-en="Persons" />
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label class="cp-label label-lang"
+                                           data-de="Dauer (Min)"
+                                           data-en="Time (min)">Dauer (Min)</label>
+                                    <div class="cp-input-wrapper">
+                                        <i class="bi bi-clock cp-input-icon"></i>
+                                        <input asp-for="Recipe.PreparationTime"
+                                               type="number"
+                                               class="cp-input lang-ph"
+                                               placeholder="Minuten"
+                                               data-ph-de="Minuten"
+                                               data-ph-en="Minutes" />
+                                        <span class="cp-input-suffix">min</span>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div class="creator-preview-canvas">
-                    <div id="ingredientProbabilityBadges" class="d-flex flex-wrap gap-2 small text-white-50">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
-                    <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
-                </div>
-            </section>
-            @*smart stap cretor bereich uten*@
-            @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Home/_SmartStepCreatorPartial.cshtml")
+                </section>
 
-            <section class="creator-card mb-4" data-theme="navy" id="card-keywords">
-                <div class="creator-card-head">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="card-icon candy-blue"><i class="bi bi-hash"></i></div>
-                        <div>
-                            <div class="creator-card-title label-lang" data-de="Keywords" data-en="Keywords">Keywords</div>
-                            <div class="creator-card-sub label-lang" data-de="Hilft beim Feed & bei Suche" data-en="Helps feed & search">
-                                Hilft beim Feed & bei Suche
-                            </div>
+                <!-- Section 2: Media -->
+                <section class="cp-section" id="card-media">
+                    <div class="cp-section-header">
+                        <div class="cp-section-icon">
+                            <i class="bi bi-camera-reels"></i>
                         </div>
+                        <div class="cp-section-info">
+                            <h2 class="cp-section-title label-lang"
+                                data-de="Media"
+                                data-en="Media">Media</h2>
+                            <p class="cp-section-subtitle label-lang"
+                               data-de="Video oder Bild für den Feed"
+                               data-en="Video or image for the feed">Video oder Bild für den Feed</p>
+                        </div>
+                        <div class="cp-section-counter">2/5</div>
                     </div>
-                    <span class="badge rounded-pill text-bg-light border">5/5</span>
-                </div>
-
-                <div class="creator-card-body">
-                    <div class="d-flex flex-wrap gap-2">
-                        @if (Model.ToSelectKeywords != null)
-                        {
-                            foreach (var keyword in Model.ToSelectKeywords)
-                            {
-                                <button type="button"
-                                        class="btn btn-sm btn-outline-secondary rounded-pill keyword-btn"
-                                        data-keyword-id="@keyword.Id"
-                                        data-word-de="@keyword.Word_DE"
-                                        data-word-en="@keyword.Word_EN"
-                                        onclick="toggleKeyword('@keyword.Id', this)">
-                                    @keyword.Word_DE
+                    <div class="cp-section-body">
+                        <!-- Preview Container -->
+                        <div id="videoPreviewContainer" class="d-none" style="margin-bottom:16px;">
+                            <div style="position:relative;border-radius:var(--cp-radius-lg);overflow:hidden;background:#111;box-shadow:var(--cp-shadow-md);">
+                                <img id="imagePreview" class="w-100 d-none" style="max-height:320px;object-fit:cover;" alt="Preview" />
+                                <video id="videoPreview" class="w-100" style="max-height:320px;object-fit:cover;" controls></video>
+                                <button type="button" style="position:absolute;top:10px;right:10px;border-radius:50%;border:none;background:white;width:32px;height:32px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 12px rgba(0,0,0,0.2);" onclick="resetVideo()">
+                                    <i class="bi bi-x-lg"></i>
                                 </button>
-                            }
-                        }
-                    </div>
-                    <div id="selectedKeywords" class="mt-3 selected-zone"></div>
-                </div>
-            </section>
-
-            <div class="creator-bottom p-3">
-                <div class="creator-bottom-inner">
-                    <div class="d-flex align-items-center gap-2">
-                        <div class="bottom-hint">
-                            <div class="fw-bold">Bereit zum Posten?</div>
-                            <div class="small text-muted">Alles fühlt sich wie ein Feed-Upload an.</div>
+                            </div>
                         </div>
 
-                        <button type="submit" class="btn publish-btn w-100">
-                            @if (isEditMode)
+                        @if (isEditMode)
+                        {
+                            <div id="editCurrentMediaPreview" style="margin-bottom:16px;">
+                                <div class="cp-label label-lang" data-de="Aktuelles Bild/Video" data-en="Current image/video">Aktuelles Bild/Video</div>
+                                <img id="editCurrentImage" class="w-100" style="max-height:200px;object-fit:cover;border-radius:var(--cp-radius-md);" alt="Current media" />
+                                <div style="font-size:12px;color:var(--cp-ink-mute);margin-top:8px;" class="label-lang" data-de="Optional: neues Bild/Video hochladen" data-en="Optional: upload new image/video">Optional: neues Bild/Video hochladen</div>
+                            </div>
+                        }
+
+                        <!-- Upload Drop Zone -->
+                        <label id="uploadLabel" for="videoInput" style="display:block;border-radius:var(--cp-radius-lg);border:2px dashed rgba(20,57,31,0.2);background:var(--cp-gradient-dropzone);padding:24px;text-align:center;cursor:pointer;transition:all 0.2s;">
+                            <div style="width:64px;height:64px;margin:0 auto 12px;border-radius:50%;background:rgba(255,120,73,0.1);border:1px solid rgba(255,120,73,0.2);display:flex;align-items:center;justify-content:center;color:var(--cp-coral);font-size:28px;">
+                                <i class="bi bi-cloud-arrow-up-fill"></i>
+                            </div>
+                            <div style="font-weight:700;font-size:15px;color:var(--cp-ink-deep);margin-bottom:4px;" class="label-lang"
+                                 data-de="Upload starten"
+                                 data-en="Start upload">Upload starten</div>
+                            <div style="font-size:13px;color:var(--cp-ink-mute);" class="label-lang"
+                                 data-de="Wähle ein Video oder Bild (Feed-Style)."
+                                 data-en="Choose a video or image (feed style).">Wähle ein Video oder Bild (Feed-Style).</div>
+                            <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Section 3: Zutaten -->
+                <section class="cp-section" id="card-ingredients" style="background:radial-gradient(120% 120% at 10% 0%, #244a88 0%, #0f234d 48%, #081528 100%);color:#f7fbff;">
+                    <div class="cp-section-header" style="border-bottom-color:rgba(173,207,255,0.15);">
+                        <div class="cp-section-icon" style="background:rgba(15,35,77,0.8);color:#f7fbff;">
+                            <i class="bi bi-basket"></i>
+                        </div>
+                        <div class="cp-section-info">
+                            <h2 class="cp-section-title label-lang" style="color:#f7fbff;"
+                                data-de="Zutaten Auswahl"
+                                data-en="Ingredients Selection">Zutaten Auswahl</h2>
+                            <p class="cp-section-subtitle label-lang" style="color:rgba(247,251,255,0.7);"
+                               data-de="Suche & konfiguriere deine Zutaten"
+                               data-en="Search & configure your ingredients">Suche & konfiguriere deine Zutaten</p>
+                        </div>
+                        <div class="cp-section-counter" style="background:rgba(15,35,77,0.6);color:#f7fbff;">3/5</div>
+                    </div>
+                    <div class="cp-section-body">
+                        <!-- Search -->
+                        <div style="margin-bottom:20px;">
+                            <div style="display:flex;align-items:center;gap:10px;background:rgba(255,255,255,0.08);border:1px solid rgba(173,207,255,0.3);border-radius:14px;padding:12px 14px;">
+                                <i class="bi bi-search" style="opacity:0.5;"></i>
+                                <input type="text" id="ingredientSearch" class="lang-ph" placeholder="Zutat suchen..."
+                                       data-ph-de="Zutat suchen..."
+                                       data-ph-en="Search ingredient..."
+                                       style="flex:1;border:none;outline:none;background:transparent;font-size:15px;font-weight:500;color:#f7fbff;" />
+                                <button type="button" id="clearIngredientSearch" class="d-none" style="border:0;background:transparent;color:rgba(247,251,255,0.5);padding:0;width:1.5rem;height:1.5rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;cursor:pointer;">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                            <div style="font-size:12px;color:rgba(247,251,255,0.6);text-align:center;margin-top:8px;" class="label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit">Zum Bearbeiten antippen</div>
+                        </div>
+
+                        <!-- AI Assist Panel -->
+                        <div style="border:1px solid rgba(255,255,255,0.12);border-radius:18px;background:rgba(9,20,48,0.56);padding:14px;margin-bottom:20px;">
+                            <button type="button" id="btnToggleMissingIngredientPanel" style="border:1px solid rgba(255,255,255,0.28);background:transparent;color:#f7fbff;border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;width:100%;">
+                                <i class="bi bi-stars me-1"></i>
+                                <span class="label-lang"
+                                      data-de="Deine Zutat ist nicht dabei?"
+                                      data-en="Your ingredient is missing?">Deine Zutat ist nicht dabei?</span>
+                            </button>
+                            <div id="missingIngredientPanel" class="d-none" style="border-top:1px solid rgba(255,255,255,0.1);padding-top:14px;margin-top:14px;">
+                                <div style="font-size:12px;color:rgba(247,251,255,0.7);margin-bottom:10px;" class="label-lang"
+                                     data-de="Zum Testen: Zutat eingeben, erst im Katalog suchen, sonst KI-Vorschlag holen."
+                                     data-en="For testing: enter an ingredient, search the catalog first, otherwise get an AI suggestion.">
+                                    Zum Testen: Zutat eingeben, erst im Katalog suchen, sonst KI-Vorschlag holen.
+                                </div>
+                                <div style="display:flex;gap:8px;align-items:stretch;">
+                                    <input type="text" id="missingIngredientInput" placeholder="z.B. Kochbanane grün"
+                                           style="flex:1;border-radius:14px;border:none;padding:10px 12px;background:#ffffff;color:#111827;font-size:14px;" />
+                                    <button type="button" id="btnAnalyzeMissingIngredient" style="background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;white-space:nowrap;">
+                                        <span class="spinner-border spinner-border-sm me-2 d-none" id="missingIngredientButtonSpinner"></span>
+                                        <i class="bi bi-magic me-1"></i>Prüfen
+                                    </button>
+                                </div>
+                                <div id="missingIngredientResult" class="d-none" style="border-radius:16px;border:1px solid rgba(255,255,255,0.1);background:rgba(255,255,255,0.04);padding:14px;margin-top:12px;"></div>
+                            </div>
+                        </div>
+
+                        <!-- Ingredient Catalog -->
+                        <div id="ingredientsCatalog" style="height:420px;max-height:56vh;overflow-y:auto;padding-right:5px;display:grid;grid-template-columns:1fr 1fr;gap:8px;align-content:start;">
+                            @if (Model.ToSelectIngredientsAndNutrients != null)
                             {
-                                <span class="label-lang" data-de="Änderungen speichern" data-en="Save changes">Änderungen speichern</span>
-                                <i class="bi bi-check-lg ms-2"></i>
+                                foreach (var item in Model.ToSelectIngredientsAndNutrients)
+                                {
+                                    <div class="preview-step-card mb-1 ingredient-db-row"
+                                         data-ingredient-id="@item.Id"
+                                         data-name-de="@item.Name_DE"
+                                         data-name-en="@item.Name_EN"
+                                         data-name-esp="@item.Name_ESP"
+                                         data-name-prt="@item.Name_PRT"
+                                         data-name-id="@item.Name_ID"
+                                         data-name-nl="@item.Name_NL"
+                                         data-name-sv="@item.Name_SE"
+                                         data-name-da="@item.Name_DK"
+                                         data-name-no="@item.Name_NO"
+                                         data-name-ms="@item.Name_MS"
+                                         data-genus-de="@item.Genus_DE"
+                                         data-genus-en="@item.Genus_EN"
+                                         data-genus-esp="@item.Genus_ESP"
+                                         data-genus-prt="@item.Genus_PRT"
+                                         data-genus-id="@item.Genus_ID"
+                                         data-genus-nl="@item.Genus_NL"
+                                         data-genus-sv="@item.Genus_SE"
+                                         data-genus-da="@item.Genus_DK"
+                                         data-genus-no="@item.Genus_NO"
+                                         data-genus-ms="@item.Genus_MS"
+                                         data-group-id="@item.GroupId"
+                                         data-group-icon="@(item.Icon ?? item.Group?.Icon)"
+                                         data-is-liquid="@item.is_liquid.ToString().ToLower()"
+                                         data-is-fat="@item.is_fat.ToString().ToLower()"
+                                         data-is-hard="@item.is_hard.ToString().ToLower()"
+                                         data-is-soft="@item.is_soft.ToString().ToLower()"
+                                         data-is-peelable="@item.is_peelable.ToString().ToLower()"
+                                         data-is-cuttable="@item.is_cuttable.ToString().ToLower()"
+                                         data-is-grateable="@item.is_grateable.ToString().ToLower()"
+                                         data-is-fryable="@item.is_fryable.ToString().ToLower()"
+                                         data-is-roastable="@item.is_roastable.ToString().ToLower()"
+                                         data-is-grillable="@item.is_grillable.ToString().ToLower()"
+                                         data-is-steamable="@item.is_steamable.ToString().ToLower()"
+                                         data-is-boilable="@item.is_boilable.ToString().ToLower()"
+                                         data-is-searable="@item.is_searable.ToString().ToLower()"
+                                         data-is-poachable="@item.is_poachable.ToString().ToLower()"
+                                         data-is-smokable="@item.is_smokable.ToString().ToLower()"
+                                         data-is-flambeable="@item.is_flambeable.ToString().ToLower()"
+                                         data-is-blendable="@item.is_blendable.ToString().ToLower()"
+                                         data-is-powder="@item.is_powder.ToString().ToLower()"
+                                         data-selected-qty="1"
+                                         data-theme="navy"
+                                         data-selected-unit="@(Model.Measure?.FirstOrDefault()?.Metrics_DE ?? "")"
+                                         style="border:1px solid rgba(173,207,255,0.3);background:rgba(15,23,42,0.92);border-radius:14px;padding:10px 12px;margin-bottom:0;cursor:pointer;">
+
+                                        <div class="d-flex align-items-center gap-2 mb-1 ingredient-card-head">
+                                            <div class="preview-step-text display-name mb-0 flex-grow-1 d-flex align-items-center gap-2" style="color:#fff;font-weight:800;font-size:1rem;line-height:1.3;text-shadow:0 2px 8px rgba(0,0,0,.35);">
+                                                <span class="ingredient-group-icon">@Html.Raw(item.Icon ?? item.Group?.Icon)</span>
+                                                <span class="ingredient-name-text">@item.Name_DE</span>
+                                            </div>
+                                            <button type="button" class="btn btn-sm" onclick="addIngredient('@item.Id', this)" title="Zutat hinzufügen" style="background:var(--cp-gradient-coral);color:white;border:none;border-radius:8px;padding:2px 8px;font-size:0.8rem;">
+                                                <i class="bi bi-plus-lg"></i>
+                                            </button>
+                                        </div>
+
+                                        <div class="duration-editor mt-2 ingredient-db-details d-none">
+                                            <div class="d-flex gap-2 align-items-center">
+                                                <input type="text" inputmode="decimal"
+                                                       class="form-control form-control-sm js-db-qty js-decimal-input"
+                                                       style="max-width:85px;border-radius:12px;background:#ffffff !important;color:#111827 !important;border:1px solid rgba(15,23,42,0.18) !important;"
+                                                       placeholder="1"
+                                                       oninput="$(this).closest('.preview-step-card').attr('data-selected-qty', this.value)" />
+                                                <select class="form-select form-select-sm js-db-unit"
+                                                        style="max-width:140px;border-radius:12px;cursor:pointer;background:#ffffff !important;color:#111827 !important;border:1px solid rgba(15,23,42,0.18) !important;"
+                                                        onchange="$(this).closest('.preview-step-card').attr('data-selected-unit', this.value)">
+                                                    @if (Model.Measure != null)
+                                                    {
+                                                        foreach (var m in Model.Measure)
+                                                        {
+                                                            <option value="@m.Metrics_DE">@m.Metrics_DE</option>
+                                                        }
+                                                    }
+                                                </select>
+                                            </div>
+                                            <div class="common-unit-chips mt-2" style="display:flex;gap:6px;flex-wrap:wrap;">
+                                                <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="g" style="border-radius:999px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#f8fafc;font-weight:700;padding:2px 10px;">g.</button>
+                                                <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="ml" style="border-radius:999px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#f8fafc;font-weight:700;padding:2px 10px;">ml.</button>
+                                                <button type="button" class="btn btn-sm common-unit-chip js-common-unit-chip" data-unit-key="piece" style="border-radius:999px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.06);color:#f8fafc;font-weight:700;padding:2px 10px;">Stk.</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
                             }
-                            else
+                        </div>
+
+                        <!-- Selected Ingredients -->
+                        <div style="margin-top:24px;">
+                            <div style="font-family:var(--cp-font-serif);font-size:18px;font-weight:600;color:#f7fbff;margin-bottom:4px;">Ausgewählte Zutaten</div>
+                            <div style="font-size:12px;color:rgba(247,251,255,0.6);margin-bottom:12px;" class="label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit">Zum Bearbeiten antippen</div>
+                            <div id="selectedIngredients" style="display:flex;flex-direction:column;gap:10px;"></div>
+                            <div id="selectedIngredientsSuggestions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: Steps (Probability + SmartStepCreator) -->
+                <section class="cp-section" id="card-steps" style="background:radial-gradient(120% 120% at 10% 0%, #244a88 0%, #0f234d 48%, #081528 100%);color:#f7fbff;">
+                    <div class="cp-section-header" style="border-bottom-color:rgba(173,207,255,0.15);">
+                        <div class="cp-section-icon" style="background:rgba(15,35,77,0.8);color:#f7fbff;">
+                            <i class="bi bi-list-ol"></i>
+                        </div>
+                        <div class="cp-section-info">
+                            <h2 class="cp-section-title label-lang" style="color:#f7fbff;"
+                                data-de="Zubereitungsschritte"
+                                data-en="Preparation Steps">Zubereitungsschritte</h2>
+                            <p class="cp-section-subtitle label-lang" style="color:rgba(247,251,255,0.7);"
+                               data-de="Rezepttyp-Erkennung & Step-Auswahl"
+                               data-en="Recipe type detection & step selection">Rezepttyp-Erkennung & Step-Auswahl</p>
+                        </div>
+                        <div class="cp-section-counter" style="background:rgba(15,35,77,0.6);color:#f7fbff;">4/5</div>
+                    </div>
+                    <div class="cp-section-body">
+                        <!-- Probability Area -->
+                        <div style="margin-bottom:24px;">
+                            <div style="font-family:var(--cp-font-serif);font-size:16px;font-weight:600;color:#f7fbff;margin-bottom:8px;" class="label-lang"
+                                 data-de="Was könnte es sein?"
+                                 data-en="What could it be?">Was könnte es sein?</div>
+                            <div id="ingredientProbabilityBadges" style="font-size:13px;color:rgba(247,251,255,0.7);">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
+                            <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
+                        </div>
+
+                        <!-- SmartStepCreator Partial -->
+                        @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Home/_SmartStepCreatorPartial.cshtml")
+                    </div>
+                </section>
+
+                <!-- Section 5: Keywords -->
+                <section class="cp-section" id="card-keywords">
+                    <div class="cp-section-header">
+                        <div class="cp-section-icon">
+                            <i class="bi bi-hash"></i>
+                        </div>
+                        <div class="cp-section-info">
+                            <h2 class="cp-section-title label-lang"
+                                data-de="Keywords"
+                                data-en="Keywords">Keywords</h2>
+                            <p class="cp-section-subtitle label-lang"
+                               data-de="Hilft beim Feed & bei Suche"
+                               data-en="Helps feed & search">Hilft beim Feed & bei Suche</p>
+                        </div>
+                        <div class="cp-section-counter">5/5</div>
+                    </div>
+                    <div class="cp-section-body">
+                        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+                            @if (Model.ToSelectKeywords != null)
                             {
-                                <span class="label-lang" data-de="Veröffentlichen" data-en="Publish">Veröffentlichen</span>
-                                <i class="bi bi-send-fill ms-2"></i>
+                                foreach (var keyword in Model.ToSelectKeywords)
+                                {
+                                    <button type="button"
+                                            class="cp-pill keyword-btn"
+                                            data-keyword-id="@keyword.Id"
+                                            data-word-de="@keyword.Word_DE"
+                                            data-word-en="@keyword.Word_EN"
+                                            onclick="toggleKeyword('@keyword.Id', this)">
+                                        @keyword.Word_DE
+                                    </button>
+                                }
                             }
-                        </button>
+                        </div>
+                        <div id="selectedKeywords" style="margin-top:16px;"></div>
+                    </div>
+                </section>
+
+            </form>
+        </div>
+
+        <!-- Sticky Publish Bar -->
+        <div class="cp-publishbar">
+            <div class="cp-publishbar-inner">
+                <div class="cp-publishbar-info">
+                    <div class="cp-publishbar-label label-lang"
+                         data-de="Bereit zum Posten?"
+                         data-en="Ready to post?">Bereit zum Posten?</div>
+                    <div class="cp-publishbar-progress">
+                        <div class="cp-publishbar-progress-bar" id="publishProgressBar" style="width:0%;"></div>
                     </div>
                 </div>
+                <button type="submit" form="recipeForm" class="cp-publishbar-btn" id="publishBtn">
+                    @if (isEditMode)
+                    {
+                        <span class="label-lang" data-de="Speichern" data-en="Save">Speichern</span>
+                        <i class="bi bi-check-lg"></i>
+                    }
+                    else
+                    {
+                        <span class="label-lang" data-de="Veröffentlichen" data-en="Publish">Veröffentlichen</span>
+                        <i class="bi bi-send-fill"></i>
+                    }
+                </button>
             </div>
-
-        </form>
+        </div>
     </div>
 </div>
 
-<style>
-    /* ---------- Background / Shell ---------- */
-    .creator-bg {
-        background: radial-gradient(900px 420px at 20% 0%, rgba(255, 153, 102, .18), transparent 60%), radial-gradient(900px 520px at 80% 10%, rgba(139, 92, 246, .16), transparent 65%), #ffffff;
-    }
-
-    .text-muted {
-        color: var(--creator-text) !important;
-    }
-
-    .feed-shell {
-        max-width: 720px;
-        padding: 12px 12px 120px 12px; /* space for bottom bar */
-    }
-
-        .feed-shell[data-theme="dark"],
-        .feed-shell[data-theme="navy"] {
-            max-width: 720px;
-            padding: 12px 12px 120px 12px;
-            background: linear-gradient( 180deg, rgba(28, 38, 78, 0.35), rgba(16, 22, 46, 0.45) );
-            border-radius: 22px;
-        }
-
-
-    /* ---------- Loading Overlay ---------- */
-    .creator-loading {
-        position: fixed;
-        inset: 0;
-        background: rgba(255,255,255,0.85);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        z-index: 2000;
-    }
-
-    .creator-loading-card {
-        background: #fff;
-        border-radius: 18px;
-        padding: 20px 24px;
-        box-shadow: 0 12px 30px rgba(0,0,0,0.15);
-        text-align: center;
-        border: 1px solid rgba(0,0,0,0.06);
-    }
-
-    /* ---------- Topbar ---------- */
-    body > .position-fixed.top-0.end-0.m-3.dropdown {
-        z-index: 2601 !important;
-    }
-
-    .creator-topbar {
-        position: sticky;
-        top: 0;
-        z-index: 1500;
-        background: rgba(255,255,255,0.86);
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .topbar-btn {
-        width: 42px;
-        height: 42px;
-        padding: 0;
-        border-radius: 999px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        align-self: center;
-        border: 1px solid rgba(0,0,0,0.10);
-        background: #fff;
-        color: #111;
-        text-decoration: none;
-        flex: 0 0 auto;
-    }
-
-        .topbar-btn i {
-            display: block;
-            line-height: 1;
-        }
-
-    .topbar-primary {
-        border: none;
-        background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
-        color: #fff;
-    }
-
-    .topbar-title {
-        flex: 1;
-        min-width: 0;
-        line-height: 1.15;
-    }
-
-
-    /* ---------- Hero ---------- */
-    .creator-hero {
-        border-radius: 26px;
-        background: rgba(255,255,255,0.92);
-        border: 1px solid rgba(0,0,0,0.06);
-        box-shadow: 0 10px 32px rgba(0,0,0,0.06);
-        padding: 18px;
-        display: flex;
-        justify-content: space-between;
-        gap: 14px;
-        overflow: clip;
-    }
-
-    .creator-hero-title {
-        font-size: 1.35rem;
-        font-weight: 900;
-        color: var(--creator-text) !important;
-        letter-spacing: -0.01em;
-    }
-
-    .creator-hero-sub {
-        color: var(--creator-text) !important;
-        font-size: .95rem;
-    }
-
-    .creator-hero-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        font-weight: 800;
-        font-size: .82rem;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(255, 153, 102, .12);
-        border: 1px solid rgba(255, 153, 102, .25);
-        color: #7c2d12;
-        margin-bottom: 10px;
-        width: fit-content;
-    }
-
-    .progress-dots {
-        display: flex;
-        gap: 6px;
-        justify-content: flex-end;
-    }
-
-    .dot {
-        width: 8px;
-        height: 8px;
-        border-radius: 999px;
-        background: var(--creator-text) !important;
-    }
-
-        .dot.active {
-            background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
-        }
-
-    /* ---------- Cards ---------- */
-    .creator-card {
-        border: 1px solid rgba(0,0,0,0.06);
-        border-radius: 26px;
-        background: rgba(255,255,255,0.94);
-        box-shadow: 0 10px 32px rgba(0,0,0,0.06);
-        overflow: clip;
-    }
-
-    .creator-card-head {
-        padding: 14px 16px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        border-bottom: 1px solid rgba(0,0,0,0.06);
-    }
-
-    .creator-card-body {
-        padding: 14px 16px 16px 16px;
-    }
-
-    .creator-card-title {
-        font-weight: 900;
-        font-size: 1.02rem;
-        color: var(--creator-text) !important;
-    }
-
-    .creator-card-sub {
-        font-size: .84rem;
-        color: var(--creator-text) !important;
-        margin-top: 2px;
-    }
-
-    #card-ingredients {
-        border-color: var(--creator-border);
-        background: var(--creator-bg);
-        box-shadow: none;
-    }
-
-    #card-probability {
-        min-height: auto;
-    }
-
-    #card-probability .creator-preview-canvas {
-        min-height: auto;
-        padding: 14px 16px;
-    }
-
-    #card-ingredients .creator-card-head {
-        border-bottom-color: var(--creator-border);
-        background: rgba(15,23,42,0.8);
-    }
-
-    #card-ingredients .creator-card-title,
-    #card-ingredients .creator-card-sub,
-    #card-ingredients .form-label,
-    #card-ingredients .small,
-    #card-ingredients .text-muted {
-        color: var(--creator-text) !important;
-    }
-
-    #card-ingredients .input-pill {
-        background: rgba(255,255,255,0.08);
-        border-color: var(--creator-border);
-    }
-
-    #card-ingredients #ingredientSearch {
-        color: var(--creator-text);
-    }
-
-    .ingredient-search-pill {
-        gap: 10px;
-    }
-
-    .ingredient-ai-assist {
-        border: 1px solid rgba(255,255,255,0.12);
-        border-radius: 18px;
-        background: rgba(9, 20, 48, 0.56);
-        padding: 14px;
-    }
-
-    .ingredient-ai-toggle {
-        border-color: rgba(255,255,255,0.28);
-    }
-
-    .ingredient-ai-panel {
-        border-top: 1px solid rgba(255,255,255,0.10);
-        padding-top: 14px;
-    }
-
-    .ingredient-ai-panel input {
-        border-radius: 14px;
-        min-height: 44px;
-        background: #ffffff !important;
-        color: #111827 !important;
-        -webkit-text-fill-color: #111827 !important;
-        caret-color: #111827 !important;
-    }
-
-    .ingredient-ai-panel input::placeholder {
-        color: #6b7280 !important;
-        opacity: 1;
-    }
-
-    .ingredient-ai-result {
-        border-radius: 16px;
-        border: 1px solid rgba(255,255,255,0.10);
-        background: rgba(255,255,255,0.04);
-        padding: 14px;
-    }
-
-    .ingredient-ai-chip {
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.16);
-        background: rgba(255,255,255,0.06);
-        color: #fff;
-        padding: 6px 12px;
-    }
-
-    .ingredient-ai-meta {
-        font-size: 0.88rem;
-        color: rgba(255,255,255,0.72);
-    }
-
-    .ingredient-search-pill #ingredientSearch {
-        flex: 1 1 auto;
-    }
-
-    .ingredient-search-clear {
-        border: 0;
-        background: transparent;
-        color: var(--creator-sub);
-        padding: 0;
-        width: 1.5rem;
-        height: 1.5rem;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border-radius: 999px;
-        transition: background .16s ease, color .16s ease;
-    }
-
-    .ingredient-search-clear:hover {
-        background: rgba(255,255,255,0.12);
-        color: var(--creator-text);
-    }
-
-        #card-ingredients #ingredientSearch::placeholder {
-            color: var(--creator-sub);
-        }
-
-    .card-icon {
-        width: 38px;
-        height: 38px;
-        border-radius: 14px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid rgba(0,0,0,0.06);
-    }
-
-
-
-    /* ---------- Inputs ---------- */
-    .input-pill, .select-pill {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        padding: 12px 14px;
-        border-radius: 18px;
-        border: 1px solid rgba(0,0,0,0.08);
-        background: rgba(255,255,255,0.90);
-    }
-
-        .input-pill .form-control,
-        .select-pill .form-select {
-            padding: 0;
-            min-height: unset;
-        }
-
-    .form-control:focus, .form-select:focus {
-        box-shadow: none;
-        border-color: transparent;
-    }
-
-    .cursor-pointer {
-        cursor: pointer;
-    }
-
-    /* ---------- Media ---------- */
-    .media-preview {
-        position: relative;
-        border-radius: 22px;
-        overflow: hidden;
-        background: #111;
-        border: 1px solid rgba(0,0,0,0.10);
-        box-shadow: 0 10px 28px rgba(0,0,0,0.12);
-    }
-
-    .media-reset {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        border-radius: 999px;
-        border: none;
-        opacity: .9;
-    }
-
-    .upload-drop {
-        display: block;
-        border-radius: 22px;
-        border: 1.5px dashed rgba(0,0,0,0.14);
-        background: rgba(255,255,255,0.78);
-        padding: 18px;
-        text-align: center;
-        cursor: pointer;
-        transition: transform .12s ease, box-shadow .12s ease;
-    }
-
-        .upload-drop:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 14px 34px rgba(0,0,0,0.08);
-        }
-
-    .upload-icon {
-        width: 64px;
-        height: 64px;
-        margin: 0 auto 10px auto;
-        border-radius: 999px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        background: rgba(255, 153, 102, .14);
-        border: 1px solid rgba(255, 153, 102, .25);
-        color: #ea580c;
-        font-size: 1.6rem;
-    }
-
-    /* ---------- Tables / Selected Zone ---------- */
-    .creator-table-wrap {
-        border-radius: 18px;
-        overflow: hidden;
-        border: 1px solid var(--creator-border);
-        background: rgba(15,23,42,0.75);
-        height: 22rem;
-        overflow-y: auto;
-    }
-
-    .ingredient-db-row {
-        cursor: pointer;
-    }
-
-        .ingredient-db-row td {
-            background: transparent !important;
-            border-color: var(--creator-border) !important;
-        }
-
-        .ingredient-db-row .display-name {
-            color: #ffffff;
-            font-weight: 800;
-            font-size: 1.02rem;
-            text-shadow: 0 2px 8px rgba(0,0,0,.35);
-        }
-
-        .ingredient-db-row .ingredient-inline-inputs {
-            display: none !important;
-        }
-
-
-    .ingredient-catalog-scroll {
-        height: 420px;
-        max-height: 56vh;
-        overflow-y: auto;
-        padding-right: 5px;
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-        align-content: start;
-    }
-
-    #ingredientsCatalog .ingredient-db-row {
-        margin-bottom: 0;
-        padding: 10px 12px;
-    }
-
-        #ingredientsCatalog .ingredient-db-row .display-name {
-            font-size: 1rem;
-            line-height: 1.3;
-        }
-
-        #ingredientsCatalog .ingredient-db-row .btn.creator-cta-primary {
-            padding: 2px 8px;
-            font-size: 0.8rem;
-        }
-
-
-    .ingredient-card-head {
-        width: 100%;
-    }
-
-        .ingredient-card-head .display-name {
-            margin-right: 8px;
-        }
-
-    .ingredient-db-details {
-        border-top: 1px solid rgba(255,255,255,0.14);
-        padding-top: 10px;
-    }
-
-
-    .probability-type-btn {
-        border: 1px solid rgba(255,255,255,0.22);
-        background: rgba(255,255,255,0.08);
-        color: #fff;
-        border-radius: 999px;
-        font-weight: 700;
-    }
-
-        .probability-type-btn:hover {
-            border-color: rgba(255,255,255,0.4);
-            background: rgba(255,255,255,0.16);
-            color: #fff;
-        }
-
-    .probability-template-card {
-        border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.18);
-        border-radius: 22px;
-        padding: 16px;
-        margin-bottom: 10px;
-        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
-        transition: border-color .22s ease, box-shadow .22s ease, background .22s ease;
-    }
-
-    .probability-template-wrap.editing .probability-template-card {
-        border-color: rgba(141,99,255,.8);
-        box-shadow: 0 0 18px 4px rgba(141,99,255,.35), 0 14px 30px rgba(0,0,0,0.2);
-        background: rgba(141,99,255,.12);
-    }
-
-    /* header row inside each probability step card */
-    .probability-template-card .prob-step-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 6px;
-    }
-
-    .probability-template-card .prob-step-label {
-        font-size: .78rem;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        color: var(--creator-sub);
-    }
-
-    .probability-template-text {
-        min-height: auto;
-        font-size: clamp(1.05rem, 2.5vw, 1.4rem);
-        line-height: 1.42;
-        font-weight: 700;
-        color: var(--creator-text);
-        min-height: 72px;
-    }
-
-    .probability-template-select {
-        display: block;
-        width: 100%;
-        border: 0;
-        background: transparent;
-        color: inherit;
-        text-align: left;
-        padding: 0;
-        margin: 0;
-    }
-
-    .probability-template-text .probability-var-inline-wrap {
-        display: inline;
-        margin-right: 2px;
-    }
-
-    .probability-template-text .probability-var-inline-token,
-    .probability-template-text .js-probability-var {
-        color: #ffe08a;
-        text-shadow: 0 0 16px rgba(255, 208, 95, .35);
-        cursor: pointer;
-        border-bottom: 1px dashed rgba(255, 224, 138, .75);
-        touch-action: manipulation;
-        user-select: none;
-        -webkit-tap-highlight-color: rgba(255, 224, 138, .3);
-    }
-
-    /* ── Prob-Inline-Editor: same look as SmartStepCreator's InlineVarEditorHost ── */
-    .prob-inline-editor-host {
-        margin-top: 8px;
-    }
-
-    .prob-inline-editor-host .duration-editor {
-        border-top: 1px solid rgba(255,255,255,.2);
-        padding-top: 10px;
-        color: var(--creator-text, #f1f5f9);
-    }
-
-    .prob-inline-editor-host .text-muted {
-        color: var(--creator-sub) !important;
-    }
-
-    .prob-inline-editor-host .pill-like,
-    .prob-inline-editor-host .ingredient-chip {
-        border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.08);
-        color: var(--creator-text);
-        border-radius: 14px;
-        padding: 8px 12px;
-        font-size: .82rem;
-        white-space: nowrap;
-        display: inline-flex;
-        align-items: center;
-        gap: 5px;
-        cursor: pointer;
-        transition: all .2s ease;
-    }
-
-    .prob-inline-editor-host .pill-like:hover,
-    .prob-inline-editor-host .pill-like.active,
-    .prob-inline-editor-host .ingredient-chip:hover,
-    .prob-inline-editor-host .ingredient-chip.active {
-        transform: scale(1.06);
-        border-color: rgba(141,99,255,.8);
-        box-shadow: 0 0 0 3px rgba(141,99,255,.28);
-        background: rgba(141,99,255,.25);
-        color: var(--creator-text);
-    }
-
-    #card-probability {
-        --creator-sheet: linear-gradient(to right, #0f234d, #18366f, #1f4d92);
-        --creator-border: rgba(173, 207, 255, 0.30);
-        --creator-text: #f7fbff;
-        --creator-sub: rgba(237, 245, 255, 0.88);
-        --creator-accent: #79aaff;
-        --creator-bg: radial-gradient(120% 120% at 10% 0%, #244a88 0%, #0f234d 48%, #081528 100%);
-    }
-
-    #card-probability .probability-template-card {
-        border-color: rgba(164, 193, 255, 0.18);
-        background: rgba(7, 20, 46, 0.76);
-    }
-
-    #card-probability .probability-template-card .prob-step-label,
-    #card-probability .prob-inline-editor-host .text-muted {
-        color: rgba(237, 245, 255, 0.88) !important;
-    }
-
-    #card-probability .prob-inline-editor-host .small,
-    #card-probability .prob-inline-editor-host strong {
-        color: #f7fbff !important;
-    }
-
-    #card-probability .prob-inline-editor-host .pill-like,
-    #card-probability .prob-inline-editor-host .ingredient-chip {
-        border: 1px solid rgba(255,255,255,0.88);
-        background: transparent;
-        color: #f7fbff;
-        padding: 7px 14px;
-        transition: background-color .2s ease, border-color .2s ease, color .2s ease;
-    }
-
-    #card-probability .prob-inline-editor-host .pill-like:hover,
-    #card-probability .prob-inline-editor-host .ingredient-chip:hover {
-        transform: none;
-        border-color: #ffffff;
-        box-shadow: none;
-        background: rgba(255,255,255,0.08);
-        color: #ffffff;
-    }
-
-    #card-probability .prob-inline-editor-host .pill-like.active,
-    #card-probability .prob-inline-editor-host .ingredient-chip.active {
-        transform: none;
-        border-color: rgba(255,255,255,0.94);
-        box-shadow: none;
-        background: rgba(255,255,255,0.92);
-        color: #23365f;
-    }
-
-    #card-probability .prob-inline-editor-host .btn-outline-light {
-        color: rgba(255,255,255,0.9);
-        border-color: rgba(255,255,255,0.28);
-        background: transparent;
-    }
-
-    #card-probability .prob-inline-editor-host .btn-outline-light:hover {
-        color: #fff;
-        border-color: rgba(255,255,255,0.42);
-        background: rgba(255,255,255,0.08);
-    }
-
-    #card-probability .probability-template-text .js-probability-var:not(.optional-inline-pill),
-    #card-probability .probability-template-text .probability-var-inline-token:not(.optional-inline-pill) {
-        color: #ffe08a;
-        text-shadow: 0 0 16px rgba(255, 208, 95, .35);
-        border-bottom: 1px dashed rgba(255, 224, 138, .75);
-    }
-
-    #card-probability .probability-template-text .optional-inline-pill.js-probability-var {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        padding: 1px 8px 1px 5px;
-        border-radius: 20px;
-        border: 1.5px dashed rgba(255,255,255,0.22);
-        color: rgba(255,255,255,0.32);
-        font-size: 0.80em;
-        font-weight: 700;
-        line-height: 1.5;
-        text-shadow: none;
-        border-bottom: 0;
-        vertical-align: baseline;
-    }
-
-    #card-probability .probability-template-text .optional-inline-pill.js-probability-var:hover,
-    #card-probability .probability-template-text .optional-inline-pill.js-probability-var:focus {
-        color: rgba(255,255,255,0.85);
-        border-color: rgba(141,99,255,0.75);
-        background: rgba(141,99,255,0.14);
-        outline: none;
-    }
-
-    #card-probability .probability-template-text .optional-inline-pill.js-probability-var i,
-    #card-probability .probability-template-text .optional-inline-pill.js-probability-var .optional-pill-label {
-        pointer-events: none;
-    }
-
-    .common-unit-chips {
-        display: flex;
-        gap: 6px;
-        flex-wrap: wrap;
-    }
-
-    .common-unit-chip {
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.25);
-        background: rgba(255,255,255,0.06);
-        color: #f8fafc;
-        font-weight: 700;
-        padding: 2px 10px;
-        line-height: 1.5;
-    }
-
-        .common-unit-chip:hover {
-            border-color: rgba(255,255,255,0.45);
-            background: rgba(255,255,255,0.12);
-            color: #fff;
-        }
-
-    .ingredient-catalog-card {
-        margin-top: 2px;
-        border-radius: 14px;
-        border: 1px solid var(--creator-border);
-        background: rgba(15,23,42,0.92);
-        backdrop-filter: blur(12px);
-        box-shadow: none;
-        padding: 8px 10px;
-        width: 92%;
-        margin-left: auto;
-        margin-right: auto;
-        transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    }
-
-    .ingredient-db-row:hover .ingredient-catalog-card {
-        transform: translateY(-1px);
-        border-color: rgba(255,255,255,0.32);
-        box-shadow: 0 18px 36px rgba(0,0,0,0.24);
-    }
-
-    /* Der Bereich, in dem die ausgew&auml;hlten Zutaten landen */
-    #selectedIngredients {
-        display: flex !important;
-        flex-direction: column !important;
-        gap: 10px;
-        width: 100%;
-        position: relative;
-        padding: 5px;
-    }
-
-    .ingredient-row.dynamic-item {
-        display: flex !important;
-        align-items: center;
-        justify-content: space-between;
-        width: 100% !important;
-        background: rgba(15,23,42,0.92);
-        border-radius: 14px;
-        padding: 12px 14px;
-        border: 1px solid var(--creator-border);
-        color: var(--creator-text);
-        box-shadow: none;
-        margin: 0 !important;
-        cursor: pointer;
-    }
-
-    .ingredient-row.ingredient-optional-sub {
-        border-style: dashed;
-        border-color: rgba(180, 140, 255, 0.5);
-        background: rgba(141, 99, 255, 0.08);
-        padding-left: 28px;
-        opacity: 0.82;
-    }
-
-    .ingredient-row.ingredient-optional-sub .ingredient-name-text::before {
-        content: "↳ ";
-        opacity: 0.5;
-    }
-
-    .display-name-selected {
-        color: var(--creator-text) !important;
-        font-weight: 700;
-    }
-
-    .ingredient-row-main {
-        min-width: 0;
-        flex: 1;
-    }
-
-    .ingredient-row-meta {
-        font-size: .92rem;
-        color: #fff;
-        font-weight: 800;
-        white-space: nowrap;
-    }
-
-    .ingredient-row-right {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-
-    .ingredient-row-actions {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-
-    .ingredient-config-overlay {
-        margin-top: 10px;
-    }
-
-    #ingredientConfigDock {
-        width: 100%;
-    }
-
-    .ingredient-config-card {
-        width: 100%;
-        background: var(--creator-sheet);
-        border: 1px solid var(--creator-border);
-        border-radius: 16px;
-        padding: 14px;
-    }
-
-
-    .selected-zone {
-        padding-top: 6px;
-    }
-
-    .dynamic-item {
-        background: rgba(255,255,255,0.92);
-        border-radius: 18px;
-        padding: 12px;
-        margin-bottom: 10px;
-        border: 1px solid rgba(0,0,0,0.05);
-        box-shadow: 0 6px 18px rgba(0,0,0,0.05);
-    }
-
-    .keyword-btn {
-        border-color: rgba(255,255,255,0.55);
-        color: #111827;
-        background: #ffffff;
-    }
-
-        .keyword-btn.btn-secondary,
-        .keyword-btn.active {
-            background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
-            border-color: transparent;
-            color: #fff;
-        }
-
-    .keyword-pill {
-        border: 1px solid rgba(255,255,255,0.22);
-        background: rgba(255,255,255,0.12) !important;
-        color: #fff !important;
-        padding: 8px 12px;
-    }
-
-
-    .smart-step-creator .btn.btn-sm:not(.advanced-gear),
-    #card-keywords .btn.btn-sm {
-        border-radius: 999px;
-    }
-
-    #ingredientsDbTable .ingredient-inline-inputs .form-control,
-    #ingredientsDbTable .ingredient-inline-inputs .form-select {
-        min-height: 38px;
-    }
-
-
-    /* ---------- Bottom Bar ---------- */
-    .creator-bottom {
-        width: min(720px, 100%);
-        z-index: 1600;
-        pointer-events: none;
-    }
-
-    .creator-bottom-inner {
-        pointer-events: auto;
-        border-radius: 999px;
-        background: rgba(255,255,255,0.96);
-        border: 1px solid rgba(0,0,0,0.08);
-        box-shadow: 0 14px 36px rgba(0,0,0,0.10);
-        padding: 10px;
-    }
-
-    .bottom-hint {
-        min-width: 210px;
-        display: none;
-    }
-
-    .publish-btn {
-        border: none;
-        border-radius: 999px;
-        padding: 14px 16px;
-        font-weight: 900;
-        color: #fff;
-        background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
-        box-shadow: 0 14px 30px rgba(95, 133, 255, 0.28);
-    }
-
-    /* ---------- Responsive ---------- */
-    @@media (min-width: 768px) {
-        .bottom-hint {
-            display: block;
-        }
-    }
-
-    @@media (max-width: 576px) {
-        .feed-shell {
-            padding-left: 10px;
-            padding-right: 10px;
-        }
-
-        .creator-hero {
-            flex-direction: column;
-        }
-
-        .creator-hero-right {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-        }
-
-        .creator-table-wrap {
-            height: 20rem;
-            overflow-y: auto;
-        }
-
-        .table-responsive {
-            overflow-x: hidden;
-        }
-
-        #ingredientsDbTable thead, #stepsDbTable thead {
-            display: none;
-        }
-
-        #ingredientsDbTable tbody tr, #stepsDbTable tbody tr {
-            display: block;
-            margin-bottom: 12px;
-            background: rgba(255,255,255,0.95);
-            border-radius: 18px;
-            padding: 12px;
-            box-shadow: 0 6px 18px rgba(0,0,0,0.06);
-        }
-
-        #ingredientsDbTable tbody td, #stepsDbTable tbody td {
-            display: block;
-            border: 0;
-            padding: 0;
-        }
-
-            #ingredientsDbTable tbody td + td,
-            #stepsDbTable tbody td + td {
-                margin-top: 10px;
-                text-align: right !important;
-            }
-    }
-
-    /* thema Navy */
-
-    .smart-step-creator[data-theme="navy"],
-    .creator-card[data-theme="navy"],
-    .creator-hero[data-theme="navy"] {
-        --creator-sheet: linear-gradient(to right, #0f234d, #18366f, #1f4d92);
-        --creator-border: rgba(173, 207, 255, 0.30);
-        --creator-text: #f7fbff;
-        --creator-sub: rgba(237, 245, 255, 0.88);
-        --creator-accent: #79aaff;
-        --creator-bg: radial-gradient(120% 120% at 10% 0%, #244a88 0%, #0f234d 48%, #081528 100%);
-        border-radius: 24px;
-        overflow: clip;
-        border: 1px solid rgba(163, 199, 255, 0.20);
-        background: var(--creator-bg);
-        color: var(--creator-text);
-        position: relative;
-        box-shadow: 0 18px 40px rgba(4, 10, 26, 0.45);
-    }
-
-        .smart-step-creator[data-theme="navy"]::before,
-        .creator-card[data-theme="navy"]::before,
-        .creator-hero[data-theme="navy"]::before {
-            content: "";
-            position: absolute;
-            inset: -20%;
-            background: radial-gradient(circle at 20% 20%, rgba(118,168,255,.25), transparent 60%);
-            filter: blur(40px);
-            pointer-events: none;
-        }
-
-    .upload-drop[data-theme="navy"],
-    .preview-step-card[data-theme="navy"],
-    .input-pill[data-theme="navy"],
-    .select-pill[data-theme="navy"],
-    .template-card[data-theme="navy"],
-    .ingredient-db-row[data-theme="navy"] {
-        background: rgba(7, 20, 46, 0.76);
-        border-color: rgba(164, 193, 255, 0.18);
-        color: #fff !important;
-    }
-
-    .creator-topbar[data-theme="navy"] .topbar-title,
-    .creator-topbar[data-theme="navy"] .topbar-title .fw-bold,
-    .creator-topbar[data-theme="navy"] .topbar-title .small,
-    .feed-shell[data-theme="navy"],
-    .feed-shell[data-theme="navy"] .text-muted,
-    .feed-shell[data-theme="navy"] .small,
-    .feed-shell[data-theme="navy"] .form-label,
-    .feed-shell[data-theme="navy"] .form-control,
-    .feed-shell[data-theme="navy"] .form-select,
-    .feed-shell[data-theme="navy"] .badge,
-    .feed-shell[data-theme="navy"] .creator-hero-badge,
-    .feed-shell[data-theme="navy"] .creator-hero-badge span,
-    .feed-shell[data-theme="navy"] .creator-hero-badge i,
-    .feed-shell[data-theme="navy"] .input-pill i,
-    .feed-shell[data-theme="navy"] .select-pill i,
-    .feed-shell[data-theme="navy"] .upload-drop,
-    .feed-shell[data-theme="navy"] .upload-drop .small,
-    .feed-shell[data-theme="navy"] .upload-drop .fw-bold,
-    .feed-shell[data-theme="navy"] .topbar-title,
-    .feed-shell[data-theme="navy"] .topbar-title .fw-bold,
-    .feed-shell[data-theme="navy"] .topbar-title .small,
-    .feed-shell[data-theme="navy"] .sheet-title,
-    .feed-shell[data-theme="navy"] .sheet-sub,
-    .feed-shell[data-theme="navy"] .ingredient-top-title,
-    .feed-shell[data-theme="navy"] .preview-step-text,
-    .feed-shell[data-theme="navy"] .template-snippet,
-    .feed-shell[data-theme="navy"] .story-meta,
-    .feed-shell[data-theme="navy"] .phase-badge,
-    .feed-shell[data-theme="navy"] .phase-badge-1,
-    .feed-shell[data-theme="navy"] .phase-badge-2,
-    .feed-shell[data-theme="navy"] .phase-badge-3,
-    .feed-shell[data-theme="navy"] .phase-badge-4 {
-        color: #fff !important;
-    }
-
-    #card-basics[data-theme="navy"] .input-pill .form-control,
-    #card-basics[data-theme="navy"] .select-pill .form-select,
-    #card-basics[data-theme="navy"] .input-pill input,
-    #card-basics[data-theme="navy"] .select-pill select {
-        color: #fff !important;
-        -webkit-text-fill-color: #fff;
-    }
-
-        #card-basics[data-theme="navy"] .input-pill .form-control::placeholder,
-        #card-basics[data-theme="navy"] .input-pill input::placeholder {
-            color: rgba(255,255,255,0.82) !important;
-            -webkit-text-fill-color: rgba(255,255,255,0.82);
-        }
-
-        #card-basics[data-theme="navy"] .select-pill .form-select option,
-        #card-basics[data-theme="navy"] .select-pill select option {
-            color: #111;
-        }
-
-
-
-    .smart-step-creator {
-        --creator-sheet: rgba(22, 32, 68, 0.62);
-        --creator-border: rgba(170, 190, 255, 0.20);
-        --creator-text: #f8f9ff;
-        --creator-sub: rgba(220, 228, 255, 0.72);
-        --creator-accent: #7c8cff;
-        --creator-bg: radial-gradient( 120% 120% at 10% 0%, #38418a 0%, #1a2247 45%, #0e1429 100% );
-        border-radius: 24px;
-        overflow: clip;
-        border: 1px solid rgba(255,255,255,0.12);
-        background: var(--creator-bg);
-        color: var(--creator-text);
-        min-height: 76vh;
-        position: relative;
-        box-shadow: 0 18px 40px rgba(16,20,40,0.26);
-    }
-
-
-        .smart-step-creator[data-theme="light"] {
-            --creator-bg: linear-gradient(180deg, #e8f0ff 0%, #f8fbff 60%, #ffffff 100%);
-            --creator-sheet: rgba(255,255,255,0.72);
-            --creator-border: rgba(26,36,56,0.12);
-            --creator-text: #101828;
-            --creator-sub: rgba(16,24,40,0.65);
-            --creator-accent: #5b6df9;
-        }
-
-
-    .creator-top-head {
-        padding: 12px 14px 8px;
-        border-bottom: 1px solid rgba(255,255,255,0.12);
-        background: rgba(12, 16, 28, 0.28);
-    }
-
-    .template-selection-wrap {
-        margin-top: 10px;
-        display: flex;
-        flex-direction: column;
-        min-height: 0;
-    }
-
-    .creator-preview-canvas {
-        height: auto;
-        padding: 16px;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        position: relative;
-    }
-
-
-    .ingredient-top-strip {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-        margin-bottom: 8px;
-    }
-
-    .ingredient-top-title {
-        font-size: .74rem;
-        color: var(--creator-sub);
-        letter-spacing: .04em;
-        text-transform: uppercase;
-    }
-
-    .ingredient-swiper-top {
-        margin-bottom: 4px;
-    }
-
-    .preview-step-card {
-        margin-top: 10px;
-        border-radius: 22px;
-        border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.18);
-        padding: 16px;
-        box-shadow: 0 14px 30px rgba(0,0,0,0.2);
-        transform: translateY(0);
-        opacity: 1;
-        transition: transform .28s ease, opacity .28s ease;
-    }
-
-        .preview-step-card.preview-animate {
-            transform: translateY(-6px);
-            opacity: .86;
-        }
-
-    .preview-step-title {
-        font-size: .78rem;
-        text-transform: uppercase;
-        letter-spacing: .08em;
-        color: var(--creator-sub);
-        margin-bottom: 6px;
-    }
-
-    .preview-step-text {
-        font-size: clamp(1.05rem, 2.5vw, 1.4rem);
-        line-height: 1.42;
-        font-weight: 700;
-        color: var(--creator-text);
-        min-height: 72px;
-    }
-
-    .token-highlight {
-        color: #ffe08a;
-        text-shadow: 0 0 16px rgba(255,208,95,.35);
-        cursor: pointer;
-        border-bottom: 1px dashed rgba(255,224,138,.75);
-        touch-action: manipulation;
-        user-select: none;
-        -webkit-tap-highlight-color: rgba(255,224,138,.3);
-    }
-
-    .placeholder-token.token-active {
-        background: rgba(255,224,138,.2);
-        border-radius: 8px;
-        padding: 0 4px;
-    }
-
-    .placeholder-token.drag-over {
-        outline: 2px dashed rgba(141,99,255,.85);
-        outline-offset: 2px;
-    }
-
-    .placeholder-wrap {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        touch-action: manipulation;
-        cursor: pointer;
-        margin-right: 2px;
-    }
-
-    .placeholder-reset {
-        border: 0;
-        background: rgba(255,255,255,0.18);
-        color: var(--creator-text);
-        border-radius: 999px;
-        width: 16px;
-        height: 16px;
-        line-height: 16px;
-        font-size: .62rem;
-        padding: 0;
-        cursor: pointer;
-    }
-
-    /* ── Optionale Parameter: Inline-Pill im aktiven Step-Editor ── */
-    .optional-inline-pill {
-        display: inline-flex;
-        align-items: center;
-        gap: 3px;
-        padding: 1px 8px 1px 5px;
-        border-radius: 20px;
-        border: 1.5px dashed rgba(255,255,255,0.22);
-        color: rgba(255,255,255,0.32);
-        font-size: 0.80em;
-        cursor: pointer;
-        transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
-        user-select: none;
-        vertical-align: middle;
-        margin: 0 2px;
-        line-height: 1.5;
-    }
-    .optional-inline-pill:hover,
-    .optional-inline-pill:focus {
-        color: rgba(255,255,255,0.85);
-        border-color: rgba(141,99,255,0.75);
-        background: rgba(141,99,255,0.14);
-        outline: none;
-    }
-    .optional-inline-pill i {
-        font-size: 0.80em;
-        pointer-events: none;
-    }
-    .optional-pill-label {
-        pointer-events: none;
-    }
-
-    /* ── Optionale Parameter: Kleines Badge in der Template-Karten-Vorschau ── */
-    .opt-snippet-badge {
-        display: inline-flex;
-        align-items: center;
-        gap: 2px;
-        padding: 0 5px;
-        border-radius: 10px;
-        border: 1px dashed currentColor;
-        opacity: 0.45;
-        font-size: 0.85em;
-        vertical-align: middle;
-        white-space: nowrap;
-    }
-
-    .preview-step-card.token-replace-active {
-        box-shadow: 0 0 0 2px rgba(255,224,138,.4), 0 14px 30px rgba(0,0,0,0.2);
-    }
-
-    .duration-editor {
-        border-top: 1px solid rgba(255,255,255,.2);
-        padding-top: 10px;
-    }
-
-    .phase-badge {
-        font-size: .68rem;
-        font-weight: 800;
-        padding: 2px 6px;
-        border-radius: 6px;
-        margin-right: 5px;
-        display: inline-block;
-        line-height: 1.3;
-    }
-
-    .phase-badge-1 {
-        background: rgba(34,197,94,.18);
-        color: #166534;
-    }
-
-    .phase-badge-2 {
-        background: rgba(239,68,68,.18);
-        color: #991b1b;
-    }
-
-    .phase-badge-3 {
-        background: rgba(245,158,11,.2);
-        color: #92400e;
-    }
-
-    .phase-badge-4 {
-        background: rgba(99,102,241,.18);
-        color: #3730a3;
-    }
-
-    .creator-bottom-sheet {
-        position: absolute;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        height: auto;
-        background: var(--creator-sheet);
-        border-top: 1px solid var(--creator-border);
-        border-radius: 24px 24px 0 0;
-        padding: 12px;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        z-index: 10;
-        transition: padding .22s ease;
-    }
-
-    #creatorBottomSheet {
-        display: none !important;
-    }
-
-    .bottom-sheet-editor {
-        border-bottom: 1px solid var(--creator-border);
-        padding-bottom: 10px;
-        margin-bottom: 4px;
-    }
-
-        .bottom-sheet-editor .btn-primary {
-            white-space: nowrap;
-        }
-
-        .bottom-sheet-editor .inline-article-opt,
-        .bottom-sheet-editor .inline-equipment-opt,
-        .bottom-sheet-editor .inline-tool-opt,
-        .bottom-sheet-editor .inline-base-opt,
-        .bottom-sheet-editor .inline-item-opt,
-        .bottom-sheet-editor .inline-balance-opt,
-        .bottom-sheet-editor .inline-seasonings-opt {
-            white-space: nowrap;
-        }
-
-            .bottom-sheet-editor .inline-article-opt.btn-outline-light,
-            .bottom-sheet-editor .inline-equipment-opt.btn-outline-light,
-            .bottom-sheet-editor .inline-tool-opt.btn-outline-light,
-            .bottom-sheet-editor .inline-base-opt.btn-outline-light,
-            .bottom-sheet-editor .inline-item-opt.btn-outline-light,
-            .bottom-sheet-editor .inline-balance-opt.btn-outline-light,
-            .bottom-sheet-editor .inline-seasonings-opt.btn-outline-light {
-                background: transparent;
-                color: var(--creator-text);
-                border-color: rgba(255,255,255,0.45);
-            }
-
-            .bottom-sheet-editor .inline-article-opt.btn-light,
-            .bottom-sheet-editor .inline-equipment-opt.btn-light,
-            .bottom-sheet-editor .inline-tool-opt.btn-light,
-            .bottom-sheet-editor .inline-base-opt.btn-light,
-            .bottom-sheet-editor .inline-item-opt.btn-light,
-            .bottom-sheet-editor .inline-balance-opt.btn-light,
-            .bottom-sheet-editor .inline-seasonings-opt.btn-light {
-                background: #fff;
-                border-color: #fff;
-                color: #10131f;
-            }
-
-    .sheet-head {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .sheet-title {
-        font-weight: 800;
-    }
-
-    .sheet-sub {
-        font-size: .77rem;
-        color: var(--creator-sub);
-    }
-
-    .advanced-gear {
-        border-radius: 999px;
-        width: 34px;
-        height: 34px;
-        padding: 0;
-    }
-
-    .ingredient-swiper {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        overflow: visible;
-        padding: 4px 6px 6px;
-        scrollbar-width: none;
-    }
-
-        .ingredient-swiper::-webkit-scrollbar {
-            display: none;
-        }
-
-    .ingredient-chip {
-        border: 1px solid var(--creator-border);
-        background: rgba(255,255,255,0.08);
-        color: var(--creator-text);
-        border-radius: 14px;
-        padding: 8px 12px;
-        font-size: .82rem;
-        white-space: nowrap;
-        flex: 0 0 auto;
-        margin: 1px 0;
-        transition: all .2s ease;
-    }
-
-        .ingredient-chip.active {
-            transform: scale(1.06);
-            border-color: rgba(141,99,255,.8);
-            box-shadow: 0 0 0 3px rgba(141,99,255,.28);
-            background: rgba(141,99,255,.25);
-        }
-
-    .template-library {
-        overflow-y: auto;
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-        padding-right: 2px;
-        min-height: 0;
-        flex: 1;
-    }
-
-
-    .template-library-fixed {
-        height: 50vh;
-        max-height: 50vh;
-        overflow-y: auto;
-    }
-
-    .phase-header {
-        border-bottom: 2px solid var(--creator-border);
-        padding-bottom: 4px;
-    }
-
-    .phase-icon {
-        font-size: 1.15rem;
-    }
-
-    .phase-title {
-        font-weight: 700;
-        font-size: .92rem;
-        color: var(--creator-text);
-        text-transform: uppercase;
-        letter-spacing: .5px;
-    }
-
-    .sub-group-header {
-        text-align: center;
-        padding: 6px 0 4px;
-        border-top: 1px solid var(--creator-border);
-    }
-
-    .sub-group-icon {
-        font-size: 1.05rem;
-        display: block;
-        margin-bottom: 1px;
-    }
-
-    .sub-group-title {
-        display: block;
-        font-weight: 600;
-        font-size: 1.5rem;
-        color: var(--creator-text);
-        letter-spacing: .3px;
-        text-align: center;
-    }
-
-    .sub-group-desc {
-        display: block;
-        width: 100%;
-        max-width: none;
-        margin: 1px 0 0.25rem;
-        font-size: .8rem;
-        font-weight: 400;
-        color: var(--creator-sub);
-        line-height: 1.25;
-        text-align: center;
-        opacity: .72;
-    }
-
-    .template-card {
-        border: 1px solid var(--creator-border);
-        border-radius: 14px;
-        background: rgba(255,255,255,0.08);
-        color: var(--creator-text);
-        text-align: left;
-        padding: 10px;
-        transition: transform .18s ease, border-color .18s ease, background .18s ease;
-    }
-
-        .template-card.active {
-            border-color: rgba(141,99,255,.8);
-            background: rgba(141,99,255,.2);
-        }
-
-        .template-card.template-tap {
-            transform: scale(.98);
-        }
-
-    .template-title {
-        font-weight: 700;
-        font-size: .86rem;
-    }
-
-    .template-snippet {
-        font-size: .76rem;
-        color: var(--creator-sub);
-        white-space: normal;
-        overflow: visible;
-        text-overflow: unset;
-        line-height: 1.35;
-    }
-
-    .template-snippet-var {
-        color: #ffe08a;
-        text-shadow: 0 0 12px rgba(255,208,95,.28);
-        border-bottom: 1px dashed rgba(255,224,138,.65);
-        font-weight: 700;
-    }
-
-    .action-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        gap: 8px;
-        margin-top: auto;
-    }
-
-    .story-meta {
-        font-size: .76rem;
-        color: var(--creator-sub);
-        display: flex;
-        gap: 6px;
-        align-items: center;
-    }
-
-    .action-buttons {
-        display: flex;
-        gap: 8px;
-    }
-
-    .creator-cta-primary {
-        border: 0;
-        border-radius: 999px;
-        background: linear-gradient(135deg, #8d63ff 0%, #5f85ff 100%);
-        color: #fff;
-        font-weight: 700;
-        font-size: .82rem;
-        padding: 8px 12px;
-    }
-
-
-    .creator-toast {
-        position: absolute;
-        left: 50%;
-        transform: translateX(-50%) translateY(10px);
-        bottom: 44%;
-        opacity: 0;
-        pointer-events: none;
-        transition: all .25s ease;
-        padding: 8px 12px;
-        border-radius: 999px;
-        background: rgba(16,20,35,.86);
-        border: 1px solid rgba(255,255,255,0.2);
-        font-size: .78rem;
-    }
-
-        .creator-toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
-        }
-
-    .template-fly-ghost {
-        position: absolute;
-        z-index: 6;
-        opacity: 0;
-        pointer-events: none;
-        font-size: .74rem;
-        background: rgba(141,99,255,.85);
-        border-radius: 999px;
-        padding: 6px 10px;
-        color: #fff;
-    }
-
-        .template-fly-ghost.fly {
-            animation: flyToPreview .5s ease forwards;
-        }
-
-    @@keyframes flyToPreview {
-        0% {
-            opacity: 0;
-            transform: translate(0,0) scale(.85);
-        }
-
-        30% {
-            opacity: 1;
-        }
-
-        100% {
-            opacity: 0;
-            transform: translate(0,-120px) scale(1.04);
-        }
-    }
-
-    /* === Ingredient Edit Inline Popup === */
-    #ingredientConfigOverlay {
-        position: fixed;
-        inset: 0;
-        background: transparent;
-        z-index: 500;
-        display: none;
-        pointer-events: none;
-    }
-
-        #ingredientConfigOverlay.ing-active {
-            display: block;
-        }
-
-    #ingredientConfigDock {
-        display: none;
-        background: rgba(15,23,42,0.98);
-        border: 1px solid rgba(255,255,255,0.22);
-        border-radius: 16px;
-        padding: 12px 14px;
-        margin-top: 6px;
-        position: relative;
-        z-index: 501;
-        pointer-events: auto;
-    }
-
-        #ingredientConfigDock.ing-active {
-            display: block;
-            animation: ingDockSlideIn 0.18s ease;
-        }
-
-    @@keyframes ingDockSlideIn {
-        from {
-            opacity: 0;
-            transform: translateY(-6px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    /* === Probability Variable Editor Bottom Sheet === */
-    /* ===== OLD PROBABILITY EDITOR CSS - AUSKOMMENTIERT 2026-03-27 =====
-       Diese CSS-Regeln sind für das alte #probVarEditorDock System.
-       Jetzt wird das Universal Overlay System verwendet.
-       Kann gelöscht werden, wenn alles funktioniert.
-    */
-
-    /*
-    #probVarEditorOverlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.6);
-        z-index: 1052;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.25s ease;
-    }
-
-        #probVarEditorOverlay.ing-active {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-    #probVarEditorDock {
-        position: fixed;
-        bottom: 0;
-        left: 50%;
-        transform: translateX(-50%) translateY(100%);
-        width: min(480px, 100%);
-        z-index: 1053;
-        background: #1a1a2e;
-        border-radius: 20px 20px 0 0;
-        padding: 20px 20px calc(20px + env(safe-area-inset-bottom, 0px)) 20px;
-        border-top: 1px solid rgba(255,255,255,0.15);
-        border-left: 1px solid rgba(255,255,255,0.08);
-        border-right: 1px solid rgba(255,255,255,0.08);
-        transition: transform 0.3s cubic-bezier(0.32,0.72,0,1);
-        pointer-events: none;
-    }
-
-        #probVarEditorDock.ing-active {
-            transform: translateX(-50%) translateY(0);
-            pointer-events: auto;
-        }
-
-        #probVarEditorDock.prob-inline-mode {
-            position: relative;
-            bottom: auto;
-            left: auto;
-            transform: none;
-            width: 100%;
-            z-index: 2;
-            border-radius: 14px;
-            margin-top: 12px;
-            padding: 14px;
-            background: rgba(39,42,61,0.98);
-            border: 1px solid rgba(255,255,255,0.16);
-            box-shadow: 0 14px 30px rgba(0,0,0,0.3);
-            pointer-events: auto;
-        }
-
-            #probVarEditorDock.prob-inline-mode .ing-sheet-handle {
-                display: none;
-            }
-
-        #probVarEditorDock .ing-sheet-handle {
-            width: 40px;
-            height: 4px;
-            background: rgba(255,255,255,0.25);
-            border-radius: 999px;
-            margin: 0 auto 16px;
-        }
-
-    .prob-var-chip {
-        border-radius: 999px;
-        border: 1px solid rgba(255,255,255,0.55);
-        background: rgba(255,255,255,0.08);
-        color: #ffffff;
-        font-weight: 700;
-        padding: 6px 14px;
-        cursor: pointer;
-        transition: background 0.15s, border-color 0.15s;
-    }
-
-        .prob-var-chip:hover, .prob-var-chip.active {
-            background: rgba(255,255,255,0.2);
-            border-color: rgba(255,255,255,0.85);
-            color: #ffffff;
-        }
-    */
-
-    /* ===== END OLD CSS ===== */
-
-    #ingredientConfigDock .form-control,
-    #ingredientConfigDock .form-select {
-        min-height: 40px;
-        background: rgba(255,255,255,0.1);
-        border: 1px solid rgba(255,255,255,0.22);
-        color: #fff;
-        border-radius: 12px;
-    }
-        #ingredientConfigDock .form-control::placeholder {
-            color: rgba(255,255,255,0.65);
-        }
-        #ingredientConfigDock .form-control:focus,
-        #ingredientConfigDock .form-select:focus {
-            background: rgba(255,255,255,0.14);
-            border-color: rgba(255,255,255,0.42);
-            color: #fff;
-            box-shadow: 0 0 0 0.15rem rgba(141,99,255,0.2);
-        }
-        #ingredientConfigDock .form-select option {
-            background: #182235;
-            color: #fff;
-        }
-
-        /* ---------- Draft-Restore Banner ---------- */
-        .draft-restore-banner {
-            background: rgba(40, 167, 69, 0.12);
-            border: 1px solid rgba(40, 167, 69, 0.35);
-            border-radius: 16px;
-            padding: 12px 16px;
-            margin-bottom: 12px;
-        }
-        .draft-restore-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .draft-restore-text {
-            font-size: 0.88rem;
-            font-weight: 600;
-            color: var(--creator-text, #f8f9ff);
-        }
-</style>
-
-
-<div id="ingredientConfigOverlay" aria-hidden="true"></div>
-<div id="ingredientConfigDock" role="dialog" aria-labelledby="ingredientConfigTitle">
-    <div class="d-flex align-items-center gap-2 mb-2">
-        <div class="fw-bold text-white small" id="ingredientConfigTitle"></div>
-        <button type="button" id="btnCloseIngredientConfig" class="btn btn-sm p-0 text-white-50 d-none" aria-label="Schließen">
+<!-- Ingredient Config Dock (from old version) -->
+<div id="ingredientFlyGhost" style="position:fixed;pointer-events:none;z-index:9999;opacity:0;transition:opacity 0.3s;" aria-hidden="true"></div>
+
+<div id="ingredientConfigOverlay" style="position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:2000;opacity:0;pointer-events:none;transition:opacity 0.2s;" aria-hidden="true"></div>
+<div id="ingredientConfigDock" style="position:fixed;bottom:0;left:0;right:0;background:linear-gradient(to right,#0f234d,#18366f,#1f4d92);border-top:1px solid rgba(173,207,255,0.3);border-radius:24px 24px 0 0;padding:20px;transform:translateY(100%);transition:transform 0.3s;z-index:2001;max-width:720px;margin:0 auto;" role="dialog" aria-modal="true">
+    <div style="width:40px;height:4px;background:rgba(255,255,255,0.3);border-radius:2px;margin:0 auto 16px;"></div>
+    <div class="d-flex align-items-center justify-content-between mb-3">
+        <div style="font-weight:700;color:#f7fbff;" id="ingredientConfigName">Zutat konfigurieren</div>
+        <button type="button" id="btnCloseIngredientConfig" style="border:0;background:transparent;color:rgba(247,251,255,0.5);padding:0;width:2rem;height:2rem;display:inline-flex;align-items:center;justify-content:center;border-radius:999px;cursor:pointer;">
             <i class="bi bi-x-lg"></i>
         </button>
     </div>
     <div class="d-flex gap-2 align-items-center mb-2">
-        <input type="text" inputmode="decimal" id="ingredientConfigQty" class="form-control form-control-sm" placeholder="1" value="1" style="background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;" />
-        <select id="ingredientConfigUnit" class="form-select form-select-sm" style="background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; text-shadow:none !important;"></select>
-        <button type="button" id="btnApplyIngredientConfig" class="btn btn-sm creator-cta-primary px-3">
+        <input type="text" inputmode="decimal" id="ingredientConfigQty" placeholder="1" value="1" style="flex:1;border-radius:14px;border:none;padding:10px 12px;background:#ffffff;color:#111827;font-size:14px;" />
+        <select id="ingredientConfigUnit" style="flex:1;border-radius:14px;border:none;padding:10px 12px;background:#ffffff;color:#111827;font-size:14px;cursor:pointer;"></select>
+        <button type="button" id="btnApplyIngredientConfig" style="background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:10px 16px;font-weight:700;cursor:pointer;">
             <i class="bi bi-check-lg"></i>
         </button>
     </div>
 </div>
 
-@* ===== OLD PROBABILITY EDITOR HTML - AUSKOMMENTIERT 2026-03-27 =====
-   Diese HTML-Elemente sind für das alte #probVarEditorDock System.
-   Jetzt wird das Universal Overlay System verwendet.
-   Kann gelöscht werden, wenn alles funktioniert.
-*@
-
-@*
-<div id="probVarEditorOverlay" aria-hidden="true"></div>
-<div id="probVarEditorDock" role="dialog" aria-modal="true" aria-labelledby="probVarEditorTitle">
-    <div class="ing-sheet-handle"></div>
-    <div class="d-flex align-items-center justify-content-between mb-3">
-        <div class="fw-bold text-white" id="probVarEditorTitle">Variable auswählen</div>
-        <button type="button" id="btnCloseProbVarEditor" class="btn btn-sm p-0 text-white-50" aria-label="Schließen">
-            <i class="bi bi-x-lg"></i>
-        </button>
-    </div>
-    <div id="probVarIngredientArea" class="d-none">
-        <div class="small text-white-50 mb-2">Zutaten</div>
-        <div id="probVarIngredientChips" class="d-flex flex-wrap gap-2"></div>
-        <div class="small text-white-50 mt-3 mb-2">Artikel</div>
-        <div id="probVarIngredientArticleChips" class="d-flex flex-wrap gap-2"></div>
-    </div>
-    <div id="probVarDurationArea" class="d-none">
-        <div class="small text-white-50 mb-2">Dauer</div>
-        <div class="d-flex gap-2">
-            <input type="number" min="1" step="1" id="probVarDurationVal" class="form-control" value="5" style="background:#fff;color:#212529;" />
-            <select id="probVarDurationUnit" class="form-select" style="background:#fff;color:#212529;">
-                <option value="minute">Minuten</option>
-                <option value="hour">Stunden</option>
-                <option value="short">kurz</option>
-                <option value="per_package">laut Packungsanweisung</option>
-            </select>
-        </div>
-    </div>
-    <div id="probVarCountArea" class="d-none">
-        <div class="small text-white-50 mb-2">Anzahl</div>
-        <input type="number" min="1" step="1" id="probVarCountVal" class="form-control" value="1" style="background:#fff;color:#212529;" />
-    </div>
-    <div id="probVarTempArea" class="d-none">
-        <div class="small text-white-50 mb-2">Temperatur</div>
-        <div class="d-flex gap-2">
-            <input type="number" min="1" step="1" id="probVarTempVal" class="form-control" value="180" style="background:#fff;color:#212529;" />
-            <select id="probVarTempUnit" class="form-select" style="background:#fff;color:#212529;">
-                <option value="celsius">°C</option>
-                <option value="fahrenheit">°F</option>
-            </select>
-        </div>
-    </div>
-    <div id="probVarTextArea" class="d-none">
-        <div class="small text-white-50 mb-2">Wert</div>
-        <input type="text" id="probVarTextVal" class="form-control" style="background:#fff;color:#212529;" />
-    </div>
-    <div id="probVarOptionsArea" class="d-none">
-        <div id="probVarOptionChips" class="d-flex flex-wrap gap-2"></div>
-    </div>
-    <div id="probVarPronounStateArea" class="d-none">
-        <div class="small text-white-50 mb-2">Pronomen</div>
-        <div id="probVarPronounChips" class="d-flex flex-wrap gap-2 mb-3"></div>
-        <div class="small text-white-50 mb-2">Zustand</div>
-        <div id="probVarStateChips" class="d-flex flex-wrap gap-2"></div>
-    </div>
-    <div class="d-flex gap-2 mt-3" id="probVarApplyRow">
-        <button type="button" id="btnApplyProbVar" class="btn btn-sm creator-cta-primary flex-grow-1">
-            <i class="bi bi-check-lg me-1"></i>Übernehmen
-        </button>
-    </div>
-</div>
-*@
-
-@* ===== END OLD HTML ===== *@
-
 <style>
-    /* Performance: eliminate 300ms tap-delay on interactive elements */
-    .creator-card button,
-    .creator-card input,
-    .creator-card select,
-    .creator-card textarea,
-    .smart-step-creator button,
-    .smart-step-creator input,
-    .smart-step-creator select,
-    .smart-step-creator textarea,
-    .creator-topbar button,
-    .creator-checklist-toolbar { touch-action: manipulation; }
+/* Performance optimizations */
+.cp-section { content-visibility: auto; }
+button, input, select, textarea { touch-action: manipulation; }
+.cp-topbar, .cp-tabbar, .cp-publishbar { will-change: transform; }
 
-    /* Performance: GPU-hint for sticky bars */
-    .creator-topbar,
-    .creator-checklist-toolbar { will-change: transform; }
+/* Ingredient row styles for selected zone */
+.ingredient-row.dynamic-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(15,23,42,0.92);
+    border-radius: 14px;
+    padding: 12px 14px;
+    border: 1px solid rgba(173,207,255,0.3);
+    color: #f7fbff;
+    cursor: pointer;
+    margin-bottom: 8px;
+}
 
-    /* Performance: skip rendering of off-screen form sections */
-    #card-basics,
-    #card-media,
-    #card-ingredients,
-    #card-steps,
-    #card-keywords { content-visibility: auto; }
+.ingredient-row .ingredient-name-text {
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.ingredient-row .ingredient-row-meta {
+    font-size: 0.92rem;
+    color: #fff;
+    font-weight: 800;
+}
+
+/* Keyword pill selected state */
+.keyword-btn.active {
+    background: var(--cp-ink-deep);
+    color: white;
+    border-color: var(--cp-ink-deep);
+}
+
+/* Upload label hover */
+#uploadLabel:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--cp-shadow-md);
+    border-color: rgba(20,57,31,0.3);
+}
+
+/* Loading overlay */
+.creator-loading {
+    position: fixed;
+    inset: 0;
+    background: rgba(245,239,225,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 3000;
+}
+
+.creator-loading-card {
+    background: white;
+    border-radius: var(--cp-radius-lg);
+    padding: 24px;
+    box-shadow: var(--cp-shadow-lg);
+    text-align: center;
+}
 </style>
 
 @if (isEditMode)
@@ -2439,8 +648,201 @@
     <script defer src="~/js/create-posting-probability.js" asp-append-version="true"></script>
     <script defer src="~/js/CreatePostingPage.js" asp-append-version="true"></script>
     <script defer src="~/js/create-posting-publish-checklist.js" asp-append-version="true"></script>
+
+    <!-- Scroll-Spy & Tab Navigation -->
+    <script>
+        // ========================================
+        // Scroll-Spy & Tab Navigation
+        // ========================================
+
+        let completionStates = {
+            'card-basics': false,
+            'card-media': false,
+            'card-ingredients': false,
+            'card-steps': false,
+            'card-keywords': false
+        };
+
+        function initScrollSpy() {
+            const tabs = document.querySelectorAll('.cp-tab');
+            const sections = document.querySelectorAll('.cp-section');
+            const feed = document.getElementById('cpFeed');
+
+            // Tab Click Handler
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    const targetId = tab.getAttribute('data-section');
+                    scrollToSection(targetId);
+                });
+            });
+
+            // Scroll Observer for active tab highlighting
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const id = entry.target.id;
+                        tabs.forEach(t => {
+                            if (t.getAttribute('data-section') === id) {
+                                tabs.forEach(tab => tab.classList.remove('active'));
+                                t.classList.add('active');
+                            }
+                        });
+                    }
+                });
+            }, {
+                root: feed,
+                threshold: 0.3,
+                rootMargin: '-100px 0px -100px 0px'
+            });
+
+            sections.forEach(section => observer.observe(section));
+        }
+
+        function scrollToSection(sectionId) {
+            const section = document.getElementById(sectionId);
+            if (section) {
+                section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
+
+        function updateCompletionStates() {
+            // Basis
+            const title = document.querySelector('input[name="Title"]').value.trim();
+            const category = document.querySelector('select[name="Recipe.Category"]').value;
+            completionStates['card-basics'] = !!(title && category);
+
+            // Media
+            const videoPreview = document.getElementById('videoPreviewContainer');
+            const hasMedia = !videoPreview.classList.contains('d-none');
+            completionStates['card-media'] = hasMedia || @(isEditMode ? "true" : "false");
+
+            // Ingredients
+            const selectedIngredients = document.getElementById('selectedIngredients');
+            completionStates['card-ingredients'] = selectedIngredients.children.length > 0;
+
+            // Steps (check if SmartStepCreator has steps)
+            const stepsList = document.getElementById('smartStepCreatorStepsList') || document.getElementById('selectedSteps');
+            completionStates['card-steps'] = stepsList && stepsList.children.length > 0;
+
+            // Keywords
+            const selectedKeywords = document.getElementById('selectedKeywords');
+            completionStates['card-keywords'] = selectedKeywords.children.length > 0;
+
+            // Update UI
+            updateCompletionUI();
+        }
+
+        function updateCompletionUI() {
+            let completedCount = 0;
+            const total = 5;
+
+            Object.keys(completionStates).forEach((id, index) => {
+                const isComplete = completionStates[id];
+                if (isComplete) completedCount++;
+
+                const section = document.getElementById(id);
+                const counter = section.querySelector('.cp-section-counter');
+                const icon = section.querySelector('.cp-section-icon');
+
+                if (isComplete) {
+                    section.classList.add('complete');
+                    icon.innerHTML = '<i class="bi bi-check-lg"></i>';
+                } else {
+                    section.classList.remove('complete');
+                    // Restore original icon
+                    const icons = ['bi-ui-checks-grid', 'bi-camera-reels', 'bi-basket', 'bi-list-ol', 'bi-hash'];
+                    icon.innerHTML = `<i class="bi ${icons[index]}"></i>`;
+                }
+            });
+
+            // Update top bar
+            const topProgress = document.getElementById('creatorTopbarProgress');
+            topProgress.textContent = `${completedCount}/5 bereit`;
+
+            // Update publish bar
+            const progressBar = document.getElementById('publishProgressBar');
+            const publishBtn = document.getElementById('publishBtn');
+            const percentage = (completedCount / total) * 100;
+            progressBar.style.width = `${percentage}%`;
+
+            if (completedCount === total) {
+                progressBar.classList.add('complete');
+                publishBtn.disabled = false;
+            } else {
+                progressBar.classList.remove('complete');
+                publishBtn.disabled = true;
+            }
+
+            // Update tab checkmarks
+            document.querySelectorAll('.cp-tab').forEach((tab, index) => {
+                const sectionId = tab.getAttribute('data-section');
+                const isComplete = completionStates[sectionId];
+
+                // Remove existing checkmark
+                const existingCheck = tab.querySelector('.cp-tab-check');
+                if (existingCheck) existingCheck.remove();
+
+                // Add checkmark if complete
+                if (isComplete) {
+                    const check = document.createElement('span');
+                    check.className = 'cp-tab-check';
+                    check.innerHTML = '<i class="bi bi-check" style="font-size:10px;color:white;"></i>';
+                    tab.appendChild(check);
+                }
+            });
+        }
+
+        // Monitor form changes
+        function setupCompletionMonitoring() {
+            // Title & selects
+            document.querySelectorAll('#card-basics input, #card-basics select').forEach(el => {
+                el.addEventListener('change', updateCompletionStates);
+                el.addEventListener('input', updateCompletionStates);
+            });
+
+            // Media upload
+            const videoInput = document.getElementById('videoInput');
+            if (videoInput) {
+                const originalHandler = window.handleVideoUpload;
+                window.handleVideoUpload = function(input) {
+                    originalHandler(input);
+                    setTimeout(updateCompletionStates, 100);
+                };
+            }
+
+            // Ingredients (use MutationObserver)
+            const selectedIngredients = document.getElementById('selectedIngredients');
+            if (selectedIngredients) {
+                new MutationObserver(updateCompletionStates).observe(selectedIngredients, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+
+            // Steps (MutationObserver)
+            const stepsList = document.getElementById('smartStepCreatorStepsList') || document.getElementById('selectedSteps');
+            if (stepsList) {
+                new MutationObserver(updateCompletionStates).observe(stepsList, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+
+            // Keywords
+            const selectedKeywords = document.getElementById('selectedKeywords');
+            if (selectedKeywords) {
+                new MutationObserver(updateCompletionStates).observe(selectedKeywords, {
+                    childList: true,
+                    subtree: true
+                });
+            }
+        }
+
+        // Init on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initScrollSpy();
+            setupCompletionMonitoring();
+            updateCompletionStates();
+        });
+    </script>
 }
-
-
-
-
