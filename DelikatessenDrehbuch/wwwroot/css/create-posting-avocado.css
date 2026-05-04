@@ -676,6 +676,208 @@ html {
   scroll-behavior: smooth;
 }
 
+/* ========================================
+   Optional Step Segments (Pills & Tokens)
+   ======================================== */
+
+.optional-inline-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  background: rgba(20, 57, 31, 0.06);
+  border: 1px dashed rgba(20, 57, 31, 0.2);
+  border-radius: 8px;
+  font-size: 12px;
+  color: rgba(20, 57, 31, 0.5);
+  cursor: pointer;
+  transition: all 0.2s;
+  margin: 0 2px;
+}
+
+.optional-inline-pill:hover {
+  background: rgba(20, 57, 31, 0.1);
+  border-color: rgba(20, 57, 31, 0.3);
+  color: rgba(20, 57, 31, 0.7);
+}
+
+/* ✅ Plus-Icon ausblenden */
+.optional-inline-pill i {
+  display: none;
+}
+
+.optional-pill-label {
+  font-style: italic;
+  opacity: 0.7;
+}
+
+/* ✅ Auf grünem Hintergrund (im Overlay-Header) besser sichtbar */
+.creator-preview-canvas .optional-inline-pill {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.creator-preview-canvas .optional-inline-pill:hover {
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.creator-preview-canvas .optional-pill-label {
+  opacity: 0.85;
+}
+
+/* ========================================
+   Ingredient Rows (Selected Ingredients)
+   ======================================== */
+
+.ingredient-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--cp-cream);
+  border: 1px solid rgba(20, 57, 31, 0.08);
+  border-radius: 14px;
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-bottom: 8px;
+}
+
+.ingredient-row:hover {
+  background: #f5efe1;
+  border-color: rgba(20, 57, 31, 0.12);
+}
+
+.ingredient-group-icon {
+  font-size: 22px;
+  flex-shrink: 0;
+}
+
+.ingredient-row-main {
+  flex: 1;
+  min-width: 0;
+}
+
+.ingredient-name-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--cp-ink-deep);
+}
+
+.ingredient-row-right {
+  display: inline-flex;
+  align-items: center;
+  background: white;
+  border-radius: 999px;
+  padding: 2px;
+  border: 1px solid rgba(20, 57, 31, 0.08);
+  gap: 0;
+}
+
+.ingredient-stepper-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--cp-ink-deep);
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.15s;
+}
+
+.ingredient-stepper-btn:hover {
+  opacity: 0.7;
+}
+
+.ingredient-stepper-btn.plus {
+  background: var(--cp-ink-deep);
+  border-radius: 50%;
+  color: white;
+  font-size: 13px;
+}
+
+.ingredient-delete-btn {
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  color: #dc3545;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  transition: all 0.15s;
+  margin-left: 2px;
+}
+
+.ingredient-delete-btn:hover {
+  background: rgba(220, 53, 69, 0.1);
+  border-radius: 50%;
+}
+
+.ingredient-delete-btn i {
+  font-size: 11px;
+}
+
+/* ========================================
+   Validation Badges
+   ======================================== */
+
+.validation-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #dc3545;
+  color: white;
+  font-size: 10px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  animation: validationBadgePulse 2s infinite;
+}
+
+.validation-badge-success {
+  background: var(--cp-avocado, #5fa052);
+  animation: none;
+}
+
+@keyframes validationBadgePulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+}
+
+.cp-tab {
+  position: relative;
+}
+
+.ingredient-stepper-value {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--cp-ink-deep);
+  padding: 0 6px;
+  min-width: 38px;
+  text-align: center;
+}
+
+/* Legacy support - hide old meta and actions */
+.ingredient-row-meta,
+.ingredient-row-actions {
+  display: none !important;
+}
+
 .cp-feed {
   scroll-behavior: smooth;
 }

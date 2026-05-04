@@ -1,141 +1,21 @@
-/**
- * ════════════════════════════════════════════════════════════════════════════
- * CreatePostingSmartStepCreator.js
- * ════════════════════════════════════════════════════════════════════════════
- *
- * Smart Step Creator & Probability Area für Rezept-Erstellung
- *
- * VERANTWORTLICHKEITEN:
- * - Manuelle Step-Auswahl (unterer Bereich: Smart Step Creator)
- * - Automatische Step-Vorschläge (oberer Bereich: Probability Area)
- * - Template-Rendering mit Variablen-Substitution
- * - Ingredient-Matching basierend auf JSON-Regeln
- * - Universeller Variable-Editor Overlay (geteilt von beiden Bereichen)
- * - Draft-Management Integration
- *
- * ABHÄNGIGKEITEN:
- * - window.CreatePostingUtils (escapeHtml)
- * - window.CreatePostingTemplateDrafts (draft engine)
- * - window.MasterStepRenderer (step metadata)
- *
- * DATEN-DATEIEN:
- * - /data/master_steps.json (step templates)
- * - /data/master_step_variables.json (variable catalog)
- * - /data/ingredient_match_rules.json (step-variable rules)
- *
- * DOM-REQUIREMENTS:
- * - #sc2MasterTemplateCards (Step-Cards Container)
- * - #MasterText (Aktueller Step Preview)
- * - #LangSelect (optional)
- *
- * PUBLIC API:
- * - window.MasterStepCreatorHelpers.buildInlineEditorHtml
- * - window.MasterStepCreatorHelpers.applyEditorValue
- * - window.MasterStepCreatorHelpers.formatIngredientList
- * - window.MasterStepCreatorHelpers.buildIngredientChipsHtml
- * - window.MasterStepCreatorHelpers.resolveIngredientInsertValue
- * - window.MasterStepCreatorHelpers.filterIngredientsByVarType
- *
- * @version 3.0.0
- * @date 2026-05-04
- */
+// master-steps-ui.js
+// Erwartet:
+// - /data/master_steps.json (wwwroot/data/master_steps.json)
+// - <div id="insertContainer"></div>  (Liste der Step-Buttons)
+// - <div id="MasterText"></div>       (Aktueller Step + Inline-Editor darunter)
+// Optional:
+// - <select id="LangSelect"></select>
+
+
 
 (() => {
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 1: CONFIGURATION & STATE
-    // ════════════════════════════════════════════════════════════════════════════
-    // Konstanten, globale State-Variablen, DOM-Selektoren
-
     const DEFAULT_LANG = "de";
     const VISIBLE_RANKED_OPTIONS = 3;
-    const DEBUG_ENABLED = false; // Set to true for console logging
     const draftEngine = window.CreatePostingTemplateDrafts || null;
 
-    // Scoring & Ranking Constants
-    const SCORE = {
-        // Tag Matching
-        TAG_MATCH: 30,                // Points per semantic tag match
-        TAG_MISMATCH_PENALTY: -15,    // Penalty when step has tags but option doesn't
-        NO_TAGS_BONUS: 5,             // Small bonus when no semantic filtering active
-
-        // Rule-based Scoring (descending priority)
-        STEP_PREFERRED: 60,           // Step-specific preferred option
-        STEP_BLOCKED: -120,           // Step-specific blocked option
-        ACTION_PREFERRED: 50,         // Action-based preferred option
-        ACTION_BLOCKED: -100,         // Action-based blocked option
-        FAMILY_PREFERRED: 40,         // Ingredient-family preferred option
-        FAMILY_BLOCKED: -80,          // Ingredient-family blocked option
-
-        // Group Matching
-        GROUP_MATCH_BASE: 100,        // Base score for preferred group match
-        GROUP_MATCH_DECAY: 10,        // Score decay per group position
-        GROUP_DEPRIORITIZE_BASE: -40, // Base penalty for deprioritized groups
-        GROUP_DEPRIORITIZE_DECAY: -5, // Additional penalty per position
-
-        // Flag Matching
-        FLAG_BONUS: 8,                // Bonus for matching preferred flags
-
-        // Defaults
-        IS_DEFAULT_BONUS: 20          // Bonus for default options
-    };
-
-    // Unit Conversion Constants
-    const UNIT_CONVERSION = {
-        KG_TO_GRAMS: 1000,
-        LITERS_TO_ML: 1000
-    };
-
-    // CSS Class Selectors (prevents typos, enables IDE autocomplete)
-    const CSS_CLASS = {
-        // Cards & Templates
-        TEMPLATE_CARD: 'template-card',
-        TEMPLATE_VAR: 'template-var',
-        TOKEN_GREEN: 'token-green',
-
-        // Editor Components
-        DURATION_EDITOR: 'duration-editor',
-        SMART_STEP_CREATOR: 'smart-step-creator',
-
-        // Action Buttons (js- prefixed for JavaScript-only classes)
-        JS_EDITOR_REMOVE_OPTIONAL: 'js-editor-remove-optional',
-        JS_EDITOR_ACTION_ROW: 'js-editor-action-row',
-        JS_VALUE_BTN_ROW: 'js-value-btn-row',
-        JS_PRONOUN_BTN_ROW: 'js-pronoun-btn-row',
-        JS_ARTICLE_BTN_ROW: 'js-article-btn-row',
-        JS_OPTIONAL_VAR_ADD: 'js-optional-var-add',
-        JS_FRACTION_PICKER_ROW: 'js-fraction-picker-row',
-        JS_HYBRID_OPTIONS_ROW: 'js-hybrid-options-row',
-        JS_TOGGLE_FALLBACK_OPTIONS: 'js-toggle-fallback-options',
-        JS_ADD_INGREDIENT_TO_LIST: 'js-add-ingredient-to-list',
-
-        // Other
-        PLACEHOLDER_RESET: 'placeholder-reset',
-        INGREDIENT_CHIP_ACTIVE: 'ingredient-chip.active',
-        FRACTION_PICK: 'fraction-pick',
-        OPTIONAL_INLINE_PILL: 'optional-inline-pill'
-    };
-
-    // DOM Element IDs
-    const DOM_ID = {
-        // Main Containers
-        INLINE_VAR_EDITOR_HOST: 'InlineVarEditorHost',
-        UNIVERSAL_EDITOR_CONTENT: 'universalEditorContent',
-        UNIVERSAL_EDITOR_OVERLAY: 'universalEditorOverlay',
-
-        // Input Fields
-        DURATION_VALUE_INPUT: 'DurationValueInput',
-        DURATION_VALUE_TO_INPUT: 'DurationValueToInput',
-        TEMP_VALUE_INPUT: 'TempValueInput',
-        TEMP_UNIT_SELECT: 'TempUnitSelect',
-        COUNT_VALUE_INPUT: 'CountValueInput',
-
-        // Buttons
-        BTN_APPLY_VAR: 'BtnApplyVar',
-        BTN_ACCEPT_STEP_OVERLAY: 'BtnAcceptStepOverlay',
-        BTN_ACCEPT_PROBABILITY_STEP: 'BtnAcceptProbabilityStep'
-    };
-
-    // State-Variablen
+    // -----------------------------
+    // STATE
+    // -----------------------------
     let doc = null;
     let variableCatalog = { variables: {} };
     let ingredientMatchRules = { variable_rules: {}, step_variable_rules: {} };
@@ -153,45 +33,14 @@
     // -----------------------------
     // DOM
     // -----------------------------
-    // Safe DOM query helpers
     const $ = (s) => document.querySelector(s);
-    const $$ = (s) => document.querySelectorAll(s);
-
-    /**
-     * Safe querySelector with error logging.
-     * @param {string} selector - CSS selector
-     * @param {string} context - Context for error logging (e.g., "renderStepButtons")
-     * @returns {Element|null} Found element or null
-     */
-    const $safe = (selector, context = "unknown") => {
-        const el = document.querySelector(selector);
-        if (!el) {
-            DEBUG("RENDER", `DOM element not found: ${selector}`, { context });
-        }
-        return el;
-    };
-
     const insertContainer = () => $("#sc2MasterTemplateCards");
     const masterText = () => $("#MasterText");
     const langSelect = () => $("#LangSelect");
 
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 2: UTILITY FUNCTIONS
-    // ════════════════════════════════════════════════════════════════════════════
-    // String-Utilities, Fraction-Helpers, Genus-Konvertierung, Display-Namen
-
-    /**
-     * Centralized debug logging function.
-     * @param {string} category - Log category (e.g., "RENDER", "EVENT", "DATA")
-     * @param {string} message - Log message
-     * @param {...any} args - Additional arguments to log
-     */
-    function DEBUG(category, message, ...args) {
-        if (!DEBUG_ENABLED) return;
-        const timestamp = new Date().toISOString().split('T')[1].slice(0, -1);
-        console.log(`[${timestamp}] [${category}] ${message}`, ...args);
-    }
-
+    // -----------------------------
+    // UTIL
+    // -----------------------------
     var escapeHtml = window.CreatePostingUtils.escapeHtml;
 
     function encodeAttr(str) {
@@ -405,72 +254,38 @@
         const rowClass = useClassBasedIds ? "fraction-picker-row js-fraction-picker-row d-flex flex-wrap gap-2 mb-2" : "fraction-picker-row d-flex flex-wrap gap-2 mb-2";
         const rowId = useClassBasedIds ? "" : ' id="FractionPickerRow"';
 
-        const pillStyle = `background:white;color:var(--cp-ink-deep,#14391f);border:1px solid var(--cp-ink-line,rgba(20,57,31,0.12));border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;`;
-        const activeStyle = `background:var(--cp-avocado,#5fa052);color:white;border:1px solid var(--cp-avocado,#5fa052);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;`;
-
         let html = `<div class="small text-muted mt-2 mb-1">Menge</div><div class="${rowClass}"${rowId}>`;
-        html += `<button type="button" class="${CSS_CLASS.FRACTION_PICK} active" style="${activeStyle}" data-pick-mode="fraction" data-fraction-key="" data-fraction-num="0" data-fraction-den="1">${escapeHtml(wholeLabel)}</button>`;
+        html += `<button type="button" class="fraction-pick active" data-pick-mode="fraction" data-fraction-key="" data-fraction-num="0" data-fraction-den="1">${escapeHtml(wholeLabel)}</button>`;
         opts.forEach(o => {
-            html += `<button type="button" class="${CSS_CLASS.FRACTION_PICK}" style="${pillStyle}" data-pick-mode="fraction" data-fraction-key="${escapeHtml(o.key)}" data-fraction-num="${o.numerator}" data-fraction-den="${o.denominator}">${escapeHtml(o.key)} ${escapeHtml(o.label)}</button>`;
+            html += `<button type="button" class="fraction-pick" data-pick-mode="fraction" data-fraction-key="${escapeHtml(o.key)}" data-fraction-num="${o.numerator}" data-fraction-den="${o.denominator}">${escapeHtml(o.key)} ${escapeHtml(o.label)}</button>`;
         });
         html += `</div>`;
         return html;
     }
 
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 3: DATA LOADING & CACHING
-    // ════════════════════════════════════════════════════════════════════════════
-    // JSON-Daten laden, Caching-Logik
-
-    /**
-     * Loads master steps JSON data from server.
-     * @returns {Promise<Array>} Master steps data
-     */
+    // -----------------------------
+    // LOAD
+    // -----------------------------
     async function loadJson() {
         return await window.CreatePostingDataStore.load("masterSteps");
     }
 
-    /**
-     * Loads variable catalog from server.
-     * @returns {Promise<object>} Variable catalog with variables definitions
-     * @throws {Error} If loading fails critically (re-thrown for upstream handling)
-     */
     async function loadVariableCatalog() {
         try {
             const data = await window.CreatePostingDataStore.load("masterStepVariables");
-            if (!data || typeof data !== "object") {
-                DEBUG("DATA", "Variable catalog loaded but invalid format, using defaults");
-                return { variables: {} };
-            }
-            DEBUG("DATA", "Variable catalog loaded successfully", { variableCount: Object.keys(data.variables || {}).length });
-            return data;
-        } catch (error) {
-            DEBUG("DATA", "Failed to load variable catalog", { error: error.message, stack: error.stack });
-            // Return fallback to allow app to continue with limited functionality
+            return data && typeof data === "object" ? data : { variables: {} };
+        } catch {
             return { variables: {} };
         }
     }
 
-    /**
-     * Loads ingredient match rules from server.
-     * @returns {Promise<object>} Match rules with variable_rules and step_variable_rules
-     * @throws {Error} If loading fails critically (re-thrown for upstream handling)
-     */
     async function loadIngredientMatchRules() {
         try {
             const data = await window.CreatePostingDataStore.load("ingredientMatchRules");
-            if (!data || typeof data !== "object") {
-                DEBUG("DATA", "Ingredient match rules loaded but invalid format, using defaults");
-                return { variable_rules: {}, step_variable_rules: {} };
-            }
-            DEBUG("DATA", "Ingredient match rules loaded successfully", {
-                variableRules: Object.keys(data.variable_rules || {}).length,
-                stepRules: Object.keys(data.step_variable_rules || {}).length
-            });
-            return data;
-        } catch (error) {
-            DEBUG("DATA", "Failed to load ingredient match rules", { error: error.message, stack: error.stack });
-            // Return fallback to allow app to continue with limited functionality
+            return data && typeof data === "object"
+                ? data
+                : { variable_rules: {}, step_variable_rules: {} };
+        } catch {
             return { variable_rules: {}, step_variable_rules: {} };
         }
     }
@@ -481,10 +296,7 @@
     function normalizeVarKey(value) {
         const raw = (value || "").toString().trim();
         const normalized = raw.toLowerCase().replace(/[_\-\s]+/g, "");
-        const aliasMap = {
-            pronomen: "pronoun",
-            basis: "base"  // ✅ NEU (2026-05-04): "basis" als Alias für "base"
-        };
+        const aliasMap = { pronomen: "pronoun" };
         return {
             key: aliasMap[normalized] || raw,
             normalizedKey: (aliasMap[normalized] || raw).toString().toLowerCase().replace(/[_\-\s]+/g, "")
@@ -501,11 +313,6 @@
         const value = (tag || "").toString().trim().toLowerCase();
         return !!value && !value.startsWith("variable:") && !value.startsWith("value:");
     }
-
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 4: OPTION & RULE SYSTEM
-    // ════════════════════════════════════════════════════════════════════════════
-    // Variable-Catalog-Access, Option-Ranking, Step-Rules, Ingredient-Family-Detection
 
     function getStepById(masterId) {
         if (!masterId) return null;
@@ -659,32 +466,6 @@
         return "";
     }
 
-    /**
-     * Ranks and filters variable options based on step rules, ingredient family, and context.
-     * This is the core option-scoring algorithm that powers the variable editor dropdowns.
-     *
-     * Scoring factors:
-     * - Step-specific rules (master_step_option_rules.json)
-     * - Ingredient family detection (e.g., "chicken" → poultry family → heat="hoch")
-     * - Action-based defaults (e.g., "braten" action → heat="hoch")
-     * - Semantic tags (variable: state, value: golden_brown)
-     * - Quantity mode filtering (prefer_smallest, exclude_largest, etc.)
-     *
-     * @param {string} varName - Variable name (e.g., "state", "shape", "heat")
-     * @param {string} contextMasterId - Current step master ID (e.g., "PREP_CUT_01")
-     * @param {object} context - Scoring context
-     * @param {Array} context.selectedIngredients - Array of ingredient objects with id, groupId, name
-     * @param {string} context.action - Current step action (e.g., "braten", "kochen")
-     * @param {string} context.varName - Variable name (redundant with first param, for compatibility)
-     * @returns {Array<object>} Sorted array of options [{value, label, score, isDefault, tags}, ...]
-     *
-     * @example
-     * getRankedVarOptionEntries("shape", "PREP_CUT_01", {
-     *   selectedIngredients: [{ id: 1, name: "Kartoffel", groupId: 2 }],
-     *   action: "schneiden"
-     * })
-     * // Returns: [{ value: "würfel", label: "Würfel", score: 15, isDefault: true }, ...]
-     */
     function getRankedVarOptionEntries(varName, contextMasterId, context) {
         if (!doc) return [];
 
@@ -744,39 +525,39 @@
                 let score = 0;
                 const normalizedValue = normalizeOptionValue(entry.value);
 
-                // --- Tag Match: +TAG_MATCH per semantic tag match ---
+                // --- Tag Match: +30 per semantic tag match ---
                 if (matchedTags.length) {
-                    score += matchedTags.length * SCORE.TAG_MATCH;
+                    score += matchedTags.length * 30;
                 } else if (hasSemanticStepTags && semanticTags.length) {
-                    score += SCORE.TAG_MISMATCH_PENALTY;
+                    score -= 15;
                 }
 
                 if (!semanticTags.length) {
-                    score += SCORE.NO_TAGS_BONUS;
+                    score += 5;
                 }
 
-                // --- Step-specific rules (highest priority) ---
+                // --- Step-specific rules (highest priority): +60 preferred, -120 blocked ---
                 if (stepPreferred.has(normalizedValue)) {
-                    score += SCORE.STEP_PREFERRED;
+                    score += 60;
                 }
                 if (stepBlocked.has(normalizedValue)) {
-                    score += SCORE.STEP_BLOCKED;
+                    score -= 120;
                 }
 
-                // --- Action rules ---
+                // --- Action rules: +50 preferred, -100 blocked ---
                 if (actionPreferred.has(normalizedValue)) {
-                    score += SCORE.ACTION_PREFERRED;
+                    score += 50;
                 }
                 if (actionBlocked.has(normalizedValue)) {
-                    score += SCORE.ACTION_BLOCKED;
+                    score -= 100;
                 }
 
-                // --- Ingredient Family rules ---
+                // --- Ingredient Family rules: +40 preferred, -80 blocked ---
                 if (familyPreferred.has(normalizedValue)) {
-                    score += SCORE.FAMILY_PREFERRED;
+                    score += 40;
                 }
                 if (familyBlocked.has(normalizedValue)) {
-                    score += SCORE.FAMILY_BLOCKED;
+                    score -= 80;
                 }
 
                 // --- Position decay ---
@@ -895,17 +676,10 @@
         ];
     }
 
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 5: TEMPLATE RENDERING SYSTEM
-    // ════════════════════════════════════════════════════════════════════════════
-    // Template-Parsing, Token-Replacement, Optional Segments, Multi-Variable Fallback
-
-    /**
-     * Extracts all variable names from a template fragment.
-     * @param {string} templateFragment - Template with {{var}} syntax
-     * @returns {Array<string>} Array of unique variable names
-     */
-    function getTemplateVariables(templateFragment) {
+    // -----------------------------
+    // TEMPLATE RENDER (klickbare Tokens)
+    // -----------------------------
+        function getTemplateVariables(templateFragment) {
         const found = [];
         (templateFragment || "").replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw) => {
             const varName = (varRaw ?? "").trim();
@@ -969,11 +743,10 @@
             const tokenId = `${stepId}_optional_${varsInGroup.join("_")}`;
             buttons.push(`
         <button type="button"
-                class="cp-pill ${CSS_CLASS.JS_OPTIONAL_VAR_ADD}"
-                style="background:white;color:var(--cp-ink-deep);border:1px solid var(--cp-ink-line);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;"
+                class="btn btn-sm btn-outline-secondary js-optional-var-add"
                 data-optional-var="${escapeHtml(firstVar)}"
                 data-token-id="${escapeHtml(tokenId)}">
-          <i class="bi bi-plus-circle me-1"></i>${escapeHtml(label)}
+          + ${escapeHtml(label)}
         </button>
       `);
         }
@@ -981,202 +754,201 @@
         return buttons.join("");
     }
 
-    /**
-     * Base template rendering engine (consolidates all 3 render functions).
-     * Replaces {{var}} tokens and handles optional [...] segments.
-     *
-     * @param {string} templateRaw - Raw template with {{var}} and [...] syntax
-     * @param {string} stepId - Step identifier for token IDs
-     * @param {object} values - Variable values {varName: value}
-     * @param {object} config - Rendering configuration
-     * @param {boolean} config.enableOptionalSegments - Process optional [...] and (...) segments
-     * @param {boolean} config.enableFallbackText - Process {~text~var~} fallback syntax
-     * @param {boolean} config.enableSentenceStart - Capitalize tokens at sentence start
-     * @param {object} config.optionalValues - Values for optional segment detection (defaults to values)
-     * @param {string} config.tokenClass - CSS classes for tokens
-     * @param {string} config.pillClass - CSS classes for optional pills
-     * @param {string} config.tokenWrapClass - Wrap tokens in additional span with this class
-     * @param {boolean} config.includeVarKey - Include data-var-key attribute
-     * @param {string} config.optionalVarAttrName - Attribute name for optional vars (default: data-optional-var)
-     * @param {string} config.pillTitlePrefix - Title prefix for pills (default: "Optional")
-     * @returns {string} Rendered HTML
-     */
-    function _renderTemplateBase(templateRaw, stepId, values, config = {}) {
+    function renderTemplateTokens(templateRaw, stepId, values) {
+        let index = 0;
+
+        return (templateRaw || "").replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw) => {
+            const varName = (varRaw ?? "").trim();
+            const tokenId = `${stepId}_${varName}_${index++}`;
+            const val = (values[varName] ?? "").toString();
+            const display = val.trim().length > 0 ? val : varName;
+
+            // Show Plus button for ingredient variables when value is set
+            const varKey = varName.toLowerCase();
+            const isIngredient = varKey === "ingredient" || varKey === "ingredient2" || varKey === "ingredients" ||
+                                 varKey === "liquid" || varKey === "fat" || varKey === "seasonings" ||
+                                 varKey === "marinade" || varKey === "thickener" || varKey === "components" || varKey === "extra";
+
+            // ✅ ENTFERNT (2026-03-28): Plus-Button nicht mehr nötig - alles wird im Overlay bearbeitet!
+            // Vorher: showPlusBtn für ingredient-Variablen mit Wert
+            // console.log(`[renderTemplateTokens] varName=${varName}, isIngredient=${isIngredient}, val="${val}", hasValue=${hasValue}, showPlusBtn=${showPlusBtn}`);
+
+            return `
+      <span class="token-highlight placeholder-token template-var token-green"
+            draggable="false"
+            data-var="${escapeHtml(varName)}"
+            data-token-id="${escapeHtml(tokenId)}"
+            data-has-value="${val.trim().length > 0 ? "1" : "0"}">
+        ${escapeHtml(display)}
+      </span>
+    `;
+        });
+    }
+
+    // Renders optional [{{var}}] segments as clickable inline pills (if unfilled)
+    // or as their inner content with tokens (if any var is filled).
+    // Required {{var}} tokens are rendered as the usual token-highlight spans.
+    function renderTemplate(templateRaw, stepId, values) {
         if (!templateRaw) return "";
         values = values || {};
 
-        const {
-            enableOptionalSegments = true,
-            enableFallbackText = true,
-            enableSentenceStart = true,
-            optionalValues = values,
-            tokenClass = "token-highlight placeholder-token template-var token-green",
-            pillClass = "optional-inline-pill js-optional-var-add",
-            tokenWrapClass = "",
-            includeVarKey = false,
-            optionalVarAttrName = "data-optional-var",
-            pillTitlePrefix = "Optional"
-        } = config;
-
+        const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
+        const seen = new Set();
+        // Sentinel chars that won't appear in normal template text
         const PILL_START = "\x01";
-        const PILL_SEP = "\x02";
-        const PILL_END = "\x03";
+        const PILL_SEP   = "\x02";
+        const PILL_END   = "\x03";
 
-        let processed = templateRaw;
+        // Pass 1: replace optional segments
+        let processed = templateRaw.replace(optionalPattern, (fullMatch, parenInner, bracketInner) => {
+            const inner = (parenInner ?? bracketInner ?? "").toString();
+            const varsInGroup = getTemplateVariables(inner);
+            if (!varsInGroup.length) return inner;
 
-        // ========== PASS 1: Optional Segments ==========
-        if (enableOptionalSegments) {
-            const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
-            const seen = new Set();
+            const hasAnyValue = varsInGroup.some(v => ((values?.[v] ?? "").toString().trim().length > 0));
+            if (hasAnyValue) return inner; // filled → render content normally
 
-            processed = processed.replace(optionalPattern, (_match, parenInner, bracketInner) => {
-                const inner = (parenInner ?? bracketInner ?? "").toString();
-                const varsInGroup = getTemplateVariables(inner);
-                if (!varsInGroup.length) return inner;
+            const dedupeKey = `${stepId}__${varsInGroup.join("__")}`;
+            if (seen.has(dedupeKey)) return "";
+            seen.add(dedupeKey);
 
-                const hasAnyValue = varsInGroup.some(varName =>
-                    ((optionalValues?.[varName] ?? "").toString().trim().length > 0)
-                );
-                if (hasAnyValue) return inner; // Filled → render content normally
-
-                const dedupeKey = `${stepId}__${varsInGroup.join("__")}`;
-                if (seen.has(dedupeKey)) return "";
-                seen.add(dedupeKey);
-
-                const firstVar = varsInGroup[0];
-                const tokenId = `${stepId}_optional_${varsInGroup.join("_")}`;
-                const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, (_m, v) => getVarDisplayName(v.trim()));
-
-                // Encode as sentinel-delimited marker
-                return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
-            });
-        }
-
-        // ========== PASS 2: Fallback Text ==========
-        if (enableFallbackText) {
-            processed = processed.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
-                const hasAnyValue = (varName || "")
-                    .split("|")
-                    .map(x => x.trim())
-                    .filter(Boolean)
-                    .some(name => ((optionalValues?.[name] ?? "").toString().trim().length > 0));
-                return hasAnyValue ? "" : fallback;
-            });
-        }
-
-        // ========== PASS 3: Render {{var}} Tokens ==========
-        let tokenIndex = 0;
-        const tokenVarKeyAttr = includeVarKey ? ` data-var-key="{{VAR_NAME}}"` : "";
-
-        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_match, varRaw, offset) => {
-            const varName = (varRaw ?? "").trim();
-            const tokenId = `${stepId}_${varName}_${tokenIndex++}`;
-
-            // ✅ FIX: Objekt zu String konvertieren
-            let rawValue = values[varName] ?? "";
-            if (typeof rawValue === 'object' && rawValue !== null) {
-                rawValue = rawValue.name || rawValue.value || rawValue.displayName || String(rawValue);
-            }
-            const value = String(rawValue);
-
-            let display = value.trim().length > 0 ? value : getVarDisplayName(varName);
-
-            // Sentence-start capitalization
-            if (enableSentenceStart) {
-                const isAtSentenceStart = offset === 0 ||
-                    /^[\s]*$/.test(processed.slice(0, offset)) ||
-                    /[.!?]\s*$/.test(processed.slice(0, offset));
-
-                if (isAtSentenceStart && display.length > 0) {
-                    display = display.charAt(0).toUpperCase() + display.slice(1);
-                }
-            }
-
-            const varKeyAttr = tokenVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(varName));
-            const sentenceStartAttr = enableSentenceStart ?
-                ` data-sentence-start="${(offset === 0 || /^[\s]*$/.test(processed.slice(0, offset)) || /[.!?]\s*$/.test(processed.slice(0, offset))) ? "1" : "0"}"` :
-                "";
-
-            const tokenHtml = `<span class="${tokenClass}" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}"${sentenceStartAttr}>${escapeHtml(display)}</span>`;
-
-            if (!tokenWrapClass) return tokenHtml;
-            return `<span class="${escapeHtml(tokenWrapClass)}">${tokenHtml}</span>`;
+            const firstVar   = varsInGroup[0];
+            const tokenId    = `${stepId}_optional_${varsInGroup.join("_")}`;
+            const label      = inner.replace(/{{\s*([^}]+?)\s*}}/g, (_m, v) => getVarDisplayName(v.trim()));
+            // Encode as sentinel-delimited marker (safe from {{}} regex)
+            return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
         });
 
-        // ========== PASS 4: Render Pills ==========
-        if (enableOptionalSegments) {
-            const pillVarKeyAttr = includeVarKey ? ` data-var-key="{{VAR_NAME}}"` : "";
+        // Pass 1b: Fallback text {~text~varName~} → show text only when varName is empty
+        processed = processed.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
+            const hasAnyValue = (varName || "")
+                .split("|")
+                .map(x => x.trim())
+                .filter(Boolean)
+                .some(name => ((values?.[name] ?? "").toString().trim().length > 0));
+            return hasAnyValue ? "" : fallback;
+        });
 
-            processed = processed.replace(
-                new RegExp(`\\x01([^\\x02]*)\\x02([^\\x02]*)\\x02([^\\x03]*)\\x03`, "g"),
-                (_match, firstVar, tokenId, label) => {
-                    const varKeyAttr = pillVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(firstVar));
-                    return `<span class="${pillClass}" role="button" tabindex="0" ${optionalVarAttrName}="${escapeHtml(firstVar)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" title="${escapeHtml(pillTitlePrefix)}: ${escapeHtml(label)}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${escapeHtml(label)}</span></span>`;
-                }
-            );
-        }
+        // Pass 2: render regular {{var}} tokens
+        let tokenIndex = 0;
+        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_m, varRaw, offset) => {
+            const varName = (varRaw ?? "").trim();
+            const tid     = `${stepId}_${varName}_${tokenIndex++}`;
+            const val     = (values[varName] ?? "").toString();
+            // Capitalize value when token is at sentence start
+            const isAtSentenceStart = offset === 0 || /^[\s]*$/.test(processed.slice(0, offset)) || /[.!?]\s*$/.test(processed.slice(0, offset));
+            let display = val.trim().length > 0 ? val : getVarDisplayName(varName);
+            if (isAtSentenceStart && display.length > 0) {
+                display = display.charAt(0).toUpperCase() + display.slice(1);
+            }
+
+            // Check if this is an ingredient variable
+            const varKey = varName.toLowerCase();
+            const isIngredient = varKey === "ingredient" || varKey === "ingredient2" || varKey === "ingredients" ||
+                                 varKey === "liquid" || varKey === "fat" || varKey === "seasonings" ||
+                                 varKey === "marinade" || varKey === "thickener" || varKey === "components" || varKey === "extra";
+
+            // ✅ ENTFERNT (2026-03-28): Plus-Button nicht mehr nötig - alles wird im Overlay bearbeitet!
+            // Vorher: showPlusBtn für ingredient-Variablen mit Wert
+            // const showPlusBtn = isIngredient && hasValue;
+            // const plusButton = showPlusBtn ? `<button ...>+</button>` : "";
+
+            return `<span class="token-highlight placeholder-token template-var token-green" draggable="false" data-var="${escapeHtml(varName)}" data-token-id="${escapeHtml(tid)}" data-has-value="${val.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span>`;
+        });
+
+        // Pass 3: replace pill markers with inline pill HTML
+        processed = processed.replace(
+            new RegExp(`\\x01([^\\x02]*)\\x02([^\\x02]*)\\x02([^\\x03]*)\\x03`, "g"),
+            (_m, firstVar, tokenId, label) =>
+                `<span class="optional-inline-pill js-optional-var-add" role="button" tabindex="0" data-optional-var="${escapeHtml(firstVar)}" data-token-id="${escapeHtml(tokenId)}" title="Optional hinzufügen: ${escapeHtml(label)}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${escapeHtml(label)}</span></span>`
+        );
 
         return processed;
     }
 
-    /**
-     * Simple token renderer without optional segments or capitalization.
-     * @param {string} templateRaw - Template string
-     * @param {string} stepId - Step ID
-     * @param {object} values - Variable values
-     * @returns {string} Rendered HTML
-     */
-    function renderTemplateTokens(templateRaw, stepId, values) {
-        return _renderTemplateBase(templateRaw, stepId, values, {
-            enableOptionalSegments: false,
-            enableFallbackText: false,
-            enableSentenceStart: false
-        });
-    }
 
-    /**
-     * Renders template with optional segments as pills and sentence-start capitalization.
-     * @param {string} templateRaw - Template string
-     * @param {string} stepId - Step ID
-     * @param {object} values - Variable values
-     * @returns {string} Rendered HTML
-     */
-    function renderTemplate(templateRaw, stepId, values) {
-        return _renderTemplateBase(templateRaw, stepId, values, {
-            enableOptionalSegments: true,
-            enableFallbackText: true,
-            enableSentenceStart: true,
-            pillTitlePrefix: "Optional hinzufügen"
-        });
-    }
-
-
-    /**
-     * Renders template with full configurability (CSS classes, attributes, etc.).
-     * @param {string} templateRaw - Template string
-     * @param {string} stepId - Step ID
-     * @param {object} values - Variable values
-     * @param {object} config - Configuration options
-     * @returns {string} Rendered HTML
-     */
     function renderTemplateWithConfig(templateRaw, stepId, values, config) {
+        if (!templateRaw) return "";
+        values = values || {};
         config = config || {};
 
-        // Map legacy config options to new format
-        const baseConfig = {
-            enableOptionalSegments: true,
-            enableFallbackText: true,
-            enableSentenceStart: true,
-            optionalValues: config.optionalValues || values,
-            tokenClass: ["token-highlight placeholder-token template-var token-green", config.tokenExtraClasses || ""].filter(Boolean).join(" "),
-            pillClass: ["optional-inline-pill", config.pillExtraClasses || ""].filter(Boolean).join(" "),
-            tokenWrapClass: (config.tokenWrapClass || "").toString().trim(),
-            includeVarKey: config.includeVarKey || false,
-            optionalVarAttrName: (config.optionalVarAttrName || "data-optional-var").toString(),
-            pillTitlePrefix: (config.pillTitlePrefix || "Optional").toString()
-        };
+        const optionalPattern = /\(([^()]*{{\s*[^}]+?\s*}}[^()]*)\)|\[([^\[\]]*{{\s*[^}]+?\s*}}[^\[\]]*)\]/g;
+        const seen = new Set();
+        const optionalValues = config.optionalValues || values;
+        const tokenClass = ["token-highlight placeholder-token template-var", config.tokenExtraClasses || ""].filter(Boolean).join(" ");
+        const pillClass = ["optional-inline-pill", config.pillExtraClasses || ""].filter(Boolean).join(" ");
+        const tokenWrapClass = (config.tokenWrapClass || "").toString().trim();
+        const tokenVarKeyAttr = config.includeVarKey ? ` data-var-key="{{VAR_NAME}}"` : "";
+        const pillVarKeyAttr = config.includeVarKey ? ` data-var-key="{{VAR_NAME}}"` : "";
+        const optionalVarAttrName = (config.optionalVarAttrName || "data-optional-var").toString();
+        const pillTitlePrefix = (config.pillTitlePrefix || "Optional").toString();
+        const enablePlusButtons = config.enablePlusButtons || false;
+        const multiIngredientsData = config.multiIngredientsData || {}; // {varName: [{name, fraction, article}, ...]}
+        const PILL_START = "\x01";
+        const PILL_SEP = "\x02";
+        const PILL_END = "\x03";
 
-        return _renderTemplateBase(templateRaw, stepId, values, baseConfig);
+        let processed = templateRaw.replace(optionalPattern, (_match, parenInner, bracketInner) => {
+            const inner = (parenInner ?? bracketInner ?? "").toString();
+            const varsInGroup = getTemplateVariables(inner);
+            if (!varsInGroup.length) return inner;
+
+            const hasAnyValue = varsInGroup.some(varName => ((optionalValues?.[varName] ?? "").toString().trim().length > 0));
+            if (hasAnyValue) return inner;
+
+            const dedupeKey = `${stepId}__${varsInGroup.join("__")}`;
+            if (seen.has(dedupeKey)) return "";
+            seen.add(dedupeKey);
+
+            const firstVar = varsInGroup[0];
+            const tokenId = `${stepId}_optional_${varsInGroup.join("_")}`;
+            const label = inner.replace(/{{\s*([^}]+?)\s*}}/g, (_m, v) => getVarDisplayName(v.trim()));
+            return `${PILL_START}${firstVar}${PILL_SEP}${tokenId}${PILL_SEP}${label}${PILL_END}`;
+        });
+
+        // Fallback text: {~text~varName~} → show text only when varName is empty
+        processed = processed.replace(/\{~([^~]+)~([^~]+)~\}/g, (_m, fallback, varName) => {
+            const hasAnyValue = (varName || "")
+                .split("|")
+                .map(x => x.trim())
+                .filter(Boolean)
+                .some(name => ((optionalValues?.[name] ?? "").toString().trim().length > 0));
+            return hasAnyValue ? "" : fallback;
+        });
+
+        let tokenIndex = 0;
+        processed = processed.replace(/{{\s*([^}]+?)\s*}}/g, (_match, varRaw, offset) => {
+            const varName = (varRaw ?? "").trim();
+            const tokenId = `${stepId}_${varName}_${tokenIndex++}`;
+            const value = (values[varName] ?? "").toString();
+            const isAtSentenceStart = offset === 0 || /^[\s]*$/.test(processed.slice(0, offset)) || /[.!?]\s*$/.test(processed.slice(0, offset));
+            let display = value.trim().length > 0 ? value : getVarDisplayName(varName);
+            if (isAtSentenceStart && display.length > 0) {
+                display = display.charAt(0).toUpperCase() + display.slice(1);
+            }
+            const varKeyAttr = tokenVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(varName));
+
+            // ✅ ENTFERNT (2026-03-28): Plus-Button nicht mehr nötig - alles wird im Overlay bearbeitet!
+            // Vorher: plusButtonHtml für ingredient-Variablen mit Wert
+            // let plusButtonHtml = "";
+            // if (enablePlusButtons && isIngredientVariable(varName) && value.trim().length > 0) {
+            //     plusButtonHtml = `<button ...>+</button>`;
+            // }
+
+            const tokenHtml = `<span class="${tokenClass} token-green" draggable="false" data-var="${escapeHtml(varName)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" data-has-value="${value.trim().length > 0 ? "1" : "0"}" data-sentence-start="${isAtSentenceStart ? "1" : "0"}">${escapeHtml(display)}</span>`;
+            if (!tokenWrapClass) return tokenHtml;
+            return `<span class="${escapeHtml(tokenWrapClass)}">${tokenHtml}</span>`;
+        });
+
+        processed = processed.replace(
+            new RegExp(`\\x01([^\\x02]*)\\x02([^\\x02]*)\\x02([^\\x03]*)\\x03`, "g"),
+            (_match, firstVar, tokenId, label) => {
+                const varKeyAttr = pillVarKeyAttr.replaceAll("{{VAR_NAME}}", escapeHtml(firstVar));
+                return `<span class="${pillClass}" role="button" tabindex="0" ${optionalVarAttrName}="${escapeHtml(firstVar)}"${varKeyAttr} data-token-id="${escapeHtml(tokenId)}" title="${escapeHtml(pillTitlePrefix)}: ${escapeHtml(label)}"><i class="bi bi-plus-circle-dotted" aria-hidden="true"></i><span class="optional-pill-label">${escapeHtml(label)}</span></span>`;
+            }
+        );
+
+        return processed;
     }
 
     // Shared placeholder renderer for other creator UIs that need the same
@@ -1195,20 +967,8 @@
         return template.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_match, rawKey) {
             const key = (rawKey || "").toString().trim();
             const tokenId = `${key}__${placeholderIndex++}`;
-
-            // ✅ FIX: Objekt zu String konvertieren
-            let rawFallback = values && values[key] != null ? values[key] : key;
-            if (typeof rawFallback === 'object' && rawFallback !== null) {
-                rawFallback = rawFallback.name || rawFallback.value || rawFallback.displayName || String(rawFallback);
-            }
-            const fallback = String(rawFallback).trim();
-
-            let rawAssigned = assignments && assignments[tokenId] != null ? assignments[tokenId] : "";
-            if (typeof rawAssigned === 'object' && rawAssigned !== null) {
-                rawAssigned = rawAssigned.name || rawAssigned.value || rawAssigned.displayName || String(rawAssigned);
-            }
-            const assigned = String(rawAssigned).trim();
-
+            const fallback = values && values[key] != null ? String(values[key]).trim() : key;
+            const assigned = assignments && assignments[tokenId] != null ? String(assignments[tokenId]).trim() : "";
             const value = assigned || fallback || key;
             const activeClass = activeTokenId === tokenId ? " token-active" : "";
             const safeKey = escapeHtml(key);
@@ -1399,11 +1159,6 @@
         renderStepButtons();
     }
 
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 7: SMART STEP CREATOR (Lower Area)
-    // ════════════════════════════════════════════════════════════════════════════
-    // Manuelle Step-Auswahl, Step-Card-Rendering, Filter-UI, Draft-Management
-
     function renderStepButtons() {
         const container = insertContainer();
         if (!container) return;
@@ -1456,7 +1211,7 @@
             bySg.get(sg).push(step);
         }
 
-        const theme = window.CreatePostingCurrentTheme || document.querySelector(`.${CSS_CLASS.SMART_STEP_CREATOR}`)?.getAttribute('data-theme') || 'gold';
+        const theme = window.CreatePostingCurrentTheme || document.querySelector('.smart-step-creator')?.getAttribute('data-theme') || 'gold';
 
         // render pro Phase → Sub-Group
         for (const [phaseKey, subGroups] of byPhase.entries()) {
@@ -1632,11 +1387,11 @@
                 mode: 'step',
                 title: 'AKTUELLER STEP',
                 textId: 'CurrentStepText',
-                hostId: 'DOM_ID.INLINE_VAR_EDITOR_HOST',
+                hostId: 'InlineVarEditorHost',
                 hostClass: 'mt-3',
                 bodyClasses: 'preview-step-text mt-2',
                 wrapperClass: 'current-step-wrap',
-                actionHtml: ''  // ✅ NEU (2026-05-04): Kein Accept-Button im Overlay-Header, nur im Haupt-Editor
+                actionHtml: '<button type="button" class="btn btn-sm creator-cta-primary" id="BtnAcceptStepOverlay">Step akzeptieren</button>'
             });
         }
 
@@ -1683,11 +1438,11 @@
             mode: 'step',
             title: 'AKTUELLER STEP',
             textId: 'CurrentStepText',
-            hostId: 'DOM_ID.INLINE_VAR_EDITOR_HOST',
+            hostId: 'InlineVarEditorHost',
             hostClass: 'mt-3',
             bodyClasses: 'preview-step-text mt-2',
             wrapperClass: 'current-step-wrap',
-            actionHtml: ''  // ✅ NEU (2026-05-04): Button ins Overlay verschoben
+            actionHtml: '<button type="button" class="btn btn-sm creator-cta-primary" id="btnAcceptStep">Step akzeptieren</button>'
         });
     }
 
@@ -1710,23 +1465,18 @@
         closeUnifiedOverlay();
 
         // Clear old inline host (backward compatibility)
-        const host = $("#DOM_ID.INLINE_VAR_EDITOR_HOST");
+        const host = $("#InlineVarEditorHost");
         if (host) host.innerHTML = "";
     }
 
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 6: INGREDIENT MATCHING & FILTERING
-    // ════════════════════════════════════════════════════════════════════════════
-    // Ingredient-Match-Rules, Quantity-Mode, Display-Filtering, Special-Transforms
-
     function isIngredientVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase();
-        return key === "ingredient" || key === "ingredient2" || key === "ingredients" || key === "base" || key === "basis" || key === "seasoning" || key === "liquid" || key === "fat" || key === "seasonings" || key === "marinade" || key === "thickener" || key === "components" || key === "extra";
+        return key === "ingredient" || key === "ingredient2" || key === "ingredients" || key === "base" || key === "seasoning" || key === "liquid" || key === "fat" || key === "seasonings" || key === "marinade" || key === "thickener" || key === "components" || key === "extra";
     }
 
     function isHybridIngredientVariable(varName) {
         const key = (varName || "").toString().trim().toLowerCase();
-        return key === "extra" || key === "base" || key === "basis" || key === "liquid";
+        return key === "extra" || key === "base" || key === "liquid";
     }
 
     function getEditorSelectionLabel(varName, hybridVar) {
@@ -1925,8 +1675,8 @@
         else if (aliases.piece.includes(unit)) family = "piece";
 
         let normalizedValue = value;
-        if (unit === "kg" || unit === "kilogramm") normalizedValue = value * UNIT_CONVERSION.KG_TO_GRAMS;
-        if (unit === "l" || unit === "liter" || unit === "litre") normalizedValue = value * UNIT_CONVERSION.LITERS_TO_ML;
+        if (unit === "kg" || unit === "kilogramm") normalizedValue = value * 1000;
+        if (unit === "l" || unit === "liter" || unit === "litre") normalizedValue = value * 1000;
 
         return { family, value: normalizedValue };
     }
@@ -2070,16 +1820,16 @@
 
                 const preferredGroupIndex = config.preferGroups.indexOf(groupId);
                 if (preferredGroupIndex >= 0) {
-                    score += SCORE.GROUP_MATCH_BASE - preferredGroupIndex * SCORE.GROUP_MATCH_DECAY;
+                    score += 100 - preferredGroupIndex * 10;
                 }
 
                 const deprioritizedGroupIndex = config.deprioritizeGroups.indexOf(groupId);
                 if (deprioritizedGroupIndex >= 0) {
-                    score += SCORE.GROUP_DEPRIORITIZE_BASE + deprioritizedGroupIndex * SCORE.GROUP_DEPRIORITIZE_DECAY;
+                    score -= 40 + deprioritizedGroupIndex * 5;
                 }
 
                 config.preferFlags.forEach(flag => {
-                    if (getIngredientRuleValue(item, flag)) score += SCORE.FLAG_BONUS;
+                    if (getIngredientRuleValue(item, flag)) score += 8;
                 });
 
                 return {
@@ -2117,28 +1867,8 @@
     }
 
     // Filters ingredient items based on the variable type (e.g. {{liquid}} → only liquids)
-    /**
-     * Filters ingredient list based on variable type and step-specific rules.
-     * Uses ingredient_match_rules.json for declarative filtering.
-     *
-     * Filtering rules include:
-     * - Boolean flags (is_peelable, is_cookable, etc.)
-     * - Group IDs (groupId matching)
-     * - Quantity mode (prefer_smallest, exclude_largest, etc.)
-     *
-     * @param {Array<object>} items - Ingredient objects with id, groupId, is_* flags
-     * @param {string} varName - Variable name (e.g., "ingredient", "liquid", "fat")
-     * @param {string} masterId - Step master ID (e.g., "PREP_PEEL_01")
-     * @returns {object} { filtered: Array, rest: Array } - Matched and unmatched ingredients
-     *
-     * @example
-     * filterIngredientsByVarType(
-     *   [{id: 1, name: "Kartoffel", is_peelable: true}, {id: 2, name: "Tomate"}],
-     *   "ingredient",
-     *   "PREP_PEEL_01"
-     * )
-     * // Returns: { filtered: [{id: 1, ...}], rest: [{id: 2, ...}] }
-     */
+    // and optionally by step context via declarative JSON rules.
+    // Returns { filtered, rest } where filtered are primary matches and rest are remaining items.
     function filterIngredientsByVarType(items, varName, masterId) {
         const { variableRule, stepRule } = getIngredientMatchRule(varName, masterId);
         if (!variableRule && !stepRule) return { filtered: items, rest: [] };
@@ -2366,26 +2096,27 @@
 
         // New: Handle array of objects with fractions and per-ingredient articles
         if (Array.isArray(names) && names.length > 0 && typeof names[0] === 'object' && names[0].name) {
-            DEBUG("INGREDIENT", "formatSelectedIngredientList: Processing objects", { names, allIngredients: getSelectedIngredientsFromPage() });
+            console.log('[formatSelectedIngredientList] Processing objects:', names);
             const allIngredients = getSelectedIngredientsFromPage();
+            console.log('[formatSelectedIngredientList] All ingredients:', allIngredients);
             const frOpts = getFractionOptions();
 
             const composed = names.map(item => {
                 const itemName = getIngredientName(item);
                 const itemFraction = getIngredientFraction(item);
                 const itemArticle = item.article || ""; // Per-ingredient article
-                DEBUG("INGREDIENT", "formatSelectedIngredientList: Processing item", { itemName, itemFraction, itemArticle });
+                console.log(`[formatSelectedIngredientList] Item: ${itemName}, Fraction: ${itemFraction}, Article: ${itemArticle}`);
 
                 // Determine final article: use per-ingredient if set, otherwise auto-detect from genus
                 let article = "";
                 if (itemArticle && itemArticle !== "ohne") {
                     article = itemArticle;
-                    DEBUG("INGREDIENT", "formatSelectedIngredientList: Using per-ingredient article", { article });
+                    console.log(`[formatSelectedIngredientList] Using per-ingredient article: "${article}"`);
                 } else {
                     // Find full ingredient data to get genus/article
                     const fullIngredient = allIngredients.find(ing => ing.name === itemName);
                     article = fullIngredient?.genusByLang?.[lang] || "";
-                    DEBUG("INGREDIENT", "formatSelectedIngredientList: Auto-detected genus", { article });
+                    console.log(`[formatSelectedIngredientList] Auto-detected genus: "${article}"`);
                 }
 
                 // If no fraction, return with article if present
@@ -2403,17 +2134,17 @@
                 // Find fraction definition
                 const fractionDef = frOpts.find(f => f.key === itemFraction);
                 if (!fractionDef) {
-                    DEBUG("INGREDIENT", "formatSelectedIngredientList: No fraction def found", { itemFraction });
+                    console.log(`[formatSelectedIngredientList] No fraction def found for ${itemFraction}`);
                     return itemName;
                 }
-                DEBUG("INGREDIENT", "formatSelectedIngredientList: Found fraction def", { fractionDef });
+                console.log('[formatSelectedIngredientList] Fraction def:', fractionDef);
 
                 // Compose with fraction
                 // ✅ FIX (2026-04-02): Genus aus Katalog holen für korrekten Genitiv
                 const fullIngredient = allIngredients.find(ing => ing.name === itemName);
                 const genus = fullIngredient?.genusByLang?.[lang] || '';
                 const result = composeFractionText(fractionDef, itemName, article, genus);
-                DEBUG("INGREDIENT", "formatSelectedIngredientList: Composed text", { result });
+                console.log(`[formatSelectedIngredientList] Composed: ${result}`);
                 return result;
             });
 
@@ -2440,18 +2171,9 @@
     }
 
 
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 8: UNIFIED OVERLAY SYSTEM
-    // ════════════════════════════════════════════════════════════════════════════
-    // Universeller Variable-Editor, Overlay-HTML-Generation, Multi-Ingredient-Management
-
-    /**
-     * Generates editor HTML for both Smart Step Creator and Probability Area.
-     * @param {string} varName - Variable name to edit
-     * @param {string} currentVal - Current value
-     * @param {object} opts - Options (multiIngredients, masterId, etc.)
-     * @returns {object} {html: string, dataAttributes: object}
-     */
+    // ── Shared HTML Generator for Both Editors ──
+    // Generates editor HTML for both Smart Step Creator and Probability Area
+    // Returns: { html: string, dataAttributes: object }
     function _generateEditorHtml(varName, currentVal, opts = {}) {
         const {
             multiIngredients = [],
@@ -2534,7 +2256,7 @@
         const renderIngChip = ({ name, icon, isRemainder, dimmed }) => {
             const value = name.trim();
             const selectedItem = selectedIngredientValues.find(s => getIngredientName(s) === value);
-            const isActive = !!selectedItem;
+            const active = selectedItem ? " active" : "";
             const remainderCls = isRemainder ? " fraction-remainder" : "";
             const dimCls = dimmed ? " ingredient-chip-dimmed" : "";
 
@@ -2543,23 +2265,10 @@
             const disabledCls = alreadyAdded ? " ingredient-chip-disabled" : "";
             const disabled = alreadyAdded ? " disabled" : "";
 
-            // ✅ Avocado Pill Design
-            let pillStyle = isActive
-                ? `background:var(--cp-avocado,#5fa052);color:white;border:1px solid var(--cp-avocado,#5fa052);`
-                : `background:white;color:var(--cp-ink-deep,#14391f);border:1px solid var(--cp-ink-line,rgba(20,57,31,0.12));`;
-
-            if (alreadyAdded) {
-                pillStyle = `background:#f0f0f0;color:#999;border:1px solid #ddd;opacity:0.6;cursor:not-allowed;`;
-            } else if (dimmed) {
-                pillStyle += `opacity:0.5;`;
-            }
-
             const safe = escapeHtml(value);
             const iconPart = icon ? `<span class="chip-icon" aria-hidden="true">${icon}</span> ` : "";
 
-            return `<button type="button" class="ingredient-chip${remainderCls}${dimCls}${disabledCls}"
-                    style="${pillStyle}border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;"${disabled}
-                    data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
+            return `<button type="button" class="ingredient-chip${active}${remainderCls}${dimCls}${disabledCls}"${disabled} data-pick-mode="ingredient-value" data-pick-value="${safe}">${iconPart}${safe}</button>`;
         };
 
         const valueButtons = ingredientVar
@@ -2668,18 +2377,10 @@
 
             ${ingredientVar && !hybridVar ? "" : (hybridVar ? renderFallbackSection(varName, hybridOptions, masterId, scoringContext) : (!ingredientVar && !showOnlyPronoun ? renderFallbackSection(showCombinedEditor ? 'state' : varName, options, masterId, scoringContext) : ""))}
 
-            <div class="d-flex gap-2 align-items-center mt-3 ${CSS_CLASS.JS_EDITOR_ACTION_ROW}">
-              <button type="button" class="btn btn-sm ${applyBtnClass}" ${applyBtnId}
-                      style="background:var(--cp-gradient-coral, linear-gradient(135deg, #ff9a3c, #ff7849));color:white;border:none;border-radius:12px;padding:10px 18px;font-weight:700;box-shadow:var(--cp-shadow-coral-cta, 0 6px 20px rgba(255, 120, 73, 0.4));flex:1;">
-                <i class="bi bi-check-lg me-1"></i>Einsetzen
-              </button>
-              <button type="button" class="btn btn-sm ${CSS_CLASS.JS_EDITOR_REMOVE_OPTIONAL}" style="display:none;background:transparent;color:var(--cp-coral, #ff7849);border:1px solid var(--cp-coral, #ff7849);border-radius:12px;padding:10px 18px;font-weight:600;" data-var="${escapeHtml(varName)}">
-                <i class="bi bi-trash me-1"></i>Entfernen
-              </button>
-              <button type="button" class="btn btn-sm ${closeBtnClass}" ${closeBtnId}
-                      style="background:white;color:var(--cp-ink-deep, #14391f);border:1px solid var(--cp-ink-line, rgba(20, 57, 31, 0.12));border-radius:12px;padding:10px 18px;font-weight:600;">
-                <i class="bi bi-x-lg me-1"></i>Schließen
-              </button>
+            <div class="d-flex gap-2 align-items-center mt-3 js-editor-action-row">
+              <button type="button" class="btn btn-sm creator-cta-primary ${applyBtnClass}" ${applyBtnId}>Einsetzen</button>
+              <button type="button" class="btn btn-sm btn-outline-danger js-editor-remove-optional" style="display:none;" data-var="${escapeHtml(varName)}">Entfernen</button>
+              <button type="button" class="btn btn-sm btn-outline-secondary ${closeBtnClass}" ${closeBtnId}>Schließen</button>
             </div>
           </div>`;
 
@@ -2752,8 +2453,8 @@
 
         // per_package/short: hide number fields; minute/hour: show
         const hideNum = btn.dataset.durationUnit === "per_package" || btn.dataset.durationUnit === "short";
-        const numInput = host.querySelector(`#${DOM_ID.DURATION_VALUE_INPUT}`);
-        const numInputTo = host.querySelector(`#${DOM_ID.DURATION_VALUE_TO_INPUT}`);
+        const numInput = host.querySelector("#DurationValueInput");
+        const numInputTo = host.querySelector("#DurationValueToInput");
         const dashSep = numInput?.nextElementSibling;
         if (numInput) numInput.style.display = hideNum ? "none" : "";
         if (numInputTo) numInputTo.style.display = hideNum ? "none" : "";
@@ -2767,32 +2468,23 @@
         const mode = pickBtn.dataset.pickMode;
         const val = pickBtn.dataset.pickValue ?? "";
 
-        console.log("🔵 _handlePickModeClick triggered", { mode, val });
-        DEBUG("EVENT", "_handlePickModeClick triggered", { mode, val, useClassBasedIds, pickBtn, host });
+        console.log("[_handlePickModeClick]", { mode, val, useClassBasedIds, pickBtn, host });
 
         // Handle fraction mode
         if (mode === "fraction") {
-            const frRowId = useClassBasedIds ? `.${CSS_CLASS.JS_FRACTION_PICKER_ROW}` : "#FractionPickerRow";
+            const frRowId = useClassBasedIds ? ".js-fraction-picker-row" : "#FractionPickerRow";
             const frRow = typeof frRowId === "string" && frRowId.startsWith(".")
                 ? host.querySelector(frRowId)
                 : host.querySelector(frRowId);
 
-            DEBUG("EVENT", "Fraction Mode triggered", { frRowId, frRow, fractionKey: pickBtn.dataset.fractionKey });
-
-            // ✅ FIX (2026-05-04): Inline-Styles für Fraction-Buttons ändern
-            const inactiveStyle = `background:white;color:var(--cp-ink-deep,#14391f);border:1px solid var(--cp-ink-line,rgba(20,57,31,0.12));border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;`;
-            const activeStyle = `background:var(--cp-avocado,#5fa052);color:white;border:1px solid var(--cp-avocado,#5fa052);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;`;
+            console.log("[Fraction Mode]", { frRowId, frRow, fractionKey: pickBtn.dataset.fractionKey });
 
             if (frRow) {
-                frRow.querySelectorAll(`.${CSS_CLASS.FRACTION_PICK}`).forEach(b => {
-                    b.classList.remove("active");
-                    b.style.cssText = inactiveStyle;
-                });
+                frRow.querySelectorAll(".fraction-pick").forEach(b => b.classList.remove("active"));
                 pickBtn.classList.add("active");
-                pickBtn.style.cssText = activeStyle;
             }
             host.dataset.selectedFraction = pickBtn.dataset.fractionKey || "";
-            DEBUG("EVENT", "Fraction Mode: Set dataset.selectedFraction", { selectedFraction: host.dataset.selectedFraction });
+            console.log("[Fraction Mode] Set dataset.selectedFraction =", host.dataset.selectedFraction);
             return;
         }
 
@@ -2802,16 +2494,11 @@
             let list = normalizeIngredientValues(selected);
             const idx = list.findIndex(item => getIngredientName(item) === val);
 
-            DEBUG("EVENT", "Ingredient-Value Mode triggered", { val, selected, list, idx });
-
-            // ✅ FIX (2026-05-04): Inline-Styles für Ingredient-Chips ändern
-            const inactiveStyle = `background:white;color:var(--cp-ink-deep,#14391f);border:1px solid var(--cp-ink-line,rgba(20,57,31,0.12));border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;`;
-            const activeStyle = `background:var(--cp-avocado,#5fa052);color:white;border:1px solid var(--cp-avocado,#5fa052);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;cursor:pointer;transition:all 0.15s;`;
+            console.log("[Ingredient-Value Mode]", { val, selected, list, idx });
 
             if (idx >= 0) {
                 list.splice(idx, 1);
                 pickBtn.classList.remove("active");
-                pickBtn.style.cssText = inactiveStyle;
             } else {
                 // ✅ FIX (2026-04-02): Artikel automatisch aus Katalog-Genus konvertieren
                 const allIngredients = getSelectedIngredientsFromPage();
@@ -2821,75 +2508,61 @@
 
                 list.push({ name: val, fraction: "", article: autoArticle });
                 pickBtn.classList.add("active");
-                pickBtn.style.cssText = activeStyle;
 
-                DEBUG("INGREDIENT", "Ingredient-Value Mode: Auto-article detected", { genus: genusFromCatalog, article: autoArticle });
+                console.log("[Ingredient-Value Mode] Auto-article:", { genus: genusFromCatalog, article: autoArticle });
             }
             host.dataset.selectedIngredientValues = JSON.stringify(list);
             host.dataset.selectedValue = list.map(item => getIngredientName(item)).join(", ");
 
-            DEBUG("INGREDIENT", "Ingredient-Value Mode: Updated values", { list, selectedIngredientValues: host.dataset.selectedIngredientValues });
+            console.log("[Ingredient-Value Mode] Updated:", { list, selectedIngredientValues: host.dataset.selectedIngredientValues });
             return;
         }
 
         // Hybrid: clicking an option pill deselects all ingredient chips
         if (mode === "value" && host.dataset.hybrid === "1") {
             host.dataset.selectedIngredientValues = "[]";
-            host.querySelectorAll(`.${CSS_CLASS.INGREDIENT_CHIP_ACTIVE}`).forEach(b => b.classList.remove("active"));
+            host.querySelectorAll(".ingredient-chip.active").forEach(b => b.classList.remove("active"));
         }
 
         // Toggle active style for article/pronoun/value modes
         let row;
         if (mode === "article") {
-            row = useClassBasedIds ? host.querySelector(`.${CSS_CLASS.JS_ARTICLE_BTN_ROW}`) : document.getElementById("ArticleBtnRow");
+            row = useClassBasedIds ? host.querySelector(".js-article-btn-row") : document.getElementById("ArticleBtnRow");
         } else if (mode === "pronoun") {
-            row = useClassBasedIds ? host.querySelector(`.${CSS_CLASS.JS_PRONOUN_BTN_ROW}`) : document.getElementById("PronounBtnRow");
+            row = useClassBasedIds ? host.querySelector(".js-pronoun-btn-row") : document.getElementById("PronounBtnRow");
         } else if (mode === "value") {
-            row = useClassBasedIds ? host.querySelector(`.${CSS_CLASS.JS_VALUE_BTN_ROW}`) : document.getElementById("ValueBtnRow");
+            row = useClassBasedIds ? host.querySelector(".js-value-btn-row") : document.getElementById("ValueBtnRow");
         }
-
-        // ✅ FIX (2026-05-04): Inline-Styles ändern statt nur Klassen (Inline-Styles haben Vorrang!)
-        const inactiveStyle = `background:white;color:var(--cp-ink-deep,#14391f);border:1px solid var(--cp-ink-line,rgba(20,57,31,0.12));border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;transition:all 0.15s;`;
-        const activeStyle = `background:var(--cp-avocado,#5fa052);color:white;border:1px solid var(--cp-avocado,#5fa052);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;`;
 
         if (row) {
             row.querySelectorAll("button[data-pick-mode]").forEach(b => {
-                if (b.dataset.pickMode === mode) {
-                    b.classList.remove("active");
-                    b.style.cssText = inactiveStyle;
-                }
+                if (b.dataset.pickMode === mode) b.classList.remove("active");
             });
         }
 
         // Also toggle in HybridOptionsBtnRow for value mode
         if (mode === "value") {
-            const hybridRowSel = useClassBasedIds ? `.${CSS_CLASS.JS_HYBRID_OPTIONS_ROW}` : "#HybridOptionsBtnRow";
+            const hybridRowSel = useClassBasedIds ? ".js-hybrid-options-row" : "#HybridOptionsBtnRow";
             const hybridRow = host.querySelector(hybridRowSel);
             if (hybridRow) {
-                hybridRow.querySelectorAll("button[data-pick-mode='value']").forEach(b => {
-                    b.classList.remove("active");
-                    b.style.cssText = inactiveStyle;
-                });
+                hybridRow.querySelectorAll("button[data-pick-mode='value']").forEach(b => b.classList.remove("active"));
             }
         }
 
         pickBtn.classList.add("active");
-        pickBtn.style.cssText = activeStyle;
-
-        DEBUG("BUTTON", "Button activated with green style", { mode, val, activeStyle });
 
         // Set dataset values
         if (mode === "article") {
             host.dataset.selectedArticle = val;
-            DEBUG("EVENT", "Article Mode: Set dataset.selectedArticle", { val });
+            console.log("[Article Mode] Set dataset.selectedArticle =", val);
         }
         if (mode === "pronoun") {
             host.dataset.selectedPronoun = val;
-            DEBUG("EVENT", "Pronoun Mode: Set dataset.selectedPronoun", { val });
+            console.log("[Pronoun Mode] Set dataset.selectedPronoun =", val);
         }
         if (mode === "value") {
             host.dataset.selectedValue = val;
-            DEBUG("EVENT", "Value Mode: Set dataset.selectedValue", { val });
+            console.log("[Value Mode] Set dataset.selectedValue =", val);
         }
     }
 
@@ -2952,12 +2625,12 @@
         const overlayHtml = createUnifiedOverlayHtml(html, context);
 
         // Remove existing overlay if any
-        const existing = document.getElementById(DOM_ID.UNIVERSAL_EDITOR_OVERLAY);
+        const existing = document.getElementById('universalEditorOverlay');
         if (existing) existing.remove();
 
         // Insert overlay into DOM
         document.body.insertAdjacentHTML('beforeend', overlayHtml);
-        const overlayEl = document.getElementById(DOM_ID.UNIVERSAL_EDITOR_OVERLAY);
+        const overlayEl = document.getElementById('universalEditorOverlay');
         if (!overlayEl) {
             console.error("[Unified Overlay] Failed to create overlay element!");
             return;
@@ -2967,7 +2640,7 @@
         document.body.style.overflow = 'hidden';
 
         // Get editor element and set data attributes
-        const editorEl = overlayEl.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+        const editorEl = overlayEl.querySelector('.duration-editor');
         if (!editorEl) {
             console.error("[Unified Overlay] Editor element not found!");
             return;
@@ -2982,7 +2655,7 @@
         const templateForOptionalCheck = context.templateRaw || activeStep?.templateRaw || "";
         const isVarInBrackets = new RegExp(`\\[[^\\]]*\\{\\{\\s*${varName}\\s*\\}\\}[^\\]]*\\]`).test(templateForOptionalCheck);
         if (isVarInBrackets) {
-            const removeBtn = overlayEl.querySelector(`.${CSS_CLASS.JS_EDITOR_REMOVE_OPTIONAL}`);
+            const removeBtn = overlayEl.querySelector('.js-editor-remove-optional');
             if (removeBtn) removeBtn.style.display = '';
         }
 
@@ -3030,7 +2703,7 @@
      * Creates the overlay HTML structure (3-section layout: Header Preview | Scrollable Content | Fixed Footer Buttons)
      */
     function createUnifiedOverlayHtml(editorHtml, context) {
-        const theme = document.querySelector(`.${CSS_CLASS.SMART_STEP_CREATOR}`)?.dataset?.theme || 'dark';
+        const theme = document.querySelector('.smart-step-creator')?.dataset?.theme || 'dark';
         const ownerType = context.type || 'step';
 
         const previewHtml = renderOverlayPreviewForContext(context) || context.templatePreviewHtml || '';
@@ -3040,33 +2713,33 @@
         tempDiv.innerHTML = editorHtml;
         // ✅ FIX: Only select button row with .js-editor-action-row, not ALL .d-flex!
         // Duration inputs also have .d-flex.gap-2.align-items-center, so we need to be specific
-        const buttonRow = tempDiv.querySelector(`.${CSS_CLASS.JS_EDITOR_ACTION_ROW}`);
+        const buttonRow = tempDiv.querySelector('.js-editor-action-row');
         const buttonsHtml = buttonRow ? buttonRow.outerHTML : '';
         if (buttonRow) buttonRow.remove(); // Remove from editor content
         const editorContentHtml = tempDiv.innerHTML;
 
-        // ✅ AVOCADO DESIGN (2026-05-04): 3-Section Layout
+        // 3-SECTION LAYOUT: Fixed Header (Preview) | Scrollable Middle (Editor) | Fixed Footer (Buttons)
         return `
-            <div id="${DOM_ID.UNIVERSAL_EDITOR_OVERLAY}" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="${ownerType}"
-                 style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; background: rgba(20, 57, 31, 0.5); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; padding: 16px;">
-
-                <div style="background: var(--cp-card, white); border-radius: var(--cp-radius-xl, 22px); box-shadow: var(--cp-shadow-lg, 0 20px 60px rgba(20, 57, 31, 0.16)); max-width: 720px; width: 100%; max-height: 90vh; display: flex; flex-direction: column; overflow: hidden;">
-
-                    <!-- Header: Preview -->
-                    <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); background: linear-gradient(180deg, var(--cp-ink-deep, #14391f) 0%, var(--cp-ink-deep-2, #0e2415) 100%);">
-                        <div style="font-family: var(--cp-font-serif, 'Fraunces', Georgia, serif); font-size: 18px; font-weight: 600; color: white; margin-bottom: 12px;">Vorschau</div>
-                        <div class="js-overlay-preview-content">${previewHtml}</div>
+            <div id="universalEditorOverlay" class="smart-step-creator" data-theme="${theme}" data-overlay-owner="${ownerType}"
+                 style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 9999; display: flex; flex-direction: column;">
+                <!-- Fixed Header: Preview -->
+                <div class="creator-preview-canvas" style="flex-shrink: 0; padding: 16px; border-bottom: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); min-height: auto;">
+                    <div style="max-width: 800px; margin: 0 auto;">
+                        ${previewHtml}
                     </div>
+                </div>
 
-                    <!-- Scrollable Middle: Editor -->
-                    <div id="${DOM_ID.UNIVERSAL_EDITOR_CONTENT}" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 20px; background: white;">
+                <!-- Scrollable Middle: Editor Content (without buttons) -->
+                <div id="universalEditorContent" style="flex: 1; overflow-y: auto; overflow-x: hidden; padding: 24px 16px; background: var(--creator-sheet, rgba(255,255,255,0.05));">
+                    <div style="max-width: 800px; margin: 0 auto;">
                         ${editorContentHtml}
                     </div>
+                </div>
 
-                    <!-- Footer: Buttons -->
-                    <div style="flex-shrink: 0; padding: 16px 20px; border-top: 1px solid var(--cp-ink-line, rgba(20, 57, 31, 0.12)); background: var(--cp-cream, #faf6ec);">
+                <!-- Fixed Footer: Buttons -->
+                <div style="flex-shrink: 0; padding: 16px; border-top: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.3);">
+                    <div style="max-width: 800px; margin: 0 auto;">
                         ${buttonsHtml}
-                        ${ownerType === 'step' ? '<button type="button" class="btn btn-sm" id="btnAcceptStepFromOverlay" style="background:var(--cp-avocado,#5fa052);color:white;border:none;border-radius:12px;padding:10px 18px;font-weight:600;margin-top:12px;width:100%;"><i class="bi bi-check-lg me-1"></i>Step akzeptieren</button>' : ''}
                     </div>
                 </div>
             </div>
@@ -3088,7 +2761,7 @@
         $overlay.on('click.universal', '#BtnCloseVar, #BtnCloseVarTop', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
             // ✅ FIX (2026-04-02): Auto-save current editor value before closing overlay
-            const currentEditorEl = overlayEl.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
             if (currentEditorEl && currentEditorEl.dataset.editorFor) {
                 const value = applyEditorValue(currentEditorEl);
                 const extras = applyEditorExtras(currentEditorEl);
@@ -3104,14 +2777,14 @@
         });
 
         // Apply button
-        $overlay.on('click.universal', `#${DOM_ID.BTN_APPLY_VAR}`, function(e) {
+        $overlay.on('click.universal', '#BtnApplyVar', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
             // ✅ Get fresh editor element (important after variable switch!)
-            const currentEditorEl = overlayEl.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
             applyUnifiedEditorValue(currentEditorEl, config);
         });
 
-        $overlay.on('click.universal', `#${DOM_ID.BTN_ACCEPT_PROBABILITY_STEP}`, async function(e) {
+        $overlay.on('click.universal', '#BtnAcceptProbabilityStep', async function(e) {
             e.stopPropagation();
             if (context.type !== 'probability') return;
 
@@ -3130,25 +2803,10 @@
             if (typeof onClose === 'function') onClose();
         });
 
-        $overlay.on('click.universal', `#${DOM_ID.BTN_ACCEPT_STEP_OVERLAY}`, function(e) {
+        $overlay.on('click.universal', '#BtnAcceptStepOverlay', function(e) {
             e.stopPropagation();
             if (context.type !== 'step') return;
 
-            acceptActiveStep();
-
-            if (typeof onClose === 'function') onClose();
-        });
-
-        // ✅ NEU (2026-05-04): Step akzeptieren Button im Footer
-        $overlay.on('click.universal', '#btnAcceptStepFromOverlay', function(e) {
-            e.stopPropagation();
-            if (context.type !== 'step') return;
-
-            // Aktuellen Editor-Wert speichern bevor Accept
-            saveCurrentEditorValueBeforeAccept('step', null);
-            closeUnifiedOverlay();
-
-            // Step akzeptieren
             acceptActiveStep();
 
             if (typeof onClose === 'function') onClose();
@@ -3158,7 +2816,7 @@
         $overlay.on('click.universal', 'button[data-pick-mode]', function(e) {
             e.stopImmediatePropagation();
             // ✅ Get fresh editor element
-            const currentEditorEl = overlayEl.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
             if (!currentEditorEl || !currentEditorEl.isConnected) return;
             _handlePickModeClick(this, currentEditorEl, false);
         });
@@ -3167,7 +2825,7 @@
         $overlay.on('click.universal', 'button[data-duration-unit]', function(e) {
             e.stopImmediatePropagation();
             // ✅ Get fresh editor element
-            const currentEditorEl = overlayEl.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
             _handleDurationUnitClick(this, currentEditorEl);
         });
 
@@ -3175,15 +2833,15 @@
         $overlay.on('click.universal', '#BtnPickDurationQuick, #BtnPickTempQuick, #BtnPickCountQuick', function(e) {
             e.stopPropagation();  // Prevent old document-level handler from firing
             // ✅ Get fresh editor element
-            const currentEditorEl = overlayEl.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
             applyUnifiedEditorValue(currentEditorEl, config);
         });
 
         // Plus button for multi-ingredients
-        $overlay.on('click.universal', `.${CSS_CLASS.JS_ADD_INGREDIENT_TO_LIST}`, function(e) {
+        $overlay.on('click.universal', '.js-add-ingredient-to-list', function(e) {
             e.stopPropagation();
             // ✅ Get fresh editor element
-            const currentEditorEl = overlayEl.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+            const currentEditorEl = overlayEl.querySelector('.duration-editor');
             handleUnifiedPlusButtonClick(currentEditorEl, config);
         });
 
@@ -3216,7 +2874,7 @@
 
         // ✅ NEU (2026-03-28): Token-Clicks im Preview zum Variable-Wechsel
         // User kann Tokens im Preview klicken, um andere Variablen zu bearbeiten
-        $overlay.on('click.universal', `.creator-preview-canvas .${CSS_CLASS.TEMPLATE_VAR}[data-var], .creator-preview-canvas .js-probability-var[data-var], .creator-preview-canvas .${CSS_CLASS.JS_OPTIONAL_VAR_ADD}[data-optional-var]`, function(e) {
+        $overlay.on('click.universal', '.creator-preview-canvas .template-var[data-var], .creator-preview-canvas .js-probability-var[data-var], .creator-preview-canvas .js-optional-var-add[data-optional-var]', function(e) {
             e.stopPropagation();
             e.preventDefault();
 
@@ -3230,16 +2888,16 @@
 
             // Don't switch if it's the same variable
             if (newVarName === config.varName) {
-                DEBUG("EVENT", "Preview Token Click: Already editing this variable", { varName: newVarName });
+                console.log('[Preview Token Click] Already editing this variable');
                 return;
             }
 
-            DEBUG("EVENT", "Preview Token Click: Switching to variable", { newVarName });
+            console.log('[Preview Token Click] Switching to variable:', newVarName);
             switchEditorVariable(newVarName, config);
         });
 
         // Remove optional variable (clear value)
-        $overlay.on('click.universal', `.${CSS_CLASS.JS_EDITOR_REMOVE_OPTIONAL}`, function(e) {
+        $overlay.on('click.universal', '.js-editor-remove-optional', function(e) {
             e.stopPropagation();
             const removeVarName = config.varName;
             // Clear the value in context
@@ -3272,16 +2930,7 @@
      * Updates the value in the appropriate context (Step or Probability) - UNIFIED Object-based
      */
     function updateContextValue(context, varName, value, extras) {
-        DEBUG("DATA", "updateContextValue called", { context: context.type, varName, value, extras });
-
-        // ✅ FIX (2026-05-04): Sicherstellen dass value immer ein String ist, nie ein Objekt
-        let normalizedValue = value;
-        if (typeof normalizedValue === 'object' && normalizedValue !== null) {
-            console.warn('updateContextValue: value is an object, converting to string', { varName, value: normalizedValue });
-            // Wenn es ein Objekt mit 'name' property ist, nimm den Namen
-            normalizedValue = normalizedValue.name || normalizedValue.value || String(normalizedValue);
-        }
-        normalizedValue = String(normalizedValue || '');
+        console.log(`[updateContextValue] ━━━ CALLED ━━━`, { context: context.type, varName, value, extras });
 
         if (context.type === 'step') {
             // Smart Step Creator: Update activeStep and re-render
@@ -3292,7 +2941,7 @@
             }
 
             // Save value to activeStep
-            stepDraft.values[varName] = normalizedValue;
+            stepDraft.values[varName] = value;
 
             // Handle extras (e.g., pronoun for state variables)
             if (extras && extras.pronoun) {
@@ -3339,13 +2988,12 @@
      * NEU (2026-03-28): Preview soll nach Wert-Auswahl aktualisiert werden!
      */
     function updateOverlayPreview(context) {
-        const overlay = document.getElementById(DOM_ID.UNIVERSAL_EDITOR_OVERLAY);
+        const overlay = document.getElementById('universalEditorOverlay');
         if (!overlay) {
             return; // Overlay nicht offen
         }
 
-        // ✅ FIX (2026-05-04): Ziel-Container korrekt finden
-        const previewSection = overlay.querySelector('.js-overlay-preview-content');
+        const previewSection = overlay.querySelector('.creator-preview-canvas > div');
         if (!previewSection) {
             console.warn('[updateOverlayPreview] Preview section not found in overlay');
             return;
@@ -3355,7 +3003,7 @@
 
         if (sourcePreviewHtml) {
             previewSection.innerHTML = sourcePreviewHtml;
-            DEBUG("OVERLAY", "updateOverlayPreview: Preview updated", { context: context.type });
+            console.log('[updateOverlayPreview] Preview updated for context:', context.type);
         } else {
             console.warn('[updateOverlayPreview] No source preview HTML found');
         }
@@ -3383,7 +3031,7 @@
             const existingMulti = getMultiIngredientsForContext(context, varName);
             const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
 
-            DEBUG("INGREDIENT", "Unified Apply: Multi-ingredient workflow", {
+            console.log('[Unified Apply] Multi-ingredient workflow:', {
                 existingMulti: existingMulti.length,
                 selectedValues: selectedValues.length
             });
@@ -3392,7 +3040,7 @@
             if (existingMulti && existingMulti.length > 0) {
                 // User selected NEW ingredients to add
                 if (selectedValues && selectedValues.length > 0) {
-                    DEBUG("INGREDIENT", "Unified Apply: Adding new ingredients to existing list");
+                    console.log('[Unified Apply] Adding new ingredients to existing list');
 
                     const article = editorEl.dataset.selectedArticle || '';
                     const fraction = editorEl.dataset.selectedFraction || '';
@@ -3406,11 +3054,9 @@
 
                     // ✅ FIX (2026-04-02): Entferne Duplikate (gleicher Name, andere Fraktion)
                     // Wenn neue Zutat mit Fraktion hinzugefügt wird, entferne alte Version ohne Fraktion
-                    DEBUG("INGREDIENT", "Unified Apply: Filtering duplicates", {
-                        existingMulti: JSON.parse(JSON.stringify(existingMulti)),
-                        newNormalized: JSON.parse(JSON.stringify(newNormalized)),
-                        fraction
-                    });
+                    console.log('[DEBUG] existingMulti BEFORE filter:', JSON.parse(JSON.stringify(existingMulti)));
+                    console.log('[DEBUG] newNormalized:', JSON.parse(JSON.stringify(newNormalized)));
+                    console.log('[DEBUG] fraction:', fraction);
 
                     let filteredExisting = [...existingMulti];
                     newNormalized.forEach(newItem => {
@@ -3420,12 +3066,11 @@
                         );
                     });
 
+                    console.log('[DEBUG] filteredExisting AFTER filter:', JSON.parse(JSON.stringify(filteredExisting)));
+
                     // Combine filtered existing + new
                     const combinedList = [...filteredExisting, ...newNormalized];
-                    DEBUG("INGREDIENT", "Unified Apply: Combined list created", {
-                        filteredExisting: JSON.parse(JSON.stringify(filteredExisting)),
-                        combinedList: JSON.parse(JSON.stringify(combinedList))
-                    });
+                    console.log('[DEBUG] combinedList:', JSON.parse(JSON.stringify(combinedList)));
 
                     saveMultiIngredientsForContext(context, varName, combinedList);
 
@@ -3444,7 +3089,7 @@
 
                     // ✅ FIX (2026-04-02): Chips deselektieren nach Hinzufügen
                     editorEl.dataset.selectedIngredientValues = "[]";
-                    editorEl.querySelectorAll('`.${CSS_CLASS.INGREDIENT_CHIP_ACTIVE}`').forEach(btn => btn.classList.remove('active'));
+                    editorEl.querySelectorAll('.ingredient-chip.active').forEach(btn => btn.classList.remove('active'));
 
                     // ✅ NEU (2026-03-28): Switch editor statt Close+Reopen (Overlay bleibt offen!)
                     config.currentVal = ingredientComposed;
@@ -3455,14 +3100,14 @@
                     const hybridValue = editorEl.dataset.selectedValue || '';
                     if (hybridValue && editorEl.dataset.hybrid === "1") {
                         // User hat Hybrid-Option gewählt → Multi-Ingredients löschen
-                        DEBUG("INGREDIENT", "Unified Apply: Hybrid override selected", { hybridValue });
+                        console.log('[Unified Apply] Hybrid override:', hybridValue);
                         saveMultiIngredientsForContext(context, varName, []);
                         const article = editorEl.dataset.selectedArticle || '';
                         value = composeArticleAndNoun(article, hybridValue);
                         // Continue to normal context update + close below
                     } else {
                         // Keine Auswahl — existierende Liste beibehalten und CLOSE
-                        DEBUG("INGREDIENT", "Unified Apply: No new selection, closing with existing list");
+                        console.log('[Unified Apply] No new selection, closing with existing list');
                         const normalized = normalizeIngredientValues(existingMulti);
                         value = formatSelectedIngredientList(normalized, currentLang || 'de');
                         // Continue to normal context update + close below
@@ -3483,7 +3128,7 @@
 
                     saveMultiIngredientsForContext(context, varName, normalized);
                     value = formatSelectedIngredientList(normalized, currentLang || 'de');
-                    DEBUG("INGREDIENT", "Unified Apply: Stored initial multi-ingredients", { normalized });
+                    console.log("[Unified Apply] Stored initial multi-ingredients:", normalized);
 
                     // ✅ FIX (2026-04-02): UPDATE CONTEXT und neu laden (wie bei existingMulti)
                     updateContextValue(context, varName, value, extras);
@@ -3504,7 +3149,8 @@
         // ✅ WICHTIG: Wenn wir hier ankommen (kein Ingredient-Variable oder keine Selection),
         // dann normale Logik verwenden
 
-        DEBUG("OVERLAY", "applyUnifiedEditorValue: Normal path - calling updateContextValue", { varName, value, extras });
+        console.log('[applyUnifiedEditorValue] Normal path - calling updateContextValue');
+        console.log('[applyUnifiedEditorValue] varName:', varName, 'value:', value, 'extras:', extras);
 
         // UPDATE CONTEXT (Step or Probability Token) - UNIFIED for all cases
         updateContextValue(context, varName, value, extras);
@@ -3512,14 +3158,16 @@
         // ✅ NEU (2026-03-28): Preview im Overlay-Header aktualisieren!
         // Nach updateContextValue() wurde renderMasterText/renderProbabilityTemplate aufgerufen
         // → DOM wurde aktualisiert → Preview aus DOM in Overlay kopieren
+        console.log('[applyUnifiedEditorValue] Calling updateOverlayPreview...');
         updateOverlayPreview(context);
 
         // Call onApply callback for custom extra logic (optional)
+        console.log('[applyUnifiedEditorValue] Calling onApply callback...');
         if (typeof onApply === 'function') {
             onApply(value, extras);
-            DEBUG("OVERLAY", "applyUnifiedEditorValue: onApply callback executed");
+            console.log('[applyUnifiedEditorValue] ✅ onApply callback executed');
         } else {
-            DEBUG("OVERLAY", "applyUnifiedEditorValue: No onApply callback provided");
+            console.log('[applyUnifiedEditorValue] ⚠️ No onApply callback provided');
         }
 
         // ✅ NEU (2026-03-28): Overlay bleibt OFFEN!
@@ -3556,7 +3204,7 @@
 
         const composed = formatSelectedIngredientList(combinedList, currentLang || 'de');
 
-        DEBUG("INGREDIENT", "Unified Plus: Added ingredients", { normalized, combinedList, composed });
+        console.log("[Unified Plus] Added ingredients:", { normalized, combinedList, composed });
 
         // UPDATE CONTEXT (unified)
         updateContextValue(context, varName, composed, {});
@@ -3574,7 +3222,7 @@
      * NEU (2026-03-28): Tokens im Preview sind klickbar!
      */
     function switchEditorVariable(newVarName, config) {
-        const overlayEl = document.getElementById(DOM_ID.UNIVERSAL_EDITOR_OVERLAY);
+        const overlayEl = document.getElementById('universalEditorOverlay');
         if (!overlayEl) {
             console.error('[Switch Variable] Overlay not found!');
             return;
@@ -3616,15 +3264,18 @@
         // Split editor HTML (remove buttons, they stay in footer)
         const tempDiv = document.createElement('div');
         tempDiv.innerHTML = html;
-        const buttonRow = tempDiv.querySelector(`.${CSS_CLASS.JS_EDITOR_ACTION_ROW}`);
+        const buttonRow = tempDiv.querySelector('.js-editor-action-row');
         if (buttonRow) buttonRow.remove();
         const editorContentHtml = tempDiv.innerHTML;
 
-        // ✅ FIX (2026-05-04): Ersetze kompletten Container-Inhalt statt nur innerDiv (verhindert Verschachtelung)
-        editorContainer.innerHTML = editorContentHtml;
+        // Replace editor content
+        const innerDiv = editorContainer.querySelector(':scope > div');
+        if (innerDiv) {
+            innerDiv.innerHTML = editorContentHtml;
+        }
 
         // Get new editor element and set data attributes
-        const newEditorEl = editorContainer.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+        const newEditorEl = editorContainer.querySelector('.duration-editor');
         if (newEditorEl) {
             Object.keys(dataAttributes).forEach(key => {
                 newEditorEl.dataset[key] = dataAttributes[key];
@@ -3632,7 +3283,7 @@
         }
 
         // Update "Entfernen" button visibility based on whether new variable is optional
-        const removeBtn = overlayEl.querySelector(`.${CSS_CLASS.JS_EDITOR_REMOVE_OPTIONAL}`);
+        const removeBtn = overlayEl.querySelector('.js-editor-remove-optional');
         if (removeBtn) {
             const templateForCheck = context.templateRaw || activeStep?.templateRaw || "";
             const isInBrackets = new RegExp(`\\[[^\\]]*\\{\\{\\s*${newVarName}\\s*\\}\\}[^\\]]*\\]`).test(templateForCheck);
@@ -3644,14 +3295,14 @@
         config.varName = newVarName;
         config.currentVal = newVal;
 
-        DEBUG("OVERLAY", "Switch Variable: Switched to", { newVarName });
+        console.log('[Switch Variable] Switched to:', newVarName);
     }
 
     /**
      * Closes the unified overlay
      */
     function closeUnifiedOverlay() {
-        const overlay = document.getElementById(DOM_ID.UNIVERSAL_EDITOR_OVERLAY);
+        const overlay = document.getElementById('universalEditorOverlay');
         if (overlay) overlay.remove();
 
         // Restore body scroll
@@ -3717,11 +3368,7 @@
         const extraButtons = renderPillButtons(extras, "value", null);
         return `
         <div class="mt-2">
-          <button type="button" class="cp-pill ${CSS_CLASS.JS_TOGGLE_FALLBACK_OPTIONS}"
-                  style="background:white;color:var(--cp-ink-deep);border:1px solid var(--cp-ink-line);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;"
-                  data-expanded="0">
-            Weitere anzeigen ▼
-          </button>
+          <button type="button" class="btn btn-sm btn-outline-secondary js-toggle-fallback-options" data-expanded="0">Weitere anzeigen ▼</button>
           <div class="d-flex flex-wrap gap-2 mt-2 js-fallback-options-wrap" style="display:none !important;">
             ${extraButtons}
           </div>
@@ -3734,14 +3381,10 @@
         return list.map(val => {
             const v = (val ?? "").toString();
             const isActive = currentVal && v === currentVal;
-            // ✅ Avocado Pill Design
-            const pillStyle = isActive
-                ? `background:var(--cp-avocado,#5fa052);color:white;border:1px solid var(--cp-avocado,#5fa052);`
-                : `background:white;color:var(--cp-ink-deep,#14391f);border:1px solid var(--cp-ink-line,rgba(20,57,31,0.12));`;
+            // Style: wie dein "Einsetzen"-Button Look -> machst du über CSS Klasse "pill-like"
             return `
         <button type="button"
-                class="cp-pill"
-                style="${pillStyle}border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;transition:all 0.15s;"
+                class="btn btn-sm btn-outline-light pill-like ${isActive ? "active" : ""}"
                 data-pick-mode="${escapeHtml(mode)}"
                 data-pick-value="${escapeHtml(v)}">
           ${escapeHtml(v === "" ? "ohne" : v)}
@@ -3758,8 +3401,7 @@
             const perPackage = units.find(u => u.key === 'per_package');
             const unitBtns = timeUnits.map(u => `
         <button type="button"
-                class="cp-pill"
-                style="background:white;color:var(--cp-ink-deep);border:1px solid var(--cp-ink-line);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;"
+                class="btn btn-sm btn-outline-light pill-like"
                 data-duration-unit="${escapeHtml(u.key)}">
           ${escapeHtml(u.label)}
         </button>
@@ -3768,8 +3410,7 @@
             const perPackageBtn = perPackage ? `
         <div class="mt-2">
           <button type="button"
-                  class="cp-pill js-duration-per-package"
-                  style="background:white;color:var(--cp-orange,#ff9a3c);border:1px solid var(--cp-orange,#ff9a3c);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;"
+                  class="btn btn-sm btn-outline-warning pill-like js-duration-per-package"
                   data-duration-unit="per_package">
             ${escapeHtml(perPackage.label)}
           </button>
@@ -3795,22 +3436,15 @@
         <div class="d-flex flex-wrap gap-2 mt-2">
           ${unitBtns}
           ${perPackage ? `<button type="button"
-                  class="cp-pill js-duration-per-package"
-                  style="background:white;color:var(--cp-orange);border:1px solid var(--cp-orange);border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;"
+                  class="btn btn-sm btn-outline-warning pill-like js-duration-per-package"
                   data-duration-unit="per_package">
             ${escapeHtml(perPackage.label)}
           </button>` : ''}
         </div>
 
-        <div class="d-flex gap-2 align-items-center mt-2 ${CSS_CLASS.JS_EDITOR_ACTION_ROW}">
-          <button type="button" class="btn btn-sm" id="BtnPickDurationQuick"
-                  style="background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:10px 18px;font-weight:700;flex:1;">
-            <i class="bi bi-check-lg me-1"></i>Einsetzen
-          </button>
-          <button type="button" class="btn btn-sm" id="BtnCloseVarTop"
-                  style="background:white;color:var(--cp-ink-deep);border:1px solid var(--cp-ink-line);border-radius:12px;padding:10px 18px;font-weight:600;">
-            <i class="bi bi-x-lg me-1"></i>Schließen
-          </button>
+        <div class="d-flex gap-2 align-items-center mt-2 js-editor-action-row">
+          <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickDurationQuick">Einsetzen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
       `;
         }
@@ -3830,15 +3464,9 @@
           </select>
         </div>
 
-        <div class="d-flex gap-2 align-items-center mt-2 ${CSS_CLASS.JS_EDITOR_ACTION_ROW}">
-          <button type="button" class="btn btn-sm" id="BtnPickTempQuick"
-                  style="background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:10px 18px;font-weight:700;flex:1;">
-            <i class="bi bi-check-lg me-1"></i>Einsetzen
-          </button>
-          <button type="button" class="btn btn-sm" id="BtnCloseVarTop"
-                  style="background:white;color:var(--cp-ink-deep);border:1px solid var(--cp-ink-line);border-radius:12px;padding:10px 18px;font-weight:600;">
-            <i class="bi bi-x-lg me-1"></i>Schließen
-          </button>
+        <div class="d-flex gap-2 align-items-center mt-2 js-editor-action-row">
+          <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickTempQuick">Einsetzen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
       `;
         }
@@ -3846,19 +3474,13 @@
 
         if (varName === "count") {
             return `
-        <div class="d-flex gap-2 align-items-center ${CSS_CLASS.JS_EDITOR_ACTION_ROW}">
-          <input type="number" min="1" step="1" id="${DOM_ID.COUNT_VALUE_INPUT}"
-                 class="cp-input"
-                 style="max-width:110px;border:1px solid var(--cp-ink-line);border-radius:12px;padding:10px 14px;"
+        <div class="d-flex gap-2 align-items-center js-editor-action-row">
+          <input type="number" min="1" step="1" id="CountValueInput"
+                 class="form-control form-control-sm"
+                 style="max-width:110px; background:#ffffff !important; color:#111827 !important; -webkit-text-fill-color:#111827 !important; caret-color:#111827 !important; text-shadow:none !important;"
                  value="${escapeHtml(extractLeadingNumber(currentVal) || "1")}" />
-          <button type="button" class="btn btn-sm" id="BtnPickCountQuick"
-                  style="background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:10px 18px;font-weight:700;flex:1;">
-            <i class="bi bi-check-lg me-1"></i>Einsetzen
-          </button>
-          <button type="button" class="btn btn-sm" id="BtnCloseVarTop"
-                  style="background:white;color:var(--cp-ink-deep);border:1px solid var(--cp-ink-line);border-radius:12px;padding:10px 18px;font-weight:600;">
-            <i class="bi bi-x-lg me-1"></i>Schließen
-          </button>
+          <button type="button" class="btn btn-sm btn-outline-light" id="BtnPickCountQuick">Einsetzen</button>
+          <button type="button" class="btn btn-sm btn-outline-secondary" id="BtnCloseVarTop">Schließen</button>
         </div>
       `;
         }
@@ -3881,7 +3503,7 @@
 
         // Get editor element from fullscreen overlay (or fallback to inline host)
         let host = document.querySelector('#universalEditorOverlay .duration-editor');
-        if (!host) host = $("#DOM_ID.INLINE_VAR_EDITOR_HOST");
+        if (!host) host = $("#InlineVarEditorHost");
         if (!host) return;
 
         const varName = activeToken.varName;
@@ -3897,8 +3519,8 @@
                 const perPackageLabel = labels.find(x => x.key === "per_package")?.label ?? "laut Packungsanweisung";
                 stepDraft.values[varName] = perPackageLabel;
             } else {
-                const n = $(`#${DOM_ID.DURATION_VALUE_INPUT}`)?.value?.trim() || "";
-                const nTo = $(`#${DOM_ID.DURATION_VALUE_TO_INPUT}`)?.value?.trim() || "";
+                const n = $("#DurationValueInput")?.value?.trim() || "";
+                const nTo = $("#DurationValueToInput")?.value?.trim() || "";
                 const unitLabel = labels.find(x => x.key === unit)?.label ?? unit;
                 const numPart = (n && nTo && nTo !== n) ? `${n}-${nTo}` : n;
                 const composed = numPart ? `${numPart} ${unitLabel}` : "";
@@ -3909,8 +3531,8 @@
         }
 
         if (varName === "temp") {
-            const n = $(`#${DOM_ID.TEMP_VALUE_INPUT}`)?.value?.trim() || "";
-            const u = $(`#${DOM_ID.TEMP_UNIT_SELECT}`)?.value || "C";
+            const n = $("#TempValueInput")?.value?.trim() || "";
+            const u = $("#TempUnitSelect")?.value || "C";
             const composed = n ? `${n} ${u}` : "";
             if (composed) stepDraft.values[varName] = composed;
             rerenderAfterValueSet();
@@ -3919,7 +3541,7 @@
 
 
         if (varName === "count") {
-            const n = $(`#${DOM_ID.COUNT_VALUE_INPUT}`)?.value?.trim() || "1";
+            const n = $("#CountValueInput")?.value?.trim() || "1";
             const normalized = /^\d+$/.test(n) ? n : "1";
             stepDraft.values[varName] = normalized;
             rerenderAfterValueSet();
@@ -3940,13 +3562,13 @@
             const fraction = host.dataset.selectedFraction ?? "";
             const selectedValues = JSON.parse(host.dataset.selectedIngredientValues || "[]");
 
-            DEBUG("INGREDIENT", "applyCurrentEditorSelection: Processing multi-ingredients", { multiIngredients, selectedValues });
+            console.log('[applyCurrentEditorSelection] multiIngredients:', multiIngredients, 'selectedValues:', selectedValues);
 
             if (multiIngredients && multiIngredients.length > 0) {
                 // Check if user selected NEW ingredients to add
                 if (selectedValues && selectedValues.length > 0) {
                     // User selected new ingredients - ADD to existing list
-                    DEBUG("INGREDIENT", "applyCurrentEditorSelection: Adding new ingredients to existing list");
+                    console.log('[applyCurrentEditorSelection] Adding new ingredients to existing list');
 
                     const newNormalized = normalizeIngredientValues(selectedValues);
                     newNormalized.forEach(item => {
@@ -3957,10 +3579,11 @@
 
                     // Combine existing + new
                     const combinedList = [...multiIngredients, ...newNormalized];
+                    console.log('[applyCurrentEditorSelection] combinedList:', combinedList);
 
                     // Format the combined list
                     let ingredientComposed = formatSelectedIngredientList(combinedList, currentLang);
-                    DEBUG("INGREDIENT", "applyCurrentEditorSelection: Combined list created", { combinedList, ingredientComposed });
+                    console.log('[applyCurrentEditorSelection] ingredientComposed:', ingredientComposed);
 
                     // Store fraction data
                     const hasFractions = combinedList.some(item => item.fraction && item.fraction !== "");
@@ -3985,7 +3608,7 @@
                     // Store per variable
                     if (!stepDraft._multiIngredients) stepDraft._multiIngredients = {};
                     stepDraft._multiIngredients[varName] = combinedList;
-                    DEBUG("DRAFT", "applyCurrentEditorSelection: Updated _multiIngredients", { varName, multiIngredients: stepDraft._multiIngredients[varName] });
+                    console.log('[applyCurrentEditorSelection] Updated _multiIngredients for', varName, ':', stepDraft._multiIngredients[varName]);
 
                     // Re-open editor to show updated chips (don't close!)
                     renderMasterText();
@@ -3993,7 +3616,7 @@
                     return;
                 } else {
                     // No new selection - just use existing list and CLOSE editor
-                    DEBUG("INGREDIENT", "applyCurrentEditorSelection: No new selection, closing editor with existing list");
+                    console.log('[applyCurrentEditorSelection] No new selection, closing editor with existing list');
                     const normalized = normalizeIngredientValues(multiIngredients);
                     let ingredientComposed = formatSelectedIngredientList(normalized, currentLang);
 
@@ -4027,7 +3650,7 @@
 
             // Fallback: Single-ingredient selection (old workflow)
             // article, fraction, selectedValues already declared above
-            DEBUG("INGREDIENT", "applyCurrentEditorSelection - Fallback: Processing selectedValues", { selectedValues });
+            console.log('[applyCurrentEditorSelection - Fallback] selectedValues:', selectedValues);
 
             // Hybrid: if no ingredient chips selected, fall through to regular value logic
             if (!Array.isArray(selectedValues) || !selectedValues.length) {
@@ -4043,20 +3666,17 @@
                     if (!item.fraction) item.fraction = fraction;
                 });
 
+                console.log('[applyCurrentEditorSelection] normalized:', normalized);
+
                 // Check if we should ADD to existing multi-ingredients or create new (per variable)
                 const multiIngredientsObj = stepDraft._multiIngredients || {};
                 const existingMulti = multiIngredientsObj[varName] || [];
                 let combinedList = existingMulti.length > 0 ? [...existingMulti, ...normalized] : normalized;
+                console.log('[applyCurrentEditorSelection] existingMulti for', varName, ':', existingMulti, 'combinedList:', combinedList);
 
                 // Format the ingredient list
                 let ingredientComposed = formatSelectedIngredientList(combinedList, currentLang);
-                DEBUG("INGREDIENT", "applyCurrentEditorSelection - Fallback: Lists created", {
-                    normalized,
-                    existingMulti,
-                    varName,
-                    combinedList,
-                    ingredientComposed
-                });
+                console.log('[applyCurrentEditorSelection] ingredientComposed:', ingredientComposed);
 
                 // Store fraction data
                 const hasFractions = combinedList.some(item => item.fraction && item.fraction !== "");
@@ -4082,7 +3702,7 @@
                 // Store combined list in _multiIngredients for further additions via Plus button (per variable)
                 if (!stepDraft._multiIngredients) stepDraft._multiIngredients = {};
                 stepDraft._multiIngredients[varName] = combinedList;
-                DEBUG("DRAFT", "applyCurrentEditorSelection - Fallback: Stored in _multiIngredients", { varName, multiIngredients: stepDraft._multiIngredients[varName] });
+                console.log('[applyCurrentEditorSelection - Fallback] Stored in _multiIngredients for', varName, ':', stepDraft._multiIngredients[varName]);
 
                 rerenderAfterValueSet();
                 return;
@@ -4196,7 +3816,7 @@
         const rendered = renderTemplate(templateRaw, activeStep?.master_id || "step", values);
         const temp = document.createElement("div");
         temp.innerHTML = rendered || "";
-        temp.querySelectorAll(`.${CSS_CLASS.PLACEHOLDER_RESET}, .${CSS_CLASS.OPTIONAL_INLINE_PILL}`).forEach(el => el.remove());
+        temp.querySelectorAll(".placeholder-reset, .optional-inline-pill").forEach(el => el.remove());
         return (temp.textContent || temp.innerText || "").replace(/\s+/g, " ").trim();
     }
 
@@ -4315,10 +3935,10 @@
      * NEU (2026-03-28): Gemeinsame Funktion für beide Accept-Flows
      */
     function saveCurrentEditorValueBeforeAccept(contextType, contextId) {
-        const overlay = document.getElementById(DOM_ID.UNIVERSAL_EDITOR_OVERLAY);
+        const overlay = document.getElementById('universalEditorOverlay');
         if (!overlay || overlay.dataset.overlayOwner !== contextType) return false;
 
-        const currentEditorEl = overlay.querySelector(`.${CSS_CLASS.DURATION_EDITOR}`);
+        const currentEditorEl = overlay.querySelector('.duration-editor');
         if (!currentEditorEl) return false;
 
         const varName = currentEditorEl.dataset.editorFor;
@@ -4332,7 +3952,7 @@
         // Das passiert z.B. wenn "Step akzeptieren" geklickt wird während Overlay offen ist,
         // aber selectedIngredientValues leer ist (weil bereits via "Einsetzen" gespeichert wurde)
         if (value === null || value === '') {
-            DEBUG("DRAFT", "saveCurrentEditorValueBeforeAccept: Value is null/empty, skipping save to preserve existing value");
+            console.log("[saveCurrentEditorValueBeforeAccept] Value is null/empty, skipping save to preserve existing value");
             return false;
         }
 
@@ -4372,7 +3992,7 @@
         if (!stepDraft) return;
 
         // ✅ NEU (2026-03-28): Gemeinsame Funktion für Editor-Wert speichern
-        const overlay = document.getElementById(DOM_ID.UNIVERSAL_EDITOR_OVERLAY);
+        const overlay = document.getElementById('universalEditorOverlay');
         const shouldCloseOverlay = !!overlay && overlay.dataset.overlayOwner === 'step';
         saveCurrentEditorValueBeforeAccept('step', null);
         if (shouldCloseOverlay) {
@@ -4394,15 +4014,6 @@
         const ingredientName = resolveAcceptedIngredientName();
 
         if (typeof window.addStep === "function") {
-            // ✅ NEU (2026-05-04): Wenn wir einen existierenden Step bearbeiten, entferne den alten zuerst
-            if (stepDraft._editingExistingStepId) {
-                const $existingRow = window.$(`#selectedSteps .step-row[data-step-id="${window.CSS.escape(stepDraft._editingExistingStepId)}"]`);
-                if ($existingRow.length) {
-                    $existingRow.remove();
-                    DEBUG("ACCEPT", "Removed existing step before update", { oldId: stepDraft._editingExistingStepId });
-                }
-            }
-
             const generatedId =
                 typeof window.createFallbackStepId === "function"
                     ? window.createFallbackStepId()
@@ -4499,31 +4110,22 @@
     }
 
     function setActiveButton(stepId) {
-        document.querySelectorAll(`.${CSS_CLASS.TEMPLATE_CARD}.active`).forEach(x => x.classList.remove("active"));
-        const btn = document.querySelector(`.${CSS_CLASS.TEMPLATE_CARD}[data-step-id="${CSS.escape(stepId)}"]`);
+        document.querySelectorAll(".template-card.active").forEach(x => x.classList.remove("active"));
+        const btn = document.querySelector(`.template-card[data-step-id="${CSS.escape(stepId)}"]`);
         if (btn) btn.classList.add("active");
     }
 
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 9: EVENT HANDLERS
-    // ════════════════════════════════════════════════════════════════════════════
-    // Globale Event-Delegation, Click-Handler, Token-Handler
-
-    /**
-     * Binds all global event handlers via delegation.
-     * Handles: Step-Cards, Tokens, Buttons, Options, Multi-Ingredient Chips
-     */
     function wireEvents() {
         document.addEventListener("click", (e) => {
             // Step Card
-            const card = e.target.closest(`.${CSS_CLASS.TEMPLATE_CARD}`);
+            const card = e.target.closest(".template-card");
             if (card) {
                 onStepCardClick(card);
                 return;
             }
 
                         // Token in MasterText
-            const token = e.target.closest(`.${CSS_CLASS.TEMPLATE_VAR}`);
+            const token = e.target.closest(".template-var");
             if (token) {
                 const stepDraft = getCurrentStepDraft();
                 if (!stepDraft) return;
@@ -4541,7 +4143,7 @@
                 return;
             }
 
-            const optionalAdd = e.target.closest(`.${CSS_CLASS.JS_OPTIONAL_VAR_ADD}`);
+            const optionalAdd = e.target.closest(".js-optional-var-add");
             if (optionalAdd) {
                 if (!getCurrentStepDraft()) return;
                 const varName = (optionalAdd.dataset.optionalVar || "").toString();
@@ -4552,7 +4154,7 @@
             }
 
             // Reset button near token
-            const reset = e.target.closest(`.${CSS_CLASS.PLACEHOLDER_RESET}`);
+            const reset = e.target.closest(".placeholder-reset");
             const stepDraft = getCurrentStepDraft();
             if (reset && stepDraft) {
                 const varName = (reset.dataset.var || "").toString().trim();
@@ -4565,7 +4167,7 @@
             }
 
             // "Weitere anzeigen" toggle
-            const fallbackToggle = e.target.closest(`.${CSS_CLASS.JS_TOGGLE_FALLBACK_OPTIONS}`);
+            const fallbackToggle = e.target.closest(".js-toggle-fallback-options");
             if (fallbackToggle) {
                 const wrap = fallbackToggle.parentElement?.querySelector(".js-fallback-options-wrap");
                 if (wrap) {
@@ -4594,16 +4196,29 @@
                 return;
             }
 
+            // ✅ ENTFERNT (2026-03-28): Plus-Button Event-Handler nicht mehr nötig
+            // Alle Multi-Ingredient-Bearbeitung läuft jetzt über das Unified Overlay
+            // mit dem grünen Plus-Button im Overlay-Footer
+            /*
+            // ── Plus Button: Open Editor or Add Ingredient ──
+            const plusBtn = e.target.closest(".ingredient-plus-btn");
+            if (plusBtn) {
+                // ... (alter Code für Plus-Button)
+                return;
+            }
+            */
+
             // ── Remove Multi-Ingredient Chip ──
             const removeChip = e.target.closest("button[data-remove-multi-ingredient]");
             if (removeChip) {
                 e.stopPropagation();
                 e.preventDefault();
 
+                console.log("[Remove Chip] Clicked!", removeChip);
                 const idx = parseInt(removeChip.dataset.removeMultiIngredient, 10);
-                DEBUG("EVENT", "Remove Chip clicked", { removeChip, idx, activeStep, activeToken });
+                console.log("[Remove Chip] idx:", idx, "activeStep:", activeStep, "activeToken:", activeToken);
                 if (!activeStep || !activeToken || isNaN(idx)) {
-                    DEBUG("EVENT", "Remove Chip: Validation failed");
+                    console.log("[Remove Chip] Validation failed");
                     return;
                 }
 
@@ -4625,18 +4240,18 @@
                 const composed = formatSelectedIngredientList(existingList, currentLang);
                 stepDraft.values[activeToken.varName] = composed;
 
-                DEBUG("INGREDIENT", "Remove Chip: Updated value", { composed });
+                console.log("[Remove Chip] Updated value:", composed);
 
                 renderMasterText();
 
                 // Update overlay preview if it exists
-                const overlay = document.getElementById(DOM_ID.UNIVERSAL_EDITOR_OVERLAY);
+                const overlay = document.getElementById('universalEditorOverlay');
                 if (overlay) {
                     const currentStepWrap = document.querySelector(".current-step-wrap");
                     const previewSection = overlay.querySelector('.creator-preview-canvas > div');
                     if (currentStepWrap && previewSection) {
                         previewSection.innerHTML = currentStepWrap.innerHTML;
-                        DEBUG("OVERLAY", "Remove Chip: Updated overlay preview");
+                        console.log("[Remove Chip] Updated overlay preview");
                     }
                 }
 
@@ -4651,7 +4266,7 @@
             if (pickBtn) {
                 // Check fullscreen overlay first, then inline host
                 let host = document.querySelector('#universalEditorOverlay .duration-editor');
-                if (!host) host = $("#DOM_ID.INLINE_VAR_EDITOR_HOST");
+                if (!host) host = $("#InlineVarEditorHost");
                 if (!host) return;
                 _handlePickModeClick(pickBtn, host, false); // false = use IDs (Step Creator)
                 return;
@@ -4661,7 +4276,7 @@
             const du = e.target.closest("button[data-duration-unit]");
             if (du) {
                 let host = document.querySelector('#universalEditorOverlay .duration-editor');
-                if (!host) host = $("#DOM_ID.INLINE_VAR_EDITOR_HOST");
+                if (!host) host = $("#InlineVarEditorHost");
                 if (!host) return;
                 _handleDurationUnitClick(du, host);
                 return;
@@ -4670,7 +4285,7 @@
             // quick duration apply
             if (e.target.id === "BtnPickDurationQuick") {
                 let host = document.querySelector('#universalEditorOverlay .duration-editor');
-                if (!host) host = $("#DOM_ID.INLINE_VAR_EDITOR_HOST");
+                if (!host) host = $("#InlineVarEditorHost");
                 if (!host) return;
                 if (!host.dataset.durationUnit) host.dataset.durationUnit = "minute";
                 const labels = getDurationUnits();
@@ -4680,8 +4295,8 @@
                 } else if (host.dataset.durationUnit === "short") {
                     composed = labels.find(x => x.key === "short")?.label ?? "kurz";
                 } else {
-                    const n = $(`#${DOM_ID.DURATION_VALUE_INPUT}`)?.value?.trim() || "";
-                    const nTo = $(`#${DOM_ID.DURATION_VALUE_TO_INPUT}`)?.value?.trim() || "";
+                    const n = $("#DurationValueInput")?.value?.trim() || "";
+                    const nTo = $("#DurationValueToInput")?.value?.trim() || "";
                     const unitLabel = labels.find(x => x.key === host.dataset.durationUnit)?.label ?? host.dataset.durationUnit;
                     const numPart = (n && nTo && nTo !== n) ? `${n}-${nTo}` : n;
                     composed = numPart ? `${numPart} ${unitLabel}` : "";
@@ -4696,7 +4311,7 @@
             }
 
             if (e.target.id === "BtnPickCountQuick") {
-                const n = $(`#${DOM_ID.COUNT_VALUE_INPUT}`)?.value?.trim() || "1";
+                const n = $("#CountValueInput")?.value?.trim() || "1";
                 const normalized = /^\d+$/.test(n) ? n : "1";
                 const stepDraft = getCurrentStepDraft();
                 if (!stepDraft) return;
@@ -4706,8 +4321,8 @@
             }
             // quick temp apply
             if (e.target.id === "BtnPickTempQuick") {
-                const n = $(`#${DOM_ID.TEMP_VALUE_INPUT}`)?.value?.trim() || "";
-                const u = $(`#${DOM_ID.TEMP_UNIT_SELECT}`)?.value || "C";
+                const n = $("#TempValueInput")?.value?.trim() || "";
+                const u = $("#TempUnitSelect")?.value || "C";
                 const composed = n ? `${n} ${u}` : "";
 
                 const stepDraft = getCurrentStepDraft();
@@ -4739,96 +4354,32 @@
         }
     }
 
-    // ════════════════════════════════════════════════════════════════════════════
-    // SECTION 10: INITIALIZATION & PUBLIC API
-    // ════════════════════════════════════════════════════════════════════════════
-    // Modul-Initialisierung, Public-API-Export
-
-    /**
-     * Initializes the Smart Step Creator module.
-     * Loads all required data, sets up event handlers, renders UI.
-     * @returns {Promise<void>}
-     */
+    // -----------------------------
+    // INIT
+    // -----------------------------
     async function init() {
         try {
-            DEBUG("DATA", "Initializing Smart Step Creator...");
-
-            // Load all required data in parallel
-            const [masterStepsData, catalogData, matchRulesData] = await Promise.all([
-                loadJson(),
-                loadVariableCatalog(),
-                loadIngredientMatchRules()
-            ]);
-
-            // Validate critical data
-            if (!masterStepsData) {
-                throw new Error("Master steps data is null or undefined");
-            }
-
-            doc = masterStepsData;
-            variableCatalog = catalogData || { variables: {} };
-            ingredientMatchRules = matchRulesData || { variable_rules: {}, step_variable_rules: {} };
+            const loaded = await Promise.all([loadJson(), loadVariableCatalog(), loadIngredientMatchRules()]);
+            doc = loaded[0];
+            variableCatalog = loaded[1] || { variables: {} };
+            ingredientMatchRules = loaded[2] || { variable_rules: {}, step_variable_rules: {} };
             steps = doc.master_steps || [];
 
-            if (steps.length === 0) {
-                DEBUG("DATA", "Warning: No master steps found in loaded data");
-            }
-
-            DEBUG("DATA", "Data loaded successfully", {
-                stepCount: steps.length,
-                variableCount: Object.keys(variableCatalog.variables || {}).length
-            });
-
-            // Initialize UI
             renderStepButtons();
             renderMasterText();
             wireEvents();
-
-            DEBUG("DATA", "Smart Step Creator initialized successfully");
-
-        } catch (error) {
-            DEBUG("DATA", "CRITICAL: Failed to initialize Smart Step Creator", {
-                error: error.message,
-                stack: error.stack
-            });
-
-            // Show user-friendly error message
+        } catch (err) {
+            console.error(err);
             const target = masterText();
-            if (target) {
-                target.innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        <strong>Fehler beim Laden der Master Templates</strong><br>
-                        ${escapeHtml(error.message)}<br>
-                        <small>Bitte Seite neu laden oder Administrator kontaktieren.</small>
-                    </div>
-                `;
-            }
-
-            // Re-throw to signal initialization failure to caller
-            throw error;
+            if (target) target.innerHTML = "Fehler beim Laden der Master Templates. Bitte Console prüfen.";
         }
     }
 
     // ── Inline-editor helpers exposed for the probability area ──────────────────────────────────────
-    /**
-     * Builds inline editor HTML for variable editing (used by Probability Area).
-     * Returns HTML string instead of opening a modal - allows embedding in custom containers.
-     *
-     * @param {string} varName - Variable name to edit (e.g., "ingredient", "state")
-     * @param {string} currentVal - Current variable value
-     * @param {object} opts - Options
-     * @param {boolean} opts.suppressPronounButtons - Hide pronoun buttons
-     * @param {string} opts.masterId - Step master ID for context
-     * @param {Array} opts.multiIngredients - Multi-ingredient data
-     * @returns {string} HTML string with editor UI
-     *
-     * @example
-     * const html = buildInlineEditorHtml("ingredient", "Kartoffel", {
-     *   masterId: "PREP_CUT_01",
-     *   multiIngredients: []
-     * });
-     * document.getElementById('editorContainer').innerHTML = html;
-     */
+    // buildInlineEditorHtml: same logic as openInlineEditor but returns HTML.
+    // Uses class-based rows so multiple host containers don't conflict.
+    // ── Build Inline Editor HTML (Probability Area) ──
+    // Now uses shared _generateEditorHtml() function for consistency
     function buildInlineEditorHtml(varName, currentVal, opts) {
         const suppressPronounButtons = !!(opts && opts.suppressPronounButtons);
         const optionsMasterId = (opts && opts.masterId) || activeStep?.master_id || "";
@@ -4865,31 +4416,31 @@
             if (unit === 'short') {
                 return (units.find(x => x.key === 'short') || {}).label || 'kurz';
             }
-            const n = (editorEl.querySelector(`#${DOM_ID.DURATION_VALUE_INPUT}`) || {}).value?.trim() || '';
+            const n = (editorEl.querySelector('#DurationValueInput') || {}).value?.trim() || '';
             const nTo = (editorEl.querySelector('#DurationValueToInput') || {}).value?.trim() || '';
             const unitLabel = (units.find(x => x.key === unit) || {}).label || unit;
             const numPart = (n && nTo && nTo !== n) ? `${n}-${nTo}` : n;
             return numPart ? `${numPart} ${unitLabel}` : null;
         }
         if (varName === 'temp') {
-            const n = (editorEl.querySelector(`#${DOM_ID.TEMP_VALUE_INPUT}`) || {}).value?.trim() || '';
-            const u = (editorEl.querySelector(`#${DOM_ID.TEMP_UNIT_SELECT}`) || {}).value || 'C';
+            const n = (editorEl.querySelector('#TempValueInput') || {}).value?.trim() || '';
+            const u = (editorEl.querySelector('#TempUnitSelect') || {}).value || 'C';
             return n ? `${n} ${u}` : null;
         }
         if (varName === 'count') {
-            const n = ((editorEl.querySelector(`#${DOM_ID.COUNT_VALUE_INPUT}`) || {}).value || '1').trim();
+            const n = ((editorEl.querySelector('#CountValueInput') || {}).value || '1').trim();
             return /^\d+$/.test(n) ? n : '1';
         }
         if (isIngredientVariable(varName)) {
             const selectedValues = JSON.parse(editorEl.dataset.selectedIngredientValues || '[]');
-            DEBUG("INGREDIENT", "applyEditorValue: Ingredient variable", { varName, selectedValues });
+            console.log("[applyEditorValue] Ingredient variable:", { varName, selectedValues });
 
             // ✅ FIX (2026-04-02): Wenn selectedValues leer, prüfe ob Multi-Ingredients existieren
             if (!Array.isArray(selectedValues) || !selectedValues.length) {
                 // Check if we have existing multi-ingredients (already saved via "Einsetzen")
                 const existingMulti = activeStep?._multiIngredients?.[varName];
                 if (existingMulti && existingMulti.length > 0) {
-                    DEBUG("INGREDIENT", "applyEditorValue: Using existing multi-ingredients", { existingMulti });
+                    console.log("[applyEditorValue] Using existing multi-ingredients:", existingMulti);
                     const normalized = normalizeIngredientValues(existingMulti);
                     return formatSelectedIngredientList(normalized, currentLang);
                 }
@@ -4904,11 +4455,8 @@
                 const globalArticle = editorEl.dataset.selectedArticle || '';
                 const globalFraction = editorEl.dataset.selectedFraction || '';
 
-                DEBUG("INGREDIENT", "applyEditorValue: Applying global article/fraction", {
-                    globalArticle,
-                    globalFraction,
-                    before: JSON.parse(JSON.stringify(normalized))
-                });
+                console.log("[applyEditorValue] Global values:", { globalArticle, globalFraction });
+                console.log("[applyEditorValue] Before applying global:", JSON.parse(JSON.stringify(normalized)));
 
                 // ✅ FIX (2026-04-04): Manueller Artikel-Button überschreibt Auto-Artikel
                 normalized.forEach(item => {
@@ -4917,28 +4465,18 @@
                     if (!item.fraction || item.fraction === '') item.fraction = globalFraction;
                 });
 
+                console.log("[applyEditorValue] After applying global:", JSON.parse(JSON.stringify(normalized)));
+
                 // Format the ingredient list (handles per-ingredient fractions and articles)
                 const ingredientResult = formatSelectedIngredientList(normalized, currentLang);
 
-                DEBUG("INGREDIENT", "applyEditorValue: Final result", {
-                    after: JSON.parse(JSON.stringify(normalized)),
-                    ingredientResult
-                });
+                console.log("[applyEditorValue] Final result:", ingredientResult);
 
                 return ingredientResult;
             }
         }
         const article = editorEl.dataset.selectedArticle || '';
-        let value = editorEl.dataset.selectedValue || '';
-
-        // ✅ FIX (2026-05-04): Wenn value ein Objekt ist, konvertiere zu String
-        if (typeof value === 'object' && value !== null) {
-            console.warn('applyEditorValue: selectedValue is an object, converting to string', value);
-            // Wenn es ein Objekt mit 'name' property ist (z.B. Ingredient), nimm den Namen
-            value = value.name || value.value || JSON.stringify(value);
-        }
-        value = String(value || '');
-
+        const value = editorEl.dataset.selectedValue || '';
         if (!value) return null;
         return composeArticleAndNoun(article, value);
     }
@@ -5017,22 +4555,6 @@
     var resolveLangKey = window.CreatePostingUtils.resolveLangKey;
     var escapeHtml = window.CreatePostingUtils.escapeHtml;
 
-    /**
-     * Formats ingredient names as grammatically correct list with language-specific conjunctions.
-     *
-     * Examples:
-     * - DE: "Kartoffel, Zwiebel und Knoblauch"
-     * - EN: "potato, onion and garlic"
-     * - ES: "patata, cebolla y ajo"
-     *
-     * @param {Array<string>} names - Array of ingredient names
-     * @param {string} langKey - Language code (de, en, esp, prt, nl, etc.)
-     * @returns {string} Formatted ingredient list
-     *
-     * @example
-     * formatIngredientList(["Kartoffel", "Zwiebel", "Knoblauch"], "de")
-     * // Returns: "Kartoffel, Zwiebel und Knoblauch"
-     */
     function formatIngredientList(names, langKey = "de") {
         const list = (names || []).map(x => (x || "").toString().trim()).filter(Boolean);
         if (!list.length) return "";
@@ -5068,16 +4590,12 @@
             const name = (ing?.name || "").toString();
             const ingId = (ing?.id || "").toString();
             const isActive = selected.includes(ingId);
-            const pillStyle = isActive
-                ? `background:var(--cp-ink-deep);color:white;border:1px solid var(--cp-ink-deep);`
-                : `background:white;color:var(--cp-ink-deep);border:1px solid var(--cp-ink-line);`;
+            const btnClass = isActive ? "btn-light text-dark active" : "btn-outline-light";
             const safe = escapeHtml(name);
             const safeId = escapeHtml(ingId);
             const iconHtml = (ing?.iconHtml || "").toString();
             const label = `${iconHtml ? `${iconHtml} ` : ''}${safe}`;
-            return `<button type="button" class="cp-pill inline-equipment-opt js-prob-ingredient-chip"
-                    style="${pillStyle}border-radius:999px;padding:7px 14px;font-size:12px;font-weight:600;"
-                    data-value="${safe}" data-id="${safeId}">${label}</button>`;
+            return `<button type="button" class="btn btn-sm ${btnClass} inline-equipment-opt js-prob-ingredient-chip" data-value="${safe}" data-id="${safeId}">${label}</button>`;
         }).join("");
     }
 

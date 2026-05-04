@@ -348,7 +348,7 @@
                         <div id="ingredientsCatalog" class="ingredient-Grid">
                             @if (Model.ToSelectIngredientsAndNutrients != null)
                             {
-                                foreach (var item in Model.ToSelectIngredientsAndNutrients.Take(15))
+                                foreach (var item in Model.ToSelectIngredientsAndNutrients)
                                 {
                                     <div class="preview-step-card cp-suggest-pill mb-1 ingredient-db-row" style="display:flex" 
                                          data-ingredient-id="@item.Id"
@@ -400,35 +400,6 @@
                                             <div class="display-name mb-0 flex-grow-1 d-flex align-items-center gap-2" >
                                                 <span class="ingredient-group-icon">@Html.Raw(item.Icon ?? item.Group?.Icon)</span>
                                                 <span class="ingredient-name-text">@item.Name_DE</span>
-                                            </div>
-                                            <button type="button" class="btn btn-sm" onclick="addIngredient('@item.Id', this)" title="Zutat hinzufügen" style="background:var(--cp-gradient-coral);color:white;border:none;border-radius:8px;padding:2px 8px;font-size:0.8rem;">
-                                                <i class="bi bi-plus-lg"></i>
-                                            </button>
-                                        </div>
-
-                                        <div class="duration-editor mt-2 ingredient-db-details d-none">
-                                            <div class="d-flex gap-2 align-items-center">
-                                                <input type="text" inputmode="decimal"
-                                                       class="cp-input js-db-qty js-decimal-input"
-                                                       style="max-width:85px;"
-                                                       placeholder="1"
-                                                       oninput="$(this).closest('.preview-step-card').attr('data-selected-qty', this.value)" />
-                                                <select class="cp-select js-db-unit"
-                                                        style="max-width:140px;"
-                                                        onchange="$(this).closest('.preview-step-card').attr('data-selected-unit', this.value)">
-                                                    @if (Model.Measure != null)
-                                                    {
-                                                        foreach (var m in Model.Measure)
-                                                        {
-                                                            <option value="@m.Metrics_DE">@m.Metrics_DE</option>
-                                                        }
-                                                    }
-                                                </select>
-                                            </div>
-                                            <div class="common-unit-chips mt-2" style="display:flex;gap:6px;flex-wrap:wrap;">
-                                                <button type="button" class="cp-pill common-unit-chip js-common-unit-chip" data-unit-key="g">g.</button>
-                                                <button type="button" class="cp-pill common-unit-chip js-common-unit-chip" data-unit-key="ml">ml.</button>
-                                                <button type="button" class="cp-pill common-unit-chip js-common-unit-chip" data-unit-key="piece">Stk.</button>
                                             </div>
                                         </div>
                                     </div>
@@ -585,6 +556,46 @@
     </div>
 </div>
 
+<!-- ✅ NEU: Ingredient Add Dropdown Overlay -->
+<div id="ingredientAddOverlay" style="position:fixed;inset:0;background:transparent;z-index:1999;display:none;" aria-hidden="true"></div>
+<div id="ingredientAddDropdown" style="position:absolute;background:white;border:1px solid var(--cp-ink-line);border-radius:16px;padding:16px;box-shadow:0 4px 20px rgba(0,0,0,0.15);z-index:2000;display:none;min-width:280px;max-width:320px;">
+    <div class="d-flex align-items-center gap-2 mb-2">
+        <span class="ingredient-group-icon" id="ingredientAddIcon"></span>
+        <span style="font-weight:600;color:var(--cp-ink-deep);flex:1;" id="ingredientAddName">Zutat</span>
+    </div>
+
+    <div class="d-flex gap-2 align-items-center mb-2">
+        <input type="text"
+               inputmode="decimal"
+               id="ingredientAddQty"
+               placeholder="100"
+               class="cp-input js-decimal-input"
+               style="flex:1;max-width:100px;" />
+        <select id="ingredientAddUnit" class="cp-select" style="flex:1;">
+            @if (Model.Measure != null)
+            {
+                foreach (var m in Model.Measure)
+                {
+                    <option value="@m.Metrics_DE">@m.Metrics_DE</option>
+                }
+            }
+        </select>
+    </div>
+
+    <div class="d-flex gap-2 flex-wrap mb-3">
+        <button type="button" class="cp-pill js-quick-unit-chip" data-unit="g." style="font-size:0.85rem;">g.</button>
+        <button type="button" class="cp-pill js-quick-unit-chip" data-unit="ml" style="font-size:0.85rem;">ml</button>
+        <button type="button" class="cp-pill js-quick-unit-chip" data-unit="Stk." style="font-size:0.85rem;">Stk.</button>
+    </div>
+
+    <button type="button"
+            id="btnAddIngredientFromDropdown"
+            style="width:100%;background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        <i class="bi bi-plus-lg"></i>
+        <span class="label-lang" data-de="Hinzufügen" data-en="Add">Hinzufügen</span>
+    </button>
+</div>
+
 <style>
        
 }
@@ -697,10 +708,7 @@ button, input, select, textarea { touch-action: manipulation; }
     <script src="~/js/create-posting-template-draft-engine.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-step-filter-ui.js" asp-append-version="true"></script>
     <script defer src="~/js/master-step-renderer.js" asp-append-version="true"></script>
-    <script defer src="~/js/smart-step-data.js" asp-append-version="true"></script>
-    <script defer src="~/js/smart-step-logic.js" asp-append-version="true"></script>
-    <script defer src="~/js/variable-editor-modal.js" asp-append-version="true"></script>
-    <script defer src="~/js/smart-step-init.js" asp-append-version="true"></script>
+    <script defer src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script>
     <script defer src="~/js/recipe-step-suggest.js" asp-append-version="true"></script>
     <script>
         window.CreatePostingPageConfig = {
@@ -971,19 +979,11 @@ button, input, select, textarea { touch-action: manipulation; }
         }
 
         // Init on page load
-        document.addEventListener('DOMContentLoaded', async () => {
+        document.addEventListener('DOMContentLoaded', () => {
             initScrollSpy();
             setupCompletionMonitoring();
             setupHeroLiveUpdates();
             updateCompletionStates();
-
-            // Smart Step Creator initialisieren
-            if (window.SmartStepInit) {
-                await SmartStepInit.init({
-                    lang: 'de',
-                    ingredientGroupIds: []
-                });
-            }
         });
     </script>
 }

@@ -3583,22 +3583,19 @@
 
         function buildIngredientRowHtml({ id, localizedData, selectedQuantity, selectedUnit, selectedUnitLabel, displayName, iconHtml }) {
             return `
-            <div class="dynamic-item ingredient-row shadow-sm" onclick="openIngredientConfigPopup(this)" title="Zum Bearbeiten antippen" data-group-icon="${escapeAttr(iconHtml)}" ${buildIngredientDataAttributes(localizedData)}>
+            <div class="dynamic-item ingredient-row" onclick="openIngredientConfigPopup(this)" title="Zum Bearbeiten antippen" data-group-icon="${escapeAttr(iconHtml)}" ${buildIngredientDataAttributes(localizedData)}>
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="ingredient-qty-hidden" value="${selectedQuantity}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metrics_DE" class="ingredient-unit-hidden" value="${escapeAttr(selectedUnit)}" />
 
-                <div class="ingredient-row-main">
-                    <div class="fw-bold display-name-selected d-flex align-items-center gap-2"><span class="ingredient-group-icon">${iconHtml}</span><span class="ingredient-name-text">${escapeAttr(displayName)}</span></div>
-                </div>
+                <span class="ingredient-group-icon">${iconHtml}</span>
+                <span class="ingredient-name-text">${escapeAttr(displayName)}</span>
 
                 <div class="ingredient-row-right">
-                    <div class="ingredient-row-meta">${escapeAttr(selectedQuantity)} ${escapeAttr(selectedUnitLabel)}</div>
-                    <div class="ingredient-row-actions">
-                        <button type="button" class="btn btn-sm text-danger p-0" onclick="event.stopPropagation(); removeIngredientRow(this)" title="Zutat entfernen" aria-label="Zutat entfernen">
-                            <i class="bi bi-trash3"></i>
-                        </button>
-                    </div>
+                    <button type="button" class="ingredient-stepper-btn minus" title="Menge verringern (gedrückt halten zum Wiederholen)" aria-label="Menge verringern">−</button>
+                    <span class="ingredient-stepper-value">${escapeAttr(selectedQuantity)} ${escapeAttr(selectedUnitLabel)}</span>
+                    <button type="button" class="ingredient-stepper-btn plus" title="Menge erhöhen (gedrückt halten zum Wiederholen)" aria-label="Menge erhöhen">+</button>
+                    <button type="button" class="ingredient-delete-btn" title="Zutat entfernen" aria-label="Zutat entfernen"><i class="bi bi-x-lg"></i></button>
                 </div>
             </div>`;
         }
@@ -3748,7 +3745,12 @@
                     ${(matches || []).map(match => `
                         <button type="button"
                                 class="btn btn-sm ingredient-ai-chip js-use-existing-ingredient"
-                                data-id="${escapeAttr(match.id)}">
+                                data-id="${escapeAttr(match.id)}"
+                                data-name-de="${escapeAttr(match.nameDe || '')}"
+                                data-name-en="${escapeAttr(match.nameEn || '')}"
+                                data-icon="${escapeAttr(match.icon || '')}"
+                                data-group-id="${escapeAttr((match.groupId || '').toString())}"
+                                data-unit-de="${escapeAttr(match.unitDe || 'g.')}">
                             ${escapeAttr(match.icon || '')} ${escapeAttr(match.nameDe || match.nameEn || '')}${match.exactMatch ? ' • exakt' : ''}
                         </button>`).join('')}
                 </div>`;
@@ -3904,17 +3906,38 @@
                 }
 
                 const row = reloadIngredientCatalogRow(data.ingredient);
-                if (!row.length) {
-                    throw new Error('Gespeicherte Zutat konnte nicht in den Katalog eingefügt werden.');
-                }
-
                 const localizedName = data.ingredient?.name_DE || data.ingredient?.name_EN || '';
                 $('#ingredientSearch').val(localizedName);
-                addIngredient(data.ingredient.id, row[0]);
+
+                if (row.length) {
+                    // ✅ Normal: Katalog-Row erfolgreich eingefügt
+                    addIngredient(data.ingredient.id, row[0]);
+                    row[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    // ✅ Fallback: Direkt mit Server-Daten hinzufügen (kein Katalog-Element)
+                    const ing = data.ingredient;
+                    const matchData = {
+                        id: ing.id,
+                        nameDe: ing.name_DE || '',
+                        nameEn: ing.name_EN || '',
+                        nameEs: ing.name_ES || '',
+                        namePt: ing.name_PT || '',
+                        nameId: ing.name_ID || '',
+                        nameNl: ing.name_NL || '',
+                        nameSv: ing.name_SV || '',
+                        nameDa: ing.name_DA || '',
+                        nameNo: ing.name_NO || '',
+                        nameMs: ing.name_MS || '',
+                        icon: ing.icon || '',
+                        groupId: (ing.groupId || '').toString(),
+                        unitDe: ing.unitDe || 'g.'
+                    };
+                    addIngredientFromMatchData(matchData);
+                }
+
                 syncIngredientSourceVisibility();
                 renderMissingIngredientResult(`<div class="text-success">${escapeAttr(data.message || 'Zutat gespeichert und hinzugefügt.')}</div>`);
                 showCreatorToast(data.reusedExisting ? 'Vorhandene Zutat verwendet' : 'Neue Zutat gespeichert');
-                row[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             } catch (error) {
                 window.CreatePostingFeedback.reportError('Fehler beim Speichern der KI-Zutat', error, {
                     prefix: 'CreatePostingPage',
@@ -3958,6 +3981,86 @@
             $('#selectedIngredients').append(newIngredient);
 
             // âœ… FIX (2026-03-28): Alte System-Funktion aufrufen fÃ¼r Sub-Zutaten (Ei â†' Eiklar/Eigelb)
+            invalidateSandboxCache();
+            markDirty('derivedVisuals', 'masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
+            window.MasterStepCreatorHelpers?.renderStepButtons?.();
+            scheduleCreatePostingDraftSave();
+        }
+
+        /**
+         * ✅ NEU (2026-05-04): Zutat direkt mit Match-Daten hinzufügen (ohne DOM-Element aus Katalog)
+         * Wird verwendet, wenn AI-Match gefunden wurde, aber Zutat nicht im sichtbaren Katalog ist
+         */
+        function addIngredientFromMatchData(matchData) {
+            const id = (matchData.id || '').toString();
+            if (!id) return;
+
+            // Prüfen ob bereits vorhanden
+            const existing = $('#selectedIngredients input[name$="IngredientsAndNutrients.Id"]').filter(function () {
+                return $(this).val()?.toString() === id.toString();
+            }).length > 0;
+
+            if (existing) return;
+
+            // Basis-Daten aus matchData
+            const displayName = matchData['nameDe'] || matchData['nameEn'] || 'Unbekannt';
+            const iconHtml = (matchData.icon || '').toString();
+            const groupId = (matchData.groupId || '').toString();
+            const unitDe = (matchData.unitDe || 'g.').toString();
+
+            // Minimal-LocalizedData (nur Name, Rest als Defaults)
+            const localizedData = {
+                names: {},
+                genus: {},
+                groupId: groupId,
+                isLiquid: 'false',
+                isFat: 'false',
+                isHard: 'false',
+                isSoft: 'false',
+                isPeelable: 'false',
+                isCuttable: 'false',
+                isGrateable: 'false',
+                isFryable: 'false',
+                isRoastable: 'false',
+                isGrillable: 'false',
+                isSteamable: 'false',
+                isBoilable: 'false',
+                isSearable: 'false',
+                isPoachable: 'false',
+                isBlendable: 'false'
+            };
+
+            // Namen für alle Sprachen setzen
+            // Mapping: Frontend-Code → Server-Feldname-Suffix
+            const langMap = {
+                'de': 'De', 'en': 'En', 'esp': 'Es', 'prt': 'Pt',
+                'id': 'Id', 'nl': 'Nl', 'sv': 'Sv', 'da': 'Da',
+                'no': 'No', 'ms': 'Ms'
+            };
+            supportedLanguages.forEach(lang => {
+                const suffix = langMap[lang] || lang.charAt(0).toUpperCase() + lang.slice(1);
+                localizedData.names[lang] = matchData['name' + suffix] || displayName;
+                localizedData.genus[lang] = matchData['genus' + suffix] || '';
+            });
+
+            // Unit-Objekt finden
+            const selectedUnitObj = findUnitByDe(unitDe);
+            const selectedUnitLabel = getUnitLabel(selectedUnitObj, currentLang) || unitDe;
+
+            // Ingredient-Row HTML bauen
+            const newIngredient = buildIngredientRowHtml({
+                id,
+                localizedData,
+                selectedQuantity: '100',  // Default-Menge
+                selectedUnit: unitDe,
+                selectedUnitLabel: selectedUnitLabel,
+                displayName: displayName,
+                iconHtml: iconHtml
+            });
+
+            $('#selectedIngredients').append(newIngredient);
+
+            // Cache invalidieren & UI aktualisieren
             invalidateSandboxCache();
             markDirty('derivedVisuals', 'masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
             window.MasterStepCreatorHelpers?.renderStepButtons?.();
@@ -4116,6 +4219,109 @@
             window.MasterStepCreatorHelpers?.renderStepButtons?.();
             scheduleCreatePostingDraftSave();
         }
+
+        function adjustIngredientQuantity(btn, delta) {
+            const row = $(btn).closest('.ingredient-row');
+            const qtyInput = row.find('.ingredient-qty-hidden');
+            const currentQty = parseFloat(qtyInput.val() || '0');
+            let newQty = currentQty + delta;
+
+            // ✅ Wenn Menge auf 0 oder negativ, Zutat entfernen
+            if (newQty <= 0) {
+                closeIngredientConfigPopup();
+                row.remove();
+                invalidateSandboxCache();
+                markDirty('masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
+                window.MasterStepCreatorHelpers?.renderStepButtons?.();
+                scheduleCreatePostingDraftSave();
+                return;
+            }
+
+            // Runde auf 2 Dezimalstellen
+            newQty = Math.round(newQty * 100) / 100;
+
+            // Update hidden input
+            qtyInput.val(newQty);
+
+            // Update visual display
+            const unitLabel = row.find('.ingredient-unit-hidden').val() || '';
+            const unitObj = findUnitByDe(unitLabel);
+            const displayUnit = getUnitLabel(unitObj, currentLang) || unitLabel;
+            row.find('.ingredient-stepper-value').text(newQty + ' ' + displayUnit);
+
+            invalidateSandboxCache();
+            markDirty('masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
+            window.MasterStepCreatorHelpers?.renderStepButtons?.();
+            scheduleCreatePostingDraftSave();
+        }
+
+        window.adjustIngredientQuantity = adjustIngredientQuantity;
+
+        // ✅ Hold-to-Repeat für Plus/Minus Buttons
+        let holdInterval = null;
+        let holdTimeout = null;
+
+        function startHoldRepeat(btn, delta) {
+            // Stoppe existierende Intervals
+            stopHoldRepeat();
+
+            // Erste Aktion sofort
+            adjustIngredientQuantity(btn, delta);
+
+            // Nach 300ms starte kontinuierliches Wiederholen
+            holdTimeout = setTimeout(function() {
+                holdInterval = setInterval(function() {
+                    adjustIngredientQuantity(btn, delta);
+                }, 100); // Alle 100ms wiederholen
+            }, 300);
+        }
+
+        function stopHoldRepeat() {
+            if (holdTimeout) {
+                clearTimeout(holdTimeout);
+                holdTimeout = null;
+            }
+            if (holdInterval) {
+                clearInterval(holdInterval);
+                holdInterval = null;
+            }
+        }
+
+        // Event-Delegation für dynamisch hinzugefügte Buttons
+        $(document).on('mousedown touchstart', '.ingredient-stepper-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const btn = this;
+            const delta = $(btn).hasClass('plus') ? 1 : -1;
+
+            startHoldRepeat(btn, delta);
+        });
+
+        $(document).on('mouseup touchend mouseleave', '.ingredient-stepper-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            stopHoldRepeat();
+        });
+
+        // Cleanup bei Dokumentverlassen
+        $(document).on('mouseleave', function() {
+            stopHoldRepeat();
+        });
+
+        // ✅ Lösch-Button für Zutaten
+        $(document).on('click', '.ingredient-delete-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const row = $(this).closest('.ingredient-row');
+            closeIngredientConfigPopup();
+            row.remove();
+            invalidateSandboxCache();
+            markDirty('masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
+            window.MasterStepCreatorHelpers?.renderStepButtons?.();
+            scheduleCreatePostingDraftSave();
+        });
 
         // Entfernt alle Steps die fÃƒÂ¼r dieselben Zutaten+Phase gebunden sind wie der neue Step
         function removeConflictingSteps(newStepId) {
@@ -4939,15 +5145,30 @@
                 $(this).val(normalizeMissingIngredientInputValue($(this).val()));
             });
             $('#recipeForm').on('click', '.js-use-existing-ingredient', function () {
-                const ingId = ($(this).data('id') || '').toString();
+                const $btn = $(this);
+                const ingId = ($btn.data('id') || '').toString();
                 if (!ingId) return;
+
+                // ✅ Erst im Katalog suchen (normale Funktionalität)
                 const catalogRow = $(`#ingredientsCatalog .ingredient-db-row[data-ingredient-id="${ingId}"]`).first();
-                if (!catalogRow.length) {
-                    showCreatorToast('Zutat nicht im Katalog gefunden');
-                    return;
+
+                if (catalogRow.length) {
+                    // Zutat im Katalog gefunden - normal hinzufügen
+                    addIngredient(ingId, catalogRow[0]);
+                    showCreatorToast('Vorhandene Zutat hinzugefügt');
+                } else {
+                    // ✅ NEU: Zutat nicht im sichtbaren Katalog → Direkt mit Match-Daten hinzufügen
+                    const matchData = {
+                        id: ingId,
+                        nameDe: $btn.data('name-de') || '',
+                        nameEn: $btn.data('name-en') || '',
+                        icon: $btn.data('icon') || '',
+                        groupId: $btn.data('group-id') || '',
+                        unitDe: $btn.data('unit-de') || 'g.'
+                    };
+                    addIngredientFromMatchData(matchData);
+                    showCreatorToast('Zutat hinzugefügt');
                 }
-                addIngredient(ingId, catalogRow[0]);
-                showCreatorToast('Vorhandene Zutat hinzugefügt');
             });
             $('#recipeForm').on('click', '.js-save-ai-ingredient', function () {
                 saveAiSuggestedIngredient();
@@ -5716,15 +5937,102 @@
                 toast: 'Seasonings eingesetzt'
             });
 
+            // ✅ NEU (2026-05-04): Ingredient Add Dropdown statt Inline-Panel
+            let currentIngredientRow = null;
+
             $('#recipeForm').on('click', '.ingredient-db-row', function (e) {
                 if ($(e.target).closest('button, input, select, label').length) return;
-                const details = $(this).find('.ingredient-db-details').first();
-                if (!details.length) return;
-                const shouldOpen = details.hasClass('d-none');
-                $('.ingredient-db-details').addClass('d-none');
-                if (shouldOpen) {
-                    details.removeClass('d-none');
+
+                const $row = $(this);
+                const ingId = $row.data('ingredient-id');
+                const ingName = $row.data('name-' + currentLang) || $row.data('name-de') || 'Zutat';
+                const ingIcon = $row.find('.ingredient-group-icon').html() || '';
+
+                // Dropdown öffnen
+                currentIngredientRow = $row[0];
+                $('#ingredientAddIcon').html(ingIcon);
+                $('#ingredientAddName').text(ingName);
+                $('#ingredientAddQty').val('100').focus();
+                $('#ingredientAddUnit').val('g.');
+
+                // Position berechnen (unter der Pill)
+                const rect = $row[0].getBoundingClientRect();
+                const dropdown = $('#ingredientAddDropdown');
+                const maxWidth = Math.min(320, window.innerWidth - 32);
+
+                dropdown.css({
+                    top: rect.bottom + window.scrollY + 8 + 'px',
+                    left: Math.max(16, Math.min(rect.left + window.scrollX, window.innerWidth - maxWidth - 16)) + 'px',
+                    display: 'block',
+                    width: maxWidth + 'px'
+                });
+
+                $('#ingredientAddOverlay').css('display', 'block');
+            });
+
+            // Overlay schließen
+            $('#ingredientAddOverlay').on('click', function () {
+                $('#ingredientAddDropdown, #ingredientAddOverlay').css('display', 'none');
+                currentIngredientRow = null;
+            });
+
+            // Quick-Unit Chips
+            $(document).on('click', '.js-quick-unit-chip', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const unit = $(this).data('unit');
+                console.log('🔵 Quick-Unit clicked:', unit);
+
+                const $select = $('#ingredientAddUnit');
+
+                // Prüfe ob Option existiert
+                const optionExists = $select.find(`option[value="${unit}"]`).length > 0;
+                console.log('🔵 Option exists?', optionExists, 'Options:', $select.find('option').map(function() { return $(this).val(); }).get());
+
+                if (!optionExists) {
+                    // Füge Option hinzu wenn sie fehlt
+                    $select.append(`<option value="${unit}">${unit}</option>`);
                 }
+
+                // Setze Wert und trigger change event
+                $select.val(unit).trigger('change');
+
+                // Visuelles Feedback - alle zurücksetzen
+                $('.js-quick-unit-chip').removeClass('active').css({
+                    'background': 'white',
+                    'color': 'var(--cp-ink-deep, #14391f)',
+                    'border-color': 'rgba(20, 57, 31, 0.12)'
+                });
+                // Aktiven Button hervorheben
+                $(this).addClass('active').css({
+                    'background': 'var(--cp-avocado)',
+                    'color': 'white',
+                    'border-color': 'var(--cp-avocado)'
+                });
+
+                showCreatorToast(`Einheit: ${unit}`);
+            });
+
+            // Add Button
+            $('#btnAddIngredientFromDropdown').on('click', function () {
+                if (!currentIngredientRow) return;
+
+                const qty = $('#ingredientAddQty').val() || '100';
+                const unit = $('#ingredientAddUnit').val() || 'g.';
+
+                // Daten setzen
+                $(currentIngredientRow).attr('data-selected-qty', qty);
+                $(currentIngredientRow).attr('data-selected-unit', unit);
+
+                // Zutat hinzufügen
+                const ingId = $(currentIngredientRow).data('ingredient-id');
+                addIngredient(ingId, currentIngredientRow);
+
+                // Overlay schließen
+                $('#ingredientAddDropdown, #ingredientAddOverlay').css('display', 'none');
+                currentIngredientRow = null;
+
+                showCreatorToast('Zutat hinzugefügt');
             });
 
             $('#btnCloseIngredientConfig, #btnCancelIngredientConfig').on('click', function (e) {
@@ -6307,5 +6615,183 @@
 
             $('#datatableLoadingOverlay').addClass('d-none');
             $('.creator-topbar, .feed-shell').css('visibility', 'visible');
+
+            // ✅ Initial validation
+            validateRecipeForm();
         });
+
+        // ========================================
+        // ECHTZEIT-VALIDIERUNG
+        // ========================================
+
+        const VALIDATION_RULES = {
+            title: { min: 5, weight: 1, message: 'Titel zu kurz (min. 5 Zeichen)' },
+            category: { required: true, weight: 1, message: 'Kategorie auswählen' },
+            media: { required: true, weight: 1, message: 'Video oder Bild hochladen' },
+            ingredients: { min: 2, weight: 1, message: 'Mind. 2 Zutaten hinzufügen' },
+            steps: { min: 1, weight: 1, message: 'Mind. 1 Step hinzufügen' },
+            keywords: { min: 1, weight: 1, message: 'Mind. 1 Keyword hinzufügen' }
+        };
+
+        function validateRecipeForm() {
+            const checks = {
+                title: false,
+                category: false,
+                media: false,
+                ingredients: false,
+                steps: false,
+                keywords: false
+            };
+
+            const errors = [];
+
+            // 1. Titel
+            const title = ($('#recipeTitle').val() || '').trim();
+            if (title.length >= VALIDATION_RULES.title.min) {
+                checks.title = true;
+            } else {
+                errors.push({ field: 'title', message: VALIDATION_RULES.title.message });
+            }
+
+            // 2. Kategorie
+            const category = $('#selectedCategory').val();
+            if (category && category !== '' && category !== 'none') {
+                checks.category = true;
+            } else {
+                errors.push({ field: 'category', message: VALIDATION_RULES.category.message });
+            }
+
+            // 3. Media (Video oder Bild)
+            const hasVideo = $('#video_storage_url').val() || '';
+            const hasImage = $('#image_storage_url').val() || '';
+            if (hasVideo || hasImage) {
+                checks.media = true;
+            } else {
+                errors.push({ field: 'media', message: VALIDATION_RULES.media.message });
+            }
+
+            // 4. Zutaten (min. 2)
+            const ingredientCount = $('#selectedIngredients .ingredient-row').length;
+            if (ingredientCount >= VALIDATION_RULES.ingredients.min) {
+                checks.ingredients = true;
+            } else {
+                errors.push({ field: 'ingredients', message: VALIDATION_RULES.ingredients.message + ` (${ingredientCount}/2)` });
+            }
+
+            // 5. Steps (min. 1)
+            const stepCount = getAllStepRows().length;
+            if (stepCount >= VALIDATION_RULES.steps.min) {
+                checks.steps = true;
+            } else {
+                errors.push({ field: 'steps', message: VALIDATION_RULES.steps.message });
+            }
+
+            // 6. Keywords (min. 1)
+            const keywordCount = $('#selectedKeywords .keyword-badge').length;
+            if (keywordCount >= VALIDATION_RULES.keywords.min) {
+                checks.keywords = true;
+            } else {
+                errors.push({ field: 'keywords', message: VALIDATION_RULES.keywords.message });
+            }
+
+            // Berechne Fortschritt
+            const totalChecks = Object.keys(checks).length;
+            const passedChecks = Object.values(checks).filter(Boolean).length;
+            const progressPercent = Math.round((passedChecks / totalChecks) * 100);
+
+            // Update UI
+            updateValidationUI(passedChecks, totalChecks, progressPercent, errors, checks);
+
+            return passedChecks === totalChecks;
+        }
+
+        function updateValidationUI(passedChecks, totalChecks, progressPercent, errors, checks) {
+            // Update Fortschrittsbalken
+            $('#heroProgressNum').text(passedChecks);
+            $('#heroProgressBar').css('width', progressPercent + '%');
+            $('#publishProgressBar').css('width', progressPercent + '%');
+
+            // Update Publish-Button
+            const $publishBtn = $('#publishBtn');
+            const isValid = passedChecks === totalChecks;
+
+            if (isValid) {
+                $publishBtn.prop('disabled', false).css({
+                    'opacity': '1',
+                    'cursor': 'pointer'
+                });
+            } else {
+                $publishBtn.prop('disabled', true).css({
+                    'opacity': '0.5',
+                    'cursor': 'not-allowed'
+                });
+            }
+
+            // Update Tab-Badges (zeige ⚠️ bei fehlenden Feldern)
+            updateTabBadges(checks);
+
+            // Zeige Fehler im Hero-Bereich wenn nicht komplett
+            updateHeroValidationMessage(errors, isValid);
+        }
+
+        function updateTabBadges(checks) {
+            const tabMapping = {
+                'card-basics': checks.title && checks.category,
+                'card-media': checks.media,
+                'card-ingredients': checks.ingredients,
+                'card-steps': checks.steps,
+                'card-keywords': checks.keywords
+            };
+
+            $('.cp-tab').each(function() {
+                const section = $(this).data('section');
+                const isValid = tabMapping[section];
+
+                // Entferne existierende Badges
+                $(this).find('.validation-badge').remove();
+
+                // Füge Badge hinzu wenn nicht valid
+                if (isValid === false) {
+                    $(this).append('<span class="validation-badge">⚠️</span>');
+                } else if (isValid === true) {
+                    $(this).append('<span class="validation-badge validation-badge-success">✓</span>');
+                }
+            });
+        }
+
+        function updateHeroValidationMessage(errors, isValid) {
+            const $publishBar = $('.cp-publishbar-label');
+
+            if (isValid) {
+                $publishBar.text('Bereit zum Posten!').css('color', 'var(--cp-avocado, #5fa052)');
+            } else if (errors.length > 0) {
+                // Zeige ersten Fehler
+                $publishBar.text(errors[0].message).css('color', '#dc3545');
+            }
+        }
+
+        // Trigger Validierung bei relevanten Änderungen
+        $(document).on('input', '#recipeTitle', function() {
+            validateRecipeForm();
+        });
+
+        $(document).on('change', '#selectedCategory', function() {
+            validateRecipeForm();
+        });
+
+        // Trigger bei Media-Upload
+        $(document).on('change', '#video_storage_url, #image_storage_url', function() {
+            validateRecipeForm();
+        });
+
+        // Hook in markDirty um Validierung bei Zutaten/Steps/Keywords zu triggern
+        const originalMarkDirty = window.markDirty || function() {};
+        window.markDirty = function(...args) {
+            originalMarkDirty(...args);
+            // Debounce validation
+            clearTimeout(window._validationDebounce);
+            window._validationDebounce = setTimeout(validateRecipeForm, 150);
+        };
+
+        window.validateRecipeForm = validateRecipeForm;
 
