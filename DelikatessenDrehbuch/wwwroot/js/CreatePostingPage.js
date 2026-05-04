@@ -6727,47 +6727,6 @@
                 });
             }
 
-            // Update Tab-Badges (zeige ⚠️ bei fehlenden Feldern)
-            updateTabBadges(checks);
-
-            // Zeige Fehler im Hero-Bereich wenn nicht komplett
-            updateHeroValidationMessage(errors, isValid);
-        }
-
-        function updateTabBadges(checks) {
-            const tabMapping = {
-                'card-basics': checks.title && checks.category,
-                'card-media': checks.media,
-                'card-ingredients': checks.ingredients,
-                'card-steps': checks.steps,
-                'card-keywords': checks.keywords
-            };
-
-            $('.cp-tab').each(function() {
-                const section = $(this).data('section');
-                const isValid = tabMapping[section];
-
-                // Entferne existierende Badges
-                $(this).find('.validation-badge').remove();
-
-                // Füge Badge hinzu wenn nicht valid
-                if (isValid === false) {
-                    $(this).append('<span class="validation-badge">⚠️</span>');
-                } else if (isValid === true) {
-                    $(this).append('<span class="validation-badge validation-badge-success">✓</span>');
-                }
-            });
-        }
-
-        function updateHeroValidationMessage(errors, isValid) {
-            const $publishBar = $('.cp-publishbar-label');
-
-            if (isValid) {
-                $publishBar.text('Bereit zum Posten!').css('color', 'var(--cp-avocado, #5fa052)');
-            } else if (errors.length > 0) {
-                // Zeige ersten Fehler
-                $publishBar.text(errors[0].message).css('color', '#dc3545');
-            }
         }
 
         // Trigger Validierung bei relevanten Änderungen

@@ -400,6 +400,21 @@
   font-family: var(--cp-font-sans);
 }
 
+/* Standalone cp-input (ohne Wrapper) */
+.cp-input:not(.cp-input-wrapper .cp-input) {
+  border: 1px solid rgba(20, 57, 31, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  background: var(--cp-cream, #faf6ec);
+  transition: all 0.15s;
+}
+
+.cp-input:not(.cp-input-wrapper .cp-input):focus {
+  border-color: var(--cp-avocado, #5fa052);
+  box-shadow: 0 0 0 3px rgba(95, 160, 82, 0.1);
+  background: white;
+}
+
 .cp-input::placeholder {
   color: #9ba59c;
 }
@@ -439,6 +454,27 @@
   appearance: none;
   -webkit-appearance: none;
   -moz-appearance: none;
+}
+
+/* Standalone cp-select (ohne Wrapper) */
+.cp-select:not(.cp-select-wrapper .cp-select) {
+  border: 1px solid rgba(20, 57, 31, 0.15);
+  border-radius: 10px;
+  padding: 10px 12px;
+  padding-right: 32px;
+  background: var(--cp-cream, #faf6ec) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2314391f' d='M6 8L2 4h8z'/%3E%3C/svg%3E") no-repeat right 10px center;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+
+.cp-select:not(.cp-select-wrapper .cp-select):focus {
+  border-color: var(--cp-avocado, #5fa052);
+  box-shadow: 0 0 0 3px rgba(95, 160, 82, 0.1);
+  background-color: white;
+}
+
+.cp-select:not(.cp-select-wrapper .cp-select):hover {
+  border-color: var(--cp-ink-deep, #14391f);
 }
 
 .cp-select option:first-child {
@@ -578,8 +614,40 @@
 
 .cp-grid-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 50% 50%;
   gap: 10px;
+}
+
+.cp-grid-time {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 10px;
+}
+
+@media (max-width: 400px) {
+  .cp-grid-time {
+    grid-template-columns: 80px 1fr;
+    gap: 8px;
+  }
+
+  .cp-grid-2 {
+    gap: 8px;
+  }
+
+  /* Kompaktere Input-Wrapper auf Mobile */
+  .cp-input-wrapper,
+  .cp-select-wrapper {
+    padding: 10px 12px;
+  }
+
+  .cp-input-icon {
+    font-size: 14px;
+  }
+
+  .cp-input,
+  .cp-select {
+    font-size: 14px;
+  }
 }
 
 .cp-field-group {

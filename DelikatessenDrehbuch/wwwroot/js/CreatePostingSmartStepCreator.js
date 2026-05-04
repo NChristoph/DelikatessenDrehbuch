@@ -1550,6 +1550,16 @@
             : activeStep;
     }
 
+    // ✅ Helper: Konvertiert Werte zu Strings (verhindert [object Object])
+    function normalizeValueToString(value) {
+        if (value == null) return '';
+        if (typeof value === 'string') return value;
+        if (typeof value === 'object') {
+            return value.name || value.value || value.displayName || value.label || String(value);
+        }
+        return String(value);
+    }
+
     function ensureProbabilityDraftForEditing(masterId) {
         const safeMasterId = (masterId || '').toString().trim();
         if (!safeMasterId) return null;
@@ -2878,18 +2888,18 @@
 
         DEBUG("BUTTON", "Button activated with green style", { mode, val, activeStyle });
 
-        // Set dataset values
+        // Set dataset values (ensure strings)
         if (mode === "article") {
-            host.dataset.selectedArticle = val;
-            DEBUG("EVENT", "Article Mode: Set dataset.selectedArticle", { val });
+            host.dataset.selectedArticle = normalizeValueToString(val);
+            DEBUG("EVENT", "Article Mode: Set dataset.selectedArticle", { val: host.dataset.selectedArticle });
         }
         if (mode === "pronoun") {
-            host.dataset.selectedPronoun = val;
-            DEBUG("EVENT", "Pronoun Mode: Set dataset.selectedPronoun", { val });
+            host.dataset.selectedPronoun = normalizeValueToString(val);
+            DEBUG("EVENT", "Pronoun Mode: Set dataset.selectedPronoun", { val: host.dataset.selectedPronoun });
         }
         if (mode === "value") {
-            host.dataset.selectedValue = val;
-            DEBUG("EVENT", "Value Mode: Set dataset.selectedValue", { val });
+            host.dataset.selectedValue = normalizeValueToString(val);
+            DEBUG("EVENT", "Value Mode: Set dataset.selectedValue", { val: host.dataset.selectedValue });
         }
     }
 
@@ -3291,12 +3301,12 @@
                 return;
             }
 
-            // Save value to activeStep
-            stepDraft.values[varName] = normalizedValue;
+            // Save value to activeStep (ensure string)
+            stepDraft.values[varName] = normalizeValueToString(normalizedValue);
 
             // Handle extras (e.g., pronoun for state variables)
             if (extras && extras.pronoun) {
-                stepDraft.values['pronoun'] = extras.pronoun;
+                stepDraft.values['pronoun'] = normalizeValueToString(extras.pronoun);
             }
 
             // Re-render step text
@@ -4336,13 +4346,13 @@
             return false;
         }
 
-        // Save based on context type
+        // Save based on context type (ensure strings)
         if (contextType === 'step') {
             const stepDraft = getCurrentStepDraft();
             if (!stepDraft) return false;
-            stepDraft.values[varName] = value;
+            stepDraft.values[varName] = normalizeValueToString(value);
             if (extras && extras.pronoun) {
-                stepDraft.values['pronoun'] = extras.pronoun;
+                stepDraft.values['pronoun'] = normalizeValueToString(extras.pronoun);
             }
             preserveWindowScroll(() => {
                 renderMasterText();
@@ -4352,11 +4362,11 @@
             ensureProbabilityDraftForEditing(masterId);
             if (!window.probabilityStates || !window.probabilityStates[masterId]) return false;
             if (draftEngine && typeof draftEngine.setProbabilityValue === 'function') {
-                draftEngine.setProbabilityValue(masterId, varName, value, extras);
+                draftEngine.setProbabilityValue(masterId, varName, normalizeValueToString(value), extras);
             } else {
-                window.probabilityStates[masterId].values[varName] = value;
+                window.probabilityStates[masterId].values[varName] = normalizeValueToString(value);
                 if (extras && extras.pronoun) {
-                    window.probabilityStates[masterId].values['pronoun'] = extras.pronoun;
+                    window.probabilityStates[masterId].values['pronoun'] = normalizeValueToString(extras.pronoun);
                 }
             }
             if (typeof window.renderProbabilityTemplate === 'function') {
