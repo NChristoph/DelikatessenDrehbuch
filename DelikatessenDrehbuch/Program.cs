@@ -109,9 +109,17 @@ builder.Services.AddScoped<IShoppingListService, ShoppingListService>();
 builder.Services.AddScoped<ISearchRecipeService, SearchRecipeService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserManager, UserManager>();
-builder.Services.AddScoped<IBlobUploadService, BlobUploadService>();
+builder.Services.AddScoped<IBlobUploadService, BunnyUploadService>();
 builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
+builder.Services.AddScoped<CaptionGenerationService>();
+
+// HttpClient für Bunny Storage API
+builder.Services.AddHttpClient("BunnyStorage", client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(120);
+    client.DefaultRequestHeaders.UserAgent.ParseAdd("DelikatessenDrehbuch/1.0");
+});
 builder.Services.AddHttpClient<IIngredientSwapAiService, IngredientSwapAiService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(60);

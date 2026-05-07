@@ -267,16 +267,68 @@ END;
 
             if (recipe == null) return NotFound();
 
+            // Sprache aus Cookie lesen
+            var language = (Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
+            var langSuffix = language switch
+            {
+                "en" => "EN",
+                "esp" => "ESP",   // Cookie verwendet "esp" statt "es"
+                "prt" => "PRT",   // Cookie verwendet "prt" statt "pt"
+                "id" => "ID",
+                "nl" => "NL",
+                "sv" => "SE",     // DB verwendet SE, Cookie sv
+                "da" => "DK",     // DB verwendet DK, Cookie da
+                "no" => "NO",     // Cookie verwendet "no" für Norwegisch
+                "ms" => "MS",
+                _ => "DE"
+            };
+
             var ingredientLinks = recipe.Ingredients?
                 .Where(ri => ri.Ingredient?.IngredientsAndNutrients != null)
                 .ToList() ?? new();
 
             var ingredients = ingredientLinks
-                .Select(ri => new
+                .Select(ri =>
                 {
-                    name = ri.Ingredient?.IngredientsAndNutrients?.Name_DE ?? "",
-                    quantity = ri.Ingredient?.Quantity?.Quantitys,
-                    unit = ri.Ingredient?.Measure?.Metrics_DE ?? ""
+                    var ing = ri.Ingredient?.IngredientsAndNutrients;
+                    var measure = ri.Ingredient?.Measure;
+
+                    // Zutatennamen in gewählter Sprache
+                    var name = langSuffix switch
+                    {
+                        "EN" => ing?.Name_EN,
+                        "ESP" => ing?.Name_ESP,
+                        "PRT" => ing?.Name_PRT,
+                        "ID" => ing?.Name_ID,
+                        "NL" => ing?.Name_NL,
+                        "SE" => ing?.Name_SE,     // Schwedisch
+                        "DK" => ing?.Name_DK,     // Dänisch
+                        "NO" => ing?.Name_NO,     // Norwegisch
+                        "MS" => ing?.Name_MS,
+                        _ => ing?.Name_DE
+                    } ?? "";
+
+                    // Maßeinheiten in gewählter Sprache
+                    var unit = langSuffix switch
+                    {
+                        "EN" => measure?.Metrics_EN,
+                        "ESP" => measure?.Metrics_ESP,
+                        "PRT" => measure?.Metrics_PRT,
+                        "ID" => measure?.Metrics_ID,
+                        "NL" => measure?.Metrics_NL,
+                        "SE" => measure?.Metrics_SE,     // Schwedisch
+                        "DK" => measure?.Metrics_DK,     // Dänisch
+                        "NO" => measure?.Metrics_NO,     // Norwegisch
+                        "MS" => measure?.Metrics_MS,
+                        _ => measure?.Metrics_DE
+                    } ?? "";
+
+                    return new
+                    {
+                        name,
+                        quantity = ri.Ingredient?.Quantity?.Quantitys,
+                        unit
+                    };
                 })
                 .Where(x => !string.IsNullOrWhiteSpace(x.name))
                 .ToList();

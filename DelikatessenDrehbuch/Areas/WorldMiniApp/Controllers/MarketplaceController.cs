@@ -716,7 +716,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             if (string.IsNullOrWhiteSpace(path)) return false;
             var lower = path.ToLowerInvariant();
-            return lower.Contains(".mp4") || lower.Contains(".mov") || lower.Contains(".webm") || lower.Contains(".m3u8");
+            return lower.Contains(".mp4")
+                || lower.Contains(".mov")
+                || lower.Contains(".webm")
+                || lower.Contains(".m3u8")
+                || lower.Contains("mediadelivery.net/play/");
         }
 
         private async Task<NutritionTotals> BuildNutritionTotalsAsync(List<int> recipeIds, List<Recipes>? classicRecipes = null)

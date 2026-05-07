@@ -48,7 +48,7 @@
 
     const DEFAULT_LANG = "de";
     const VISIBLE_RANKED_OPTIONS = 3;
-    const DEBUG_ENABLED = false; // Set to true for console logging
+    const DEBUG_ENABLED = true; // Set to true for console logging
     const draftEngine = window.CreatePostingTemplateDrafts || null;
 
     // Scoring & Ranking Constants
@@ -1074,8 +1074,16 @@
 
             // ✅ FIX: Objekt zu String konvertieren
             let rawValue = values[varName] ?? "";
-            if (typeof rawValue === 'object' && rawValue !== null) {
-                rawValue = rawValue.name || rawValue.value || rawValue.displayName || String(rawValue);
+            if (rawValue != null && typeof rawValue === 'object') {
+                if (Array.isArray(rawValue)) {
+                    rawValue = rawValue.map(function(item) {
+                        return (item && typeof item === 'object')
+                            ? (item.name || item.value || item.displayName || String(item))
+                            : String(item || '');
+                    }).join(', ');
+                } else {
+                    rawValue = rawValue.name || rawValue.value || rawValue.displayName || rawValue.text || String(rawValue);
+                }
             }
             const value = String(rawValue);
 
@@ -1198,14 +1206,52 @@
 
             // ✅ FIX: Objekt zu String konvertieren
             let rawFallback = values && values[key] != null ? values[key] : key;
-            if (typeof rawFallback === 'object' && rawFallback !== null) {
-                rawFallback = rawFallback.name || rawFallback.value || rawFallback.displayName || String(rawFallback);
+            if (rawFallback != null && typeof rawFallback === 'object') {
+                DEBUG("RENDER", `[object Object] detected in values[${key}]`, {
+                    object: rawFallback,
+                    hasName: !!rawFallback.name,
+                    hasValue: !!rawFallback.value,
+                    hasDisplayName: !!rawFallback.displayName,
+                    hasText: !!rawFallback.text,
+                    keys: Object.keys(rawFallback)
+                });
+                if (Array.isArray(rawFallback)) {
+                    rawFallback = rawFallback.map(function(item) {
+                        if (item && typeof item === 'object') {
+                            const extracted = item.name || item.value || item.displayName || item.text;
+                            return extracted && String(extracted).trim() ? String(extracted).trim() : JSON.stringify(item);
+                        }
+                        return String(item || '');
+                    }).join(', ');
+                } else {
+                    const extracted = rawFallback.name || rawFallback.value || rawFallback.displayName || rawFallback.text;
+                    rawFallback = extracted && String(extracted).trim() ? String(extracted).trim() : JSON.stringify(rawFallback);
+                }
             }
             const fallback = String(rawFallback).trim();
 
             let rawAssigned = assignments && assignments[tokenId] != null ? assignments[tokenId] : "";
-            if (typeof rawAssigned === 'object' && rawAssigned !== null) {
-                rawAssigned = rawAssigned.name || rawAssigned.value || rawAssigned.displayName || String(rawAssigned);
+            if (rawAssigned != null && typeof rawAssigned === 'object') {
+                DEBUG("RENDER", `[object Object] detected in assignments[${tokenId}]`, {
+                    object: rawAssigned,
+                    hasName: !!rawAssigned.name,
+                    hasValue: !!rawAssigned.value,
+                    hasDisplayName: !!rawAssigned.displayName,
+                    hasText: !!rawAssigned.text,
+                    keys: Object.keys(rawAssigned)
+                });
+                if (Array.isArray(rawAssigned)) {
+                    rawAssigned = rawAssigned.map(function(item) {
+                        if (item && typeof item === 'object') {
+                            const extracted = item.name || item.value || item.displayName || item.text;
+                            return extracted && String(extracted).trim() ? String(extracted).trim() : JSON.stringify(item);
+                        }
+                        return String(item || '');
+                    }).join(', ');
+                } else {
+                    const extracted = rawAssigned.name || rawAssigned.value || rawAssigned.displayName || rawAssigned.text;
+                    rawAssigned = extracted && String(extracted).trim() ? String(extracted).trim() : JSON.stringify(rawAssigned);
+                }
             }
             const assigned = String(rawAssigned).trim();
 
@@ -1528,14 +1574,11 @@
                                         </div>
                                     </div>
         
-                                    <!-- Rechte Seite: Badge & Plus -->
+                                    <!-- Rechte Seite: Badge -->
                                     <div class="template-card-meta">
                                         <div class="template-card-score">
-                                            ${scoreBadge} 
+                                            ${scoreBadge}
                                         </div>
-                                        <span class="template-card-plus">
-                                            <span>+</span>
-                                        </span>
                                     </div>
                                 </button>
                     `);
@@ -3330,13 +3373,13 @@
             const prob = ensureProbabilityDraftForEditing(masterId);
             
 
-            // Save value to probability state (wie activeStep!)
+            // Save value to probability state (wie activeStep!) (ensure string)
             if (draftEngine && typeof draftEngine.setProbabilityValue === 'function') {
-                draftEngine.setProbabilityValue(masterId, varName, value, extras);
+                draftEngine.setProbabilityValue(masterId, varName, normalizeValueToString(value), extras);
             } else {
-                prob.values[varName] = value;
+                prob.values[varName] = normalizeValueToString(value);
                 if (extras && extras.pronoun) {
-                    prob.values['pronoun'] = extras.pronoun;
+                    prob.values['pronoun'] = normalizeValueToString(extras.pronoun);
                 }
             }
          
@@ -4114,18 +4157,18 @@
             // Check if there's a separate {{state}} token in the template
             const hasSepState = /\{\{\s*state\s*\}\}/i.test(stepDraft?.templateRaw || "");
 
-            // Save pronoun
+            // Save pronoun (ensure string)
             if (pronoun) {
-                stepDraft.values["pronoun"] = pronoun;
+                stepDraft.values["pronoun"] = normalizeValueToString(pronoun);
             }
 
             // If state selected AND there's a separate {{state}} token, save it there too
             if (value && hasSepState) {
-                stepDraft.values["state"] = value;
+                stepDraft.values["state"] = normalizeValueToString(value);
             }
             // If state selected but NO separate {{state}} token, combine them
             else if (value && !hasSepState) {
-                const combined = `${pronoun} ${value}`.trim();
+                const combined = `${normalizeValueToString(pronoun)} ${normalizeValueToString(value)}`.trim();
                 stepDraft.values["pronoun"] = combined;
             }
 
@@ -4135,15 +4178,15 @@
 
         // Combined pronoun+state editor: handle both selections
         if (stateVar) {
-            // Always save pronoun if selected (even without state)
+            // Always save pronoun if selected (even without state) (ensure string)
             if (pronoun) {
-                stepDraft.values["pronoun"] = pronoun;
+                stepDraft.values["pronoun"] = normalizeValueToString(pronoun);
             }
 
             // If both pronoun and state selected, compose them
             if (pronoun && value) {
                 if (!hasSepPronoun) {
-                    composed = `${pronoun} ${value}`.trim();
+                    composed = `${normalizeValueToString(pronoun)} ${normalizeValueToString(value)}`.trim();
                 }
             }
 
@@ -4165,11 +4208,11 @@
         //     /\{\{\s*state\s*\}\}/i.test(templateRaw) &&
         //     stateUnfilled;
 
-        stepDraft.values[varName] = composed;
+        stepDraft.values[varName] = normalizeValueToString(composed);
 
-        // Auch {pronoun}-Token setzen falls im Template vorhanden
+        // Auch {pronoun}-Token setzen falls im Template vorhanden (ensure string)
         if (stateVar && pronoun) {
-            stepDraft.values["pronoun"] = pronoun;
+            stepDraft.values["pronoun"] = normalizeValueToString(pronoun);
         }
 
         rerenderAfterValueSet();

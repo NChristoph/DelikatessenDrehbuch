@@ -20,162 +20,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private const int CommentAutoHideReportThreshold = 3;
         private const string SessionWalletWLD = "WorldWallet_WLD";
         private const string SessionWalletUSDT = "WorldWallet_USDT";
-        private static readonly SemaphoreSlim EnsureCommentsSchemaLock = new(1, 1);
-        private static volatile bool CommentsSchemaEnsured = false;
-        private static readonly SemaphoreSlim EnsureNotificationsSchemaLock = new(1, 1);
-        private static volatile bool NotificationsSchemaEnsured = false;
-        private const string EnsureWorldUserCommentsSchemaSql = @"
-IF OBJECT_ID(N'[dbo].[WorldUserComments]', N'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[WorldUserComments](
-        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_WorldUserComments] PRIMARY KEY,
-        [WorldUserPostingId] INT NOT NULL,
-        [ParentCommentId] INT NULL,
-        [UserHash] NVARCHAR(256) NOT NULL,
-        [UserName] NVARCHAR(120) NOT NULL CONSTRAINT [DF_WorldUserComments_UserName] DEFAULT (N'User'),
-        [VerificationLevel] NVARCHAR(32) NOT NULL CONSTRAINT [DF_WorldUserComments_VerificationLevel] DEFAULT (N''),
-        [CommentText] NVARCHAR(1200) NOT NULL,
-        [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserComments_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
-        [IsDeleted] BIT NOT NULL CONSTRAINT [DF_WorldUserComments_IsDeleted] DEFAULT (0)
-    );
-
-    CREATE INDEX [IX_WorldUserComments_WorldUserPostingId_CreatedAtUtc]
-        ON [dbo].[WorldUserComments]([WorldUserPostingId], [CreatedAtUtc]);
-
-    CREATE INDEX [IX_WorldUserComments_UserHash_CreatedAtUtc]
-        ON [dbo].[WorldUserComments]([UserHash], [CreatedAtUtc]);
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserComments]', N'ParentCommentId') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserComments]
-        ADD [ParentCommentId] INT NULL;
-END;
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = N'IX_WorldUserComments_ParentCommentId_CreatedAtUtc'
-      AND object_id = OBJECT_ID(N'[dbo].[WorldUserComments]')
-)
-BEGIN
-    CREATE INDEX [IX_WorldUserComments_ParentCommentId_CreatedAtUtc]
-        ON [dbo].[WorldUserComments]([ParentCommentId], [CreatedAtUtc]);
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserComments]', N'IsPinned') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserComments]
-        ADD [IsPinned] BIT NOT NULL CONSTRAINT [DF_WorldUserComments_IsPinned] DEFAULT (0);
-END;
-
-IF OBJECT_ID(N'[dbo].[WorldUserCommentReactions]', N'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[WorldUserCommentReactions](
-        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_WorldUserCommentReactions] PRIMARY KEY,
-        [WorldUserCommentId] INT NOT NULL,
-        [UserHash] NVARCHAR(256) NOT NULL,
-        [IsLike] BIT NOT NULL,
-        [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserCommentReactions_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
-        [UpdatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserCommentReactions_UpdatedAtUtc] DEFAULT (SYSUTCDATETIME())
-    );
-
-    CREATE UNIQUE INDEX [IX_WorldUserCommentReactions_WorldUserCommentId_UserHash]
-        ON [dbo].[WorldUserCommentReactions]([WorldUserCommentId], [UserHash]);
-
-    CREATE INDEX [IX_WorldUserCommentReactions_WorldUserCommentId_IsLike]
-        ON [dbo].[WorldUserCommentReactions]([WorldUserCommentId], [IsLike]);
-END;
-
-IF OBJECT_ID(N'[dbo].[WorldUserCommentReports]', N'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[WorldUserCommentReports](
-        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_WorldUserCommentReports] PRIMARY KEY,
-        [WorldUserCommentId] INT NOT NULL,
-        [UserHash] NVARCHAR(256) NOT NULL,
-        [Reason] NVARCHAR(500) NOT NULL CONSTRAINT [DF_WorldUserCommentReports_Reason] DEFAULT (N''),
-        [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserCommentReports_CreatedAtUtc] DEFAULT (SYSUTCDATETIME())
-    );
-
-    CREATE UNIQUE INDEX [IX_WorldUserCommentReports_WorldUserCommentId_UserHash]
-        ON [dbo].[WorldUserCommentReports]([WorldUserCommentId], [UserHash]);
-
-    CREATE INDEX [IX_WorldUserCommentReports_CreatedAtUtc]
-        ON [dbo].[WorldUserCommentReports]([CreatedAtUtc]);
-END;
-";
-        private const string EnsureWorldUserNotificationsSchemaSql = @"
-IF OBJECT_ID(N'[dbo].[WorldUserNotifications]', N'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[WorldUserNotifications](
-        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_WorldUserNotifications] PRIMARY KEY,
-        [UserHash] NVARCHAR(256) NOT NULL,
-        [Icon] NVARCHAR(64) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Icon] DEFAULT (N'bi-bell'),
-        [Sender] NVARCHAR(128) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Sender] DEFAULT (N'system'),
-        [Description] NVARCHAR(1000) NOT NULL,
-        [Href] NVARCHAR(600) NULL,
-        [NotificationKey] NVARCHAR(300) NULL,
-        [EventType] NVARCHAR(64) NULL,
-        [LatestActorName] NVARCHAR(128) NULL,
-        [ContextText] NVARCHAR(400) NULL,
-        [AggregateCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_AggregateCount] DEFAULT (1),
-        [UnreadEventCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_UnreadEventCount] DEFAULT (1),
-        [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserNotifications_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
-        [IsSeen] BIT NOT NULL CONSTRAINT [DF_WorldUserNotifications_IsSeen] DEFAULT (0),
-        [SeenAtUtc] DATETIME2 NULL
-    );
-
-    CREATE INDEX [IX_WorldUserNotifications_UserHash_IsSeen_CreatedAtUtc]
-        ON [dbo].[WorldUserNotifications]([UserHash], [IsSeen], [CreatedAtUtc]);
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'NotificationKey') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [NotificationKey] NVARCHAR(300) NULL;
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'EventType') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [EventType] NVARCHAR(64) NULL;
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'LatestActorName') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [LatestActorName] NVARCHAR(128) NULL;
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'ContextText') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [ContextText] NVARCHAR(400) NULL;
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'AggregateCount') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [AggregateCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_AggregateCount_Legacy] DEFAULT (1);
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'UnreadEventCount') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [UnreadEventCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_UnreadEventCount_Legacy] DEFAULT (1);
-END;
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = N'IX_WorldUserNotifications_UserHash_NotificationKey'
-      AND object_id = OBJECT_ID(N'[dbo].[WorldUserNotifications]')
-)
-BEGIN
-    CREATE INDEX [IX_WorldUserNotifications_UserHash_NotificationKey]
-        ON [dbo].[WorldUserNotifications]([UserHash], [NotificationKey]);
-END;
-";
         private static readonly Dictionary<string, string[]> CategoryAliases = new(StringComparer.OrdinalIgnoreCase)
         {
             ["appetizer"] = new[] { "appetizer", "aperetizer", "vorspeise", "entrada" },
@@ -199,13 +43,10 @@ END;
             _coinService = coinService;
             _configuration = configuration;
         }
-        //TODO:Likecount zu basedata recipe hinzuf�gen und abo system auch machen neue column auserdem brauchen 
-        //wir noch eine ide damit die likes rot sind wen wir sie geliket haben
-        //TodoThumbAutomatisch speichern
+        
         public async Task<IActionResult> Index(string filter = "feed", string userHash = "", int scrollToId = 0, string searchTerm = "", string category = "", int? maxPrepTime = null)
         {
             userHash = ResolveUserHash(userHash);
-            await EnsureWorldUserCommentsSchemaAsync();
             List<WorldUserPosting> model = new List<WorldUserPosting>();
 
             
@@ -533,7 +374,11 @@ END;
         {
             if (string.IsNullOrWhiteSpace(path)) return false;
             var lower = path.ToLowerInvariant();
-            return lower.Contains(".mp4") || lower.Contains(".mov") || lower.Contains(".webm") || lower.Contains(".m3u8");
+            return lower.Contains(".mp4")
+                || lower.Contains(".mov")
+                || lower.Contains(".webm")
+                || lower.Contains(".m3u8")
+                || lower.Contains("mediadelivery.net/play/");
         }
 
         private static string? ResolveCanonicalCategory(string? input)
@@ -602,8 +447,6 @@ END;
         {
             if (postingId <= 0)
                 return BadRequest(new { message = "postingId fehlt." });
-
-            await EnsureWorldUserCommentsSchemaAsync(cancellationToken);
 
             var currentUserHash = ResolveUserHash(string.Empty);
             var canWrite = await CanWriteCommentsAsync(currentUserHash, cancellationToken);
@@ -756,8 +599,6 @@ END;
             if (postingId <= 0)
                 return BadRequest(new { message = "Posting fehlt." });
 
-            await EnsureWorldUserCommentsSchemaAsync(cancellationToken);
-
             if (!await CanWriteCommentsAsync(userHash, cancellationToken))
                 return StatusCode(StatusCodes.Status403Forbidden, new { message = "Nur orb-verifizierte Nutzer koennen Kommentare schreiben." });
 
@@ -842,8 +683,6 @@ END;
             if (commentId <= 0)
                 return BadRequest(new { message = "Kommentar fehlt." });
 
-            await EnsureWorldUserCommentsSchemaAsync(cancellationToken);
-
             if (!await CanReactOrReportCommentsAsync(userHash, cancellationToken))
                 return StatusCode(StatusCodes.Status403Forbidden, new { message = "Nur angemeldete Nutzer koennen auf Kommentare reagieren." });
 
@@ -917,8 +756,6 @@ END;
             if (commentId <= 0)
                 return BadRequest(new { message = "Kommentar fehlt." });
 
-            await EnsureWorldUserCommentsSchemaAsync(cancellationToken);
-
             if (!await CanReactOrReportCommentsAsync(userHash, cancellationToken))
                 return StatusCode(StatusCodes.Status403Forbidden, new { message = "Nur angemeldete Nutzer koennen Kommentare melden." });
 
@@ -962,8 +799,6 @@ END;
             userHash = ResolveUserHash(userHash);
             if (commentId <= 0)
                 return BadRequest(new { message = "Kommentar fehlt." });
-
-            await EnsureWorldUserCommentsSchemaAsync(cancellationToken);
 
             var comment = await _context.WorldUserComments
                 .FirstOrDefaultAsync(x => x.Id == commentId && !x.IsDeleted, cancellationToken);
@@ -1016,8 +851,6 @@ END;
             if (commentId <= 0)
                 return BadRequest(new { message = "Kommentar fehlt." });
 
-            await EnsureWorldUserCommentsSchemaAsync(cancellationToken);
-
             var comment = await _context.WorldUserComments
                 .FirstOrDefaultAsync(x => x.Id == commentId && !x.IsDeleted, cancellationToken);
             if (comment == null)
@@ -1047,8 +880,6 @@ END;
             userHash = ResolveUserHash(userHash);
             if (!await CanModerateCommentsAsync(userHash, cancellationToken))
                 return Forbid();
-
-            await EnsureWorldUserCommentsSchemaAsync(cancellationToken);
 
             var reportRows = await _context.WorldUserCommentReports
                 .AsNoTracking()
@@ -1126,8 +957,6 @@ END;
 
             if (commentId <= 0)
                 return BadRequest();
-
-            await EnsureWorldUserCommentsSchemaAsync(cancellationToken);
 
             var normalizedAction = (actionType ?? string.Empty).Trim().ToLowerInvariant();
             if (normalizedAction != "dismiss" && normalizedAction != "delete")
@@ -1510,8 +1339,6 @@ END;
             if (string.IsNullOrWhiteSpace(creatorHash))
                 return BadRequest("creatorHash is required");
 
-            await EnsureWorldUserCommentsSchemaAsync();
-
             var currentUserHash = ResolveUserHash("");
             var likedIds = new HashSet<int>();
             if (!string.IsNullOrEmpty(currentUserHash))
@@ -1587,8 +1414,6 @@ END;
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, message = "Nicht angemeldet." });
 
-            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
-
             var query = _context.WorldUserNotifications
                 .AsNoTracking()
                 .Where(x => x.UserHash == userHash);
@@ -1625,8 +1450,6 @@ END;
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, message = "Nicht angemeldet." });
 
-            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
-
             var notification = await _context.WorldUserNotifications
                 .FirstOrDefaultAsync(x => x.Id == notificationId && x.UserHash == userHash, cancellationToken);
 
@@ -1652,8 +1475,6 @@ END;
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, message = "Nicht angemeldet." });
 
-            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
-
             var unreadNotifications = await _context.WorldUserNotifications
                 .Where(x => x.UserHash == userHash && !x.IsSeen)
                 .ToListAsync(cancellationToken);
@@ -1677,8 +1498,6 @@ END;
             var userHash = ResolveUserHash(string.Empty);
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { count = 0 });
-
-            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
 
             var count = await _context.WorldUserNotifications
                 .AsNoTracking()
@@ -1901,9 +1720,7 @@ END;
                 if (posting == null || newComment == null)
                     return;
 
-                await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
-
-                var recipients = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    var recipients = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
                 var excerpt = BuildCommentNotificationExcerpt(newComment.CommentText);
                 var href = BuildCommentNotificationHref(posting, newComment);
 
@@ -1994,9 +1811,7 @@ END;
                 if (string.Equals(posting.CreatorId, likerUserHash, StringComparison.OrdinalIgnoreCase))
                     return;
 
-                await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
-
-                var href = $"/WorldMiniApp/Feed?scrollToId={recipeId}";
+                    var href = $"/WorldMiniApp/Feed?scrollToId={recipeId}";
                 var contextText = string.IsNullOrWhiteSpace(posting.Title) ? string.Empty : posting.Title.Trim();
                 await UpsertInteractionNotificationAsync(
                     posting.CreatorId,
@@ -2029,9 +1844,7 @@ END;
                 if (string.Equals(comment.UserHash, actorUserHash, StringComparison.OrdinalIgnoreCase))
                     return;
 
-                await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
-
-                var excerpt = BuildCommentNotificationExcerpt(comment.CommentText);
+                    var excerpt = BuildCommentNotificationExcerpt(comment.CommentText);
                 var posting = await _context.WorldUserPosting
                     .AsNoTracking()
                     .FirstOrDefaultAsync(x => x.Id == comment.WorldUserPostingId, cancellationToken);
@@ -2165,42 +1978,6 @@ END;
 
             return $"{description}\n\"{normalizedContext}\"";
         }
-
-        private async Task EnsureWorldUserCommentsSchemaAsync(CancellationToken cancellationToken = default)
-        {
-            if (CommentsSchemaEnsured) return;
-
-            await EnsureCommentsSchemaLock.WaitAsync(cancellationToken);
-            try
-            {
-                if (CommentsSchemaEnsured) return;
-                await _context.Database.ExecuteSqlRawAsync(EnsureWorldUserCommentsSchemaSql, cancellationToken);
-                CommentsSchemaEnsured = true;
-            }
-            finally
-            {
-                EnsureCommentsSchemaLock.Release();
-            }
-        }
-
-        private async Task EnsureWorldUserNotificationsSchemaAsync(CancellationToken cancellationToken = default)
-        {
-            if (NotificationsSchemaEnsured) return;
-
-            await EnsureNotificationsSchemaLock.WaitAsync(cancellationToken);
-            try
-            {
-                if (NotificationsSchemaEnsured) return;
-                await _context.Database.ExecuteSqlRawAsync(EnsureWorldUserNotificationsSchemaSql, cancellationToken);
-                NotificationsSchemaEnsured = true;
-            }
-            finally
-            {
-                EnsureNotificationsSchemaLock.Release();
-            }
-        }
-
-
 
         private async Task<NutritionTotals> BuildNutritionTotalsAsync(List<int> recipeIds)
         {

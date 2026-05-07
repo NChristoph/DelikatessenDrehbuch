@@ -219,6 +219,36 @@
   <data name="Feed.TimeDays" xml:space="preserve">
     <value>d</value>
   </data>
+  <data name="Feed.AddToPlan" xml:space="preserve">
+    <value>Planlæg</value>
+  </data>
+  <data name="Feed.Recipe" xml:space="preserve">
+    <value>Opskrift</value>
+  </data>
+  <data name="Feed.Ingredients" xml:space="preserve">
+    <value>Ingredienser</value>
+  </data>
+  <data name="Feed.Nutrition" xml:space="preserve">
+    <value>Ernæring</value>
+  </data>
+  <data name="Feed.Protein" xml:space="preserve">
+    <value>Protein</value>
+  </data>
+  <data name="Feed.Fat" xml:space="preserve">
+    <value>Fedt</value>
+  </data>
+  <data name="Feed.Carbs" xml:space="preserve">
+    <value>Kulhydrater</value>
+  </data>
+  <data name="Feed.Loading" xml:space="preserve">
+    <value>Indlæser...</value>
+  </data>
+  <data name="Feed.ErrorLoading" xml:space="preserve">
+    <value>Fejl ved indlæsning</value>
+  </data>
+  <data name="Feed.Persons" xml:space="preserve">
+    <value>Pers.</value>
+  </data>
 
   <!-- Meal Plan -->
   <data name="MealPlan.Title" xml:space="preserve">

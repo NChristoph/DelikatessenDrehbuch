@@ -2918,6 +2918,27 @@
 
             if (!vars.pronoun) vars.pronoun = creatorState.computedPronoun;
             if (!vars.article) vars.article = creatorState.computedArticle;
+
+            // ✅ FIX: Ensure all values are strings, not objects
+            Object.keys(vars).forEach(function(key) {
+                var val = vars[key];
+                if (val != null && typeof val === 'object') {
+                    // Try to extract string from common object properties
+                    if (Array.isArray(val)) {
+                        vars[key] = val.map(function(item) {
+                            if (item && typeof item === 'object') {
+                                var extracted = item.name || item.value || item.displayName || item.text;
+                                return extracted && String(extracted).trim() ? String(extracted).trim() : JSON.stringify(item);
+                            }
+                            return String(item || '');
+                        }).join(', ');
+                    } else {
+                        var extracted = val.name || val.value || val.displayName || val.text;
+                        vars[key] = extracted && String(extracted).trim() ? String(extracted).trim() : JSON.stringify(val);
+                    }
+                }
+            });
+
             return applyTokenAssignmentsToVariables(vars);
         }
 
@@ -3131,7 +3152,25 @@
             tpl = resolveOptionalTemplateSegmentsForPersist(tpl, vars || {});
 
             let rendered = tpl.replace(/\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g, function (_, key) {
-                const value = vars && vars[key] != null ? String(vars[key]).trim() : '';
+                let rawValue = vars && vars[key] != null ? vars[key] : '';
+
+                // ✅ FIX: Objekt zu String konvertieren
+                if (rawValue != null && typeof rawValue === 'object') {
+                    if (Array.isArray(rawValue)) {
+                        rawValue = rawValue.map(function(item) {
+                            if (item && typeof item === 'object') {
+                                const extracted = item.name || item.value || item.displayName || item.text;
+                                return extracted && String(extracted).trim() ? String(extracted).trim() : JSON.stringify(item);
+                            }
+                            return String(item || '');
+                        }).join(', ');
+                    } else {
+                        const extracted = rawValue.name || rawValue.value || rawValue.displayName || rawValue.text;
+                        rawValue = extracted && String(extracted).trim() ? String(extracted).trim() : JSON.stringify(rawValue);
+                    }
+                }
+
+                const value = String(rawValue).trim();
                 return value;
             });
 
@@ -3583,7 +3622,7 @@
 
         function buildIngredientRowHtml({ id, localizedData, selectedQuantity, selectedUnit, selectedUnitLabel, displayName, iconHtml }) {
             return `
-            <div class="dynamic-item ingredient-row" onclick="openIngredientConfigPopup(this)" title="Zum Bearbeiten antippen" data-group-icon="${escapeAttr(iconHtml)}" ${buildIngredientDataAttributes(localizedData)}>
+            <div class="dynamic-item ingredient-row" title="Zum Bearbeiten antippen" data-group-icon="${escapeAttr(iconHtml)}" ${buildIngredientDataAttributes(localizedData)}>
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].IngredientsAndNutrients.Id" value="${id}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Quantity.Quantitys" class="ingredient-qty-hidden" value="${selectedQuantity}" />
                 <input type="hidden" name="IngredientMeasureQuantity[INDEX].Measure.Metrics_DE" class="ingredient-unit-hidden" value="${escapeAttr(selectedUnit)}" />
@@ -3731,7 +3770,7 @@
         }
 
         function setMissingIngredientBusy(isBusy) {
-            $('#btnAnalyzeMissingIngredient, #missingIngredientResult .js-save-ai-ingredient, #missingIngredientResult .js-use-existing-ingredient')
+            $('#btnAnalyzeMissingIngredient, #missingIngredientResult #btnAddAiIngredient, #missingIngredientResult .js-use-existing-ingredient')
                 .prop('disabled', !!isBusy);
             $('#btnAnalyzeMissingIngredient').toggleClass('opacity-75', !!isBusy);
             $('#missingIngredientButtonSpinner').toggleClass('d-none', !isBusy);
@@ -3795,11 +3834,38 @@
                         ? `<div class="ingredient-ai-meta mt-2">${escapeAttr(suggestion.notes || '')}</div>`
                         : ''}
                 </div>
-                <div class="d-flex flex-wrap gap-2 mt-3">
+                <div class="mt-3">
                     ${isDebugFallback
                         ? `<div class="small text-warning">Debug-Fallback aktiv: ohne SecretKeyOpenAi wird nichts gespeichert.</div>`
-                        : `<button type="button" class="btn creator-cta-primary js-save-ai-ingredient">
-                            <i class="bi bi-database-add me-1"></i>Speichern und hinzufügen
+                        : `
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="ingredient-add-chip">
+                                <span class="ingredient-group-icon">${escapeAttr((suggestion.icon || '').toString())}</span>
+                                <span>${escapeAttr(suggestion.name_DE || suggestion.canonicalName || '')}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center mb-2">
+                            <input type="text"
+                                   inputmode="decimal"
+                                   id="aiIngredientQty"
+                                   placeholder="100"
+                                   value="100"
+                                   class="cp-input js-decimal-input"
+                                   style="flex:1;max-width:100px;" />
+                            <select id="aiIngredientUnit" class="cp-select" style="flex:1;">
+                                ${getCatalogUnitOptionsHtml()}
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap mb-3">
+                            <button type="button" class="cp-pill js-ai-quick-unit" data-unit="g." style="font-size:0.85rem;">g.</button>
+                            <button type="button" class="cp-pill js-ai-quick-unit" data-unit="ml" style="font-size:0.85rem;">ml</button>
+                            <button type="button" class="cp-pill js-ai-quick-unit" data-unit="Stk." style="font-size:0.85rem;">Stk.</button>
+                        </div>
+                        <button type="button"
+                                id="btnAddAiIngredient"
+                                style="width:100%;background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                            <i class="bi bi-plus-lg"></i>
+                            <span>Hinzufügen</span>
                         </button>`}
                 </div>`;
             renderMissingIngredientResult(html);
@@ -3869,11 +3935,14 @@
             }
         }
 
-        async function saveAiSuggestedIngredient() {
+        async function saveAiSuggestedIngredient(qty, unit) {
             if (!missingIngredientCurrentSuggestion) {
                 showCreatorToast('Kein KI-Vorschlag zum Speichern vorhanden');
                 return;
             }
+
+            const selectedQuantity = (qty || '100').toString();
+            const selectedUnit = (unit || 'g.').toString();
 
             setMissingIngredientBusy(true);
             try {
@@ -3905,38 +3974,98 @@
                     throw new Error(data?.message || 'Zutat konnte nicht gespeichert werden.');
                 }
 
-                const row = reloadIngredientCatalogRow(data.ingredient);
-                const localizedName = data.ingredient?.name_DE || data.ingredient?.name_EN || '';
-                $('#ingredientSearch').val(localizedName);
+                // ✅ Zutat im Katalog hinzufügen (bleibt persistent beim Löschen)
+                const catalogRow = reloadIngredientCatalogRow(data.ingredient);
 
-                if (row.length) {
-                    // ✅ Normal: Katalog-Row erfolgreich eingefügt
-                    addIngredient(data.ingredient.id, row[0]);
-                    row[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                } else {
-                    // ✅ Fallback: Direkt mit Server-Daten hinzufügen (kein Katalog-Element)
-                    const ing = data.ingredient;
-                    const matchData = {
-                        id: ing.id,
-                        nameDe: ing.name_DE || '',
-                        nameEn: ing.name_EN || '',
-                        nameEs: ing.name_ES || '',
-                        namePt: ing.name_PT || '',
-                        nameId: ing.name_ID || '',
-                        nameNl: ing.name_NL || '',
-                        nameSv: ing.name_SV || '',
-                        nameDa: ing.name_DA || '',
-                        nameNo: ing.name_NO || '',
-                        nameMs: ing.name_MS || '',
-                        icon: ing.icon || '',
-                        groupId: (ing.groupId || '').toString(),
-                        unitDe: ing.unitDe || 'g.'
-                    };
-                    addIngredientFromMatchData(matchData);
-                }
+                // ✅ Direkt mit ausgewählter Menge/Einheit hinzufügen
+                const ing = data.ingredient;
+                const displayName = ing.name_DE || ing.name_EN || '';
+                const iconHtml = (ing.icon || '🥗').toString();
+                const groupId = (ing.groupId || '').toString();
+
+                const localizedData = {
+                    names: {
+                        DE: ing.name_DE || '',
+                        EN: ing.name_EN || '',
+                        ESP: ing.name_ES || '',
+                        PRT: ing.name_PT || '',
+                        ID: ing.name_ID || '',
+                        NL: ing.name_NL || '',
+                        SV: ing.name_SV || '',
+                        DA: ing.name_DA || '',
+                        NO: ing.name_NO || '',
+                        MS: ing.name_MS || ''
+                    },
+                    genus: ing.genus || {},
+                    groupId: groupId
+                };
+
+                const selectedUnitObj = findUnitByDe(selectedUnit);
+                const selectedUnitLabel = getUnitLabel(selectedUnitObj, currentLang) || selectedUnit;
+
+                const newIngredient = buildIngredientRowHtml({
+                    id: ing.id,
+                    localizedData,
+                    selectedQuantity,
+                    selectedUnit,
+                    selectedUnitLabel,
+                    displayName,
+                    iconHtml
+                });
+
+                $('#selectedIngredients').append(newIngredient);
+
+                invalidateSandboxCache();
+                markDirty('derivedVisuals', 'masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
+                window.MasterStepCreatorHelpers?.renderStepButtons?.();
+                scheduleCreatePostingDraftSave();
 
                 syncIngredientSourceVisibility();
-                renderMissingIngredientResult(`<div class="text-success">${escapeAttr(data.message || 'Zutat gespeichert und hinzugefügt.')}</div>`);
+
+                // ✅ Chip erhalten - User kann Zutat erneut hinzufügen
+                const suggestion = missingIngredientCurrentSuggestion;
+                const confidencePercent = Math.round(Math.max(0, Math.min(1, Number(suggestion.confidence || 0))) * 100);
+                const successHtml = `
+                    <div class="d-flex align-items-center gap-2 mb-3 text-success">
+                        <i class="bi bi-check-circle-fill"></i>
+                        <span class="small">Zutat hinzugefügt</span>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-start gap-3 flex-wrap mb-2">
+                        <div class="fw-bold text-white">${escapeAttr((suggestion.icon || '').toString())} ${escapeAttr(suggestion.name_DE || suggestion.canonicalName || '')}</div>
+                        <div class="ingredient-ai-chip">${confidencePercent}% Treffer</div>
+                    </div>
+                    <div class="mt-3">
+                        <div class="d-flex justify-content-center mb-3">
+                            <div class="ingredient-add-chip">
+                                <span class="ingredient-group-icon">${escapeAttr((suggestion.icon || '').toString())}</span>
+                                <span>${escapeAttr(suggestion.name_DE || suggestion.canonicalName || '')}</span>
+                            </div>
+                        </div>
+                        <div class="d-flex gap-2 align-items-center mb-2">
+                            <input type="text"
+                                   inputmode="decimal"
+                                   id="aiIngredientQty"
+                                   placeholder="100"
+                                   value="100"
+                                   class="cp-input js-decimal-input"
+                                   style="flex:1;max-width:100px;" />
+                            <select id="aiIngredientUnit" class="cp-select" style="flex:1;">
+                                ${getCatalogUnitOptionsHtml()}
+                            </select>
+                        </div>
+                        <div class="d-flex gap-2 flex-wrap mb-3">
+                            <button type="button" class="cp-pill js-ai-quick-unit" data-unit="g." style="font-size:0.85rem;">g.</button>
+                            <button type="button" class="cp-pill js-ai-quick-unit" data-unit="ml" style="font-size:0.85rem;">ml</button>
+                            <button type="button" class="cp-pill js-ai-quick-unit" data-unit="Stk." style="font-size:0.85rem;">Stk.</button>
+                        </div>
+                        <button type="button"
+                                id="btnAddAiIngredient"
+                                style="width:100%;background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+                            <i class="bi bi-plus-lg"></i>
+                            <span>Erneut hinzufügen</span>
+                        </button>
+                    </div>`;
+                renderMissingIngredientResult(successHtml);
                 showCreatorToast(data.reusedExisting ? 'Vorhandene Zutat verwendet' : 'Neue Zutat gespeichert');
             } catch (error) {
                 window.CreatePostingFeedback.reportError('Fehler beim Speichern der KI-Zutat', error, {
@@ -3991,6 +4120,9 @@
          * ✅ NEU (2026-05-04): Zutat direkt mit Match-Daten hinzufügen (ohne DOM-Element aus Katalog)
          * Wird verwendet, wenn AI-Match gefunden wurde, aber Zutat nicht im sichtbaren Katalog ist
          */
+        // ✅ Temporärer Speicher für AI-Match-Daten
+        let pendingAiIngredient = null;
+
         function addIngredientFromMatchData(matchData) {
             const id = (matchData.id || '').toString();
             if (!id) return;
@@ -4000,71 +4132,50 @@
                 return $(this).val()?.toString() === id.toString();
             }).length > 0;
 
-            if (existing) return;
+            if (existing) {
+                showCreatorToast('Zutat bereits hinzugefügt', 'info');
+                return;
+            }
 
-            // Basis-Daten aus matchData
+            // ✅ STATT direkt hinzuzufügen → Dropdown öffnen
+            pendingAiIngredient = matchData;
+
+            // Dropdown-Daten vorbereiten
             const displayName = matchData['nameDe'] || matchData['nameEn'] || 'Unbekannt';
-            const iconHtml = (matchData.icon || '').toString();
-            const groupId = (matchData.groupId || '').toString();
+            const iconHtml = (matchData.icon || '🥗').toString();
             const unitDe = (matchData.unitDe || 'g.').toString();
 
-            // Minimal-LocalizedData (nur Name, Rest als Defaults)
-            const localizedData = {
-                names: {},
-                genus: {},
-                groupId: groupId,
-                isLiquid: 'false',
-                isFat: 'false',
-                isHard: 'false',
-                isSoft: 'false',
-                isPeelable: 'false',
-                isCuttable: 'false',
-                isGrateable: 'false',
-                isFryable: 'false',
-                isRoastable: 'false',
-                isGrillable: 'false',
-                isSteamable: 'false',
-                isBoilable: 'false',
-                isSearable: 'false',
-                isPoachable: 'false',
-                isBlendable: 'false'
-            };
+            // Dropdown füllen
+            $('#ingredientAddIcon').html(iconHtml);
+            $('#ingredientAddName').text(displayName);
+            $('#ingredientAddQty').val('100');
 
-            // Namen für alle Sprachen setzen
-            // Mapping: Frontend-Code → Server-Feldname-Suffix
-            const langMap = {
-                'de': 'De', 'en': 'En', 'esp': 'Es', 'prt': 'Pt',
-                'id': 'Id', 'nl': 'Nl', 'sv': 'Sv', 'da': 'Da',
-                'no': 'No', 'ms': 'Ms'
-            };
-            supportedLanguages.forEach(lang => {
-                const suffix = langMap[lang] || lang.charAt(0).toUpperCase() + lang.slice(1);
-                localizedData.names[lang] = matchData['name' + suffix] || displayName;
-                localizedData.genus[lang] = matchData['genus' + suffix] || '';
+            // Unit-Select füllen
+            const $unitSelect = $('#ingredientAddUnit');
+            $unitSelect.empty();
+            if (window.Model && window.Model.Measure) {
+                window.Model.Measure.forEach(m => {
+                    $unitSelect.append(`<option value="${m.Metrics_DE}">${m.Metrics_DE}</option>`);
+                });
+            }
+            $unitSelect.val(unitDe);
+
+            // Dropdown öffnen
+            const $overlay = $('#ingredientAddOverlay');
+            const $dropdown = $('#ingredientAddDropdown');
+
+            $overlay.css('display', 'block');
+            $dropdown.css({
+                'display': 'block',
+                'top': '50%',
+                'left': '50%',
+                'transform': 'translate(-50%, -50%)'
             });
 
-            // Unit-Objekt finden
-            const selectedUnitObj = findUnitByDe(unitDe);
-            const selectedUnitLabel = getUnitLabel(selectedUnitObj, currentLang) || unitDe;
+            // Focus auf Quantity
+            $('#ingredientAddQty').focus();
 
-            // Ingredient-Row HTML bauen
-            const newIngredient = buildIngredientRowHtml({
-                id,
-                localizedData,
-                selectedQuantity: '100',  // Default-Menge
-                selectedUnit: unitDe,
-                selectedUnitLabel: selectedUnitLabel,
-                displayName: displayName,
-                iconHtml: iconHtml
-            });
-
-            $('#selectedIngredients').append(newIngredient);
-
-            // Cache invalidieren & UI aktualisieren
-            invalidateSandboxCache();
-            markDirty('derivedVisuals', 'masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
-            window.MasterStepCreatorHelpers?.renderStepButtons?.();
-            scheduleCreatePostingDraftSave();
+            showCreatorToast(`"${displayName}" gefunden - Menge & Einheit wählen`, 'success');
         }
 
         function indexOfIgnoreCase(source, search) {
@@ -4234,6 +4345,9 @@
                 markDirty('masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
                 window.MasterStepCreatorHelpers?.renderStepButtons?.();
                 scheduleCreatePostingDraftSave();
+
+                // ✅ Trigger Validierung nach Zutat-Entfernung
+                setTimeout(validateRecipeForm, 100);
                 return;
             }
 
@@ -4253,6 +4367,9 @@
             markDirty('masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
             window.MasterStepCreatorHelpers?.renderStepButtons?.();
             scheduleCreatePostingDraftSave();
+
+            // ✅ Trigger Validierung nach Mengen-Änderung (kein Timeout nötig, nur UI-Update)
+            validateRecipeForm();
         }
 
         window.adjustIngredientQuantity = adjustIngredientQuantity;
@@ -4315,12 +4432,14 @@
             e.stopPropagation();
 
             const row = $(this).closest('.ingredient-row');
-            closeIngredientConfigPopup();
             row.remove();
             invalidateSandboxCache();
             markDirty('masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
             window.MasterStepCreatorHelpers?.renderStepButtons?.();
             scheduleCreatePostingDraftSave();
+
+            // ✅ Trigger Validierung nach Zutat-Löschung
+            setTimeout(validateRecipeForm, 100);
         });
 
         // Entfernt alle Steps die fÃƒÂ¼r dieselben Zutaten+Phase gebunden sind wie der neue Step
@@ -4594,24 +4713,25 @@
             flushUIRefresh();
             prefillUneditedStepPlaceholders();
             updateStepIndices();
+            const reindexArrayName = function (name, index) {
+                return (name || '').replace(/\[(?:\d+|INDEX)\]/, '[' + index + ']');
+            };
             // Remove derived/transformed rows before binding to avoid phantom entries
             $('#selectedIngredients .ingredient-row[data-derived-row="true"]').remove();
             $('#selectedIngredients .ingredient-transformed-display').remove();
             $('#selectedIngredients .ingredient-row').each(function (i) {
                 $(this).find('input, select').each(function () {
                     if (this.name) {
-                        // Robust reindexing: Replace first array index with new index
-                        // Handles: IngredientMeasureQuantity[old].Property.Subproperty
-                        this.name = this.name.replace(/\[(\d+)\]/, '[' + i + ']');
+                        // Replace placeholder or existing array index with the current row index.
+                        this.name = reindexArrayName(this.name, i);
                     }
                 });
             });
             $('.step-row').each(function (i) {
                 $(this).find('input, select').each(function () {
                     if (this.name) {
-                        // Robust reindexing for steps
-                        // Handles: RecipePreperationSteps[old].Property or SmartStepReferences[old].Property
-                        this.name = this.name.replace(/\[(\d+)\]/, '[' + i + ']');
+                        // Handles both literal [INDEX] placeholders and existing numeric indexes.
+                        this.name = reindexArrayName(this.name, i);
                     }
                 });
             });
@@ -4626,7 +4746,27 @@
             const form = document.getElementById('recipeForm');
             const formData = new FormData(form);
             const submitBtn = form.querySelector('[type="submit"]');
-            if (submitBtn) submitBtn.disabled = true;
+
+            // Show loading state (mit wichtiger CSS-Priorität)
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.classList.add('upload-in-progress');
+                const icon = submitBtn.querySelector('i');
+                const label = submitBtn.querySelector('.label-lang');
+                const originalIcon = icon ? icon.className : '';
+                const originalLabel = label ? label.textContent : '';
+
+                // Store originals for restore
+                submitBtn.dataset.originalIcon = originalIcon;
+                submitBtn.dataset.originalLabel = originalLabel;
+
+                if (icon) {
+                    icon.className = 'bi bi-arrow-repeat spinner-icon';
+                }
+                if (label) {
+                    label.textContent = 'Wird hochgeladen...';
+                }
+            }
 
             // Generate idempotency key for this upload (prevents duplicates on retry)
             let idempotencyKey = sessionStorage.getItem('createPostingIdempotencyKey');
@@ -4649,14 +4789,40 @@
                     clearCreatePostingDraft();
                     clearCreatePostingDraftResetCookie();
                     sessionStorage.removeItem('createPostingIdempotencyKey');
-                    window.location.href = '/WorldMiniApp/Home/Index?toast=published';
+
+                    // Different redirect based on content type
+                    if (data.isVideo) {
+                        window.location.href = '/WorldMiniApp/Home/Index?toast=video-uploading';
+                    } else {
+                        window.location.href = '/WorldMiniApp/Home/Index?toast=published';
+                    }
                 } else {
+                    // Restore button
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('upload-in-progress');
+                        const icon = submitBtn.querySelector('i');
+                        const label = submitBtn.querySelector('.label-lang');
+                        if (icon) icon.className = submitBtn.dataset.originalIcon || 'bi bi-send-fill';
+                        if (label) label.textContent = submitBtn.dataset.originalLabel || 'Veröffentlichen';
+                        // Re-trigger validation
+                        setTimeout(() => validateRecipeForm(), 100);
+                    }
                     alert(data.error || 'Fehler beim Hochladen');
-                    if (submitBtn) submitBtn.disabled = false;
                 }
             } catch (e) {
+                // Restore button
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.classList.remove('upload-in-progress');
+                    const icon = submitBtn.querySelector('i');
+                    const label = submitBtn.querySelector('.label-lang');
+                    if (icon) icon.className = submitBtn.dataset.originalIcon || 'bi bi-send-fill';
+                    if (label) label.textContent = submitBtn.dataset.originalLabel || 'Veröffentlichen';
+                    // Re-trigger validation
+                    setTimeout(() => validateRecipeForm(), 100);
+                }
                 alert('Netzwerkfehler beim Hochladen');
-                if (submitBtn) submitBtn.disabled = false;
             }
         }
 
@@ -5170,8 +5336,43 @@
                     showCreatorToast('Zutat hinzugefügt');
                 }
             });
-            $('#recipeForm').on('click', '.js-save-ai-ingredient', function () {
-                saveAiSuggestedIngredient();
+            // AI ingredient quick-unit buttons
+            $('#recipeForm').on('click', '.js-ai-quick-unit', function (e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const unit = $(this).data('unit');
+                if (!unit) return;
+
+                const $select = $('#aiIngredientUnit');
+
+                // Add option if missing
+                const optionExists = $select.find(`option[value="${unit}"]`).length > 0;
+                if (!optionExists) {
+                    $select.append(`<option value="${unit}">${unit}</option>`);
+                }
+
+                // Set value
+                $select.val(unit).trigger('change');
+
+                // Visual feedback - reset all
+                $('.js-ai-quick-unit').removeClass('active').css({
+                    'background': 'white',
+                    'color': 'var(--cp-ink-deep, #14391f)',
+                    'border-color': 'rgba(20, 57, 31, 0.12)'
+                });
+                // Highlight active
+                $(this).addClass('active').css({
+                    'background': 'var(--cp-avocado)',
+                    'color': 'white',
+                    'border-color': 'var(--cp-avocado)'
+                });
+            });
+
+            // AI ingredient add button
+            $('#recipeForm').on('click', '#btnAddAiIngredient', function () {
+                const qty = $('#aiIngredientQty').val() || '100';
+                const unit = $('#aiIngredientUnit').val() || 'g.';
+                saveAiSuggestedIngredient(qty, unit);
             });
             $('#restoreDraftBtn').on('click', function () {
                 restoreCreatePostingDraft();
@@ -6015,18 +6216,82 @@
 
             // Add Button
             $('#btnAddIngredientFromDropdown').on('click', function () {
-                if (!currentIngredientRow) return;
-
                 const qty = $('#ingredientAddQty').val() || '100';
                 const unit = $('#ingredientAddUnit').val() || 'g.';
 
-                // Daten setzen
-                $(currentIngredientRow).attr('data-selected-qty', qty);
-                $(currentIngredientRow).attr('data-selected-unit', unit);
+                // ✅ CASE 1: AI-erkannte Zutat (pendingAiIngredient)
+                if (pendingAiIngredient) {
+                    const matchData = pendingAiIngredient;
+                    const id = matchData.id;
+                    const displayName = matchData['nameDe'] || matchData['nameEn'] || 'Unbekannt';
+                    const iconHtml = matchData.icon || '🥗';
+                    const groupId = matchData.groupId || '';
 
-                // Zutat hinzufügen
-                const ingId = $(currentIngredientRow).data('ingredient-id');
-                addIngredient(ingId, currentIngredientRow);
+                    // LocalizedData vorbereiten
+                    const localizedData = {
+                        names: {},
+                        genus: {},
+                        groupId: groupId,
+                        isLiquid: 'false', isFat: 'false', isHard: 'false', isSoft: 'false',
+                        isPeelable: 'false', isCuttable: 'false', isGrateable: 'false',
+                        isFryable: 'false', isRoastable: 'false', isGrillable: 'false',
+                        isSteamable: 'false', isBoilable: 'false', isSearable: 'false',
+                        isPoachable: 'false', isBlendable: 'false'
+                    };
+
+                    // Namen für alle Sprachen
+                    const langMap = {
+                        'de': 'De', 'en': 'En', 'esp': 'Es', 'prt': 'Pt',
+                        'id': 'Id', 'nl': 'Nl', 'sv': 'Sv', 'da': 'Da',
+                        'no': 'No', 'ms': 'Ms'
+                    };
+                    supportedLanguages.forEach(lang => {
+                        const suffix = langMap[lang] || lang.charAt(0).toUpperCase() + lang.slice(1);
+                        localizedData.names[lang] = matchData['name' + suffix] || displayName;
+                        localizedData.genus[lang] = matchData['genus' + suffix] || '';
+                    });
+
+                    // Unit-Label
+                    const unitObj = findUnitByDe(unit);
+                    const unitLabel = getUnitLabel(unitObj, currentLang) || unit;
+
+                    // Row bauen
+                    const newIngredient = buildIngredientRowHtml({
+                        id,
+                        localizedData,
+                        selectedQuantity: qty,
+                        selectedUnit: unit,
+                        selectedUnitLabel: unitLabel,
+                        displayName,
+                        iconHtml
+                    });
+
+                    $('#selectedIngredients').append(newIngredient);
+
+                    // Cleanup
+                    pendingAiIngredient = null;
+
+                    // UI aktualisieren
+                    invalidateSandboxCache();
+                    markDirty('derivedVisuals', 'masterTemplateBuilder', 'sourceVisibility', 'probabilityHints');
+                    window.MasterStepCreatorHelpers?.renderStepButtons?.();
+                    scheduleCreatePostingDraftSave();
+                    setTimeout(validateRecipeForm, 100);
+
+                    showCreatorToast(`${displayName} hinzugefügt`, 'success');
+                }
+                // ✅ CASE 2: Normale Katalog-Zutat (currentIngredientRow)
+                else if (currentIngredientRow) {
+                    // Daten setzen
+                    $(currentIngredientRow).attr('data-selected-qty', qty);
+                    $(currentIngredientRow).attr('data-selected-unit', unit);
+
+                    // Zutat hinzufügen
+                    const ingId = $(currentIngredientRow).data('ingredient-id');
+                    addIngredient(ingId, currentIngredientRow);
+                } else {
+                    return;
+                }
 
                 // Overlay schließen
                 $('#ingredientAddDropdown, #ingredientAddOverlay').css('display', 'none');
@@ -6634,99 +6899,138 @@
         };
 
         function validateRecipeForm() {
-            const checks = {
-                title: false,
-                category: false,
-                media: false,
-                ingredients: false,
-                steps: false,
-                keywords: false
-            };
+            try {
+                const checks = {
+                    title: false,
+                    category: false,
+                    media: false,
+                    ingredients: false,
+                    steps: false,
+                    keywords: false
+                };
 
-            const errors = [];
+                const errors = [];
 
-            // 1. Titel
-            const title = ($('#recipeTitle').val() || '').trim();
-            if (title.length >= VALIDATION_RULES.title.min) {
-                checks.title = true;
-            } else {
-                errors.push({ field: 'title', message: VALIDATION_RULES.title.message });
+                // 1. Titel
+                try {
+                    const title = ($('#recipeTitle').val() || '').trim();
+                    if (title.length >= VALIDATION_RULES.title.min) {
+                        checks.title = true;
+                    } else {
+                        errors.push({ field: 'title', message: VALIDATION_RULES.title.message });
+                    }
+                } catch (e) {
+                    console.warn('Validation error (title):', e);
+                }
+
+                // 2. Kategorie
+                try {
+                    const category = $('#selectedCategory').val();
+                    if (category && category !== '' && category !== 'none') {
+                        checks.category = true;
+                    } else {
+                        errors.push({ field: 'category', message: VALIDATION_RULES.category.message });
+                    }
+                } catch (e) {
+                    console.warn('Validation error (category):', e);
+                }
+
+                // 3. Media (Video oder Bild)
+                try {
+                    const hasVideo = $('#video_storage_url').val() || '';
+                    const hasImage = $('#image_storage_url').val() || '';
+                    if (hasVideo || hasImage) {
+                        checks.media = true;
+                    } else {
+                        errors.push({ field: 'media', message: VALIDATION_RULES.media.message });
+                    }
+                } catch (e) {
+                    console.warn('Validation error (media):', e);
+                }
+
+                // 4. Zutaten (min. 2) - robustere Abfrage
+                try {
+                    const $ingredientRows = $('#selectedIngredients').find('.ingredient-row, .dynamic-item');
+                    const ingredientCount = $ingredientRows.length;
+                    if (ingredientCount >= VALIDATION_RULES.ingredients.min) {
+                        checks.ingredients = true;
+                    } else {
+                        errors.push({ field: 'ingredients', message: VALIDATION_RULES.ingredients.message + ` (${ingredientCount}/2)` });
+                    }
+                } catch (e) {
+                    console.warn('Validation error (ingredients):', e);
+                }
+
+                // 5. Steps (min. 1)
+                try {
+                    const stepCount = typeof getAllStepRows === 'function' ? getAllStepRows().length : 0;
+                    if (stepCount >= VALIDATION_RULES.steps.min) {
+                        checks.steps = true;
+                    } else {
+                        errors.push({ field: 'steps', message: VALIDATION_RULES.steps.message });
+                    }
+                } catch (e) {
+                    console.warn('Validation error (steps):', e);
+                }
+
+                // 6. Keywords (min. 1)
+                try {
+                    const keywordCount = $('#selectedKeywords .keyword-badge').length;
+                    if (keywordCount >= VALIDATION_RULES.keywords.min) {
+                        checks.keywords = true;
+                    } else {
+                        errors.push({ field: 'keywords', message: VALIDATION_RULES.keywords.message });
+                    }
+                } catch (e) {
+                    console.warn('Validation error (keywords):', e);
+                }
+
+                // Berechne Fortschritt
+                const totalChecks = Object.keys(checks).length;
+                const passedChecks = Object.values(checks).filter(Boolean).length;
+                const progressPercent = Math.round((passedChecks / totalChecks) * 100);
+
+                // Update UI
+                updateValidationUI(passedChecks, totalChecks, progressPercent, errors, checks);
+
+                return passedChecks === totalChecks;
+            } catch (error) {
+                console.error('validateRecipeForm: Critical error', error);
+                return false;
             }
-
-            // 2. Kategorie
-            const category = $('#selectedCategory').val();
-            if (category && category !== '' && category !== 'none') {
-                checks.category = true;
-            } else {
-                errors.push({ field: 'category', message: VALIDATION_RULES.category.message });
-            }
-
-            // 3. Media (Video oder Bild)
-            const hasVideo = $('#video_storage_url').val() || '';
-            const hasImage = $('#image_storage_url').val() || '';
-            if (hasVideo || hasImage) {
-                checks.media = true;
-            } else {
-                errors.push({ field: 'media', message: VALIDATION_RULES.media.message });
-            }
-
-            // 4. Zutaten (min. 2)
-            const ingredientCount = $('#selectedIngredients .ingredient-row').length;
-            if (ingredientCount >= VALIDATION_RULES.ingredients.min) {
-                checks.ingredients = true;
-            } else {
-                errors.push({ field: 'ingredients', message: VALIDATION_RULES.ingredients.message + ` (${ingredientCount}/2)` });
-            }
-
-            // 5. Steps (min. 1)
-            const stepCount = getAllStepRows().length;
-            if (stepCount >= VALIDATION_RULES.steps.min) {
-                checks.steps = true;
-            } else {
-                errors.push({ field: 'steps', message: VALIDATION_RULES.steps.message });
-            }
-
-            // 6. Keywords (min. 1)
-            const keywordCount = $('#selectedKeywords .keyword-badge').length;
-            if (keywordCount >= VALIDATION_RULES.keywords.min) {
-                checks.keywords = true;
-            } else {
-                errors.push({ field: 'keywords', message: VALIDATION_RULES.keywords.message });
-            }
-
-            // Berechne Fortschritt
-            const totalChecks = Object.keys(checks).length;
-            const passedChecks = Object.values(checks).filter(Boolean).length;
-            const progressPercent = Math.round((passedChecks / totalChecks) * 100);
-
-            // Update UI
-            updateValidationUI(passedChecks, totalChecks, progressPercent, errors, checks);
-
-            return passedChecks === totalChecks;
         }
 
         function updateValidationUI(passedChecks, totalChecks, progressPercent, errors, checks) {
-            // Update Fortschrittsbalken
-            $('#heroProgressNum').text(passedChecks);
-            $('#heroProgressBar').css('width', progressPercent + '%');
-            $('#publishProgressBar').css('width', progressPercent + '%');
+            try {
+                // Update Fortschrittsbalken (mit Existenz-Check)
+                const $heroProgressNum = $('#heroProgressNum');
+                const $heroProgressBar = $('#heroProgressBar');
+                const $publishProgressBar = $('#publishProgressBar');
 
-            // Update Publish-Button
-            const $publishBtn = $('#publishBtn');
-            const isValid = passedChecks === totalChecks;
+                if ($heroProgressNum.length) $heroProgressNum.text(passedChecks);
+                if ($heroProgressBar.length) $heroProgressBar.css('width', progressPercent + '%');
+                if ($publishProgressBar.length) $publishProgressBar.css('width', progressPercent + '%');
 
-            if (isValid) {
-                $publishBtn.prop('disabled', false).css({
-                    'opacity': '1',
-                    'cursor': 'pointer'
-                });
-            } else {
-                $publishBtn.prop('disabled', true).css({
-                    'opacity': '0.5',
-                    'cursor': 'not-allowed'
-                });
+                // Update Publish-Button
+                const $publishBtn = $('#publishBtn');
+                if (!$publishBtn.length) return;
+
+                const isValid = passedChecks === totalChecks;
+
+                if (isValid) {
+                    $publishBtn.prop('disabled', false).css({
+                        'opacity': '1',
+                        'cursor': 'pointer'
+                    });
+                } else {
+                    $publishBtn.prop('disabled', true).css({
+                        'opacity': '0.5',
+                        'cursor': 'not-allowed'
+                    });
+                }
+            } catch (error) {
+                console.error('updateValidationUI: Error', error);
             }
-
         }
 
         // Trigger Validierung bei relevanten Änderungen

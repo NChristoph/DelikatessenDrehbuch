@@ -724,7 +724,7 @@
                                 @if (isVideo)
                                 {
                                     var fallbackSrc = src.Replace("_processed.mp4", ".mp4", StringComparison.OrdinalIgnoreCase);
-                                    <video class="grid-img" src="@src" data-wm-fallback-src="@fallbackSrc" muted playsinline preload="metadata" poster="@thumb"></video>
+                                    <video class="grid-img" src="@src" data-wm-fallback-src="@fallbackSrc" muted playsinline preload="metadata" crossorigin="anonymous" poster="@thumb"></video>
                                 }
                                 else
                                 {
@@ -936,7 +936,7 @@
                             @if (isVideo)
                             {
                                 var fallbackSrc = src.Replace("_processed.mp4", ".mp4", StringComparison.OrdinalIgnoreCase);
-                                <video class="grid-img" src="@src" data-wm-fallback-src="@fallbackSrc" muted playsinline preload="metadata" poster="@thumb"></video>
+                                <video class="grid-img" src="@src" data-wm-fallback-src="@fallbackSrc" muted playsinline preload="metadata" crossorigin="anonymous" poster="@thumb"></video>
                             }
                             else
                             {

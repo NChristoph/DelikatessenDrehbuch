@@ -73,30 +73,35 @@
             ? buildProbabilityPreviewDraft(masterId)
             : null;
         const templateText = (previewDraft?.templateRaw || template?.templates?.[lang] || template?.templates?.de || '').toString();
-        const actionHtml = `<div class="probability-template-actions d-flex gap-2 align-items-center">
-        <button type="button" class="btn btn-sm creator-cta-primary js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
-        <button type="button" class="btn btn-sm btn-outline-light js-probability-dismiss" data-master-id="${safeId}">Löschen</button>
-      </div>`;
+
         const draft = {
             masterId: masterId,
             templateRaw: templateText,
             values: previewDraft?.values || vars || {}
         };
-        const previewHtml = typeof helpers.renderEditableStepPreview === 'function'
+
+        // Render step preview text
+        const stepPreviewText = typeof helpers.renderEditableStepPreview === 'function'
             ? helpers.renderEditableStepPreview(draft, {
                 mode: 'probability',
-                title: 'Erkannter Step',
-                bodyClasses: 'probability-template-text preview-step-text mt-2',
-                wrapperClass: 'current-step-wrap probability-preview-wrap',
-                actionHtml,
+                title: '',
+                bodyClasses: '',
+                wrapperClass: '',
+                actionHtml: '',
                 varsOverride: draft.values || {},
                 optionalValues: explicitValues
             })
-            : `<div class="current-step-wrap probability-preview-wrap"><div class="current-step-header d-flex justify-content-between align-items-center"><div class="preview-step-title mb-0">Erkannter Step</div>${actionHtml}</div><div class="probability-template-text preview-step-text mt-2">${typeof helpers.renderTemplate === 'function' ? helpers.renderTemplate(templateText, masterId, vars || {}) : (buildInlineTemplateText(masterId, template, lang, vars, {}) || safeText)}</div></div>`;
+            : (typeof helpers.renderTemplate === 'function'
+                ? helpers.renderTemplate(templateText, masterId, vars || {})
+                : (buildInlineTemplateText(masterId, template, lang, vars, {}) || safeText));
 
         return `<div class="probability-template-wrap" data-master-id="${safeId}">
-  <div class="probability-template-card preview-step-card w-100 text-start">
-    ${previewHtml}
+  <div class="cp-step-card">
+    <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+      <span class="cp-label" style="margin:0;">Erkannter Step</span>
+      <button class="cp-btn-accept js-probability-accept" data-master-id="${safeId}">Akzeptieren</button>
+    </div>
+    <div style="font-size: 14px;">${stepPreviewText}</div>
   </div>
 </div>`;
     }

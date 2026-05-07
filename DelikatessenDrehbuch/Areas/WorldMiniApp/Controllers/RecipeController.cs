@@ -157,7 +157,30 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 _logger.LogInformation("Recipe {RecipeId} and posting {PostingId} successfully created by user {UserHash}.", recipe.Id, posting.Id, userHash);
 
-                var successResponse = new { success = true };
+                // Check if uploaded content is a video (HLS or regular video file)
+                var sourceLower = (uploadResult.SourceUrl ?? string.Empty).ToLowerInvariant();
+                var isVideo = sourceLower.Contains(".m3u8")
+                    || sourceLower.Contains(".mp4")
+                    || sourceLower.Contains(".mov")
+                    || sourceLower.Contains(".webm");
+
+                // If video with VideoGuid (Bunny Stream), track for notification when ready
+                if (isVideo && !string.IsNullOrEmpty(uploadResult.VideoGuid))
+                {
+                    var pendingVideo = new WorldUserPendingVideo
+                    {
+                        PostingId = posting.Id,
+                        VideoGuid = uploadResult.VideoGuid,
+                        UserHash = userHash,
+                        CreatedAt = DateTime.UtcNow
+                    };
+                    await _context.WorldUserPendingVideos.AddAsync(pendingVideo);
+                    await _context.SaveChangesAsync();
+                    _logger.LogInformation("📹 Pending video tracked: {VideoGuid} for posting {PostingId}", uploadResult.VideoGuid, posting.Id);
+                    // ✅ Caption-Generation läuft automatisch via BunnyWebhookController → CaptionGenerationService (Whisper+DeepL)
+                }
+
+                var successResponse = new { success = true, isVideo = isVideo };
 
                 // Cache successful response for idempotency (10 minutes)
                 if (!string.IsNullOrWhiteSpace(idempotencyKey))

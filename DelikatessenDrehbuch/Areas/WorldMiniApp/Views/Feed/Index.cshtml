@@ -2,8 +2,10 @@
 @using DelikatessenDrehbuch
 @using Microsoft.AspNetCore.Mvc.Localization
 @using Microsoft.Extensions.Localization
+@using Microsoft.Extensions.Configuration
 @inject IViewLocalizer Localizer
 @inject IHtmlLocalizer<SharedResources> SharedLocalizer
+@inject IConfiguration Configuration
 @model List<WorldUserPosting>
 @using System.Globalization
 @using Microsoft.AspNetCore.Localization
@@ -30,6 +32,10 @@
     var worldChainUsdtToken = ViewData["WorldChainUsdtToken"]?.ToString() ?? "";
     var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
     var worldChainTestMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
+    var bunnyStorageCaptionHost = (Configuration["Bunny_net_host_name"] ?? string.Empty)
+        .Replace("https://", "")
+        .Replace("http://", "")
+        .TrimEnd('/');
     var selectedCategory = selectedCategoryRaw switch
     {
         "appetizer" or "aperetizer" or "vorspeise" or "entrada" => "appetizer",
@@ -201,6 +207,37 @@
             background: linear-gradient(90deg, #ff9966 0%, #ff5e62 100%);
             box-shadow: 0 0 12px rgba(255, 94, 98, 0.45);
             transform-origin: left center;
+        }
+
+        .video-caption-overlay {
+            position: absolute;
+            left: 16px;
+            right: 92px;
+            bottom: 210px;
+            z-index: 4;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+        }
+
+        .video-caption-overlay.is-empty {
+            display: none;
+        }
+
+        .video-caption-text {
+            max-width: min(72vw, 520px);
+            padding: 10px 14px;
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.68);
+            backdrop-filter: blur(10px);
+            color: #fff;
+            font-size: 0.98rem;
+            font-weight: 700;
+            line-height: 1.35;
+            text-align: center;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.55);
+            box-shadow: 0 10px 32px rgba(0,0,0,0.24);
+            white-space: pre-line;
         }
 
         .info-container {
@@ -792,6 +829,298 @@
 
         .feed-like-indicator:active {
             transform: scale(0.94);
+        }
+
+        .subtitle-toggle {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 5;
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 999px;
+            background: rgba(0,0,0,0.36);
+            backdrop-filter: blur(10px);
+            color: rgba(255,255,255,0.9);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: transform 0.16s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .subtitle-toggle i {
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+
+        .subtitle-toggle.is-active {
+            background: linear-gradient(135deg, rgba(255,153,102,0.96), rgba(255,94,98,0.92));
+            border-color: rgba(255,255,255,0.34);
+            color: #fff;
+        }
+
+        .subtitle-toggle:active {
+            transform: scale(0.94);
+        }
+
+        .tts-toggle {
+            position: absolute;
+            top: 14px;
+            right: 56px;
+            z-index: 5;
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 999px;
+            background: rgba(0,0,0,0.36);
+            backdrop-filter: blur(10px);
+            color: rgba(255,255,255,0.9);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: transform 0.16s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .tts-toggle i {
+            font-size: 0.95rem;
+            line-height: 1;
+        }
+
+        .tts-toggle.is-active {
+            background: linear-gradient(135deg, rgba(102,153,255,0.96), rgba(94,98,255,0.92));
+            border-color: rgba(255,255,255,0.34);
+            color: #fff;
+        }
+
+        .tts-toggle:active {
+            transform: scale(0.94);
+        }
+
+        /* TTS Button (direkt sichtbar) */
+        .tts-button-visible {
+            position: absolute;
+            top: 64px;
+            left: 14px;
+            z-index: 4;
+            width: 38px;
+            height: 38px;
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 999px;
+            background: rgba(0,0,0,0.42);
+            backdrop-filter: blur(12px);
+            color: rgba(255,255,255,0.95);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: transform 0.16s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .tts-button-visible i {
+            font-size: 1rem;
+        }
+
+        .tts-button-visible:active {
+            transform: scale(0.94);
+        }
+
+        .tts-button-visible.is-active {
+            background: linear-gradient(135deg, rgba(102,153,255,0.96), rgba(94,98,255,0.92));
+            border-color: rgba(255,255,255,0.35);
+            color: #fff;
+        }
+
+        /* System Controls Dropdown (unter TTS) */
+        .system-controls-trigger {
+            position: absolute;
+            top: 110px;
+            left: 14px;
+            z-index: 4;
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 999px;
+            background: rgba(0,0,0,0.36);
+            backdrop-filter: blur(10px);
+            color: rgba(255,255,255,0.9);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: transform 0.16s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .system-controls-trigger i {
+            font-size: 0.9rem;
+        }
+
+        .system-controls-trigger.is-active {
+            background: rgba(255,255,255,0.24);
+            border-color: rgba(255,255,255,0.4);
+        }
+
+        .system-controls-trigger:active {
+            transform: scale(0.94);
+        }
+
+        .system-controls-dropdown {
+            position: absolute;
+            top: 152px;
+            left: 14px;
+            z-index: 4;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(-8px);
+            transition: opacity 0.2s ease, transform 0.2s ease;
+        }
+
+        .system-controls-dropdown.is-visible {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+        }
+
+        .system-controls-dropdown .system-control-item {
+            width: 34px;
+            height: 34px;
+            border: 1px solid rgba(255,255,255,0.18);
+            border-radius: 999px;
+            background: rgba(0,0,0,0.36);
+            backdrop-filter: blur(10px);
+            color: rgba(255,255,255,0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            transition: transform 0.16s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+        }
+
+        .system-controls-dropdown .system-control-item i {
+            font-size: 0.95rem;
+        }
+
+        .system-controls-dropdown .system-control-item:active {
+            transform: scale(0.94);
+        }
+
+        .system-controls-dropdown .system-control-item.is-active {
+            border-color: rgba(255,255,255,0.34);
+            color: #fff;
+        }
+
+        .system-controls-dropdown .system-control-item[data-control="sound"].is-active {
+            background: linear-gradient(135deg, rgba(52,211,153,0.96), rgba(16,185,129,0.92));
+        }
+
+        .system-controls-dropdown .system-control-item[data-control="subtitle"].is-active {
+            background: linear-gradient(135deg, rgba(255,153,102,0.96), rgba(255,94,98,0.92));
+        }
+
+        .system-controls-dropdown .system-control-item[data-control="tts"].is-active {
+            background: linear-gradient(135deg, rgba(102,153,255,0.96), rgba(94,98,255,0.92));
+        }
+
+        /* Action Bar Dropdown (rechts) */
+        .action-bar {
+            position: absolute;
+            right: 10px;
+            bottom: 90px;
+            display: flex;
+            flex-direction: column-reverse; /* Toggle unten, Buttons oben */
+            align-items: center;
+            gap: 14px;
+            z-index: 3;
+        }
+
+        .action-bar-toggle {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.42);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.16s ease, background 0.2s ease, border-color 0.2s ease;
+            cursor: pointer;
+        }
+
+        .action-bar-toggle i {
+            font-size: 0.95rem;
+            color: rgba(255,255,255,0.95);
+            transition: transform 0.2s ease;
+        }
+
+        .action-bar-toggle:active {
+            transform: scale(0.94);
+        }
+
+        .action-bar-toggle.is-collapsed {
+            background: rgba(255,255,255,0.18);
+            border-color: rgba(255,255,255,0.35);
+        }
+
+        .action-bar-toggle.is-collapsed i {
+            transform: rotate(180deg);
+        }
+
+        .action-bar-buttons {
+            display: flex;
+            flex-direction: column-reverse; /* Buttons von unten nach oben */
+            gap: 14px;
+            opacity: 1;
+            pointer-events: auto;
+            transform: translateY(0);
+            transition: opacity 0.22s ease, transform 0.22s ease;
+        }
+
+        .action-bar-buttons.is-hidden {
+            opacity: 0;
+            pointer-events: none;
+            transform: translateY(12px); /* Nach unten ausblenden (sieht aus als würde es nach oben gehen) */
+        }
+
+        .action-btn {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+        }
+
+        .action-btn:active {
+            transform: scale(0.94);
+        }
+
+        .icon-circle {
+            width: 46px;
+            height: 46px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.42);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255,255,255,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+        }
+
+        .icon-circle i {
+            font-size: 1.05rem;
+            color: rgba(255,255,255,0.95);
+        }
+
+        .heart-btn.liked .icon-circle {
+            background: linear-gradient(135deg, rgba(255, 94, 98, 0.96), rgba(255, 153, 102, 0.92));
+            border-color: rgba(255,255,255,0.35);
         }
 
         .action-label {
@@ -2677,9 +3006,9 @@
         <div class="quick-peek-handle"></div>
         <div class="quick-peek-title" id="quickPeekTitle"></div>
         <div class="quick-peek-meta" id="quickPeekMeta"></div>
-        <div class="quick-peek-section">Zutaten</div>
+        <div class="quick-peek-section">@SharedLocalizer["Feed.Ingredients"]</div>
         <div class="quick-peek-ingredients" id="quickPeekIngredients"></div>
-        <div class="quick-peek-section" style="margin-top:16px">Nährwerte</div>
+        <div class="quick-peek-section" style="margin-top:16px">@SharedLocalizer["Feed.Nutrition"]</div>
         <div class="quick-peek-macros" id="quickPeekMacros">
             <div class="macro-donut-row">
                 <svg class="macro-donut" viewBox="0 0 120 120" id="qpMacroDonut">
@@ -2691,9 +3020,9 @@
                     <text x="60" y="70" class="macro-donut-label">kcal</text>
                 </svg>
                 <div class="macro-donut-legend">
-                    <div class="macro-legend-row"><span class="macro-dot macro-protein"></span><span>Protein</span><b id="qpProteinPct">0</b>%</div>
-                    <div class="macro-legend-row"><span class="macro-dot macro-fat"></span><span>Fett</span><b id="qpFatPct">0</b>%</div>
-                    <div class="macro-legend-row"><span class="macro-dot macro-carbs"></span><span>KH</span><b id="qpCarbsPct">0</b>%</div>
+                    <div class="macro-legend-row"><span class="macro-dot macro-protein"></span><span>@SharedLocalizer["Feed.Protein"]</span><b id="qpProteinPct">0</b>%</div>
+                    <div class="macro-legend-row"><span class="macro-dot macro-fat"></span><span>@SharedLocalizer["Feed.Fat"]</span><b id="qpFatPct">0</b>%</div>
+                    <div class="macro-legend-row"><span class="macro-dot macro-carbs"></span><span>@SharedLocalizer["Feed.Carbs"]</span><b id="qpCarbsPct">0</b>%</div>
                 </div>
             </div>
         </div>
@@ -2731,20 +3060,31 @@
             <section class="feed-section" id="feedSection">
         @foreach (var item in Model)
         {
-            bool isVideo = item.Source != null && item.Source.EndsWith(".mp4");
+            var sourceLower = (item.Source ?? string.Empty).ToLowerInvariant();
+            bool isHlsVideo = sourceLower.Contains(".m3u8");
+            bool isVideo = sourceLower.Contains(".mp4")
+                || sourceLower.Contains(".mov")
+                || sourceLower.Contains(".webm")
+                || isHlsVideo;
             string thumbOrSource = !string.IsNullOrEmpty(item.ThumbnailUrl) ? item.ThumbnailUrl : item.Source;
-
             <div class="feed-item" data-id="@item.Recipe.Id" data-posting-id="@item.Id" data-creator-id="@item.CreatorId" data-creator-name="@item.CreatorName">
                 @if (isVideo)
                 {
-                    <video class="feed-media" playsinline loop muted preload="metadata" poster="@thumbOrSource">
-                        <source src="@item.Source" type="video/mp4">
+                    <video class="feed-media"
+                           src="@item.Source"
+                           playsinline
+                           loop
+                           muted
+                           preload="metadata"
+                           @(isHlsVideo ? "crossorigin=\"anonymous\"" : "")
+                           poster="@thumbOrSource"
+                           data-video-kind="@(isHlsVideo ? "hls" : "file")">
                     </video>
+                    <div class="video-caption-overlay is-empty" aria-hidden="true">
+                        <div class="video-caption-text"></div>
+                    </div>
                     <div class="video-progress"><div class="video-progress-fill"></div></div>
                     <i class="bi bi-play-fill play-icon-overlay"></i>
-                    <div class="sound-toggle" role="button" aria-label="Ton ein/aus" onclick="toggleGlobalSound(this)">
-                        <i class="bi bi-volume-mute-fill"></i>
-                    </div>
                 }
                 else
                 {
@@ -2752,6 +3092,8 @@
                 }
 
                 <div class="overlay-gradient"></div>
+
+                <!-- Großes Herz oben links -->
                 <button type="button"
                         class="feed-like-indicator@(likedRecipeIds.Contains(item.Recipe.Id) ? " is-liked" : "")"
                         aria-label="Like"
@@ -2759,6 +3101,47 @@
                         data-recipe-id="@item.Recipe.Id">
                     <i class="bi bi-heart-fill"></i>
                 </button>
+
+                @if (isVideo)
+                {
+                    <!-- System Controls Trigger (unter Herz) -->
+                    <button type="button"
+                            class="system-controls-trigger"
+                            aria-label="Einstellungen"
+                            aria-expanded="false"
+                            onclick="event.stopPropagation(); toggleSystemControls(this.closest('.feed-item'));">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+
+                    <!-- System Controls Dropdown -->
+                    <div class="system-controls-dropdown">
+                        <button type="button"
+                                class="system-control-item"
+                                data-control="sound"
+                                aria-label="Ton ein/aus"
+                                onclick="event.stopPropagation(); toggleGlobalSound(this);"
+                                title="Ton">
+                            <i class="bi bi-volume-mute-fill"></i>
+                        </button>
+                        <button type="button"
+                                class="system-control-item is-active"
+                                data-control="subtitle"
+                                aria-label="Untertitel"
+                                onclick="event.stopPropagation(); toggleSubtitlesFromDropdown(this.closest('.feed-item'));"
+                                title="Untertitel">
+                            <i class="bi bi-badge-cc-fill"></i>
+                        </button>
+                        <button type="button"
+                                class="system-control-item"
+                                data-control="tts"
+                                aria-label="Audio-Übersetzung"
+                                onclick="event.stopPropagation(); if (DEBUG) console.log('TTS Button clicked!'); toggleTTSFromDropdown(this.closest('.feed-item'));"
+                                title="Audio-Übersetzung">
+                            <i class="bi bi-translate"></i>
+                        </button>
+                    </div>
+                }
+
                 <i class="bi bi-heart-fill double-tap-heart"></i>
 
                 <div class="info-container">
@@ -2777,36 +3160,47 @@
                 </div>
 
                 <div class="action-bar">
-                    <div class="action-btn" role="button" aria-label="Rezeptinfo" onclick="event.stopPropagation(); openQuickPeek('@item.Recipe.Id')">
-                        <div class="icon-circle"><i class="bi bi-info-lg"></i></div>
-                        <span class="action-label">Info</span>
-                    </div>
+                    <!-- Toggle Button (Menu) -->
+                    <button type="button"
+                            class="action-bar-toggle"
+                            aria-label="Aktionen ein/ausblenden"
+                            aria-expanded="true"
+                            onclick="event.stopPropagation(); toggleActionBar(this.closest('.feed-item'));">
+                        <i class="bi bi-chevron-up"></i>
+                    </button>
 
-                    <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" role="button" aria-label="Gefällt mir" data-recipe-id="@item.Recipe.Id">
-                        <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
-                        <span class="action-label like-count">@(likeCounts.TryGetValue(item.Recipe.Id, out var lc) ? lc : 0)</span>
-                    </div>
+                    <!-- Action Bar Buttons (standardmäßig sichtbar) -->
+                    <div class="action-bar-buttons">
+                        <div class="action-btn" role="button" aria-label="Rezeptinfo" onclick="event.stopPropagation(); openQuickPeek('@item.Recipe.Id')">
+                            <div class="icon-circle"><i class="bi bi-info-lg"></i></div>
+                            <span class="action-label">Info</span>
+                        </div>
 
-                    <div class="action-btn comment-btn" role="button" aria-label="Kommentare" data-posting-id="@item.Id" onclick="event.stopPropagation(); openCommentsSheet(this.closest('.feed-item'));">
-                        <span class="live-comment-badge" data-live-comment-badge="@item.Id">0</span>
-                        <div class="icon-circle"><i class="bi bi-chat-dots-fill"></i></div>
-                        <span class="action-label comment-count">@(commentCounts.TryGetValue(item.Id, out var cc) ? cc : 0)</span>
-                    </div>
+                        <div class="action-btn heart-btn@(likedRecipeIds.Contains(item.Recipe.Id) ? " liked" : "")" role="button" aria-label="Gefällt mir" data-recipe-id="@item.Recipe.Id">
+                            <div class="icon-circle"><i class="bi bi-heart-fill"></i></div>
+                            <span class="action-label like-count">@(likeCounts.TryGetValue(item.Recipe.Id, out var lc) ? lc : 0)</span>
+                        </div>
 
-                    <div class="action-btn share-action-btn" role="button" aria-label="Teilen" onclick="shareRecipeFromButton(this)">
-                        <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
-                        <span class="action-label">@SharedLocalizer["Feed.Share"]</span>
-                    </div>
+                        <div class="action-btn comment-btn" role="button" aria-label="Kommentare" data-posting-id="@item.Id" onclick="event.stopPropagation(); openCommentsSheet(this.closest('.feed-item'));">
+                            <span class="live-comment-badge" data-live-comment-badge="@item.Id">0</span>
+                            <div class="icon-circle"><i class="bi bi-chat-dots-fill"></i></div>
+                            <span class="action-label comment-count">@(commentCounts.TryGetValue(item.Id, out var cc) ? cc : 0)</span>
+                        </div>
 
-                    <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
-                        <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
-                        <span class="action-label">Planen</span>
-                    </div>
+                        <div class="action-btn share-action-btn" role="button" aria-label="Teilen" onclick="shareRecipeFromButton(this)">
+                            <div class="icon-circle"><i class="bi bi-share-fill"></i></div>
+                            <span class="action-label">@SharedLocalizer["Feed.Share"]</span>
+                        </div>
 
-                    <div class="action-btn">
-                        <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = item.Recipe.Id })" class="add-btn text-decoration-none" aria-label="Rezept anzeigen">
+                        <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('@item.Recipe.Title', '@thumbOrSource', '@item.Recipe.Id')">
+                            <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
+                            <span class="action-label">@SharedLocalizer["Feed.AddToPlan"]</span>
+                        </div>
+
+                        <div class="action-btn" role="button" aria-label="Rezept anzeigen" onclick="window.location.href='@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = item.Recipe.Id })'">
                             <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
-                        </a>
+                            <span class="action-label">@SharedLocalizer["Feed.Recipe"]</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3200,10 +3594,13 @@
     @await Html.PartialAsync("_AiResumeBar", new ViewDataDictionary(ViewData) { ["AiResumeMode"] = "toast" })
 
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
     <script src="~/js/worldchain-marketplace.js"></script>
     <script type="module" src="~/js/minikitt.js"></script>
 
     <script>
+        const DEBUG = false; // Set to true for TTS and system debug logging
+
         window.worldChainMarketplaceConfig = {
             chainId: Number('@worldChainId'),
             wldTokenAddress: '@worldChainWldToken',
@@ -3304,6 +3701,655 @@
                 openPlanModal(null, null, null);
             });
         } catch { /* ignore */ }
+
+        // ----------------- HLS.js Video Player Init -----------------
+        const subtitleAvailabilityCache = new Map();
+        const bunnyStorageCaptionHost = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(bunnyStorageCaptionHost));
+        const currentSubtitleLanguage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(language));
+        let subtitlesEnabled = true;
+
+        function getSubtitleLanguageCandidates(languageCode) {
+            const normalized = (languageCode || '').toLowerCase();
+            const candidates = [];
+            if (normalized) {
+                candidates.push(normalized);
+                if (normalized === 'nb') candidates.push('no');
+                if (normalized === 'no') candidates.push('nb');
+            }
+            if (!candidates.includes('de')) candidates.push('de');
+            return candidates;
+        }
+
+        function buildSubtitleTrackUrls(source, languageCode) {
+            if (!source || !languageCode) return [];
+
+            const hlsMarker = '/playlist.m3u8';
+            const hlsIndex = source.toLowerCase().indexOf(hlsMarker);
+            if (hlsIndex < 0) return [];
+
+            const parts = source.split('/');
+            const videoGuid = parts[parts.length - 2];
+            const urls = [];
+            const languageCandidates = getSubtitleLanguageCandidates(languageCode);
+
+            for (const candidate of languageCandidates) {
+                if (bunnyStorageCaptionHost) {
+                    urls.push(`https://${bunnyStorageCaptionHost}/captions/${videoGuid}/${candidate}.vtt`);
+                }
+
+                try {
+                    const sourceUrl = new URL(source, window.location.origin);
+                    urls.push(`${sourceUrl.origin}/${videoGuid}/captions/${candidate}-auto.vtt`);
+                } catch {
+                    // ignore
+                }
+            }
+
+            return urls;
+        }
+
+        async function ensureSubtitleTrack(video, languageCode = currentSubtitleLanguage) {
+            if (!video || video.dataset.subtitleProbeDone === 'true') return;
+            video.dataset.subtitleProbeDone = 'true';
+
+            const source = video.getAttribute('src') || video.src || '';
+            const subtitleUrls = buildSubtitleTrackUrls(source, languageCode);
+            if (!subtitleUrls.length) return;
+
+            for (const subtitleUrl of subtitleUrls) {
+                let exists = subtitleAvailabilityCache.get(subtitleUrl);
+                if (typeof exists === 'undefined') {
+                    try {
+                        const response = await fetch(subtitleUrl, {
+                            method: 'GET',
+                            mode: 'cors',
+                            cache: 'no-store'
+                        });
+                        exists = response.ok;
+                    } catch {
+                        exists = false;
+                    }
+                    subtitleAvailabilityCache.set(subtitleUrl, exists);
+                }
+
+                if (!exists) continue;
+
+                const existingTrack = video.querySelector(`track[srclang="${languageCode}"]`);
+                if (existingTrack) return;
+
+                const track = document.createElement('track');
+                track.kind = 'subtitles';
+                track.srclang = languageCode;
+                track.src = subtitleUrl;
+                video.appendChild(track);
+                video.dataset.subtitleUrl = subtitleUrl;
+                return;
+            }
+        }
+
+        function attachCustomSubtitleOverlay(video) {
+            if (!video || video.dataset.subtitleInit === 'true') return;
+
+            const container = video.closest('.feed-item');
+            const overlay = container?.querySelector('.video-caption-overlay');
+            const textEl = overlay?.querySelector('.video-caption-text');
+            if (!overlay || !textEl) return;
+
+            const setCaptionText = (value) => {
+                if (!subtitlesEnabled) {
+                    textEl.textContent = '';
+                    overlay.classList.add('is-empty');
+                    return;
+                }
+                const normalized = (value || '').trim();
+                textEl.textContent = normalized;
+                overlay.classList.toggle('is-empty', !normalized);
+            };
+
+            const wireTrack = () => {
+                try {
+                    const textTracks = video.textTracks;
+                    if (!textTracks || !textTracks.length) return false;
+
+                    const track = textTracks[0];
+                    track.mode = 'hidden';
+
+                    const updateFromTrack = () => {
+                        const activeCueTexts = [];
+                        const activeCues = track.activeCues;
+                        if (activeCues) {
+                            for (let i = 0; i < activeCues.length; i++) {
+                                const cueText = (activeCues[i]?.text || '').trim();
+                                if (cueText) activeCueTexts.push(cueText);
+                            }
+                        }
+                        setCaptionText(activeCueTexts.join('\n'));
+                    };
+
+                    if (video._subtitleCueHandler) {
+                        track.removeEventListener('cuechange', video._subtitleCueHandler);
+                    }
+
+                    video._subtitleCueHandler = updateFromTrack;
+                    video._subtitleRefreshHandler = updateFromTrack;
+                    track.addEventListener('cuechange', updateFromTrack);
+                    video.addEventListener('timeupdate', updateFromTrack);
+                    video.addEventListener('seeked', updateFromTrack);
+                    video.addEventListener('pause', updateFromTrack);
+                    video.addEventListener('play', updateFromTrack);
+                    updateFromTrack();
+                    video.dataset.subtitleInit = 'true';
+                    return true;
+                } catch {
+                    return false;
+                }
+            };
+
+            if (wireTrack()) return;
+
+            const retryWire = () => {
+                if (wireTrack()) {
+                    video.removeEventListener('loadedmetadata', retryWire);
+                    video.removeEventListener('loadeddata', retryWire);
+                    video.removeEventListener('canplay', retryWire);
+                }
+            };
+
+            if (video.readyState >= 1) {
+                retryWire();
+                if (video.dataset.subtitleInit === 'true') return;
+            }
+
+            video.addEventListener('loadedmetadata', retryWire);
+            video.addEventListener('loadeddata', retryWire);
+            video.addEventListener('canplay', retryWire);
+        }
+
+        function syncSubtitleButtons() {
+            document.querySelectorAll('.subtitle-toggle').forEach(button => {
+                button.classList.toggle('is-active', subtitlesEnabled);
+                button.setAttribute('aria-pressed', subtitlesEnabled ? 'true' : 'false');
+            });
+        }
+
+        function refreshSubtitleOverlays() {
+            document.querySelectorAll('video.feed-media').forEach(video => {
+                if (typeof video._subtitleRefreshHandler === 'function') {
+                    video._subtitleRefreshHandler();
+                } else {
+                    const container = video.closest('.feed-item');
+                    const overlay = container?.querySelector('.video-caption-overlay');
+                    if (overlay && !subtitlesEnabled) {
+                        overlay.classList.add('is-empty');
+                    }
+                }
+            });
+        }
+
+        function toggleSubtitles(feedItem) {
+            subtitlesEnabled = !subtitlesEnabled;
+            syncSubtitleButtons();
+            refreshSubtitleOverlays();
+        }
+
+        // ============================================================================
+        // TTS (Text-to-Speech) System for Multilingual Audio
+        // ============================================================================
+
+        class TTSController {
+            constructor(video, feedItem) {
+                this.video = video;
+                this.feedItem = feedItem;
+                this.cues = [];
+                this.currentCueIndex = -1;
+                this.isActive = false;
+                this.originalVolume = video.volume;
+                this.utterance = null;
+                this.language = 'de-DE';
+
+                this.onTimeUpdate = this.onTimeUpdate.bind(this);
+                this.onPause = this.onPause.bind(this);
+                this.onPlay = this.onPlay.bind(this);
+            }
+
+            async parseVTT(vttUrl) {
+                try {
+                    const response = await fetch(vttUrl);
+                    const text = await response.text();
+                    return this.extractCues(text);
+                } catch (error) {
+                    console.error('Failed to load VTT:', error);
+                    return [];
+                }
+            }
+
+            extractCues(vttText) {
+                const cues = [];
+                const lines = vttText.split('\n');
+                let i = 0;
+
+                while (i < lines.length) {
+                    const line = lines[i].trim();
+
+                    if (line.includes('-->')) {
+                        const timeMatch = line.match(/(\d{2}:\d{2}:\d{2}\.\d{3})\s*-->\s*(\d{2}:\d{2}:\d{2}\.\d{3})/);
+                        if (timeMatch) {
+                            const startTime = this.parseTimestamp(timeMatch[1]);
+                            const endTime = this.parseTimestamp(timeMatch[2]);
+
+                            i++;
+                            let captionText = '';
+                            while (i < lines.length && lines[i].trim() !== '') {
+                                captionText += lines[i].trim() + ' ';
+                                i++;
+                            }
+
+                            if (captionText.trim()) {
+                                cues.push({
+                                    start: startTime,
+                                    end: endTime,
+                                    text: captionText.trim()
+                                });
+                            }
+                        }
+                    }
+                    i++;
+                }
+
+                return cues;
+            }
+
+            parseTimestamp(timestamp) {
+                const parts = timestamp.split(':');
+                const hours = parseInt(parts[0]);
+                const minutes = parseInt(parts[1]);
+                const seconds = parseFloat(parts[2]);
+                return hours * 3600 + minutes * 60 + seconds;
+            }
+
+            async activate(language = null) {
+                if (DEBUG) console.log('TTS: Activating...');
+                this.isActive = true;
+
+                if (language) {
+                    this.language = this.mapLanguageCode(language);
+                } else {
+                    this.language = await this.detectLanguageFromSubtitles();
+                }
+
+                if (DEBUG) console.log('TTS: Language:', this.language);
+
+                const vttUrl = await this.getCurrentVTTUrl();
+                if (vttUrl) {
+                    if (DEBUG) console.log('TTS: Loading VTT from:', vttUrl);
+                    this.cues = await this.parseVTT(vttUrl);
+                    if (DEBUG) console.log('TTS: Loaded', this.cues.length, 'cues');
+                    if (this.cues.length === 0) {
+                        console.warn('TTS: No cues found in VTT file');
+                        this.isActive = false;
+                        return;
+                    }
+                } else {
+                    console.error('TTS: No VTT URL found - captions may not be available for this video');
+                    this.isActive = false;
+                    return;
+                }
+
+                // Video muten - mehrere Methoden für Robustheit
+                this.originalVolume = this.video.volume;
+                this.video.volume = 0;
+                this.video.muted = true;
+                if (DEBUG) console.log('TTS: Video muted, original volume was:', this.originalVolume);
+
+                this.video.addEventListener('timeupdate', this.onTimeUpdate);
+                this.video.addEventListener('pause', this.onPause);
+                this.video.addEventListener('play', this.onPlay);
+
+                if (DEBUG) console.log('TTS: Activated successfully');
+            }
+
+            deactivate() {
+                if (DEBUG) console.log('TTS: Deactivating...');
+                this.isActive = false;
+                this.stopSpeaking();
+
+                // Video unmuten
+                this.video.volume = this.originalVolume || 0;
+                this.video.muted = isGlobalMuted; // Globalen Mute-State wiederherstellen
+
+                this.video.removeEventListener('timeupdate', this.onTimeUpdate);
+                this.video.removeEventListener('pause', this.onPause);
+                this.video.removeEventListener('play', this.onPlay);
+
+                if (DEBUG) console.log('TTS: Deactivated, volume restored to:', this.video.volume, 'muted:', this.video.muted);
+            }
+
+            mapLanguageCode(code) {
+                const map = {
+                    'de': 'de-DE',
+                    'en': 'en-US',
+                    'es': 'es-ES',
+                    'pt': 'pt-PT',
+                    'id': 'id-ID',
+                    'nl': 'nl-NL',
+                    'sv': 'sv-SE',
+                    'da': 'da-DK',
+                    'nb': 'nb-NO',
+                    'no': 'nb-NO',
+                    'ms': 'ms-MY'
+                };
+                return map[code] || 'de-DE';
+            }
+
+            async detectLanguageFromSubtitles() {
+                try {
+                    const track = this.video.querySelector('track');
+                    if (track && track.srclang) {
+                        return this.mapLanguageCode(track.srclang);
+                    }
+                } catch (e) {}
+                return 'de-DE';
+            }
+
+            async getCurrentVTTUrl() {
+                try {
+                    // 1. Versuche cached URL aus dataset
+                    if (this.video.dataset.subtitleUrl) {
+                        return this.video.dataset.subtitleUrl;
+                    }
+
+                    // 2. Versuche track element
+                    const track = this.video.querySelector('track');
+                    if (track && track.src) {
+                        return track.src;
+                    }
+
+                    // 3. Konstruiere URL selbst
+                    const source = this.video.getAttribute('src') || this.video.src || '';
+                    const urls = buildSubtitleTrackUrls(source, currentSubtitleLanguage);
+
+                    // Teste welche URL existiert
+                    for (const url of urls) {
+                        try {
+                            const response = await fetch(url, { method: 'HEAD', cache: 'no-store' });
+                            if (response.ok) {
+                                return url;
+                            }
+                        } catch (e) {
+                            continue;
+                        }
+                    }
+
+                    return null;
+                } catch (e) {
+                    console.error('TTS: Failed to get VTT URL', e);
+                    return null;
+                }
+            }
+
+            onTimeUpdate() {
+                if (!this.isActive || !this.cues.length) return;
+
+                const currentTime = this.video.currentTime;
+
+                // Starte TTS 0.4 Sekunden FRÜHER um Verzögerung zu kompensieren
+                const lookAheadTime = currentTime + 0.4;
+
+                const cue = this.cues.find(c => lookAheadTime >= c.start && currentTime < c.end);
+
+                if (cue) {
+                    const cueIndex = this.cues.indexOf(cue);
+                    if (cueIndex !== this.currentCueIndex) {
+                        this.currentCueIndex = cueIndex;
+                        this.speak(cue.text);
+                    }
+                } else {
+                    // Nur stoppen wenn wir wirklich außerhalb aller Cues sind
+                    const inAnyCue = this.cues.some(c => currentTime >= c.start && currentTime < c.end);
+                    if (!inAnyCue) {
+                        this.stopSpeaking();
+                    }
+                }
+            }
+
+            speak(text) {
+                this.stopSpeaking();
+
+                if (!text || text.trim() === '') return;
+
+                this.utterance = new SpeechSynthesisUtterance(text);
+                this.utterance.lang = this.language;
+                this.utterance.rate = 1.8; // Sehr schnelle Sprechgeschwindigkeit für Video-Synchronisation
+                this.utterance.pitch = 1.0;
+                this.utterance.volume = 1.0;
+
+                speechSynthesis.speak(this.utterance);
+            }
+
+            stopSpeaking() {
+                if (this.utterance) {
+                    speechSynthesis.cancel();
+                    this.utterance = null;
+                }
+            }
+
+            onPause() {
+                this.stopSpeaking();
+            }
+
+            onPlay() {
+                // Resume will be handled by onTimeUpdate
+            }
+        }
+
+        // Store TTS controllers for each video
+        const ttsControllers = new Map();
+
+        async function toggleTTS(feedItem) {
+            const button = feedItem.querySelector('.system-control-item[data-control="tts"]');
+            const video = feedItem.querySelector('video');
+
+            if (!video) {
+                console.error('TTS: No video element found');
+                return;
+            }
+            if (!button) {
+                console.error('TTS: No button element found');
+                return;
+            }
+
+            const isActive = button.classList.contains('is-active');
+            if (DEBUG) console.log('TTS toggleTTS - current isActive:', isActive);
+
+            if (isActive) {
+                // Deactivate TTS
+                if (DEBUG) console.log('TTS: Deactivating...');
+                const controller = ttsControllers.get(video);
+                if (controller) {
+                    controller.deactivate();
+                }
+                button.classList.remove('is-active');
+                button.setAttribute('aria-pressed', 'false');
+            } else {
+                // Activate TTS
+                if (DEBUG) console.log('TTS: Activating...');
+                let controller = ttsControllers.get(video);
+                if (!controller) {
+                    if (DEBUG) console.log('TTS: Creating new controller');
+                    controller = new TTSController(video, feedItem);
+                    ttsControllers.set(video, controller);
+                }
+
+                try {
+                    await controller.activate();
+                    // Nur Klasse hinzufügen wenn activate erfolgreich war
+                    if (controller.isActive) {
+                        button.classList.add('is-active');
+                        button.setAttribute('aria-pressed', 'true');
+                        if (DEBUG) console.log('TTS: Button activated');
+                    } else {
+                        console.error('TTS: Activation failed - controller is not active');
+                    }
+                } catch (error) {
+                    console.error('TTS: Activation error:', error);
+                }
+            }
+        }
+
+        // Cleanup on page unload
+        window.addEventListener('beforeunload', () => {
+            ttsControllers.forEach(controller => controller.deactivate());
+        });
+
+        // ============================================================================
+        // End TTS System
+        // ============================================================================
+
+        // ============================================================================
+        // Dropdown Toggle Functions
+        // ============================================================================
+
+        function toggleSystemControls(feedItem) {
+            const trigger = feedItem.querySelector('.system-controls-trigger');
+            const dropdown = feedItem.querySelector('.system-controls-dropdown');
+
+            if (!trigger || !dropdown) return;
+
+            const isExpanded = trigger.getAttribute('aria-expanded') === 'true';
+
+            if (isExpanded) {
+                // Schließen
+                trigger.classList.remove('is-active');
+                trigger.setAttribute('aria-expanded', 'false');
+                dropdown.classList.remove('is-visible');
+            } else {
+                // Öffnen
+                trigger.classList.add('is-active');
+                trigger.setAttribute('aria-expanded', 'true');
+                dropdown.classList.add('is-visible');
+            }
+        }
+
+        function toggleSubtitlesFromDropdown(feedItem) {
+            const button = feedItem.querySelector('.system-control-item[data-control="subtitle"]');
+            if (!button) return;
+
+            const isActive = button.classList.contains('is-active');
+            if (isActive) {
+                button.classList.remove('is-active');
+            } else {
+                button.classList.add('is-active');
+            }
+
+            // Call original subtitle toggle
+            toggleSubtitles(feedItem);
+        }
+
+        function toggleTTSFromDropdown(feedItem) {
+            if (DEBUG) console.log('toggleTTSFromDropdown called');
+            // Rufe direkt toggleTTS auf, ohne Klasse zu ändern
+            // toggleTTS wird die Klasse selbst verwalten
+            toggleTTS(feedItem);
+        }
+
+        function toggleActionBar(feedItem) {
+            const toggle = feedItem.querySelector('.action-bar-toggle');
+            const buttons = feedItem.querySelector('.action-bar-buttons');
+
+            if (!toggle || !buttons) return;
+
+            const isExpanded = toggle.getAttribute('aria-expanded') === 'true';
+
+            if (isExpanded) {
+                // Schließen (ausblenden)
+                toggle.classList.add('is-collapsed');
+                toggle.setAttribute('aria-expanded', 'false');
+                buttons.classList.add('is-hidden');
+            } else {
+                // Öffnen (einblenden)
+                toggle.classList.remove('is-collapsed');
+                toggle.setAttribute('aria-expanded', 'true');
+                buttons.classList.remove('is-hidden');
+            }
+        }
+
+        // Schließe nur System-Controls Dropdown wenn woanders geklickt wird
+        document.addEventListener('click', (e) => {
+            if (e.target.closest('.system-controls-trigger') || e.target.closest('.system-controls-dropdown')) {
+                return;
+            }
+
+            // Schließe alle offenen System-Controls Dropdowns
+            document.querySelectorAll('.system-controls-trigger.is-active').forEach(trigger => {
+                trigger.classList.remove('is-active');
+                trigger.setAttribute('aria-expanded', 'false');
+                trigger.closest('.feed-item')?.querySelector('.system-controls-dropdown')?.classList.remove('is-visible');
+            });
+        });
+
+        // ============================================================================
+        // End Dropdown Toggle Functions
+        // ============================================================================
+
+        function initHlsVideos(container) {
+            const scope = container || document;
+            scope.querySelectorAll('video.feed-media').forEach(video => {
+                ensureSubtitleTrack(video).finally(() => attachCustomSubtitleOverlay(video));
+            });
+            const hlsVideos = scope.querySelectorAll('video[data-video-kind="hls"]');
+
+            hlsVideos.forEach(video => {
+                // Skip if already initialized
+                if (video.dataset.hlsInitialized === 'true') return;
+
+                const src = video.src || video.getAttribute('src');
+                if (!src || !src.includes('.m3u8')) return;
+
+                // Check if HLS.js is supported
+                if (Hls.isSupported()) {
+                    const hls = new Hls({
+                        enableWorker: true,
+                        lowLatencyMode: false,
+                        backBufferLength: 90
+                    });
+
+                    hls.loadSource(src);
+                    hls.attachMedia(video);
+
+                    hls.on(Hls.Events.MANIFEST_PARSED, () => {
+                        // Video is ready to play
+                        video.dataset.hlsInitialized = 'true';
+                        attachCustomSubtitleOverlay(video);
+                    });
+
+                    hls.on(Hls.Events.ERROR, (event, data) => {
+                        if (data.fatal) {
+                            console.error('HLS fatal error:', data);
+                            switch(data.type) {
+                                case Hls.ErrorTypes.NETWORK_ERROR:
+                                    hls.startLoad();
+                                    break;
+                                case Hls.ErrorTypes.MEDIA_ERROR:
+                                    hls.recoverMediaError();
+                                    break;
+                                default:
+                                    hls.destroy();
+                                    break;
+                            }
+                        }
+                    });
+
+                    // Store HLS instance for cleanup
+                    video._hlsInstance = hls;
+                } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+                    // Native HLS support (Safari, iOS)
+                    video.dataset.hlsInitialized = 'true';
+                    attachCustomSubtitleOverlay(video);
+                } else {
+                    console.warn('HLS not supported on this browser');
+                }
+            });
+        }
 
         // ----------------- feed state restore (back from recipe detail) -----------------
         const FEED_STATE_KEY = 'worldminiapp.feed.state.v1';
@@ -4771,11 +5817,24 @@
 
         // === Quick-Peek Bottom Sheet ===
         let quickPeekCache = {};
+        let cachedLanguage = document.cookie.match(/deli-lang=([^;]+)/)?.[1] || 'de';
+
+        // Cache leeren wenn Sprache gewechselt wird
+        function clearQuickPeekCacheIfLanguageChanged() {
+            const currentLang = document.cookie.match(/deli-lang=([^;]+)/)?.[1] || 'de';
+            if (currentLang !== cachedLanguage) {
+                quickPeekCache = {};
+                cachedLanguage = currentLang;
+            }
+        }
 
         function openQuickPeek(recipeId) {
             const sheet = document.getElementById('quickPeekSheet');
             const backdrop = document.getElementById('quickPeekBackdrop');
             if (!sheet || !backdrop || !recipeId) return;
+
+            // Cache leeren falls Sprache gewechselt wurde
+            clearQuickPeekCacheIfLanguageChanged();
 
             sheet.classList.add('is-open');
             backdrop.classList.add('is-open');
@@ -4789,7 +5848,7 @@
                 return;
             }
 
-            if (titleEl) titleEl.textContent = 'Lädt...';
+            if (titleEl) titleEl.textContent = '@SharedLocalizer["Feed.Loading"]';
             if (metaEl) metaEl.textContent = '';
             if (ingredientsEl) ingredientsEl.innerHTML = '';
 
@@ -4800,7 +5859,7 @@
                     renderQuickPeekData(data, titleEl, metaEl, ingredientsEl);
                 })
                 .catch(() => {
-                    if (titleEl) titleEl.textContent = 'Fehler beim Laden';
+                    if (titleEl) titleEl.textContent = '@SharedLocalizer["Feed.ErrorLoading"]';
                 });
         }
 
@@ -4809,7 +5868,7 @@
             const parts = [];
             if (data.category) parts.push(data.category);
             if (data.prepTime) parts.push(`${data.prepTime} Min`);
-            if (data.personCount) parts.push(`${data.personCount} Pers.`);
+            if (data.personCount) parts.push(`${data.personCount} @SharedLocalizer["Feed.Persons"]`);
             if (metaEl) metaEl.textContent = parts.join(' · ');
             if (ingredientsEl) {
                 ingredientsEl.innerHTML = (data.ingredients || []).map(ing => {
@@ -5236,14 +6295,20 @@
         const watchTrackingEndpoint = '/WorldMiniApp/WatchAnalytics/TrackClipWatch';
 
         function updateSoundIcon(container, isMuted) {
-            const icon = container?.querySelector('.sound-toggle i');
+            const button = container?.querySelector('.system-control-item[data-control="sound"]');
+            if (!button) return;
+
+            const icon = button.querySelector('i');
             if (!icon) return;
+
             if (isMuted) {
                 icon.classList.remove('bi-volume-up-fill');
                 icon.classList.add('bi-volume-mute-fill');
+                button.classList.remove('is-active');
             } else {
                 icon.classList.remove('bi-volume-mute-fill');
                 icon.classList.add('bi-volume-up-fill');
+                button.classList.add('is-active');
             }
         }
 
@@ -6263,7 +7328,13 @@
         }, { threshold: 0.6 });
 
         function buildCreatorFeedItemHtml(item) {
-            const isVideo = item.source && item.source.endsWith('.mp4');
+            const source = (item.source || '').toString();
+            const sourceLower = source.toLowerCase();
+            const isHlsVideo = sourceLower.includes('.m3u8');
+            const isVideo = sourceLower.includes('.mp4')
+                || sourceLower.includes('.mov')
+                || sourceLower.includes('.webm')
+                || isHlsVideo;
             const thumbOrSource = item.thumbnailUrl || item.source;
             const prepLabel = item.prepTime ? `${item.prepTime} min` : '';
             const safeTitle = escapeHtml(item.title || '');
@@ -6275,14 +7346,13 @@
             let mediaHtml;
             if (isVideo) {
                 mediaHtml = `
-                    <video class="feed-media" playsinline loop muted preload="metadata" poster="${thumbOrSource}">
-                        <source src="${item.source}" type="video/mp4">
+                    <video class="feed-media" src="${item.source}" playsinline loop muted preload="metadata" ${isHlsVideo ? 'crossorigin="anonymous"' : ''} poster="${thumbOrSource}" data-video-kind="${isHlsVideo ? 'hls' : 'file'}">
                     </video>
+                    <div class="video-caption-overlay is-empty" aria-hidden="true">
+                        <div class="video-caption-text"></div>
+                    </div>
                     <div class="video-progress"><div class="video-progress-fill"></div></div>
-                    <i class="bi bi-play-fill play-icon-overlay"></i>
-                    <div class="sound-toggle" role="button" aria-label="Ton ein/aus" onclick="toggleGlobalSound(this)">
-                        <i class="bi bi-volume-mute-fill"></i>
-                    </div>`;
+                    <i class="bi bi-play-fill play-icon-overlay"></i>`;
             } else {
                 mediaHtml = `<img class="feed-media" src="${item.source}" alt="${safeTitle}" loading="lazy" />`;
             }
@@ -6298,6 +7368,15 @@
                             data-recipe-id="${item.recipeId}">
                         <i class="bi bi-heart-fill"></i>
                     </button>
+                    ${isVideo ? `
+                    <button type="button"
+                            class="subtitle-toggle is-active"
+                            aria-label="Untertitel"
+                            aria-pressed="true"
+                            onclick="event.stopPropagation(); toggleSubtitles(this.closest('.feed-item'));"
+                            title="Untertitel">
+                        <i class="bi bi-badge-cc-fill"></i>
+                    </button>` : ''}
                     <i class="bi bi-heart-fill double-tap-heart"></i>
                     <div class="info-container">
                         <div class="chef-badge">
@@ -6413,6 +7492,7 @@
                 if (emptyEl) emptyEl.style.display = 'none';
                 itemsEl.innerHTML = postings.map(buildCreatorFeedItemHtml).join('');
                 attachCreatorFeedHandlers();
+                initHlsVideos(itemsEl); // Initialize HLS for dynamically loaded videos
                 creatorFeedCache = { creatorHash, loaded: true };
             } catch (e) {
                 console.error('Creator feed load error:', e);
@@ -6435,6 +7515,27 @@
             renderPlan();
             updatePlanModeHeader();
             setSection('feed');
+
+            // Initialize HLS videos
+            initHlsVideos();
+
+            // Check for toast messages from URL parameter
+            const params = new URLSearchParams(window.location.search);
+            const toastType = params.get('toast');
+            if (toastType) {
+                // Clean URL
+                const cleanUrl = window.location.pathname;
+                window.history.replaceState({}, '', cleanUrl);
+
+                // Show appropriate toast
+                setTimeout(() => {
+                    if (toastType === 'published') {
+                        showToast('Rezept veröffentlicht!', 'success', 2500);
+                    } else if (toastType === 'video-uploading') {
+                        showToast('Video wird hochgeladen. Du erhältst eine Nachricht wenn es bereit ist.', 'info', 4000);
+                    }
+                }, 300);
+            }
 
             // Restore scroll position when navigating back from the recipe detail page.
             setTimeout(() => {

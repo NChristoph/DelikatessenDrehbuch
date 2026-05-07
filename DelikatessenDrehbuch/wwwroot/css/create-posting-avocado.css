@@ -513,6 +513,166 @@
   border-color: var(--cp-ink-deep);
 }
 
+/* Ingredient Add Chip */
+.ingredient-add-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--cp-cream);
+  border: 1.5px solid var(--cp-avocado);
+  border-radius: 999px;
+  color: var(--cp-ink-deep);
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.ingredient-add-chip .ingredient-group-icon {
+  font-size: 18px;
+}
+
+/* ========================================
+   Probability Steps (Erkannter Step)
+   ======================================== */
+
+.cp-step-card {
+  background: var(--cp-card);
+  border: 1px solid var(--cp-ink-line);
+  border-radius: var(--cp-radius-md);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.cp-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cp-ink-mute);
+}
+
+.cp-btn-accept {
+  background: var(--cp-gradient-coral);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.cp-btn-accept:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 120, 73, 0.3);
+}
+
+.cp-btn-accept:active {
+  transform: translateY(0);
+}
+
+/* Probability Step Text Highlighting */
+.cp-step-card .token-highlight[data-var="action"],
+.cp-step-card strong[data-var="action"] {
+  color: var(--cp-coral);
+  font-weight: 700;
+}
+
+.cp-step-card .token-highlight[data-var="ingredient"],
+.cp-step-card .token-highlight.token-green,
+.cp-step-card em[data-var="ingredient"] {
+  font-style: normal;
+  font-weight: 600;
+  border-bottom: 2px dotted var(--cp-orange);
+  color: var(--cp-ink-deep);
+}
+
+/* Step Card Snippet Tokens */
+.template-snippet-var {
+  color: var(--cp-avocado) !important;
+  font-weight: 600 !important;
+  border-bottom: 2px dotted var(--cp-avocado) !important;
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+/* Template Card Snippet - Vollständiger Text */
+.template-card-snippet {
+  white-space: normal !important;
+  overflow: visible !important;
+  text-overflow: clip !important;
+  max-height: none !important;
+  -webkit-line-clamp: unset !important;
+  display: block !important;
+  line-height: 1.5;
+}
+
+/* Current Step & Preview Step - Neues Design */
+.current-step-wrap,
+.probability-preview-wrap {
+  border: 1px solid var(--cp-ink-line);
+  border-radius: var(--cp-radius-md);
+  padding: 14px;
+  margin-bottom: 12px;
+}
+
+.current-step-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.preview-step-title {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--cp-ink-mute);
+  margin: 0;
+}
+
+.preview-step-text {
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--cp-ink-deep);
+}
+
+/* Grüne Tokens auch in Preview Steps */
+.preview-step-text .token-highlight,
+.preview-step-text .template-var,
+.current-step-wrap .token-highlight,
+.current-step-wrap .template-var {
+  color: var(--cp-avocado) !important;
+  font-weight: 600 !important;
+  border-bottom: 2px dotted var(--cp-avocado) !important;
+  background: transparent !important;
+  text-shadow: none !important;
+}
+
+/* Action Buttons in Step Areas */
+.current-step-wrap .creator-cta-primary,
+.probability-preview-wrap .creator-cta-primary,
+.cp-step-card .creator-cta-primary {
+  background: var(--cp-gradient-coral);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.current-step-wrap .creator-cta-primary:hover,
+.probability-preview-wrap .creator-cta-primary:hover,
+.cp-step-card .creator-cta-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 120, 73, 0.3);
+}
+
 /* ========================================
    Sticky Publish Bar
    ======================================== */
@@ -956,8 +1116,8 @@ html {
 .token-green,
 .token-variable,
 .template-var.token-green {
-    background: linear-gradient(135deg, #faf6ec, #f5efe1) !important;
-    color: #14391f !important;
+    background: white !important;
+    color: #5fa052 !important;
     padding: 2px 8px !important;
     border-radius: 4px !important;
     border-bottom: 2px dotted #5fa052 !important;

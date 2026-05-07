@@ -21,7 +21,9 @@
         "MediumPic": "blobmediumdelikatessendrehbuch",
         "Azure_Acount_Name": "blobdelikatessendrehbuch",
         "Blob_Conection_String": "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/",
-        "EmailPasswort": "Ni049753!"
+        "EmailPasswort": "Ni049753!",
+        "OPENAI_API_KEY": "DEIN_OPENAI_KEY_HIER",
+        "DEEPL_API_KEY": "Deep_L_API"
       }
     },
     "IIS Express": {
@@ -35,8 +37,9 @@
         "MediumPic": "blobmediumdelikatessendrehbuch",
         "Azure_Acount_Name": "blobdelikatessendrehbuch",
         "Blob_Conection_String": "DefaultEndpointsProtocol=https;EndpointSuffix=core.windows.net;AccountName=blobdelikatessendrehbuch;AccountKey=NNJKin4e0NxZwD8XpLgZC+21vgcvkMd5tcp1gXiM4+zSAYV2DGDBx7unmFglQrs9YQH/RdtJIMME+AStw4Espg==;BlobEndpoint=https://blobdelikatessendrehbuch.blob.core.windows.net/;FileEndpoint=https://blobdelikatessendrehbuch.file.core.windows.net/;QueueEndpoint=https://blobdelikatessendrehbuch.queue.core.windows.net/;TableEndpoint=https://blobdelikatessendrehbuch.table.core.windows.net/",
-        "EmailPasswort": "Ni049753!"
-
+        "EmailPasswort": "Ni049753!",
+        "OPENAI_API_KEY": "DEIN_OPENAI_KEY_HIER",
+        "DEEPL_API_KEY": "Deep_L_API"
       }
     }
   }

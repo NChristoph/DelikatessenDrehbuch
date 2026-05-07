@@ -66,6 +66,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<MealPlanPurchase> MealPlanPurchases { get; set; }
         public DbSet<WorldSharedShoppingList> WorldSharedShoppingList { get; set; }
         public DbSet<WorldUserNotification> WorldUserNotifications { get; set; }
+        public DbSet<WorldUserPendingVideo> WorldUserPendingVideos { get; set; }
         public DbSet<RecipeUserVariant> RecipeUserVariants { get; set; }
         public DbSet<RecipeCommunityVariant> RecipeCommunityVariants { get; set; }
 
