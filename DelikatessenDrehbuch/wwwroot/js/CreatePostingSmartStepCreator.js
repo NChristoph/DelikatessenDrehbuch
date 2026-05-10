@@ -51,6 +51,11 @@
     const DEBUG_ENABLED = true; // Set to true for console logging
     const draftEngine = window.CreatePostingTemplateDrafts || null;
 
+    // Helper to get current language from HTML lang attribute
+    function getCurrentLanguage() {
+        return (document.documentElement.lang || DEFAULT_LANG).toLowerCase();
+    }
+
     // Scoring & Ranking Constants
     const SCORE = {
         // Tag Matching
@@ -268,6 +273,25 @@
     }
 
     // -----------------------------
+    // TEMPLATE ACCESSOR (supports both old multi-language and new single-language format)
+    // -----------------------------
+    function getStepTemplate(step, lang) {
+        if (!step) return '';
+
+        // New format: single template field (from language-specific JSON files)
+        if (step.template) {
+            return step.template;
+        }
+
+        // Old format: templates object with multiple languages
+        if (step.templates) {
+            return step.templates[lang] || step.templates.de || '';
+        }
+
+        return '';
+    }
+
+    // -----------------------------
     // FRACTION HELPERS
     // -----------------------------
     function getFractionOptions() {
@@ -427,7 +451,8 @@
      * @returns {Promise<Array>} Master steps data
      */
     async function loadJson() {
-        return await window.CreatePostingDataStore.load("masterSteps");
+        const lang = currentLang || DEFAULT_LANG;
+        return await window.CreatePostingDataStore.load("masterSteps", { language: lang });
     }
 
     /**
@@ -1365,10 +1390,20 @@
     function getPhaseMeta(phase) {
         const p = (phase ?? 0).toString();
         const meta = doc?.phases?.[p];
-        const label =
-            meta?.label?.[currentLang] ??
-            meta?.label?.[DEFAULT_LANG] ??
-            (typeof meta === "string" ? meta : p);
+
+        // Support both new format (label is string) and old format (label is object)
+        let label;
+        if (typeof meta?.label === 'string') {
+            // New format: label is already a string in the correct language
+            label = meta.label;
+        } else if (typeof meta?.label === 'object') {
+            // Old format: label is an object with language keys
+            label = meta.label[currentLang] ?? meta.label[DEFAULT_LANG];
+        } else if (typeof meta === 'string') {
+            label = meta;
+        } else {
+            label = p;  // Fallback to phase number
+        }
 
         const icon = meta?.icon ?? "?";
         return { label, icon };
@@ -1377,15 +1412,27 @@
     function getSubGroupMeta(subGroupKey) {
         const meta = doc?.sub_groups?.[subGroupKey];
         if (!meta) return { label: subGroupKey, icon: "", description: "" };
-        const label =
-            meta?.label?.[currentLang] ??
-            meta?.label?.[DEFAULT_LANG] ??
-            subGroupKey;
+
+        // Support both new format (strings) and old format (objects with language keys)
+        let label;
+        if (typeof meta?.label === 'string') {
+            label = meta.label;
+        } else if (typeof meta?.label === 'object') {
+            label = meta.label[currentLang] ?? meta.label[DEFAULT_LANG];
+        } else {
+            label = subGroupKey;
+        }
+
+        let description;
+        if (typeof meta?.description === 'string') {
+            description = meta.description;
+        } else if (typeof meta?.description === 'object') {
+            description = meta.description[currentLang] ?? meta.description[DEFAULT_LANG];
+        } else {
+            description = "";
+        }
+
         const icon = meta?.icon ?? "";
-        const description =
-            meta?.description?.[currentLang] ??
-            meta?.description?.[DEFAULT_LANG] ??
-            "";
         return { label, icon, description };
     }
 
@@ -1400,8 +1447,8 @@
             step.description || '',
             step.master_id || '',
             step.action || '',
-            step.templates?.[lang] || '',
-            step.templates?.de || '',
+            getStepTemplate(step, lang),
+            getStepTemplate(step, 'de'),
             ...(step.selection_tags || [])
         ].join(' ').toLowerCase();
         return searchText.includes(q);
@@ -1537,7 +1584,7 @@
                 // Steps in Sub-Group
                 sgSteps.forEach(step => {
                     const title = step.description ?? "";
-                    const templateRaw = step.templates?.[currentLang] ?? "";
+                    const templateRaw = getStepTemplate(step, currentLang);
 
                     // Affinity-Score Badge
                     const affScore = window.MasterStepRenderer?.getStepGroupScore
@@ -4771,25 +4818,53 @@
             }
         });
 
-        // language dropdown
-        const ls = langSelect();
-        if (ls) {
-            ls.addEventListener("change", () => {
-                currentLang = (ls.value || DEFAULT_LANG).toLowerCase();
+        // Watch for language changes via MutationObserver on document.documentElement.lang
+        const observer = new MutationObserver(async (mutations) => {
+            for (const mutation of mutations) {
+                if (mutation.type === 'attributes' && mutation.attributeName === 'lang') {
+                    const oldLang = currentLang;
+                    currentLang = getCurrentLanguage();
 
-                renderStepButtons();
+                    if (oldLang !== currentLang) {
+                        DEBUG("LANG", `Language changed from ${oldLang} to ${currentLang}`);
 
-                // wenn aktiv, template neu holen, aber values behalten (du kannst später language-values bauen)
-                const stepDraft = getCurrentStepDraft();
-                if (stepDraft) {
-                    const step = steps.find(s => s.master_id === stepDraft.master_id);
-                    stepDraft.templateRaw = step?.templates?.[currentLang] ?? "";
-                    closeInlineEditor();
-                    renderMasterText();
-                    setActiveButton(stepDraft.master_id);
+                        // Clear ALL cached masterSteps (all languages)
+                        const allLangs = ["de", "en", "esp", "prt", "id", "nl", "sv", "da", "no", "ms"];
+                        allLangs.forEach(lang => {
+                            window.CreatePostingDataStore.clear(`masterSteps.${lang}`);
+                        });
+
+                        // Reload steps in new language
+                        try {
+                            const data = await loadJson();
+                            doc = data;  // Update doc with new language data (includes phases, sub_groups, etc.)
+                            steps = data?.master_steps || [];
+                            DEBUG("LANG", `Steps reloaded for language: ${currentLang}`, { stepCount: steps.length });
+                        } catch (error) {
+                            DEBUG("LANG", `Failed to reload steps for language: ${currentLang}`, { error: error.message });
+                        }
+
+                        renderStepButtons();
+
+                        // wenn aktiv, template neu holen, aber values behalten
+                        const stepDraft = getCurrentStepDraft();
+                        if (stepDraft) {
+                            const step = steps.find(s => s.master_id === stepDraft.master_id);
+                            stepDraft.templateRaw = getStepTemplate(step, currentLang);
+                            closeInlineEditor();
+                            renderMasterText();
+                            setActiveButton(stepDraft.master_id);
+                        }
+                    }
                 }
-            });
-        }
+            }
+        });
+
+        // Start observing the html element for lang attribute changes
+        observer.observe(document.documentElement, {
+            attributes: true,
+            attributeFilter: ['lang']
+        });
     }
 
     // ════════════════════════════════════════════════════════════════════════════
@@ -4805,6 +4880,10 @@
     async function init() {
         try {
             DEBUG("DATA", "Initializing Smart Step Creator...");
+
+            // Initialize currentLang from HTML lang attribute
+            currentLang = getCurrentLanguage();
+            DEBUG("DATA", `Initial language set to: ${currentLang}`);
 
             // Load all required data in parallel
             const [masterStepsData, catalogData, matchRulesData] = await Promise.all([

@@ -1019,19 +1019,36 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .GroupBy(s => s.FromIngredientId)
                     .ToDictionary(g => g.Key, g => g.Last());
 
+                // WICHTIG: Zutatennamen in der ZIELSPRACHE (language) verwenden!
+                // Die AI soll eine vollständige Übersetzung erstellen, inklusive Zutatennamen.
                 var ingredientsAfterSwap = recipe.Ingredients
                     .Select(link =>
                     {
                         var ing = link.Ingredient?.IngredientsAndNutrients;
                         var ingredientId = ing?.Id ?? 0;
 
+                        // Verwende ZIELSPRACHE für Zutatennamen (z.B. Spanisch wenn language="es")
                         var name = ing == null ? string.Empty : GetIngredientName(ing, language);
                         var qty = link.Ingredient?.Quantity?.Quantitys ?? 0;
                         var unit = link.Ingredient?.Measure?.UnitOfMeasurement ?? "g";
 
                         if (ingredientId > 0 && swapByFromId.TryGetValue(ingredientId, out var swap))
                         {
-                            name = swap.ToName;
+                            // Hole den Ingredient-Namen in der ZIELSPRACHE
+                            var swapIng = _context.IngredientsAndNutrients
+                                .AsNoTracking()
+                                .FirstOrDefault(i => i.Id == swap.ToIngredientId);
+
+                            if (swapIng != null)
+                            {
+                                name = GetIngredientName(swapIng, language);
+                            }
+                            else
+                            {
+                                // Fallback: verwende swap.ToName
+                                name = swap.ToName;
+                            }
+
                             qty = (double)swap.NewQuantity;
                             unit = swap.Unit;
                         }

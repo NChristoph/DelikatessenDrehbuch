@@ -4790,12 +4790,9 @@
                     clearCreatePostingDraftResetCookie();
                     sessionStorage.removeItem('createPostingIdempotencyKey');
 
-                    // Different redirect based on content type and translation status
+                    // Different redirect based on content type
                     if (data.isVideo) {
                         window.location.href = '/WorldMiniApp/Home/Index?toast=video-uploading';
-                    } else if (data.translationInProgress) {
-                        // Sofortiger Wechsel mit Info über laufende Übersetzung
-                        window.location.href = '/WorldMiniApp/Home/Index?toast=translation-in-progress';
                     } else {
                         window.location.href = '/WorldMiniApp/Home/Index?toast=published';
                     }

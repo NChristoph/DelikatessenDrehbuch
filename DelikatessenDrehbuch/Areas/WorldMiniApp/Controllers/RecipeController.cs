@@ -148,20 +148,69 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 // Start background translation (4 core languages: DE, EN, ESP, PRT)
                 // Neuer Scope = eigener DbContext, verhindert Threading-Issues
                 var recipeIdForTranslation = recipe.Id;
+                var postingIdForNotification = posting.Id;
+                var userHashForNotification = userHash;
+                var recipeTitleForNotification = recipe.Title;
+
                 _ = Task.Run(async () =>
                 {
                     using var scope = _serviceScopeFactory.CreateScope();
                     var translationService = scope.ServiceProvider.GetRequiredService<IRecipeStepTranslationService>();
+                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                     var logger = scope.ServiceProvider.GetRequiredService<ILogger<RecipeController>>();
 
                     try
                     {
+                        logger.LogInformation("🌍 Starting background translation for recipe {RecipeId}...", recipeIdForTranslation);
                         await translationService.TranslateRecipeStepsAsync(recipeIdForTranslation);
-                        logger.LogInformation("Background translation completed for recipe {RecipeId}.", recipeIdForTranslation);
+                        logger.LogInformation("✅ Background translation completed for recipe {RecipeId}.", recipeIdForTranslation);
+
+                        // Benachrichtigung: Übersetzungen fertig!
+                        var notification = new WorldUserNotification
+                        {
+                            UserHash = userHashForNotification,
+                            Icon = "bi-translate",
+                            Sender = "Translation Service",
+                            Description = $"✅ Recipe \"{recipeTitleForNotification}\" is now available in 4 languages!",
+                            Href = $"/WorldMiniApp/Home/ShowRecipe/{recipeIdForTranslation}",
+                            NotificationKey = $"recipe_translation_{recipeIdForTranslation}",
+                            EventType = "recipe_translated",
+                            CreatedAtUtc = DateTime.UtcNow,
+                            IsSeen = false
+                        };
+
+                        await dbContext.WorldUserNotifications.AddAsync(notification);
+                        await dbContext.SaveChangesAsync();
+
+                        logger.LogInformation("📬 Translation notification sent to user {UserHash}", userHashForNotification);
                     }
                     catch (Exception ex)
                     {
-                        logger.LogError(ex, "Background translation failed for recipe {RecipeId}.", recipeIdForTranslation);
+                        logger.LogError(ex, "❌ Background translation failed for recipe {RecipeId}.", recipeIdForTranslation);
+
+                        // Fehler-Benachrichtigung
+                        try
+                        {
+                            var errorNotification = new WorldUserNotification
+                            {
+                                UserHash = userHashForNotification,
+                                Icon = "bi-exclamation-triangle",
+                                Sender = "Translation Service",
+                                Description = $"⚠️ Translation failed for recipe \"{recipeTitleForNotification}\". Manual check needed.",
+                                Href = $"/WorldMiniApp/Home/ShowRecipe/{recipeIdForTranslation}",
+                                NotificationKey = $"recipe_translation_error_{recipeIdForTranslation}",
+                                EventType = "recipe_translation_error",
+                                CreatedAtUtc = DateTime.UtcNow,
+                                IsSeen = false
+                            };
+
+                            await dbContext.WorldUserNotifications.AddAsync(errorNotification);
+                            await dbContext.SaveChangesAsync();
+                        }
+                        catch (Exception notifEx)
+                        {
+                            logger.LogError(notifEx, "Failed to send error notification");
+                        }
                     }
                 });
 
@@ -199,7 +248,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     // ✅ Caption-Generation läuft automatisch via BunnyWebhookController → CaptionGenerationService (Whisper+DeepL)
                 }
 
-                var successResponse = new { success = true, isVideo = isVideo };
+                var successResponse = new {
+                    success = true,
+                    isVideo = isVideo,
+                    recipeId = recipe.Id,
+                    postingId = posting.Id,
+                    translationInProgress = true,
+                    message = "✅ Upload successful! Translations are being processed in the background. You'll receive a notification when ready."
+                };
 
                 // Cache successful response for idempotency (10 minutes)
                 if (!string.IsNullOrWhiteSpace(idempotencyKey))

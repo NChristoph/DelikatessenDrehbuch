@@ -279,17 +279,27 @@
 
     function render(masterId, variables, lang) {
         const step = findTemplate(masterId);
-        if (!step || !step.templates) return '';
+        if (!step) return '';
 
         const key = (lang || 'de').toLowerCase();
-        const tpl = step.templates[key] || step.templates.de || step.templates.en || '';
+
+        // Support both old format (templates object) and new format (single template field)
+        let tpl = '';
+        if (step.template) {
+            // New format: single template from language-specific JSON
+            tpl = step.template;
+        } else if (step.templates) {
+            // Old format: templates object with multiple languages
+            tpl = step.templates[key] || step.templates.de || step.templates.en || '';
+        }
+
         const localizedVariables = localizeVariables(variables || {}, key);
         return renderText(tpl, localizedVariables);
     }
 
     function renderAll(masterId, variables) {
         const step = findTemplate(masterId);
-        if (!step || !step.templates) {
+        if (!step || (!step.templates && !step.template)) {
             return { de: '', en: '', esp: '', prt: '' };
         }
 

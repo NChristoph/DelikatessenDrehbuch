@@ -73,6 +73,8 @@ Avoid vague generic references like ""add the lentils"" when more than one lenti
 
 Output language: {responseLanguage}
 
+IMPORTANT: Use the ingredient names EXACTLY as shown in the ""Ingredient list"" below. These names are already in the correct language ({responseLanguage}). Write the complete steps in {responseLanguage}, using these ingredient names.
+
 Recipe title: {recipeTitle}
 
 Ingredient list (after swap):
@@ -88,7 +90,8 @@ Rules:
 - Return ONLY the new steps as JSON (schema enforced).
 - Steps must be cookable for beginners (temperatures/times/visual cues where appropriate).
 - Do not invent new ingredients that are not in the ingredient list after swap.
-- Keep steps concise (usually 6-12 steps).";
+- Keep steps concise (usually 6-12 steps).
+- Write everything in {responseLanguage}, including using the ingredient names from the list above!";
 
             var requestBody = new
             {

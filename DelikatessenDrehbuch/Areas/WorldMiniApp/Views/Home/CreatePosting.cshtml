@@ -982,12 +982,61 @@ button, input, select, textarea { touch-action: manipulation; }
             }
         }
 
+        // Language toggle
+        function setupLanguageToggle() {
+            const langToggle = document.getElementById('langToggle');
+            if (!langToggle) {
+                console.warn('[Language] langToggle button not found');
+                return;
+            }
+            console.log('[Language] setupLanguageToggle initialized');
+
+            const supportedLangs = ['de', 'en', 'es', 'pt', 'id', 'nl', 'sv', 'da', 'no', 'ms'];
+            let currentIndex = supportedLangs.indexOf(document.documentElement.lang || 'de');
+            if (currentIndex === -1) currentIndex = 0;
+
+            // Show current language in button
+            const currentLang = supportedLangs[currentIndex];
+            langToggle.innerHTML = `${currentLang.toUpperCase()} <i class="bi bi-chevron-down" style="font-size:9px;"></i>`;
+
+            langToggle.addEventListener('click', () => {
+                // Cycle through languages
+                currentIndex = (currentIndex + 1) % supportedLangs.length;
+                const newLang = supportedLangs[currentIndex];
+
+                // Update HTML lang attribute (this triggers MutationObserver in SmartStepCreator)
+                document.documentElement.lang = newLang;
+
+                // Save language preference in cookie (expires in 1 year)
+                const expires = new Date();
+                expires.setFullYear(expires.getFullYear() + 1);
+                document.cookie = `UserLanguage=${newLang}; expires=${expires.toUTCString()}; path=/; SameSite=Lax`;
+
+                // Update button text
+                langToggle.innerHTML = `${newLang.toUpperCase()} <i class="bi bi-chevron-down" style="font-size:9px;"></i>`;
+
+                // Update all lang-dependent elements
+                document.querySelectorAll('.label-lang').forEach(el => {
+                    const text = el.getAttribute(`data-${newLang}`);
+                    if (text) el.textContent = text;
+                });
+
+                // Translate i18n elements
+                if (window.CreatePostingI18n) {
+                    window.CreatePostingI18n.translatePage();
+                }
+
+                console.log(`[Language] Switched to: ${newLang}, Cookie saved`);
+            });
+        }
+
         // Init on page load
         document.addEventListener('DOMContentLoaded', () => {
             initScrollSpy();
             setupCompletionMonitoring();
             setupHeroLiveUpdates();
             updateCompletionStates();
+            setupLanguageToggle();
         });
     </script>
 }

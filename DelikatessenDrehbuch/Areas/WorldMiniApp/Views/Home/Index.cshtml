@@ -296,6 +296,14 @@
                 showToastBottomRight('@SharedLocalizer["Toast.RecipePublished"]');
                 // URL aufräumen
                 window.history.replaceState({}, '', window.location.pathname);
+            } else if (toastParam === 'translation-in-progress') {
+                showToastBottomRight('✅ Upload erfolgreich! Übersetzungen werden im Hintergrund erstellt. Du erhältst eine Benachrichtigung wenn fertig.');
+                // URL aufräumen
+                window.history.replaceState({}, '', window.location.pathname);
+            } else if (toastParam === 'video-uploading') {
+                showToastBottomRight('📹 Video wird verarbeitet! Dies kann einige Minuten dauern.');
+                // URL aufräumen
+                window.history.replaceState({}, '', window.location.pathname);
             }
 
             const rememberToggle = document.getElementById('rememberLoginToggle');

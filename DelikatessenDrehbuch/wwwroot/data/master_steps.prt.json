@@ -1,0 +1,8059 @@
+{
+  "_meta": {
+    "version": "2.0.0",
+    "created_at": "2026-02-17",
+    "updated_at": "2026-03-27",
+    "language": "prt",
+    "description": "Template-basierte Master-Steps für dynamische Rezept-Schritt-Generierung. Ergänzt recipe_step_mapping.json durch variable Platzhalter ({{var}}).",
+    "usage": {
+      "templates": "Jeder Step hat Templates (de/en/esp/prt/id/nl/sv/da/no/ms) mit {{variable}}-Platzhaltern.",
+      "variables": "Liste der benötigten Variablen pro Step. Müssen beim Rendern übergeben werden. Hinweis: Für Abwärtskompatibilität können Aliase (z.B. spices) enthalten sein.",
+      "phases": "0=Basis, 1=Vorbereitung, 2=Kochen, 3=Würzen/Finishing, 4=Anrichten/Servieren",
+      "algorithm": "1) Rezepttyp & Zutaten analysieren → passende master_steps auswählen. 2) Variablen aus Rezeptdaten befüllen. 3) Nach Phase sortieren. 4) Templates rendern.",
+      "ingredient_articles": "Die Variable {{ingredient}} enthält in allen Sprachen den Artikel. de: 'die Tomaten / den Knoblauch', en: 'the tomatoes / the garlic', esp: 'los tomates / el ajo', prt: 'os tomates / o alho', id/ms: kein Artikel erforderlich, nl: 'de tomaten / de knoflook', sv/da/no: Artikel als Suffix im Wort ('tomater' → 'tomaterna/tomaterne')."
+    },
+    "stable_key_policy": "Armazene apenas chaves semanticas estaveis deste JSON, nunca IDs do banco de dados nem entradas livres do usuario como referencia."
+  },
+  "phases": {
+    "0": {
+      "label": "Base",
+      "icon": "✨"
+    },
+    "1": {
+      "label": "Preparação",
+      "icon": "🔪"
+    },
+    "2": {
+      "label": "Cozinhar",
+      "icon": "🔥"
+    },
+    "3": {
+      "label": "Temperar / Finalizar",
+      "icon": "🧂"
+    },
+    "4": {
+      "label": "Empratar / Servir",
+      "icon": "🍽️"
+    }
+  },
+  "sub_groups": {
+    "ingredient_prep": {
+      "label": "Preparação de ingredientes",
+      "icon": "🥕",
+      "description": "Lavar, descascar, cortar, picar e preparar ingredientes"
+    },
+    "equipment_prep": {
+      "label": "Preparação de equipamentos",
+      "icon": "⚙️",
+      "description": "Pré-aquecer equipamentos e preparar estações de cozinha"
+    },
+    "mixing": {
+      "label": "Misturar e mexer",
+      "icon": "🥣",
+      "description": "Mexer, bater e combinar ingredientes em misturas"
+    },
+    "dough": {
+      "label": "Trabalho de massa",
+      "icon": "🫓",
+      "description": "Amassar, fermentar, porcionar e abrir a massa"
+    },
+    "marinating": {
+      "label": "Marinar e demolhar",
+      "icon": "🫙",
+      "description": "Demolhar, marinar e infundir sabores nos ingredientes"
+    },
+    "coating": {
+      "label": "Empanar e envolver",
+      "icon": "🌯",
+      "description": "Empanar, rechear e envolver ingredientes"
+    },
+    "dry_heat": {
+      "label": "Calor seco",
+      "icon": "🔥",
+      "description": "Fritar, grelhar, assar e tostar sem líquido"
+    },
+    "wet_heat": {
+      "label": "Calor húmido",
+      "icon": "💧",
+      "description": "Ferver, cozinhar a vapor e cozinhar ingredientes em líquidos"
+    },
+    "sauce_work": {
+      "label": "Trabalho de molhos",
+      "icon": "🫕",
+      "description": "Preparar molhos, deglacear, reduzir e engrossar"
+    },
+    "processing": {
+      "label": "Processamento",
+      "icon": "🔄",
+      "description": "Mexer, adicionar, triturar e outros passos de processamento"
+    },
+    "seasoning": {
+      "label": "Temperar",
+      "icon": "🧂",
+      "description": "Provar, ajustar temperos e equilíbrio final de sabores"
+    },
+    "resting": {
+      "label": "Descanso e arrefecimento",
+      "icon": "❄️",
+      "description": "Descansar, arrefecer e refrigerar para textura ideal"
+    },
+    "finishing": {
+      "label": "Toques finais",
+      "icon": "✨",
+      "description": "Glacear, decorar e toques finais"
+    },
+    "assembly": {
+      "label": "Montagem e empratamento",
+      "icon": "🍽️",
+      "description": "Montar, camadas e empratar pratos"
+    },
+    "serving": {
+      "label": "Servir",
+      "icon": "🤲",
+      "description": "Servir o prato finalizado"
+    }
+  },
+  "master_steps": [
+    {
+      "master_id": "PREP_HEAT_01",
+      "phase": 1,
+      "sub_group": "equipment_prep",
+      "action": "preheat",
+      "equipment": 1,
+      "description": "Vorheizen von Küchengeräten",
+      "template": "Pré-aqueça {{equipment}} a {{temp}}[ ({{mode}})].",
+      "variables": [
+        "equipment",
+        "temp",
+        "mode"
+      ],
+      "required_variables": [
+        "equipment",
+        "temp"
+      ],
+      "optional_variables": [
+        "mode"
+      ],
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:preheat",
+        "technique:preheat",
+        "vorheizen",
+        "preheat",
+        "backofen",
+        "oven",
+        "equipment_id:1",
+        "dry_heat",
+        "variable:equipment",
+        "variable:temp",
+        "variable:mode",
+        "category:main",
+        "sub_group:equipment_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_WASH_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "wash",
+      "equipment": 0,
+      "description": "Waschen, optionales Entfernen (Schale/Gräten/etc.) und Trocknen von Zutaten",
+      "template": "{{action}} {{ingredient}} bem sob água fria[, remova {{removal}}][ e seque {{pronoun}} bem].",
+      "variables": [
+        "action",
+        "ingredient",
+        "removal",
+        "pronoun"
+      ],
+      "required_variables": [
+        "action",
+        "ingredient"
+      ],
+      "optional_variables": [
+        "removal",
+        "pronoun"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:wash",
+        "technique:wash",
+        "waschen",
+        "wash",
+        "raw_prep",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:pronoun",
+        "category:main",
+        "family:vegetable",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_PEEL_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "peel",
+      "required_ingredient_tags": [
+        "peelable"
+      ],
+      "equipment": 0,
+      "description": "Schälen von Obst, Gemüse oder Knollen",
+      "template": "Descasque {{ingredient}}[ com um {{tool}}].",
+      "variables": [
+        "ingredient",
+        "tool"
+      ],
+      "required_variables": [
+        "ingredient"
+      ],
+      "optional_variables": [
+        "tool"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:peel",
+        "technique:peel",
+        "schälen",
+        "schaelen",
+        "peel",
+        "sparschäler",
+        "sparschaeler",
+        "peeler",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "category:main",
+        "family:vegetable",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_CUT_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "cut",
+      "required_ingredient_tags": [
+        "cuttable"
+      ],
+      "equipment": 0,
+      "description": "Schneiden/Zerkleinern in bestimmte Formen",
+      "template": "Corte {{ingredient}}[ em {{grind_size}}] {{shape}}.",
+      "variables": [
+        "ingredient",
+        "grind_size",
+        "shape"
+      ],
+      "required_variables": [
+        "ingredient",
+        "shape"
+      ],
+      "optional_variables": [
+        "grind_size"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:cut",
+        "technique:cut",
+        "schneiden",
+        "cut",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:grind_size",
+        "variable:shape",
+        "category:main",
+        "family:vegetable",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_SCORE_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "score",
+      "required_ingredient_tags": [
+        "roastable",
+        "fryable"
+      ],
+      "equipment": 0,
+      "description": "Einschneiden/Einritzen der Oberfläche (z.B. rautenförmig bei Braten)",
+      "template": "Faça cortes {{shape}} em {{ingredient}}.",
+      "variables": [
+        "ingredient",
+        "shape"
+      ],
+      "required_variables": [
+        "ingredient",
+        "shape"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "meat"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:score",
+        "technique:cut",
+        "einschneiden",
+        "einritzen",
+        "score",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:shape",
+        "category:main",
+        "family:meat",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_SMASH_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "smash",
+      "required_ingredient_tags": [
+        "boilable"
+      ],
+      "equipment": 0,
+      "description": "Flachdrücken oder leichtes Zerdrücken von gegarten Zutaten (z.B. Kartoffeln) vor dem weiteren Garen",
+      "template": "Achate {{ingredient}}[ com um {{tool}}] ate que {{pronoun}} {{state}} {{copula}}.",
+      "variables": [
+        "ingredient",
+        "tool",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "ingredient",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": [
+        "tool"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "best_with_visible_result",
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:smash",
+        "technique:flatten",
+        "flachdruecken",
+        "zerdruecken",
+        "andruecken",
+        "smashed",
+        "smash",
+        "flatten",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "category:main",
+        "family:vegetable",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_GRATE_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "grate",
+      "required_ingredient_tags": [
+        "grateable"
+      ],
+      "Tag": "grate",
+      "equipment": 0,
+      "description": "Reiben oder Zesten ziehen",
+      "template": "Rale {{ingredient}} {{grind_size}}[ com um {{tool}}].",
+      "variables": [
+        "ingredient",
+        "grind_size",
+        "tool"
+      ],
+      "required_variables": [
+        "ingredient",
+        "grind_size"
+      ],
+      "optional_variables": [
+        "tool"
+      ],
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "quality_rule_keys": "best_with_visible_result",
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:grate",
+        "technique:grate",
+        "reiben",
+        "grate",
+        "reibe",
+        "grater",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:grind_size",
+        "variable:tool",
+        "category:main",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_MINCE_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "mince",
+      "required_ingredient_tags": [
+        "cuttable"
+      ],
+      "equipment": 0,
+      "description": "Fein hacken von Kräutern, Knoblauch etc.",
+      "template": "Pique {{ingredient}} bem fino com uma faca.",
+      "variables": "ingredient",
+      "required_variables": [
+        "ingredient"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:mince",
+        "technique:mince",
+        "hacken",
+        "mince",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "category:main",
+        "family:vegetable",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_MARINATE_01",
+      "phase": 1,
+      "sub_group": "marinating",
+      "action": "marinate",
+      "required_ingredient_tags": [
+        "fryable",
+        "roastable",
+        "grillable"
+      ],
+      "equipment": 9,
+      "description": "Marinieren von Fleisch, Tofu, Gemüse",
+      "template": "Marine {{ingredient}} numa mistura de {{marinade}} por pelo menos {{duration}}.",
+      "variables": [
+        "ingredient",
+        "marinade",
+        "pronoun",
+        "duration"
+      ],
+      "required_variables": [
+        "ingredient",
+        "marinade",
+        "pronoun",
+        "duration"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:marinate",
+        "technique:marinate",
+        "marinieren",
+        "marinate",
+        "marinade",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:ingredient",
+        "variable:marinade",
+        "variable:pronoun",
+        "variable:duration",
+        "category:main",
+        "sub_group:marinating"
+      ]
+    },
+    {
+      "master_id": "PREP_RUB_01",
+      "phase": 1,
+      "sub_group": "marinating",
+      "action": "rub",
+      "required_ingredient_tags": [
+        "roastable",
+        "grillable",
+        "smokable"
+      ],
+      "equipment": 0,
+      "description": "Einreiben von Fleisch oder Gemüse mit Gewürzen/Öl",
+      "template": "Esfregue {{ingredient}} uniformemente com {{seasoning}}.",
+      "variables": [
+        "ingredient",
+        "seasoning"
+      ],
+      "required_variables": [
+        "ingredient",
+        "seasoning"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "meat"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:rub",
+        "technique:rub",
+        "einreiben",
+        "rub",
+        "würzen",
+        "season",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:seasoning",
+        "category:main",
+        "family:meat",
+        "sub_group:marinating"
+      ]
+    },
+    {
+      "master_id": "PREP_SOAK_01",
+      "phase": 1,
+      "sub_group": "marinating",
+      "action": "soak",
+      "equipment": 9,
+      "description": "Einweichen von Hülsenfrüchten, Getreide, getrockneten Zutaten",
+      "template": "Deixe {{ingredient}} de molho em {{liquid}} por {{duration}}.",
+      "variables": [
+        "ingredient",
+        "liquid",
+        "duration"
+      ],
+      "required_variables": [
+        "ingredient",
+        "liquid",
+        "duration"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:soak",
+        "technique:soak",
+        "einweichen",
+        "soak",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "wet_heat",
+        "equipment_id:9",
+        "variable:ingredient",
+        "variable:liquid",
+        "variable:duration",
+        "category:main",
+        "sub_group:marinating"
+      ]
+    },
+    {
+      "master_id": "PREP_MIX_DRY_01",
+      "phase": 1,
+      "sub_group": "mixing",
+      "action": "mix_dry",
+      "equipment": 9,
+      "description": "Trockene Zutaten vermengen (Mehl, Gewürze, Backpulver etc.)",
+      "template": "Misture {{ingredients}} numa tigela.",
+      "variables": "ingredients",
+      "required_variables": [
+        "ingredients"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:mix_dry",
+        "technique:mix_dry",
+        "mischen",
+        "mix",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "equipment_id:9",
+        "variable:ingredients",
+        "category:main",
+        "sub_group:mixing"
+      ]
+    },
+    {
+      "master_id": "PREP_KNEAD_01",
+      "phase": 1,
+      "sub_group": "dough",
+      "action": "knead",
+      "required_ingredient_tags": [
+        "boilable"
+      ],
+      "equipment": 9,
+      "description": "Teig kneten, bis glatt/elastisch",
+      "template": "Sove {{dough}} por {{duration}} até que fique {{state}}.",
+      "variables": [
+        "dough",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "dough",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "dough"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:knead",
+        "technique:knead",
+        "kneten",
+        "knead",
+        "teig",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:dough",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "category:main",
+        "family:dough",
+        "variable:copula",
+        "sub_group:dough"
+      ]
+    },
+    {
+      "master_id": "PREP_DOUGH_RISE_01",
+      "phase": 1,
+      "sub_group": "dough",
+      "action": "rise",
+      "required_ingredient_tags": [
+        "boilable"
+      ],
+      "equipment": 9,
+      "description": "Teig gehen lassen",
+      "template": "Deixe {{dough}} crescer em um lugar morno por {{duration}} até que o volume tenha {{state}}.",
+      "variables": [
+        "dough",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "dough",
+        "duration",
+        "state"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:rise",
+        "technique:rise",
+        "gehen_lassen",
+        "rise",
+        "teig",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:dough",
+        "variable:duration",
+        "variable:state",
+        "category:main",
+        "sub_group:dough"
+      ]
+    },
+    {
+      "master_id": "PREP_REST_01",
+      "phase": 1,
+      "sub_group": "dough",
+      "action": "rest",
+      "equipment": 9,
+      "description": "Teig/Masse ruhen lassen (gehen, quellen, entspannen)",
+      "template": "Cubra {{item}} e deixe repousar por {{duration}}[ até {{state}}].",
+      "variables": [
+        "item",
+        "pronoun",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "item",
+        "pronoun",
+        "duration",
+        "copula"
+      ],
+      "optional_variables": [
+        "state"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:rest",
+        "technique:rest",
+        "ruhen",
+        "rest",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:item",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "category:main",
+        "variable:copula",
+        "sub_group:dough"
+      ]
+    },
+    {
+      "master_id": "PREP_PORTION_01",
+      "phase": 1,
+      "sub_group": "dough",
+      "action": "portion",
+      "equipment": 0,
+      "description": "Teig/Masse in Portionen teilen",
+      "template": "Divida {{item}} em {{count}} porções iguais.",
+      "variables": [
+        "item",
+        "count"
+      ],
+      "required_variables": [
+        "item",
+        "count"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:portion",
+        "technique:portion",
+        "portionieren",
+        "portion",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:item",
+        "variable:count",
+        "category:main",
+        "sub_group:dough"
+      ]
+    },
+    {
+      "master_id": "PREP_ROLL_OUT_01",
+      "phase": 1,
+      "sub_group": "dough",
+      "action": "roll_out",
+      "required_ingredient_tags": [
+        "boilable"
+      ],
+      "equipment": 0,
+      "description": "Teig ausrollen (Pizza, Naan, Mürbteig)",
+      "template": "Abra {{dough}} sobre {{surface}} em {{grind_size}} {{shape}}.",
+      "variables": [
+        "dough",
+        "surface",
+        "grind_size",
+        "shape"
+      ],
+      "required_variables": [
+        "dough",
+        "surface",
+        "grind_size",
+        "shape"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "dough"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:roll_out",
+        "technique:roll_out",
+        "ausrollen",
+        "roll_out",
+        "teig",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:dough",
+        "variable:surface",
+        "variable:grind_size",
+        "variable:shape",
+        "category:main",
+        "family:dough",
+        "sub_group:dough"
+      ]
+    },
+    {
+      "master_id": "PREP_BREAD_3STEP_01",
+      "phase": 1,
+      "sub_group": "coating",
+      "action": "bread_3step",
+      "equipment": 9,
+      "description": "Klassisches Panieren: Mehl → Ei → Brösel",
+      "template": "Empane {{ingredient}}: passe em {{step1}}, depois em {{step2}} e por fim em {{step3}}.",
+      "variables": [
+        "ingredient",
+        "step1",
+        "step2",
+        "step3",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "step1",
+        "step2",
+        "step3",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:bread_3step",
+        "technique:bread_3step",
+        "panieren",
+        "bread",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:ingredient",
+        "variable:step1",
+        "variable:step2",
+        "variable:step3",
+        "category:main",
+        "family:vegetable",
+        "variable:pronoun",
+        "sub_group:coating"
+      ]
+    },
+    {
+      "master_id": "PREP_WHISK_01",
+      "phase": 1,
+      "sub_group": "mixing",
+      "action": "whisk",
+      "equipment": 9,
+      "description": "Flüssiges verrühren/aufschlagen (Ei, Milch, Sauce-Basis)",
+      "template": "{{action}} {{ingredients}} com um {{tool}} até {{state}}.",
+      "variables": [
+        "action",
+        "ingredients",
+        "tool",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "action",
+        "ingredients",
+        "tool",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:whisk",
+        "technique:whisk",
+        "aufschlagen",
+        "whisk",
+        "schneebesen",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:action",
+        "variable:ingredients",
+        "variable:tool",
+        "variable:state",
+        "category:main",
+        "variable:copula",
+        "sub_group:mixing"
+      ]
+    },
+    {
+      "master_id": "PREP_BEAT_01",
+      "phase": 1,
+      "sub_group": "mixing",
+      "action": "beat",
+      "equipment": 9,
+      "description": "Zutat mit Werkzeug bearbeiten bis Zustand erreicht (z.B. Eiklar schaumig schlagen)",
+      "template": "{{action}} {{ingredient}} com um {{tool}} até ficar {{state}}.",
+      "variables": [
+        "action",
+        "ingredient",
+        "tool",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "action",
+        "ingredient",
+        "tool",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "egg"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:beat",
+        "technique:beat",
+        "schlagen",
+        "beat",
+        "whisk",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:action",
+        "variable:ingredient",
+        "variable:tool",
+        "variable:pronoun",
+        "variable:state",
+        "category:main",
+        "family:egg",
+        "variable:copula",
+        "sub_group:mixing"
+      ]
+    },
+    {
+      "master_id": "PREP_FOLD_IN_01",
+      "phase": 1,
+      "sub_group": "mixing",
+      "action": "fold_in",
+      "equipment": 9,
+      "description": "Vorsichtig unterheben (Sahne, Eischnee, Schoko, Beeren)",
+      "template": "Incorpore {{ingredient}} delicadamente em {{base}}[ para que {{goal}}].",
+      "variables": [
+        "ingredient",
+        "base",
+        "goal"
+      ],
+      "required_variables": [
+        "ingredient",
+        "base"
+      ],
+      "optional_variables": [
+        "goal"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:fold_in",
+        "technique:fold_in",
+        "unterheben",
+        "fold",
+        "teigschaber",
+        "spatula",
+        "equipment_id:9",
+        "schüssel",
+        "schuessel",
+        "bowl",
+        "variable:ingredient",
+        "variable:base",
+        "variable:goal",
+        "category:main",
+        "sub_group:mixing"
+      ]
+    },
+    {
+      "master_id": "COOK_SAUTE_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "sauté",
+      "equipment": 2,
+      "description": "Anbraten/Dünsten von Basis-Zutaten",
+      "template": "Aqueça {{fat}} em {{equipment}} e {{action}} {{ingredient}}[ por {{duration}}][ até que {{state}}].",
+      "variables": [
+        "fat",
+        "equipment",
+        "action",
+        "ingredient",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "fat",
+        "equipment",
+        "action",
+        "ingredient",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": [
+        "duration",
+        "state"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:sauté",
+        "technique:sauté",
+        "anschwitzen",
+        "saute",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "dry_heat",
+        "equipment_id:2",
+        "variable:fat",
+        "variable:equipment",
+        "variable:action",
+        "variable:ingredient",
+        "variable:duration",
+        "variable:state",
+        "family:vegetable",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_FRY_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "fry",
+      "required_ingredient_tags": [
+        "fryable"
+      ],
+      "equipment": 2,
+      "description": "Braten bei starker Hitze (Schnitzel, Steak, Bratkartoffeln)",
+      "template": "Frite {{ingredient}} em {{fat}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}.",
+      "variables": [
+        "ingredient",
+        "fat",
+        "heat",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "ingredient",
+        "fat",
+        "heat",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "pan"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:fry",
+        "technique:fry",
+        "braten",
+        "fry",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "dry_heat",
+        "equipment_id:2",
+        "variable:ingredient",
+        "variable:fat",
+        "variable:heat",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "category:pan",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_DEEPFRY_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "deep_fry",
+      "required_ingredient_tags": [
+        "fryable"
+      ],
+      "equipment": 3,
+      "description": "Frittieren in heißem Öl",
+      "template": "Aqueça {{fat}} a {{temp}} e frite {{ingredient}} em porções por {{duration}} até que {{state}}. Escorra em papel toalha.",
+      "variables": [
+        "fat",
+        "temp",
+        "ingredient",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "fat",
+        "temp",
+        "ingredient",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:deep_fry",
+        "technique:deep_fry",
+        "frittieren",
+        "deep_fry",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "oil",
+        "equipment_id:3",
+        "wet_heat",
+        "variable:fat",
+        "variable:temp",
+        "variable:ingredient",
+        "variable:duration",
+        "variable:state",
+        "family:vegetable",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_BOIL_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "boil",
+      "required_ingredient_tags": [
+        "boilable"
+      ],
+      "equipment": 3,
+      "description": "Kochen in sprudelndem Wasser (Nudeln, Kartoffeln, Eier)",
+      "template": "Leve {{liquid}} à fervura numa panela, adicione {{ingredient}} e cozinhe por {{duration}} até que {{state}}.",
+      "variables": [
+        "liquid",
+        "ingredient",
+        "pronoun",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "liquid",
+        "ingredient",
+        "pronoun",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:boil",
+        "technique:boil",
+        "kochen",
+        "boil",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "wet_heat",
+        "equipment_id:3",
+        "variable:liquid",
+        "variable:ingredient",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "category:soup",
+        "variable:copula",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_SIMMER_02",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "simmer",
+      "equipment": 3,
+      "description": "Köcheln lassen, bis eine Zutat den Zielzustand erreicht",
+      "template": "Deixe {{ingredient}} cozinhar em fogo baixo por {{duration}} até que {{pronoun}} {{state}} {{copula}}.",
+      "variables": [
+        "ingredient",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "required_variables": [
+        "ingredient",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:simmer",
+        "technique:simmer",
+        "köcheln",
+        "koecheln",
+        "simmer",
+        "topf",
+        "pot",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "wet_heat",
+        "equipment_id:3",
+        "variable:ingredient",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "variable:copula",
+        "category:soup",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_SIMMER_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "simmer",
+      "equipment": 3,
+      "description": "Köcheln bei niedriger Hitze (Saucen, Suppen, Eintöpfe)",
+      "template": "Reduza o fogo e deixe {{base}} cozinhar em fogo baixo por {{duration}} até que {{state}}.",
+      "variables": [
+        "base",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:simmer",
+        "technique:simmer",
+        "köcheln",
+        "koecheln",
+        "simmer",
+        "topf",
+        "pot",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "wet_heat",
+        "equipment_id:3",
+        "variable:base",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "category:soup",
+        "variable:copula",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_STEAM_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "steam",
+      "required_ingredient_tags": [
+        "steamable"
+      ],
+      "equipment": 8,
+      "description": "Dämpfen von Gemüse, Fisch, Dim Sum",
+      "template": "Cozinhe {{ingredient}} no vapor sobre água fervente[ em {{equipment}}][ por {{duration}}][ até que {{state}}].",
+      "variables": [
+        "ingredient",
+        "equipment",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": [
+        "equipment",
+        "duration",
+        "state"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:steam",
+        "technique:steam",
+        "dämpfen",
+        "daempfen",
+        "steam",
+        "dampfgarer",
+        "steamer",
+        "wet_heat",
+        "equipment_id:8",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:duration",
+        "variable:state",
+        "family:vegetable",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_BAKE_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "bake",
+      "equipment": 1,
+      "description": "Backen im Ofen (Aufläufe, Kuchen, Brot)",
+      "template": "Coloque {{base}} no forno pré-aquecido e asse a {{temp}}[ ({{mode}})] por {{duration}} até que {{state}}.",
+      "variables": [
+        "base",
+        "pronoun",
+        "temp",
+        "mode",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "pronoun",
+        "temp",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "optional_variables": [
+        "mode"
+      ],
+      "stable_taxonomy_keys": {
+        "category_keys": "baked"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:bake",
+        "technique:bake",
+        "backen",
+        "bake",
+        "backofen",
+        "oven",
+        "dry_heat",
+        "equipment_id:1",
+        "variable:base",
+        "variable:pronoun",
+        "variable:temp",
+        "variable:mode",
+        "variable:duration",
+        "variable:state",
+        "category:baked",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_ROAST_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "roast",
+      "required_ingredient_tags": [
+        "roastable"
+      ],
+      "equipment": 1,
+      "description": "Rösten/Braten im Ofen (Gemüse, Fleisch)",
+      "template": "Espalhe {{ingredient}} numa assadeira, regue com {{fat}} e asse no forno a {{temp}} por {{duration}} até que {{state}}.",
+      "variables": [
+        "ingredient",
+        "fat",
+        "temp",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "required_variables": [
+        "ingredient",
+        "fat",
+        "temp",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "baked",
+        "diet_keys": "all"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:roast",
+        "technique:roast",
+        "rösten",
+        "roesten",
+        "roast",
+        "backofen",
+        "oven",
+        "dry_heat",
+        "equipment_id:1",
+        "variable:ingredient",
+        "variable:fat",
+        "variable:temp",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "category:baked",
+        "diet:all",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_GRILL_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "grill",
+      "required_ingredient_tags": [
+        "grillable"
+      ],
+      "equipment": 7,
+      "description": "Grillen auf dem Rost oder in der Grillpfanne",
+      "template": "Grelhe {{ingredient}} na {{equipment}} em fogo {{heat}} por {{duration}} de cada lado até que {{state}}.",
+      "variables": [
+        "ingredient",
+        "equipment",
+        "heat",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment",
+        "heat",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "diet_keys": "all"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:grill",
+        "technique:grill",
+        "grillen",
+        "grill",
+        "grill_device",
+        "dry_heat",
+        "equipment_id:7",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:heat",
+        "variable:duration",
+        "variable:state",
+        "diet:all",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_DEGLAZE_01",
+      "phase": 2,
+      "sub_group": "sauce_work",
+      "action": "deglaze",
+      "equipment": 2,
+      "description": "Ablöschen und Bratensatz lösen",
+      "template": "Deglaceie com {{liquid}} e raspe o fundo de {{equipment}}.",
+      "variables": [
+        "liquid",
+        "equipment"
+      ],
+      "required_variables": [
+        "liquid",
+        "equipment"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "liquid"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:deglaze",
+        "technique:deglaze",
+        "ablöschen",
+        "deglaze",
+        "pfanne",
+        "pan",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "equipment_id:2",
+        "dry_heat",
+        "variable:liquid",
+        "variable:equipment",
+        "family:liquid",
+        "sub_group:sauce_work"
+      ]
+    },
+    {
+      "master_id": "COOK_DEGLAZE_02",
+      "phase": 2,
+      "sub_group": "sauce_work",
+      "action": "deglaze",
+      "equipment": 2,
+      "description": "Ablöschen direkt an der Zutat (Variante ohne Equipment-Text)",
+      "template": "Deglaceie {{ingredient}} com {{liquid}} e solte o fundo.",
+      "variables": [
+        "ingredient",
+        "liquid"
+      ],
+      "required_variables": [
+        "ingredient",
+        "liquid"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:deglaze",
+        "technique:deglaze",
+        "ablöschen",
+        "deglaze",
+        "pfanne",
+        "pan",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "equipment_id:2",
+        "dry_heat",
+        "variable:ingredient",
+        "variable:liquid",
+        "sub_group:sauce_work"
+      ]
+    },
+    {
+      "master_id": "COOK_REDUCE_01",
+      "phase": 2,
+      "sub_group": "sauce_work",
+      "action": "reduce",
+      "equipment": 3,
+      "description": "Flüssigkeit einkochen/reduzieren",
+      "template": "Reduza {{liquid}} sem tampa por {{duration}} até {{state}}.",
+      "variables": [
+        "liquid",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "liquid",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "liquid"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:reduce",
+        "technique:reduce",
+        "einkochen",
+        "reduce",
+        "topf",
+        "pot",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "equipment_id:3",
+        "wet_heat",
+        "variable:liquid",
+        "variable:duration",
+        "variable:state",
+        "family:liquid",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:sauce_work"
+      ]
+    },
+    {
+      "master_id": "COOK_THICKEN_01",
+      "phase": 2,
+      "sub_group": "sauce_work",
+      "action": "thicken",
+      "equipment": 3,
+      "description": "Sauce/Suppe binden (Mehlschwitze, Stärke etc.)",
+      "template": "Engrosse {{base}} com {{thickener}} e mexa até {{state}}.",
+      "variables": [
+        "base",
+        "thickener",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "base",
+        "thickener",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:thicken",
+        "technique:thicken",
+        "eindicken",
+        "thicken",
+        "topf",
+        "pot",
+        "pfanne",
+        "pan",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "equipment_id:3",
+        "wet_heat",
+        "variable:base",
+        "variable:thickener",
+        "variable:state",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:sauce_work"
+      ]
+    },
+    {
+      "master_id": "COOK_STIR_01",
+      "phase": 2,
+      "sub_group": "processing",
+      "action": "stir",
+      "equipment": 0,
+      "description": "Unterheben/Einrühren einer Zutat in ein Gericht",
+      "template": "{{action}} {{ingredient}}[ {{method}}] em {{base}}.",
+      "variables": [
+        "action",
+        "ingredient",
+        "method",
+        "base"
+      ],
+      "required_variables": [
+        "action",
+        "ingredient",
+        "base"
+      ],
+      "optional_variables": [
+        "method"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "pan",
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:stir",
+        "technique:stir",
+        "rühren",
+        "ruehren",
+        "stir",
+        "kochlöffel",
+        "kochloeffel",
+        "spoon",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:action",
+        "variable:ingredient",
+        "variable:method",
+        "variable:base",
+        "category:pan",
+        "family:vegetable",
+        "sub_group:processing"
+      ]
+    },
+    {
+      "master_id": "COOK_DRAIN_01",
+      "phase": 2,
+      "sub_group": "processing",
+      "action": "drain",
+      "required_ingredient_tags": [
+        "boilable"
+      ],
+      "equipment": 10,
+      "description": "Abgießen durch ein Sieb",
+      "template": "Escorra {{ingredient}} através de um {{equipment}} e deixe-o repousar brevemente.",
+      "variables": [
+        "ingredient",
+        "equipment",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:drain",
+        "technique:drain",
+        "abtropfen",
+        "drain",
+        "sieb",
+        "strainer",
+        "equipment_id:10",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:pronoun",
+        "family:vegetable",
+        "sub_group:processing"
+      ]
+    },
+    {
+      "master_id": "COOK_STRAIN_01",
+      "phase": 2,
+      "sub_group": "processing",
+      "action": "strain",
+      "equipment": 10,
+      "description": "Abseihen/Filtern und etwas auffangen",
+      "template": "Coe {{ingredient}} com um {{equipment}} e reserve {{keep}}.",
+      "variables": [
+        "ingredient",
+        "equipment",
+        "keep"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment",
+        "keep"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:strain",
+        "technique:strain",
+        "abseihen",
+        "strain",
+        "sieb",
+        "strainer",
+        "equipment_id:10",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:keep",
+        "family:vegetable",
+        "sub_group:processing"
+      ]
+    },
+    {
+      "master_id": "COOK_COVER_01",
+      "phase": 2,
+      "sub_group": "processing",
+      "action": "cover",
+      "equipment": 3,
+      "description": "Mit Deckel abdecken",
+      "template": "Coloque a tampa na {{equipment}} e cozinhe tudo em fogo {{heat}} por {{duration}}.",
+      "variables": [
+        "equipment",
+        "heat",
+        "duration"
+      ],
+      "required_variables": [
+        "equipment",
+        "heat",
+        "duration"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:cover",
+        "technique:cover",
+        "abdecken",
+        "cover",
+        "equipment_id:3",
+        "topf",
+        "pot",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "wet_heat",
+        "variable:equipment",
+        "variable:heat",
+        "variable:duration",
+        "category:soup",
+        "sub_group:processing"
+      ]
+    },
+    {
+      "master_id": "COOK_BLEND_01",
+      "phase": 2,
+      "sub_group": "processing",
+      "action": "blend",
+      "required_ingredient_tags": [
+        "blendable"
+      ],
+      "equipment": 6,
+      "description": "Pürieren/Mixen (Suppen, Saucen, Smoothies)",
+      "template": "{{action}} {{base}} com {{equipment}} até {{state}}.",
+      "variables": [
+        "action",
+        "base",
+        "equipment",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "action",
+        "base",
+        "equipment",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "soup"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:blend",
+        "technique:blend",
+        "mixen",
+        "blend",
+        "mixer",
+        "equipment_id:6",
+        "blender",
+        "variable:action",
+        "variable:base",
+        "variable:equipment",
+        "variable:state",
+        "category:soup",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:processing"
+      ]
+    },
+    {
+      "master_id": "COOK_ADD_01",
+      "phase": 2,
+      "sub_group": "processing",
+      "action": "add",
+      "equipment": 0,
+      "description": "Zutat hinzufügen",
+      "template": "Adicione {{ingredient}}[ e deixe {{pronoun}}][ por {{duration}}][ {{action}}][ até {{state}}][ {{copula}}].",
+      "variables": [
+        "ingredient",
+        "pronoun",
+        "pronoun2",
+        "duration",
+        "action",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "ingredient"
+      ],
+      "optional_variables": [
+        "pronoun",
+        "pronoun2",
+        "duration",
+        "action",
+        "state",
+        "copula"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "vegetable"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:add",
+        "technique:add",
+        "zugeben",
+        "add",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:method",
+        "family:vegetable",
+        "sub_group:processing"
+      ]
+    },
+    {
+      "master_id": "COOK_BRAISE_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "braise",
+      "required_ingredient_tags": [
+        "roastable",
+        "searable"
+      ],
+      "equipment": 4,
+      "description": "Schmoren im Bräter (Braten, Ragouts)",
+      "template": "Adicione {{liquid}} a {{ingredient}} no {{equipment}}, tampe e cozinhe por {{duration}} até {{state}}.",
+      "variables": [
+        "liquid",
+        "ingredient",
+        "equipment",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "liquid",
+        "ingredient",
+        "equipment",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "diet_keys": "all"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:braise",
+        "technique:braise",
+        "schmoren",
+        "braise",
+        "bräter",
+        "braeter",
+        "roaster",
+        "wet_heat",
+        "equipment_id:4",
+        "variable:liquid",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:duration",
+        "variable:state",
+        "diet:all",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "SERVE_LAYER_01",
+      "phase": 4,
+      "action": "layer",
+      "equipment": 4,
+      "description": "Schichten (Lasagne, Auflauf, Dessert im Glas)",
+      "template": "Faça camadas alternadas de {{components}} em {{equipment}} e finalize com {{finish}}.",
+      "variables": [
+        "components",
+        "equipment",
+        "finish"
+      ],
+      "required_variables": [
+        "components",
+        "equipment",
+        "finish"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:serve",
+        "step_group:serve",
+        "action:layer",
+        "technique:layer",
+        "schichten",
+        "layer",
+        "equipment_id:4",
+        "bräter",
+        "braeter",
+        "roaster",
+        "wet_heat",
+        "variable:components",
+        "variable:equipment",
+        "variable:finish",
+        "category:main",
+        "sub_group:assembly"
+      ],
+      "sub_group": "assembly"
+    },
+    {
+      "master_id": "COOK_GRATINATE_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "broil",
+      "required_ingredient_tags": [
+        "grateable"
+      ],
+      "equipment": 1,
+      "description": "Kurz unter starker Oberhitze gratinieren/überbacken",
+      "template": "Coloque {{base}} {{position}} sob o grill e gratine por {{duration}} até {{state}}.",
+      "variables": [
+        "base",
+        "position",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "position",
+        "duration",
+        "state",
+        "pronoun",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:broil",
+        "technique:broil",
+        "übergrillen",
+        "uebergrillen",
+        "broil",
+        "grill",
+        "dry_heat",
+        "equipment_id:1",
+        "backofen",
+        "oven",
+        "variable:base",
+        "variable:position",
+        "variable:duration",
+        "variable:state",
+        "variable:pronoun",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "SEASON_ADJUST_01",
+      "phase": 3,
+      "sub_group": "seasoning",
+      "action": "season_adjust",
+      "equipment": 0,
+      "description": "Abschmecken und Nachwürzen",
+      "template": "Prove {{base}} e ajuste com {{seasonings}} para equilibrar {{balance}}.",
+      "variables": [
+        "base",
+        "seasonings",
+        "balance"
+      ],
+      "aliases": {
+        "spices": "seasonings"
+      },
+      "required_variables": [
+        "base",
+        "seasonings",
+        "balance"
+      ],
+      "optional_variables": [
+        "seasonings"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "seasoning"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:season_adjust",
+        "technique:season_adjust",
+        "abschmecken",
+        "season",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:seasonings",
+        "variable:balance",
+        "family:seasoning",
+        "sub_group:seasoning"
+      ]
+    },
+    {
+      "master_id": "FINISH_COOL_01",
+      "phase": 3,
+      "sub_group": "resting",
+      "action": "cool",
+      "equipment": 0,
+      "description": "Abkühlen lassen (Desserts, Kuchen)",
+      "template": "Deixe {{base}} esfriar[ por {{duration}}][ até {{state}}].",
+      "variables": [
+        "base",
+        "duration",
+        "state",
+        "copula",
+        "pronoun"
+      ],
+      "required_variables": [
+        "base",
+        "copula",
+        "pronoun"
+      ],
+      "optional_variables": [
+        "duration",
+        "state"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:cool",
+        "technique:cool",
+        "kühlen",
+        "cool",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:duration",
+        "variable:state",
+        "variable:copula",
+        "variable:pronoun",
+        "sub_group:resting"
+      ]
+    },
+    {
+      "master_id": "FINISH_REST_01",
+      "phase": 3,
+      "sub_group": "resting",
+      "action": "rest",
+      "required_ingredient_tags": [
+        "searable",
+        "roastable",
+        "grillable"
+      ],
+      "equipment": 0,
+      "description": "Ruhen lassen nach dem Garen (Fleisch, Aufläufe)",
+      "template": "Deixe {{base}} repousar por {{duration}} para que {{reason}}.",
+      "variables": [
+        "base",
+        "duration",
+        "reason"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "reason"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:rest",
+        "technique:rest",
+        "ruhen",
+        "rest",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:duration",
+        "variable:reason",
+        "sub_group:resting"
+      ]
+    },
+    {
+      "master_id": "FINISH_PORTION_01",
+      "phase": 4,
+      "sub_group": "assembly",
+      "action": "portion",
+      "equipment": 0,
+      "description": "Portionieren/Anrichten in Tellern oder Schüsseln",
+      "template": "Divida {{base}} em {{count}} porções.",
+      "variables": [
+        "base",
+        "count"
+      ],
+      "required_variables": [
+        "base",
+        "count"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:serve",
+        "step_group:serve",
+        "action:portion",
+        "technique:portion",
+        "portionieren",
+        "portion",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:count",
+        "category:main",
+        "sub_group:assembly"
+      ]
+    },
+    {
+      "master_id": "FINISH_SERVE_01",
+      "phase": 4,
+      "sub_group": "serving",
+      "action": "serve",
+      "equipment": 0,
+      "description": "Servieren",
+      "template": "Sirva {{base}} {{extra}}.",
+      "variables": [
+        "base",
+        "extra"
+      ],
+      "required_variables": [
+        "base",
+        "extra"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:serve",
+        "step_group:serve",
+        "action:serve",
+        "technique:serve",
+        "servieren",
+        "serve",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:extra",
+        "category:main",
+        "sub_group:serving"
+      ]
+    },
+    {
+      "master_id": "PREP_MARINADE_MAKE_01",
+      "phase": 1,
+      "sub_group": "mixing",
+      "equipment": 0,
+      "action": "make_marinade",
+      "description": "Marinade aus Zutaten herstellen",
+      "template": "Faça uma marinada com {{ingredients}}.",
+      "variables": "ingredients",
+      "required_variables": [
+        "ingredients"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "vegetable"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredients",
+        "category:main",
+        "family:vegetable",
+        "sub_group:mixing"
+      ]
+    },
+    {
+      "master_id": "PREP_FILLET_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "fillet",
+      "required_ingredient_tags": [
+        "poachable"
+      ],
+      "equipment": 0,
+      "description": "Filetieren von Fisch, Gräten entfernen",
+      "template": "Filete {{ingredient}} com uma {{tool}} e retire com cuidado as espinhas.",
+      "variables": [
+        "ingredient",
+        "tool"
+      ],
+      "required_variables": [
+        "ingredient",
+        "tool"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "fish"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:fillet",
+        "technique:fillet",
+        "filetieren",
+        "fillet",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "family:fish",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_DESCALE_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "descale",
+      "required_ingredient_tags": [
+        "poachable"
+      ],
+      "equipment": 0,
+      "description": "Entschuppen von ganzem Fisch",
+      "template": "Descame {{ingredient}} sob água corrente com uma {{tool}}[ e seque com papel].",
+      "variables": [
+        "ingredient",
+        "tool",
+        "pronoun"
+      ],
+      "required_variables": [
+        "ingredient",
+        "tool"
+      ],
+      "optional_variables": [
+        "pronoun"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "fish"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:descale",
+        "technique:descale",
+        "entschuppen",
+        "descale",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "variable:pronoun",
+        "family:fish",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_DEVEIN_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "devein",
+      "required_ingredient_tags": [
+        "poachable"
+      ],
+      "equipment": 0,
+      "description": "Schälen und Entdarmen von Garnelen/Shrimps",
+      "template": "Descasque {{ingredient}} e remova o intestino[ com uma {{tool}}].",
+      "variables": [
+        "ingredient",
+        "tool"
+      ],
+      "required_variables": [
+        "ingredient"
+      ],
+      "optional_variables": [
+        "tool"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "seafood"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:devein",
+        "technique:devein",
+        "entdarmen",
+        "devein",
+        "messer",
+        "knife",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "family:seafood",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "COOK_POACH_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "poach",
+      "required_ingredient_tags": [
+        "poachable"
+      ],
+      "equipment": 3,
+      "description": "Pochieren/Garziehen von Fisch oder Meeresfrüchten in Flüssigkeit",
+      "template": "Coloque {{ingredient}} em {{liquid}} e escalde[ em fogo {{heat}}][ por {{duration}}][ até que {{state}}].",
+      "variables": [
+        "ingredient",
+        "liquid",
+        "pronoun",
+        "heat",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "ingredient",
+        "liquid"
+      ],
+      "optional_variables": [
+        "pronoun",
+        "heat",
+        "duration",
+        "state"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "fish"
+      },
+      "quality_rule_keys": "requires_previous_phase",
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:poach",
+        "technique:poach",
+        "pochieren",
+        "poach",
+        "topf",
+        "pot",
+        "wet_heat",
+        "equipment_id:3",
+        "kochfeld",
+        "heatplate",
+        "stovetop",
+        "variable:ingredient",
+        "variable:liquid",
+        "variable:pronoun",
+        "variable:heat",
+        "variable:duration",
+        "variable:state",
+        "family:fish",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "PREP_CLEAN_SEAFOOD_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "clean_seafood",
+      "required_ingredient_tags": [
+        "poachable"
+      ],
+      "equipment": 0,
+      "description": "Putzen und Vorbereiten von Meeresfrüchten (Muscheln, Tintenfisch etc.)",
+      "template": "Limpe {{ingredient}} bem sob água fria[ e remova {{action}}].",
+      "variables": [
+        "ingredient",
+        "action"
+      ],
+      "required_variables": [
+        "ingredient"
+      ],
+      "optional_variables": [
+        "action"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "ingredient_family_keys": "seafood"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:clean_seafood",
+        "technique:clean_seafood",
+        "reinigen",
+        "clean",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:action",
+        "family:seafood",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_STUFF_01",
+      "phase": 1,
+      "sub_group": "coating",
+      "action": "stuff",
+      "equipment": 0,
+      "description": "Füllen (Paprika, Zucchini, Hähnchen, Cannelloni)",
+      "template": "Recheie {{ingredient}} uniformemente com {{base}} e coloque em {{equipment}}.",
+      "variables": [
+        "ingredient",
+        "base",
+        "pronoun",
+        "equipment"
+      ],
+      "required_variables": [
+        "ingredient",
+        "base",
+        "pronoun",
+        "equipment"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:stuff",
+        "technique:stuff",
+        "füllen",
+        "fuellen",
+        "stuff",
+        "fill",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:base",
+        "variable:pronoun",
+        "variable:equipment",
+        "category:main",
+        "sub_group:coating"
+      ]
+    },
+    {
+      "master_id": "PREP_WRAP_01",
+      "phase": 1,
+      "sub_group": "coating",
+      "action": "wrap",
+      "equipment": 0,
+      "description": "Einwickeln/Einrollen (Frühlingsrollen, Krautwickel, Burek)",
+      "template": "Coloque {{basis}} sobre {{wrapper}} e enrole bem.",
+      "variables": [
+        "basis",
+        "wrapper",
+        "pronoun"
+      ],
+      "required_variables": [
+        "basis",
+        "wrapper",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:wrap",
+        "technique:wrap",
+        "einwickeln",
+        "einrollen",
+        "wrap",
+        "roll",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:basis",
+        "variable:wrapper",
+        "variable:pronoun",
+        "category:main",
+        "sub_group:coating"
+      ]
+    },
+    {
+      "master_id": "SERVE_ASSEMBLE_01",
+      "phase": 4,
+      "action": "assemble",
+      "equipment": 0,
+      "description": "Zusammenbauen (Burger, Sandwich, Taco)",
+      "template": "Monte {{base}} com {{components}} e finalize com {{finish}}.",
+      "variables": [
+        "base",
+        "components",
+        "finish"
+      ],
+      "required_variables": [
+        "base",
+        "components",
+        "finish"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main"
+      },
+      "selection_tags": [
+        "phase:serve",
+        "step_group:serve",
+        "action:assemble",
+        "technique:assemble",
+        "zusammenbauen",
+        "assemble",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:components",
+        "variable:finish",
+        "category:main",
+        "sub_group:assembly"
+      ],
+      "sub_group": "assembly"
+    },
+    {
+      "master_id": "PREP_BLOOM_01",
+      "phase": 1,
+      "sub_group": "marinating",
+      "action": "bloom",
+      "equipment": 0,
+      "description": "Einweichen/Auflösen (Gelatine, Gewürze anrösten)",
+      "template": "Dissolva {{ingredients}} em {{liquid}} e deixe {{state}} por {{duration}}.",
+      "variables": [
+        "ingredients",
+        "liquid",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "ingredients",
+        "liquid",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:bloom",
+        "technique:bloom",
+        "einweichen",
+        "auflösen",
+        "aufloesen",
+        "bloom",
+        "dissolve",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredients",
+        "variable:liquid",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "sub_group:marinating"
+      ]
+    },
+    {
+      "master_id": "PREP_TENDERIZE_01",
+      "phase": 1,
+      "sub_group": "ingredient_prep",
+      "action": "tenderize",
+      "required_ingredient_tags": [
+        "fryable",
+        "roastable"
+      ],
+      "equipment": 0,
+      "description": "Klopfen/Plattieren (Schnitzel, Roulade)",
+      "template": "Bata {{ingredient}} uniformemente com {{tool}} até uma espessura {{grind_size}}.",
+      "variables": [
+        "ingredient",
+        "tool",
+        "grind_size"
+      ],
+      "required_variables": [
+        "ingredient",
+        "tool",
+        "grind_size"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:tenderize",
+        "technique:tenderize",
+        "klopfen",
+        "plattieren",
+        "tenderize",
+        "pound",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:tool",
+        "variable:grind_size",
+        "sub_group:ingredient_prep"
+      ]
+    },
+    {
+      "master_id": "PREP_LAMINATE_01",
+      "phase": 1,
+      "sub_group": "dough",
+      "action": "laminate",
+      "equipment": 0,
+      "description": "Tourieren (Blätterteig, Croissant-Teig)",
+      "template": "Envolva {{fat}} em {{dough}}, dobre {{folds}} e refrigere por {{duration}}.",
+      "variables": [
+        "fat",
+        "dough",
+        "pronoun",
+        "folds",
+        "duration"
+      ],
+      "required_variables": [
+        "fat",
+        "dough",
+        "pronoun",
+        "folds",
+        "duration"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:laminate",
+        "technique:laminate",
+        "tourieren",
+        "laminate",
+        "fold",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:fat",
+        "variable:dough",
+        "variable:pronoun",
+        "variable:folds",
+        "variable:duration",
+        "sub_group:dough"
+      ]
+    },
+    {
+      "master_id": "PREP_FERMENT_01",
+      "phase": 1,
+      "sub_group": "marinating",
+      "action": "ferment",
+      "equipment": 0,
+      "description": "Fermentieren (Sauerkraut, Kimchi, Sauerteig)",
+      "template": "Coloque {{base}} em {{equipment}} e deixe fermentar a {{temp}} por {{duration}} até {{state}}.",
+      "variables": [
+        "base",
+        "equipment",
+        "pronoun",
+        "duration",
+        "temp",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "equipment",
+        "pronoun",
+        "duration",
+        "temp",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:ferment",
+        "technique:ferment",
+        "fermentieren",
+        "ferment",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:equipment",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:temp",
+        "variable:state",
+        "variable:copula",
+        "sub_group:marinating"
+      ]
+    },
+    {
+      "master_id": "PREP_CURE_01",
+      "phase": 1,
+      "sub_group": "marinating",
+      "action": "cure",
+      "equipment": 0,
+      "description": "Beizen/Pökeln (Gravlax, Bacon, Räucherlachs)",
+      "template": "Esfregue {{base}} uniformemente com {{ingredients}} e deixe curar no frigorífico por {{duration}}.",
+      "variables": [
+        "base",
+        "ingredients",
+        "pronoun",
+        "duration"
+      ],
+      "required_variables": [
+        "base",
+        "ingredients",
+        "pronoun",
+        "duration"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:cure",
+        "technique:cure",
+        "beizen",
+        "pökeln",
+        "poekeln",
+        "cure",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:ingredients",
+        "variable:pronoun",
+        "variable:duration",
+        "sub_group:marinating"
+      ]
+    },
+    {
+      "master_id": "COOK_RICE_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "cook_rice",
+      "required_ingredient_tags": [
+        "boilable"
+      ],
+      "equipment": 2,
+      "description": "Reis/Getreide nach Quellmethode kochen",
+      "template": "Coloque {{base}} com {{liquid}} em {{equipment}}, leve à ebulição e deixe absorver por {{duration}} com tampa.",
+      "variables": [
+        "base",
+        "liquid",
+        "equipment",
+        "pronoun",
+        "duration"
+      ],
+      "required_variables": [
+        "base",
+        "liquid",
+        "equipment",
+        "pronoun",
+        "duration"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:cook_rice",
+        "technique:cook_rice",
+        "reis",
+        "getreide",
+        "rice",
+        "grain",
+        "quellen",
+        "equipment_id:2",
+        "topf",
+        "pot",
+        "variable:base",
+        "variable:liquid",
+        "variable:equipment",
+        "variable:pronoun",
+        "variable:duration",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_EMULSIFY_01",
+      "phase": 2,
+      "sub_group": "sauce_work",
+      "action": "emulsify",
+      "equipment": 0,
+      "description": "Emulgieren (Vinaigrette, Hollandaise, Mayonnaise)",
+      "template": "Bata {{components}} vigorosamente com {{tool}} até obter {{state}}.",
+      "variables": [
+        "components",
+        "tool",
+        "state"
+      ],
+      "required_variables": [
+        "components",
+        "tool",
+        "state"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:emulsify",
+        "technique:emulsify",
+        "emulgieren",
+        "emulsify",
+        "aufschlagen",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:components",
+        "variable:tool",
+        "variable:state",
+        "sub_group:sauce_work"
+      ]
+    },
+    {
+      "master_id": "COOK_CARAMELIZE_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "caramelize",
+      "required_ingredient_tags": [
+        "fryable",
+        "flambeable"
+      ],
+      "equipment": 3,
+      "description": "Karamellisieren (Zucker, Zwiebeln, Gemüse)",
+      "template": "Aqueça {{base}} em {{equipment}} e caramelize por {{duration}} até {{state}}.",
+      "variables": [
+        "base",
+        "equipment",
+        "pronoun",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "equipment",
+        "pronoun",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:caramelize",
+        "technique:caramelize",
+        "karamellisieren",
+        "caramelize",
+        "equipment_id:3",
+        "pfanne",
+        "pan",
+        "variable:base",
+        "variable:equipment",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_FLAMBE_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "flambe",
+      "required_ingredient_tags": [
+        "flambeable"
+      ],
+      "equipment": 3,
+      "description": "Flambieren (Crêpe Suzette, Steak Diane)",
+      "template": "Despeje {{liquid}} sobre {{base}} em {{equipment}} e flambe com cuidado até a chama se apagar.",
+      "variables": [
+        "liquid",
+        "base",
+        "equipment",
+        "pronoun"
+      ],
+      "required_variables": [
+        "liquid",
+        "base",
+        "equipment",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:flambe",
+        "technique:flambe",
+        "flambieren",
+        "flambe",
+        "equipment_id:3",
+        "pfanne",
+        "pan",
+        "variable:liquid",
+        "variable:base",
+        "variable:equipment",
+        "variable:pronoun",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_SMOKE_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "smoke",
+      "required_ingredient_tags": [
+        "smokable"
+      ],
+      "equipment": 7,
+      "description": "Räuchern (Lachs, Fleisch, Käse)",
+      "template": "Defume {{base}} a {{temp}} com {{wood}} por {{duration}} até {{state}}.",
+      "variables": [
+        "base",
+        "temp",
+        "wood",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "temp",
+        "wood",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:smoke",
+        "technique:smoke",
+        "räuchern",
+        "raeuchern",
+        "smoke",
+        "equipment_id:7",
+        "smoker",
+        "grill",
+        "variable:base",
+        "variable:temp",
+        "variable:wood",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_SOUS_VIDE_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "sous_vide",
+      "required_ingredient_tags": [
+        "searable",
+        "poachable"
+      ],
+      "equipment": 0,
+      "description": "Sous-Vide-Garen (vakuumiert im Wasserbad)",
+      "template": "Sele {{base}} a vácuo e cozinhe em banho-maria a {{temp}} por {{duration}} até {{state}}.",
+      "variables": [
+        "base",
+        "pronoun",
+        "temp",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "pronoun",
+        "temp",
+        "duration",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:sous_vide",
+        "technique:sous_vide",
+        "sous_vide",
+        "vakuumgaren",
+        "wasserbad",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:pronoun",
+        "variable:temp",
+        "variable:duration",
+        "variable:state",
+        "variable:copula",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_CONFIT_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "confit",
+      "required_ingredient_tags": [
+        "fryable"
+      ],
+      "equipment": 2,
+      "description": "Konfieren (Entenkeule, Knoblauch, Zitrone)",
+      "template": "Cozinhe {{base}} lentamente em {{fat}} a {{temp}} por {{duration}} até {{state}}.",
+      "variables": [
+        "base",
+        "fat",
+        "temp",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "fat",
+        "temp",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:confit",
+        "technique:confit",
+        "konfieren",
+        "confit",
+        "equipment_id:2",
+        "topf",
+        "pot",
+        "variable:base",
+        "variable:fat",
+        "variable:temp",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "FINISH_GLAZE_01",
+      "phase": 3,
+      "action": "glaze",
+      "equipment": 0,
+      "description": "Glasieren (Kuchen, Gebäck, Schinken)",
+      "template": "Pincele {{base}} uniformemente com {{glaze}} e deixe {{state}}.",
+      "variables": [
+        "base",
+        "glaze",
+        "pronoun",
+        "state"
+      ],
+      "required_variables": [
+        "base",
+        "glaze",
+        "pronoun",
+        "state"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:glaze",
+        "technique:glaze",
+        "glasieren",
+        "glaze",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:glaze",
+        "variable:pronoun",
+        "variable:state",
+        "sub_group:finishing"
+      ],
+      "sub_group": "finishing"
+    },
+    {
+      "master_id": "FINISH_DECORATE_01",
+      "phase": 3,
+      "action": "decorate",
+      "equipment": 0,
+      "description": "Dekorieren/Garnieren (Torten, Desserts, Festtagsgerichte)",
+      "template": "Decore {{base}} com {{decoration}} e sirva {{extra}}.",
+      "variables": [
+        "base",
+        "decoration",
+        "pronoun",
+        "extra"
+      ],
+      "required_variables": [
+        "base",
+        "decoration",
+        "pronoun",
+        "extra"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:decorate",
+        "technique:decorate",
+        "dekorieren",
+        "garnieren",
+        "decorate",
+        "garnish",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:decoration",
+        "variable:pronoun",
+        "variable:extra",
+        "sub_group:finishing"
+      ],
+      "sub_group": "finishing"
+    },
+    {
+      "master_id": "COOK_BLANCH_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "blanch",
+      "required_ingredient_tags": [
+        "boilable",
+        "steamable"
+      ],
+      "equipment": 2,
+      "description": "Blanchieren in kochendem Wasser mit Eiswasser-Abschreckung",
+      "template": "Branqueie {{base}} em água fervente por {{duration}} e transfira imediatamente para água com gelo.",
+      "variables": [
+        "base",
+        "duration",
+        "pronoun"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "pronoun"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:blanch",
+        "technique:blanch",
+        "blanchieren",
+        "blanch",
+        "eiswasser",
+        "ice_water",
+        "equipment_id:2",
+        "topf",
+        "pot",
+        "variable:base",
+        "variable:duration",
+        "variable:pronoun",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_SEAR_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "sear",
+      "required_ingredient_tags": [
+        "searable"
+      ],
+      "equipment": 3,
+      "description": "Scharf Anbraten bei höchster Hitze",
+      "template": "Aqueça[ {{fat}} em] {{equipment}} na potência máxima e sele {{base}}[ por {{duration}}][, até {{state}}].",
+      "variables": [
+        "fat",
+        "equipment",
+        "base",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "equipment",
+        "base"
+      ],
+      "optional_variables": [
+        "fat",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:sear",
+        "technique:sear",
+        "anbraten",
+        "scharf_anbraten",
+        "sear",
+        "equipment_id:3",
+        "pfanne",
+        "pan",
+        "variable:fat",
+        "variable:equipment",
+        "variable:base",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_TRANSFER_OVEN_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "transfer_oven",
+      "equipment": 4,
+      "description": "Bräter/Auflaufform in den vorgeheizten Backofen schieben",
+      "template": "Coloque {{equipment}}[ com {{base}}] no forno pré-aquecido a {{temp}}[, cozinhe por {{duration}}][, até {{state}}].",
+      "variables": [
+        "equipment",
+        "base",
+        "state",
+        "temp",
+        "duration"
+      ],
+      "required_variables": [
+        "equipment",
+        "temp"
+      ],
+      "optional_variables": [
+        "base",
+        "state",
+        "duration"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {
+        "category_keys": "main",
+        "ingredient_family_keys": "meat"
+      },
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:transfer_oven",
+        "technique:oven_roast",
+        "backofen",
+        "oven",
+        "bräter",
+        "braeter",
+        "auflaufform",
+        "casserole",
+        "einschieben",
+        "transfer",
+        "equipment_id:4",
+        "variable:equipment",
+        "variable:base",
+        "variable:state",
+        "variable:temp",
+        "variable:duration",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_ARRANGE_01",
+      "phase": 2,
+      "sub_group": "processing",
+      "action": "arrange",
+      "equipment": 0,
+      "description": "Zutaten verteilen/anordnen (z.B. Gemüse um Fleisch im Bräter)",
+      "template": "Distribua {{ingredient}} uniformemente em {{equipment}}[ ao redor de {{base}}].",
+      "variables": [
+        "ingredient",
+        "equipment",
+        "base"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment"
+      ],
+      "optional_variables": [
+        "base"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:arrange",
+        "technique:arrange",
+        "verteilen",
+        "anordnen",
+        "arrange",
+        "distribute",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:base",
+        "sub_group:processing"
+      ]
+    },
+    {
+      "master_id": "COOK_TOAST_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "toast",
+      "required_ingredient_tags": [
+        "boilable",
+        "fryable"
+      ],
+      "equipment": 3,
+      "description": "Toasten/Rösten ohne Fett",
+      "template": "Torre {{ingredient}} sem óleo em {{equipment}} em fogo {{heat}} por {{duration}} até {{state}}.",
+      "variables": [
+        "ingredient",
+        "equipment",
+        "heat",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "ingredient",
+        "equipment",
+        "heat",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:toast",
+        "technique:toast",
+        "rösten",
+        "toasten",
+        "roesten",
+        "toast",
+        "dry_roast",
+        "equipment_id:3",
+        "pfanne",
+        "pan",
+        "variable:ingredient",
+        "variable:equipment",
+        "variable:heat",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_MELT_01",
+      "phase": 2,
+      "sub_group": "sauce_work",
+      "action": "melt",
+      "required_ingredient_tags": [
+        "grateable"
+      ],
+      "equipment": 2,
+      "description": "Schmelzen (Butter, Schokolade, Käse)",
+      "template": "Derreta {{base}} em fogo {{heat}} em {{equipment}} até {{state}}.",
+      "variables": [
+        "base",
+        "heat",
+        "equipment",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "heat",
+        "equipment",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:melt",
+        "technique:melt",
+        "schmelzen",
+        "melt",
+        "equipment_id:2",
+        "topf",
+        "pot",
+        "variable:base",
+        "variable:heat",
+        "variable:equipment",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:sauce_work"
+      ]
+    },
+    {
+      "master_id": "FINISH_DRIZZLE_01",
+      "phase": 3,
+      "sub_group": "seasoning",
+      "action": "drizzle",
+      "equipment": 0,
+      "description": "Beträufeln mit Öl, Sauce oder Dressing",
+      "template": "Regue {{base}} com {{ingredient}}.",
+      "variables": [
+        "base",
+        "ingredient"
+      ],
+      "required_variables": [
+        "base",
+        "ingredient"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:drizzle",
+        "technique:drizzle",
+        "beträufeln",
+        "betraeufeln",
+        "drizzle",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:ingredient",
+        "sub_group:seasoning"
+      ]
+    },
+    {
+      "master_id": "FINISH_SPRINKLE_01",
+      "phase": 3,
+      "sub_group": "seasoning",
+      "action": "sprinkle",
+      "equipment": 0,
+      "description": "Bestreuen mit Kräutern, Gewürzen oder Toppings",
+      "template": "Polvilhe {{base}} com {{ingredient}}.",
+      "variables": [
+        "base",
+        "ingredient"
+      ],
+      "required_variables": [
+        "base",
+        "ingredient"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:sprinkle",
+        "technique:sprinkle",
+        "bestreuen",
+        "sprinkle",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:ingredient",
+        "sub_group:seasoning"
+      ]
+    },
+    {
+      "master_id": "FINISH_BRUSH_01",
+      "phase": 3,
+      "sub_group": "finishing",
+      "action": "brush",
+      "equipment": 0,
+      "description": "Einpinseln/Bestreichen (Glasur, Eigelb, Butter)",
+      "template": "Pincele {{base}} uniformemente com {{ingredient}}.",
+      "variables": [
+        "base",
+        "ingredient"
+      ],
+      "required_variables": [
+        "base",
+        "ingredient"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:brush",
+        "technique:brush",
+        "einpinseln",
+        "bestreichen",
+        "brush",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:ingredient",
+        "sub_group:finishing"
+      ]
+    },
+    {
+      "master_id": "FINISH_CHILL_01",
+      "phase": 3,
+      "sub_group": "resting",
+      "action": "chill",
+      "equipment": 0,
+      "description": "Kühlen/Kaltstellen (Desserts, Terrinen, Gelatine)",
+      "template": "Refrigere {{base}} por {{duration}} até {{state}}.",
+      "variables": [
+        "base",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "required_variables": [
+        "base",
+        "duration",
+        "pronoun",
+        "state",
+        "copula"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:finish",
+        "step_group:finish",
+        "action:chill",
+        "technique:chill",
+        "kühlen",
+        "kuehlen",
+        "kaltstellen",
+        "chill",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:base",
+        "variable:duration",
+        "variable:pronoun",
+        "variable:state",
+        "variable:copula",
+        "sub_group:resting"
+      ]
+    },
+    {
+      "master_id": "SERVE_SAUCE_01",
+      "phase": 4,
+      "sub_group": "assembly",
+      "action": "sauce",
+      "equipment": 0,
+      "description": "Sauce anrichten/aufgießen",
+      "template": "Disponha {{ingredient}} sobre {{base}}.",
+      "variables": [
+        "ingredient",
+        "base"
+      ],
+      "required_variables": [
+        "ingredient",
+        "base"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:serve",
+        "step_group:serve",
+        "action:sauce",
+        "technique:sauce",
+        "sauce_anrichten",
+        "sauce_plating",
+        "sauce",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:base",
+        "sub_group:assembly"
+      ]
+    },
+    {
+      "master_id": "COOK_BASTE_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "baste",
+      "equipment": 0,
+      "description": "Fleisch/Braten mit Flüssigkeit begießen",
+      "template": "Regue {{ingredient}} a cada {{duration}} com {{liquid}}.",
+      "variables": [
+        "ingredient",
+        "duration",
+        "liquid"
+      ],
+      "required_variables": [
+        "ingredient",
+        "duration",
+        "liquid"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:baste",
+        "technique:baste",
+        "begießen",
+        "begiessen",
+        "baste",
+        "übergießen",
+        "uebergiessen",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:ingredient",
+        "variable:duration",
+        "variable:liquid",
+        "sub_group:wet_heat"
+      ]
+    },
+    {
+      "master_id": "COOK_GRILL_FINISH_01",
+      "phase": 2,
+      "sub_group": "dry_heat",
+      "action": "grill_finish",
+      "equipment": 1,
+      "description": "Kruste unter dem Grill fertigstellen",
+      "template": "Aumente o forno para {{temp}} função grill[ e pincele {{ingredient}} com {{coating}}]. Deixe {{duration}} sob o grill até que {{state}}.",
+      "variables": [
+        "temp",
+        "ingredient",
+        "coating",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "required_variables": [
+        "temp",
+        "ingredient",
+        "pronoun",
+        "duration",
+        "state"
+      ],
+      "optional_variables": [
+        "coating"
+      ],
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:grill",
+        "technique:grill_finish",
+        "grill",
+        "kruste",
+        "crust",
+        "finish",
+        "backofen",
+        "oven",
+        "equipment_id:1",
+        "variable:temp",
+        "variable:ingredient",
+        "variable:coating",
+        "variable:pronoun",
+        "variable:duration",
+        "variable:state",
+        "sub_group:dry_heat"
+      ]
+    },
+    {
+      "master_id": "PREP_FORM_DUMPLINGS_01",
+      "phase": 1,
+      "sub_group": "shaping",
+      "action": "form_dumplings",
+      "equipment": 0,
+      "description": "Knödel/Klöße formen",
+      "template": "Forme {{count}} bolinhos com {{ingredient}} com as mãos molhadas.",
+      "variables": [
+        "count",
+        "ingredient"
+      ],
+      "required_variables": [
+        "count",
+        "ingredient"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:prep",
+        "step_group:prep",
+        "action:form",
+        "technique:shaping",
+        "knödel",
+        "knoedel",
+        "klöße",
+        "kloesse",
+        "dumplings",
+        "formen",
+        "form",
+        "equipment_id:0",
+        "keins",
+        "none",
+        "variable:count",
+        "variable:ingredient",
+        "sub_group:shaping"
+      ]
+    },
+    {
+      "master_id": "COOK_SIMMER_DUMPLINGS_01",
+      "phase": 2,
+      "sub_group": "wet_heat",
+      "action": "simmer_dumplings",
+      "equipment": 2,
+      "description": "Knödel in Wasser garen",
+      "template": "Coloque os bolinhos em água salgada levemente fervente e deixe cozinhar por {{duration}} até flutuarem na superfície.",
+      "variables": [
+        "duration"
+      ],
+      "required_variables": [
+        "duration"
+      ],
+      "optional_variables": null,
+      "variable_types": {},
+      "stable_taxonomy_keys": {},
+      "selection_tags": [
+        "phase:cook",
+        "step_group:cook",
+        "action:simmer",
+        "technique:boil",
+        "knödel",
+        "knoedel",
+        "klöße",
+        "kloesse",
+        "dumplings",
+        "kochen",
+        "cook",
+        "siedend",
+        "simmer",
+        "topf",
+        "pot",
+        "equipment_id:2",
+        "variable:duration",
+        "sub_group:wet_heat"
+      ]
+    }
+  ],
+  "variable_options": {
+    "articles": [
+      {
+        "id": "articles_der_1",
+        "key": "der",
+        "label": "o",
+        "tags": [
+          "variable:articles",
+          "value:der"
+        ]
+      },
+      {
+        "id": "articles_die_2",
+        "key": "die",
+        "label": "a",
+        "tags": [
+          "variable:articles",
+          "value:die"
+        ]
+      },
+      {
+        "id": "articles_das_3",
+        "key": "das",
+        "label": "os",
+        "tags": [
+          "variable:articles",
+          "value:das"
+        ]
+      },
+      {
+        "id": "articles_den_4",
+        "key": "den",
+        "label": "as",
+        "tags": [
+          "variable:articles",
+          "value:den"
+        ]
+      },
+      {
+        "id": "articles_dem_5",
+        "key": "dem",
+        "label": "o",
+        "tags": [
+          "variable:articles",
+          "value:dem"
+        ]
+      },
+      {
+        "id": "articles_einen_6",
+        "key": "einen",
+        "label": "um",
+        "tags": [
+          "variable:articles",
+          "value:einen"
+        ]
+      },
+      {
+        "id": "articles_einem_7",
+        "key": "einem",
+        "label": "um",
+        "tags": [
+          "variable:articles",
+          "value:einem"
+        ]
+      },
+      {
+        "id": "articles_einer_8",
+        "key": "einer",
+        "label": "uma",
+        "tags": [
+          "variable:articles",
+          "value:einer"
+        ]
+      }
+    ],
+    "pronoun": [
+      {
+        "id": "pronoun_er_1",
+        "key": "er",
+        "label": "ele",
+        "tags": [
+          "variable:pronoun",
+          "value:er"
+        ]
+      },
+      {
+        "id": "pronoun_sie_2",
+        "key": "sie",
+        "label": "ela",
+        "tags": [
+          "variable:pronoun",
+          "value:sie"
+        ]
+      },
+      {
+        "id": "pronoun_es_3",
+        "key": "es",
+        "label": "isso",
+        "tags": [
+          "variable:pronoun",
+          "value:es"
+        ]
+      },
+      {
+        "id": "pronoun_ihn_4",
+        "key": "ihn",
+        "label": "os",
+        "tags": [
+          "variable:pronoun",
+          "value:ihn"
+        ]
+      },
+      {
+        "id": "pronoun_las_5",
+        "key": "las",
+        "label": "as",
+        "tags": [
+          "variable:pronoun",
+          "value:las"
+        ]
+      }
+    ],
+    "pronoun2": [
+      {
+        "id": "pronoun2_er_1",
+        "key": "er",
+        "label": "ele",
+        "tags": [
+          "variable:pronoun2",
+          "value:er"
+        ]
+      },
+      {
+        "id": "pronoun2_sie_2",
+        "key": "sie",
+        "label": "ela",
+        "tags": [
+          "variable:pronoun2",
+          "value:sie"
+        ]
+      },
+      {
+        "id": "pronoun2_es_3",
+        "key": "es",
+        "label": "isso",
+        "tags": [
+          "variable:pronoun2",
+          "value:es"
+        ]
+      },
+      {
+        "id": "pronoun2_ihn_4",
+        "key": "ihn",
+        "label": "os",
+        "tags": [
+          "variable:pronoun2",
+          "value:ihn"
+        ]
+      },
+      {
+        "id": "pronoun2_las_5",
+        "key": "las",
+        "label": "as",
+        "tags": [
+          "variable:pronoun2",
+          "value:las"
+        ]
+      }
+    ],
+    "copula": [
+      {
+        "id": "copula_singular_1",
+        "key": "singular",
+        "label": "é",
+        "tags": [
+          "variable:copula",
+          "value:singular"
+        ]
+      },
+      {
+        "id": "copula_plural_2",
+        "key": "plural",
+        "label": "são",
+        "tags": [
+          "variable:copula",
+          "value:plural"
+        ]
+      }
+    ],
+    "heat": [
+      {
+        "id": "heat_niedriger_1",
+        "key": "niedriger",
+        "label": "baixo",
+        "tags": [
+          "variable:heat",
+          "value:niedriger",
+          "heat:low",
+          "low_heat",
+          "heatplate",
+          "stovetop",
+          "action:simmer",
+          "action:melt",
+          "action:warm"
+        ]
+      },
+      {
+        "id": "heat_mittlerer_2",
+        "key": "mittlerer",
+        "label": "médio",
+        "tags": [
+          "variable:heat",
+          "value:mittlerer",
+          "medium_heat",
+          "heatplate",
+          "stovetop",
+          "action:fry",
+          "action:saute",
+          "action:braise"
+        ]
+      },
+      {
+        "id": "heat_hoher_3",
+        "key": "hoher",
+        "label": "alto",
+        "tags": [
+          "variable:heat",
+          "value:hoher",
+          "high_heat",
+          "heatplate",
+          "stovetop",
+          "grill_heat",
+          "action:grill",
+          "action:sear",
+          "action:stir_fry"
+        ]
+      }
+    ],
+    "action": [
+      {
+        "id": "action_schlage_1",
+        "key": "schlage",
+        "label": "bata",
+        "tags": [
+          "variable:action",
+          "value:schlage"
+        ]
+      },
+      {
+        "id": "action_r_hre_2",
+        "key": "r_hre",
+        "label": "mexa",
+        "tags": [
+          "variable:action",
+          "value:r_hre"
+        ]
+      },
+      {
+        "id": "action_schneide_3",
+        "key": "schneide",
+        "label": "corte",
+        "tags": [
+          "variable:action",
+          "value:schneide"
+        ]
+      },
+      {
+        "id": "action_hacke_4",
+        "key": "hacke",
+        "label": "pique",
+        "tags": [
+          "variable:action",
+          "value:hacke"
+        ]
+      },
+      {
+        "id": "action_sch_le_5",
+        "key": "sch_le",
+        "label": "descasque",
+        "tags": [
+          "variable:action",
+          "value:sch_le"
+        ]
+      },
+      {
+        "id": "action_mixe_6",
+        "key": "mixe",
+        "label": "bata no liquidificador",
+        "tags": [
+          "variable:action",
+          "value:mixe"
+        ]
+      },
+      {
+        "id": "action_koche_7",
+        "key": "koche",
+        "label": "cozinhe",
+        "tags": [
+          "variable:action",
+          "value:koche",
+          "technique:boil"
+        ]
+      },
+      {
+        "id": "action_k_chle_8",
+        "key": "k_chle",
+        "label": "cozinhe em lume brando",
+        "tags": [
+          "variable:action",
+          "value:k_chle",
+          "technique:simmer"
+        ]
+      },
+      {
+        "id": "action_mische_9",
+        "key": "mische",
+        "label": "misture",
+        "tags": [
+          "variable:action",
+          "value:mische"
+        ]
+      },
+      {
+        "id": "action_hebe_unter_10",
+        "key": "hebe_unter",
+        "label": "incorpore",
+        "tags": [
+          "variable:action",
+          "value:hebe_unter"
+        ]
+      },
+      {
+        "id": "action_hebe_11",
+        "key": "hebe",
+        "label": "levante",
+        "tags": [
+          "variable:action",
+          "value:hebe"
+        ]
+      },
+      {
+        "id": "action_p_riere_12",
+        "key": "p_riere",
+        "label": "triture",
+        "tags": [
+          "variable:action",
+          "value:p_riere"
+        ]
+      },
+      {
+        "id": "action_reibe_13",
+        "key": "reibe",
+        "label": "rale",
+        "tags": [
+          "variable:action",
+          "value:reibe",
+          "tool:grater",
+          "reibe",
+          "grater",
+          "reiben",
+          "grate"
+        ]
+      },
+      {
+        "id": "action_reiben_14",
+        "key": "reiben",
+        "label": "ralar",
+        "tags": [
+          "variable:action",
+          "value:reiben",
+          "tool:grater",
+          "reibe",
+          "grater",
+          "reiben",
+          "grate"
+        ]
+      },
+      {
+        "id": "action_d_nste_15",
+        "key": "d_nste",
+        "label": "refogue",
+        "tags": [
+          "variable:action",
+          "value:d_nste"
+        ]
+      },
+      {
+        "id": "action_duensten_16",
+        "key": "duensten",
+        "label": "refogar",
+        "tags": [
+          "variable:action",
+          "value:duensten"
+        ]
+      },
+      {
+        "id": "action_brate_17",
+        "key": "brate",
+        "label": "frite",
+        "tags": [
+          "variable:action",
+          "value:brate"
+        ]
+      },
+      {
+        "id": "action_braten_18",
+        "key": "braten",
+        "label": "fritar",
+        "tags": [
+          "variable:action",
+          "value:braten"
+        ]
+      },
+      {
+        "id": "action_verr_hre_19",
+        "key": "verr_hre",
+        "label": "misture",
+        "tags": [
+          "variable:action",
+          "value:verr_hre"
+        ]
+      },
+      {
+        "id": "action_verquirle_20",
+        "key": "verquirle",
+        "label": "bata",
+        "tags": [
+          "variable:action",
+          "value:verquirle"
+        ]
+      },
+      {
+        "id": "action_vermenge_21",
+        "key": "vermenge",
+        "label": "combine",
+        "tags": [
+          "variable:action",
+          "value:vermenge"
+        ]
+      },
+      {
+        "id": "action_wende_22",
+        "key": "wende",
+        "label": "vire",
+        "tags": [
+          "variable:action",
+          "value:wende"
+        ]
+      },
+      {
+        "id": "action_schwenke_23",
+        "key": "schwenke",
+        "label": "salteie",
+        "tags": [
+          "variable:action",
+          "value:schwenke"
+        ]
+      },
+      {
+        "id": "action_putze_24",
+        "key": "putze",
+        "label": "limpe",
+        "tags": [
+          "variable:action",
+          "value:putze"
+        ]
+      },
+      {
+        "id": "action_tupfe_25",
+        "key": "tupfe",
+        "label": "seque",
+        "tags": [
+          "variable:action",
+          "value:tupfe",
+          "prep",
+          "dry",
+          "wash"
+        ]
+      },
+      {
+        "id": "action_wasche_26",
+        "key": "wasche",
+        "label": "lave",
+        "tags": [
+          "variable:action",
+          "value:wasche",
+          "prep",
+          "wash",
+          "clean"
+        ]
+      },
+      {
+        "id": "action_spuele_27",
+        "key": "spuele",
+        "label": "enxágue",
+        "tags": [
+          "variable:action",
+          "value:spuele",
+          "prep",
+          "wash",
+          "clean"
+        ]
+      },
+      {
+        "id": "action_reinige_28",
+        "key": "reinige",
+        "label": "limpe",
+        "tags": [
+          "variable:action",
+          "value:reinige",
+          "prep",
+          "wash",
+          "clean"
+        ]
+      },
+      {
+        "id": "action_schuettele_29",
+        "key": "schuettele",
+        "label": "sacuda",
+        "tags": [
+          "variable:action",
+          "value:schuettele",
+          "prep",
+          "dry",
+          "wash"
+        ]
+      }
+    ],
+    "tool": [
+      {
+        "id": "tool_messer_1",
+        "key": "messer",
+        "label": "🔪 faca",
+        "tags": [
+          "variable:tool",
+          "value:messer",
+          "tool:knife",
+          "technique:cut",
+          "technique:mince",
+          "cut",
+          "mince",
+          "messer",
+          "knife",
+          "peel",
+          "clean",
+          "fillet",
+          "descale",
+          "devein"
+        ]
+      },
+      {
+        "id": "tool_schneebesen_2",
+        "key": "schneebesen",
+        "label": "batedor",
+        "tags": [
+          "variable:tool",
+          "value:schneebesen",
+          "tool:whisk",
+          "technique:whisk",
+          "technique:beat",
+          "whisk",
+          "beat",
+          "schneebesen",
+          "schlagen",
+          "aufschlagen"
+        ]
+      },
+      {
+        "id": "tool_kochl_ffel_3",
+        "key": "kochl_ffel",
+        "label": "🥄 colher de pau",
+        "tags": [
+          "variable:tool",
+          "value:kochl_ffel",
+          "tool:spoon",
+          "kochlöffel",
+          "kochloeffel",
+          "spoon",
+          "rühren",
+          "ruehren",
+          "stir"
+        ]
+      },
+      {
+        "id": "tool_pfannenwender_4",
+        "key": "pfannenwender",
+        "label": "espátula",
+        "tags": [
+          "variable:tool",
+          "value:pfannenwender",
+          "pfannenwender",
+          "spatula",
+          "fry",
+          "turn",
+          "equipment:pan",
+          "pfanne",
+          "pan",
+          "braten",
+          "saute",
+          "kochfeld",
+          "heatplate",
+          "stovetop",
+          "dry_heat"
+        ]
+      },
+      {
+        "id": "tool_reibe_5",
+        "key": "reibe",
+        "label": "ralador",
+        "tags": [
+          "variable:tool",
+          "value:reibe",
+          "tool:grater",
+          "technique:grate",
+          "grate",
+          "reibe",
+          "grater",
+          "reiben"
+        ]
+      },
+      {
+        "id": "tool_sparsch_ler_6",
+        "key": "sparsch_ler",
+        "label": "descascador",
+        "tags": [
+          "variable:tool",
+          "value:sparsch_ler",
+          "peel",
+          "tool:peeler",
+          "technique:peel",
+          "sparschäler",
+          "sparschaeler",
+          "peeler",
+          "schälen",
+          "schaelen"
+        ]
+      },
+      {
+        "id": "tool_messbecher_7",
+        "key": "messbecher",
+        "label": "copo medidor",
+        "tags": [
+          "variable:tool",
+          "value:messbecher",
+          "messbecher",
+          "measure"
+        ]
+      },
+      {
+        "id": "tool_kelle_8",
+        "key": "kelle",
+        "label": "🥄 concha",
+        "tags": [
+          "variable:tool",
+          "value:kelle",
+          "kelle",
+          "ladle",
+          "serve",
+          "soup"
+        ]
+      },
+      {
+        "id": "tool_zange_9",
+        "key": "zange",
+        "label": "pinça",
+        "tags": [
+          "variable:tool",
+          "value:zange",
+          "zange",
+          "tongs",
+          "grill",
+          "fry",
+          "turn"
+        ]
+      },
+      {
+        "id": "tool_schere_10",
+        "key": "schere",
+        "label": "✂️ tesoura de cozinha",
+        "tags": [
+          "variable:tool",
+          "value:schere",
+          "schere",
+          "scissors",
+          "cut"
+        ]
+      },
+      {
+        "id": "tool_teigschaber_11",
+        "key": "teigschaber",
+        "label": "raspador de massa",
+        "tags": [
+          "variable:tool",
+          "value:teigschaber",
+          "tool:stir",
+          "technique:stir",
+          "technique:fold",
+          "stir",
+          "fold",
+          "teigschaber",
+          "scraper",
+          "base:dough",
+          "teig",
+          "dough",
+          "kneten",
+          "knead",
+          "ausrollen",
+          "roll_out"
+        ]
+      },
+      {
+        "id": "tool_m_rser_12",
+        "key": "m_rser",
+        "label": "almofariz",
+        "tags": [
+          "variable:tool",
+          "value:m_rser"
+        ]
+      },
+      {
+        "id": "tool_handr_hrger_t_13",
+        "key": "handr_hrger_t",
+        "label": "batedeira de mão",
+        "tags": [
+          "variable:tool",
+          "value:handr_hrger_t",
+          "technique:whisk",
+          "technique:beat",
+          "beat",
+          "whisk"
+        ]
+      },
+      {
+        "id": "tool_filetiermesser_14",
+        "key": "filetiermesser",
+        "label": "faca de filetar",
+        "tags": [
+          "variable:tool",
+          "value:filetiermesser",
+          "technique:fillet",
+          "fillet"
+        ]
+      },
+      {
+        "id": "tool_fischmesser_15",
+        "key": "fischmesser",
+        "label": "faca de peixe",
+        "tags": [
+          "variable:tool",
+          "value:fischmesser",
+          "technique:descale",
+          "descale"
+        ]
+      },
+      {
+        "id": "tool_fleischklopfer_16",
+        "key": "fleischklopfer",
+        "label": "🔨 batedor de carne",
+        "tags": [
+          "variable:tool",
+          "value:fleischklopfer",
+          "tool:tenderizer",
+          "technique:tenderize",
+          "tenderize",
+          "pound",
+          "fleischklopfer",
+          "hammer",
+          "klopfen",
+          "plattieren"
+        ]
+      }
+    ],
+    "liquid": [
+      {
+        "id": "liquid_salzwasser_1",
+        "key": "salzwasser",
+        "label": "🧂 água salgada",
+        "tags": [
+          "variable:liquid",
+          "value:salzwasser",
+          "liquid",
+          "salted water",
+          "boiling"
+        ]
+      },
+      {
+        "id": "liquid_wasser_2",
+        "key": "wasser",
+        "label": "💧 água",
+        "tags": [
+          "variable:liquid",
+          "value:wasser",
+          "liquid",
+          "water"
+        ]
+      },
+      {
+        "id": "liquid_bruehe_3",
+        "key": "brühe",
+        "label": "🍲 caldo",
+        "tags": [
+          "variable:liquid",
+          "value:brühe",
+          "liquid",
+          "broth",
+          "stock"
+        ]
+      },
+      {
+        "id": "liquid_milch_4",
+        "key": "milch",
+        "label": "🥛 leite",
+        "tags": [
+          "variable:liquid",
+          "value:milch",
+          "liquid",
+          "milk"
+        ]
+      },
+      {
+        "id": "liquid_sahne_5",
+        "key": "sahne",
+        "label": "🥛 creme",
+        "tags": [
+          "variable:liquid",
+          "value:sahne",
+          "liquid",
+          "cream"
+        ]
+      },
+      {
+        "id": "liquid_wein_6",
+        "key": "wein",
+        "label": "🍷 vinho",
+        "tags": [
+          "variable:liquid",
+          "value:wein",
+          "liquid",
+          "wine",
+          "alcohol"
+        ]
+      },
+      {
+        "id": "liquid_oel_7",
+        "key": "öl",
+        "label": "🫒 óleo",
+        "tags": [
+          "variable:liquid",
+          "value:öl",
+          "liquid",
+          "oil",
+          "fat"
+        ]
+      }
+    ],
+    "shape": [
+      {
+        "id": "shape_w_rfel_1",
+        "key": "w_rfel",
+        "label": "cubos",
+        "tags": [
+          "variable:shape",
+          "value:w_rfel",
+          "technique:cut"
+        ]
+      },
+      {
+        "id": "shape_scheiben_2",
+        "key": "scheiben",
+        "label": "fatias",
+        "tags": [
+          "variable:shape",
+          "value:scheiben",
+          "technique:cut",
+          "tool:knife"
+        ]
+      },
+      {
+        "id": "shape_streifen_3",
+        "key": "streifen",
+        "label": "tiras",
+        "tags": [
+          "variable:shape",
+          "value:streifen",
+          "technique:cut",
+          "tool:knife"
+        ]
+      },
+      {
+        "id": "shape_spalten_4",
+        "key": "spalten",
+        "label": "gomos",
+        "tags": [
+          "variable:shape",
+          "value:spalten",
+          "technique:cut",
+          "tool:knife"
+        ]
+      },
+      {
+        "id": "shape_ringe_5",
+        "key": "ringe",
+        "label": "anéis",
+        "tags": [
+          "variable:shape",
+          "value:ringe",
+          "technique:cut"
+        ]
+      },
+      {
+        "id": "shape_julienne_6",
+        "key": "julienne",
+        "label": "juliana",
+        "tags": [
+          "variable:shape",
+          "value:julienne",
+          "technique:cut",
+          "tool:knife"
+        ]
+      },
+      {
+        "id": "shape_stifte_7",
+        "key": "stifte",
+        "label": "palitos",
+        "tags": [
+          "variable:shape",
+          "value:stifte",
+          "technique:cut"
+        ]
+      },
+      {
+        "id": "shape_grob_gehackt_8",
+        "key": "grob_gehackt",
+        "label": "picado grosso",
+        "tags": [
+          "variable:shape",
+          "value:grob_gehackt",
+          "technique:cut",
+          "tool:knife"
+        ]
+      },
+      {
+        "id": "shape_fein_gehackt_9",
+        "key": "fein_gehackt",
+        "label": "picado fino",
+        "tags": [
+          "variable:shape",
+          "value:fein_gehackt",
+          "technique:cut",
+          "tool:knife"
+        ]
+      },
+      {
+        "id": "shape_mundgerechte_st_cke_10",
+        "key": "mundgerechte_st_cke",
+        "label": "pedaços pequenos",
+        "tags": [
+          "variable:shape",
+          "value:mundgerechte_st_cke",
+          "technique:cut"
+        ]
+      },
+      {
+        "id": "shape_st_cke_11",
+        "key": "st_cke",
+        "label": "pedaços",
+        "tags": [
+          "variable:shape",
+          "value:st_cke",
+          "technique:cut"
+        ]
+      },
+      {
+        "id": "shape_rund_12",
+        "key": "rund",
+        "label": "redonda",
+        "tags": [
+          "variable:shape",
+          "value:rund",
+          "technique:roll_out"
+        ]
+      },
+      {
+        "id": "shape_fladen_13",
+        "key": "fladen",
+        "label": "disco",
+        "tags": [
+          "variable:shape",
+          "value:fladen",
+          "technique:roll_out"
+        ]
+      },
+      {
+        "id": "shape_rautenf_rmig_14",
+        "key": "rautenf_rmig",
+        "label": "em forma de losango",
+        "tags": [
+          "variable:shape",
+          "value:rautenf_rmig",
+          "technique:cut",
+          "tool:knife"
+        ]
+      }
+    ],
+    "state": [
+      {
+        "id": "state_goldbraun_1",
+        "key": "goldbraun",
+        "label": "dourado",
+        "tags": [
+          "variable:state",
+          "value:goldbraun",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake",
+          "braten",
+          "fry",
+          "saute",
+          "backen",
+          "bake",
+          "roast"
+        ]
+      },
+      {
+        "id": "state_weich_2",
+        "key": "weich",
+        "label": "macio",
+        "tags": [
+          "variable:state",
+          "value:weich",
+          "heat:wet",
+          "technique:boil",
+          "technique:simmer",
+          "technique:steam",
+          "kochen",
+          "boil",
+          "koecheln",
+          "simmer",
+          "steam"
+        ]
+      },
+      {
+        "id": "state_glasig_3",
+        "key": "glasig",
+        "label": "translúcido",
+        "tags": [
+          "variable:state",
+          "value:glasig",
+          "heat:wet",
+          "technique:boil",
+          "technique:simmer",
+          "technique:steam",
+          "braten",
+          "saute",
+          "pfanne",
+          "pan"
+        ]
+      },
+      {
+        "id": "state_gar_4",
+        "key": "gar",
+        "label": "cozido",
+        "tags": [
+          "variable:state",
+          "value:gar",
+          "heat:wet",
+          "technique:boil",
+          "technique:simmer",
+          "technique:steam",
+          "kochen",
+          "boil",
+          "köcheln",
+          "koecheln",
+          "simmer",
+          "dämpfen",
+          "daempfen",
+          "steam"
+        ]
+      },
+      {
+        "id": "state_knusprig_5",
+        "key": "knusprig",
+        "label": "crocante",
+        "tags": [
+          "variable:state",
+          "value:knusprig",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake",
+          "braten",
+          "fry",
+          "backen",
+          "bake",
+          "grill"
+        ]
+      },
+      {
+        "id": "state_cremig_6",
+        "key": "cremig",
+        "label": "cremoso",
+        "tags": [
+          "variable:state",
+          "value:cremig",
+          "component:sauce",
+          "technique:thicken",
+          "technique:blend",
+          "technique:whisk",
+          "rühren",
+          "ruehren",
+          "stir",
+          "simmer",
+          "thicken",
+          "blend"
+        ]
+      },
+      {
+        "id": "state_al_dente_7",
+        "key": "al_dente",
+        "label": "al dente",
+        "tags": [
+          "variable:state",
+          "value:al_dente",
+          "heat:wet",
+          "technique:boil",
+          "technique:simmer",
+          "family:pasta",
+          "kochen",
+          "boil"
+        ]
+      },
+      {
+        "id": "state_bissfest_8",
+        "key": "bissfest",
+        "label": "ao ponto",
+        "tags": [
+          "variable:state",
+          "value:bissfest",
+          "heat:wet",
+          "technique:boil",
+          "technique:simmer",
+          "technique:steam",
+          "family:vegetable"
+        ]
+      },
+      {
+        "id": "state_eingedickt_9",
+        "key": "eingedickt",
+        "label": "encorpado",
+        "tags": [
+          "variable:state",
+          "value:eingedickt",
+          "component:sauce",
+          "technique:thicken",
+          "technique:blend",
+          "technique:whisk",
+          "simmer",
+          "reduce",
+          "thicken",
+          "rühren",
+          "ruehren",
+          "stir"
+        ]
+      },
+      {
+        "id": "state_sprudelnd_10",
+        "key": "sprudelnd",
+        "label": "borbulhando",
+        "tags": [
+          "variable:state",
+          "value:sprudelnd",
+          "heat:wet",
+          "component:liquid",
+          "boil",
+          "kochfeld",
+          "heatplate",
+          "family:liquid"
+        ]
+      },
+      {
+        "id": "state_duftet_11",
+        "key": "duftet",
+        "label": "está perfumado",
+        "tags": [
+          "variable:state",
+          "value:duftet",
+          "heat:wet",
+          "heat:dry",
+          "aroma",
+          "risotto",
+          "toast",
+          "stir"
+        ]
+      },
+      {
+        "id": "state_verdoppelt_12",
+        "key": "verdoppelt",
+        "label": "dobrado",
+        "tags": [
+          "variable:state",
+          "value:verdoppelt",
+          "component:dough",
+          "technique:knead",
+          "technique:rise",
+          "dough",
+          "rise",
+          "family:dough"
+        ]
+      },
+      {
+        "id": "state_zart_13",
+        "key": "zart",
+        "label": "tenro",
+        "tags": [
+          "variable:state",
+          "value:zart",
+          "heat:wet",
+          "technique:boil",
+          "technique:simmer",
+          "technique:steam",
+          "braise",
+          "poach",
+          "simmer"
+        ]
+      },
+      {
+        "id": "state_anger_stet_14",
+        "key": "anger_stet",
+        "label": "tostado",
+        "tags": [
+          "variable:state",
+          "value:anger_stet"
+        ]
+      },
+      {
+        "id": "state_geschmolzen_15",
+        "key": "geschmolzen",
+        "label": "derretido",
+        "tags": [
+          "variable:state",
+          "value:geschmolzen",
+          "heat:wet",
+          "component:liquid",
+          "melt",
+          "warm",
+          "family:fat"
+        ]
+      },
+      {
+        "id": "state_schaumig_16",
+        "key": "schaumig",
+        "label": "espumoso",
+        "tags": [
+          "variable:state",
+          "value:schaumig",
+          "technique:whisk",
+          "technique:beat",
+          "whisk",
+          "beat",
+          "family:egg",
+          "family:liquid"
+        ]
+      },
+      {
+        "id": "state_reduziert_eingekocht_17",
+        "key": "reduziert_eingekocht",
+        "label": "reduzido",
+        "tags": [
+          "variable:state",
+          "value:reduziert_eingekocht"
+        ]
+      },
+      {
+        "id": "state_abgek_hlt_18",
+        "key": "abgek_hlt",
+        "label": "arrefecido",
+        "tags": [
+          "variable:state",
+          "value:abgek_hlt"
+        ]
+      },
+      {
+        "id": "state_lauwarm_19",
+        "key": "lauwarm",
+        "label": "morno",
+        "tags": [
+          "variable:state",
+          "value:lauwarm"
+        ]
+      },
+      {
+        "id": "state_fest_20",
+        "key": "fest",
+        "label": "firme",
+        "tags": [
+          "variable:state",
+          "value:fest"
+        ]
+      },
+      {
+        "id": "state_gestockt_21",
+        "key": "gestockt",
+        "label": "coalhado",
+        "tags": [
+          "variable:state",
+          "value:gestockt",
+          "family:egg",
+          "technique:poach",
+          "technique:boil"
+        ]
+      },
+      {
+        "id": "state_fluffig_22",
+        "key": "fluffig",
+        "label": "fofo",
+        "tags": [
+          "variable:state",
+          "value:fluffig",
+          "component:dough",
+          "technique:knead",
+          "technique:rise",
+          "beat",
+          "bake",
+          "dough",
+          "family:dough"
+        ]
+      },
+      {
+        "id": "state_karamellisiert_23",
+        "key": "karamellisiert",
+        "label": "caramelizado",
+        "tags": [
+          "variable:state",
+          "value:karamellisiert",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake"
+        ]
+      },
+      {
+        "id": "state_geschmeidig_24",
+        "key": "geschmeidig",
+        "label": "sedoso",
+        "tags": [
+          "variable:state",
+          "value:geschmeidig",
+          "component:dough",
+          "technique:knead",
+          "technique:rise",
+          "knead",
+          "dough",
+          "family:dough"
+        ]
+      },
+      {
+        "id": "state_angebraten_25",
+        "key": "angebraten",
+        "label": "selado",
+        "tags": [
+          "variable:state",
+          "value:angebraten",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake",
+          "braten",
+          "fry",
+          "saute",
+          "family:meat",
+          "family:fish"
+        ]
+      },
+      {
+        "id": "state_rundum_angebraten_26",
+        "key": "rundum_angebraten",
+        "label": "selado por todos os lados",
+        "tags": [
+          "variable:state",
+          "value:rundum_angebraten",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake",
+          "braten",
+          "fry",
+          "saute",
+          "family:meat"
+        ]
+      },
+      {
+        "id": "state_scharf_angebraten_27",
+        "key": "scharf_angebraten",
+        "label": "selado em fogo alto",
+        "tags": [
+          "variable:state",
+          "value:scharf_angebraten",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake",
+          "braten",
+          "fry",
+          "saute",
+          "family:meat"
+        ]
+      },
+      {
+        "id": "state_gleichm_ig_gebr_unt_28",
+        "key": "gleichm_ig_gebr_unt",
+        "label": "uniformemente dourado",
+        "tags": [
+          "variable:state",
+          "value:gleichm_ig_gebr_unt"
+        ]
+      },
+      {
+        "id": "state_braun_29",
+        "key": "braun",
+        "label": "castanho",
+        "tags": [
+          "variable:state",
+          "value:braun",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake"
+        ]
+      },
+      {
+        "id": "state_dunkelbraun_30",
+        "key": "dunkelbraun",
+        "label": "castanho-escuro",
+        "tags": [
+          "variable:state",
+          "value:dunkelbraun",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake"
+        ]
+      },
+      {
+        "id": "state_knusprig_gebr_unt_31",
+        "key": "knusprig_gebr_unt",
+        "label": "crocante e dourado",
+        "tags": [
+          "variable:state",
+          "value:knusprig_gebr_unt",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake",
+          "braten",
+          "fry",
+          "backen",
+          "bake",
+          "grill"
+        ]
+      },
+      {
+        "id": "state_au_en_knusprig_32",
+        "key": "au_en_knusprig",
+        "label": "crocante por fora",
+        "tags": [
+          "variable:state",
+          "value:au_en_knusprig",
+          "heat:dry",
+          "technique:fry",
+          "technique:roast",
+          "technique:bake",
+          "braten",
+          "fry",
+          "backen",
+          "bake",
+          "grill"
+        ]
+      },
+      {
+        "id": "state_innen_saftig_33",
+        "key": "innen_saftig",
+        "label": "suculento por dentro",
+        "tags": [
+          "variable:state",
+          "value:innen_saftig",
+          "family:meat",
+          "family:fish"
+        ]
+      },
+      {
+        "id": "state_medium_rare_34",
+        "key": "medium_rare",
+        "label": "mal passado",
+        "tags": [
+          "variable:state",
+          "value:medium_rare",
+          "family:meat",
+          "heat:dry",
+          "technique:fry",
+          "technique:grill"
+        ]
+      },
+      {
+        "id": "state_medium_35",
+        "key": "medium",
+        "label": "ao ponto",
+        "tags": [
+          "variable:state",
+          "value:medium",
+          "family:meat",
+          "heat:dry",
+          "technique:fry",
+          "technique:grill"
+        ]
+      },
+      {
+        "id": "state_durchgegart_36",
+        "key": "durchgegart",
+        "label": "bem passado",
+        "tags": [
+          "variable:state",
+          "value:durchgegart",
+          "heat:wet",
+          "technique:boil",
+          "technique:simmer",
+          "technique:steam",
+          "kochen",
+          "boil",
+          "köcheln",
+          "koecheln",
+          "simmer",
+          "dämpfen",
+          "daempfen",
+          "steam",
+          "roast",
+          "bake"
+        ]
+      },
+      {
+        "id": "state_s_mig_37",
+        "key": "s_mig",
+        "label": "encorpado e cremoso",
+        "tags": [
+          "variable:state",
+          "value:s_mig",
+          "component:sauce",
+          "technique:thicken",
+          "simmer",
+          "reduce"
+        ]
+      },
+      {
+        "id": "state_emulgiert_38",
+        "key": "emulgiert",
+        "label": "emulsionado",
+        "tags": [
+          "variable:state",
+          "value:emulgiert",
+          "technique:whisk"
+        ]
+      },
+      {
+        "id": "state_steif_39",
+        "key": "steif",
+        "label": "firme",
+        "tags": [
+          "variable:state",
+          "value:steif",
+          "technique:whisk",
+          "technique:beat",
+          "family:egg"
+        ]
+      },
+      {
+        "id": "state_glatt_40",
+        "key": "glatt",
+        "label": "liso",
+        "tags": [
+          "variable:state",
+          "value:glatt",
+          "technique:blend",
+          "technique:whisk"
+        ]
+      },
+      {
+        "id": "state_gegrillt_41",
+        "key": "gegrillt",
+        "label": "grelhado",
+        "tags": [
+          "variable:state",
+          "value:gegrillt",
+          "heat:dry",
+          "technique:grill",
+          "grill"
+        ]
+      }
+    ],
+    "base": [
+      {
+        "id": "base_das_gericht_1",
+        "key": "das_gericht",
+        "label": "prato",
+        "tags": [
+          "variable:base",
+          "value:das_gericht",
+          "default"
+        ]
+      },
+      {
+        "id": "base_pasta_2",
+        "key": "pasta",
+        "label": "massa",
+        "tags": [
+          "variable:base",
+          "value:pasta",
+          "family:pasta",
+          "technique:boil"
+        ]
+      },
+      {
+        "id": "base_eischnee_3",
+        "key": "eischnee",
+        "label": "as claras em neve",
+        "tags": [
+          "variable:base",
+          "value:eischnee"
+        ]
+      },
+      {
+        "id": "base_masse_4",
+        "key": "masse",
+        "label": "mistura",
+        "tags": [
+          "variable:base",
+          "value:masse",
+          "component:mix"
+        ]
+      },
+      {
+        "id": "base_teig_5",
+        "key": "teig",
+        "label": "massa",
+        "tags": [
+          "variable:base",
+          "value:teig",
+          "component:dough",
+          "technique:knead",
+          "technique:rise",
+          "technique:roll_out",
+          "dough",
+          "knead",
+          "rise",
+          "roll_out",
+          "base:dough",
+          "teig",
+          "kneten",
+          "ausrollen"
+        ]
+      },
+      {
+        "id": "base_creme_6",
+        "key": "creme",
+        "label": "creme",
+        "tags": [
+          "variable:base",
+          "value:creme",
+          "component:mix",
+          "cream",
+          "mix",
+          "stir"
+        ]
+      },
+      {
+        "id": "base_sauce_7",
+        "key": "sauce",
+        "label": "molho",
+        "tags": [
+          "variable:base",
+          "value:sauce",
+          "component:sauce",
+          "heat:wet",
+          "technique:simmer",
+          "technique:thicken",
+          "sauce",
+          "simmer",
+          "thicken",
+          "reduce",
+          "stir",
+          "base:sauce",
+          "soße",
+          "köcheln",
+          "koecheln"
+        ]
+      },
+      {
+        "id": "base_glasur_8",
+        "key": "glasur",
+        "label": "a cobertura",
+        "tags": [
+          "variable:base",
+          "value:glasur"
+        ]
+      },
+      {
+        "id": "base_f_llung_9",
+        "key": "f_llung",
+        "label": "o recheio",
+        "tags": [
+          "variable:base",
+          "value:f_llung",
+          "base:filling",
+          "füllung",
+          "fuellung",
+          "filling",
+          "schichten",
+          "layer"
+        ]
+      },
+      {
+        "id": "base_marinade_10",
+        "key": "marinade",
+        "label": "a marinada",
+        "tags": [
+          "variable:base",
+          "value:marinade",
+          "component:mix",
+          "marinade",
+          "mix"
+        ]
+      },
+      {
+        "id": "base_emulsion_11",
+        "key": "emulsion",
+        "label": "a emulsão",
+        "tags": [
+          "variable:base",
+          "value:emulsion",
+          "component:mix"
+        ]
+      },
+      {
+        "id": "base_schaum_12",
+        "key": "schaum",
+        "label": "a espuma",
+        "tags": [
+          "variable:base",
+          "value:schaum"
+        ]
+      },
+      {
+        "id": "base_eintopf_13",
+        "key": "eintopf",
+        "label": "o ensopado",
+        "tags": [
+          "variable:base",
+          "value:eintopf",
+          "component:sauce",
+          "heat:wet",
+          "technique:simmer",
+          "technique:thicken",
+          "stew",
+          "boil",
+          "simmer",
+          "equipment:pot",
+          "topf",
+          "pot",
+          "kochen",
+          "köcheln",
+          "koecheln",
+          "kochfeld",
+          "heatplate",
+          "stovetop",
+          "wet_heat"
+        ]
+      },
+      {
+        "id": "base_suppe_14",
+        "key": "suppe",
+        "label": "a sopa",
+        "tags": [
+          "variable:base",
+          "value:suppe",
+          "component:sauce",
+          "heat:wet",
+          "technique:simmer",
+          "technique:thicken",
+          "soup",
+          "boil",
+          "simmer",
+          "blend"
+        ]
+      },
+      {
+        "id": "base_smoothie_15",
+        "key": "smoothie",
+        "label": "smoothie",
+        "tags": [
+          "variable:base",
+          "value:smoothie",
+          "component:mix",
+          "technique:blend",
+          "blend"
+        ]
+      },
+      {
+        "id": "base_b_chamel_16",
+        "key": "b_chamel",
+        "label": "béchamel",
+        "tags": [
+          "variable:base",
+          "value:b_chamel",
+          "component:sauce",
+          "base:sauce",
+          "sauce",
+          "soße",
+          "technique:thicken",
+          "technique:simmer",
+          "technique:layer",
+          "bechamel",
+          "béchamel",
+          "weiße_sauce",
+          "white_sauce"
+        ]
+      },
+      {
+        "id": "base_hackfleischmischung_17",
+        "key": "hackfleischmischung",
+        "label": "mistura de carne moída",
+        "tags": [
+          "variable:base",
+          "value:hackfleischmischung",
+          "component:meat",
+          "family:meat",
+          "technique:stuff",
+          "technique:layer",
+          "technique:assemble",
+          "hackfleisch",
+          "ground_meat",
+          "mince"
+        ]
+      },
+      {
+        "id": "base_salat_18",
+        "key": "salat",
+        "label": "salada",
+        "tags": [
+          "variable:base",
+          "value:salat",
+          "salat",
+          "salad",
+          "technique:toss",
+          "technique:mix",
+          "cold",
+          "kalt",
+          "mischen"
+        ]
+      },
+      {
+        "id": "base_gericht_19",
+        "key": "gericht",
+        "label": "prato",
+        "tags": [
+          "variable:base",
+          "value:gericht",
+          "gericht",
+          "dish",
+          "technique:assemble",
+          "technique:serve"
+        ]
+      },
+      {
+        "id": "base_lasagne_20",
+        "key": "lasagne",
+        "label": "lasanha",
+        "tags": [
+          "variable:base",
+          "value:lasagne",
+          "component:pasta",
+          "technique:layer",
+          "technique:bake",
+          "heat:dry",
+          "lasagne",
+          "lasagna",
+          "schichten",
+          "layer",
+          "backen",
+          "bake",
+          "auflauf",
+          "casserole"
+        ]
+      },
+      {
+        "id": "base_fleisch_21",
+        "key": "fleisch",
+        "label": "carne",
+        "tags": [
+          "variable:base",
+          "value:fleisch",
+          "fleisch",
+          "meat",
+          "technique:sear",
+          "technique:roast",
+          "technique:braise",
+          "heat:dry",
+          "heat:wet",
+          "family:meat"
+        ]
+      },
+      {
+        "id": "base_gemuese_22",
+        "key": "gemuese",
+        "label": "legumes",
+        "tags": [
+          "variable:base",
+          "value:gemuese",
+          "gemüse",
+          "gemuese",
+          "vegetables",
+          "technique:sear",
+          "technique:saute",
+          "technique:blanch",
+          "heat:dry",
+          "heat:wet",
+          "family:vegetable"
+        ]
+      }
+    ],
+    "seasonings": [
+      {
+        "id": "seasonings_salz_1",
+        "key": "salz",
+        "label": "sal",
+        "tags": [
+          "variable:seasonings",
+          "value:salz",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "seasonings_pfeffer_2",
+        "key": "pfeffer",
+        "label": "pimenta",
+        "tags": [
+          "variable:seasonings",
+          "value:pfeffer",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "seasonings_salz_und_pfeffer_3",
+        "key": "salz_und_pfeffer",
+        "label": "sal e pimenta",
+        "tags": [
+          "variable:seasonings",
+          "value:salz_und_pfeffer",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "seasonings_kr_uter_4",
+        "key": "kr_uter",
+        "label": "ervas",
+        "tags": [
+          "variable:seasonings",
+          "value:kr_uter",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "seasonings_gew_rzen_5",
+        "key": "gew_rzen",
+        "label": "especiarias",
+        "tags": [
+          "variable:seasonings",
+          "value:gew_rzen",
+          "technique:season"
+        ]
+      }
+    ],
+    "balance": [
+      {
+        "id": "balance_die_s_ure_1",
+        "key": "die_s_ure",
+        "label": "acidez",
+        "tags": [
+          "variable:balance",
+          "value:die_s_ure",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "balance_die_s_e_2",
+        "key": "die_s_e",
+        "label": "doçura",
+        "tags": [
+          "variable:balance",
+          "value:die_s_e",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "balance_die_sch_rfe_3",
+        "key": "die_sch_rfe",
+        "label": "picante",
+        "tags": [
+          "variable:balance",
+          "value:die_sch_rfe",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "balance_die_w_rze_4",
+        "key": "die_w_rze",
+        "label": "tempero",
+        "tags": [
+          "variable:balance",
+          "value:die_w_rze",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "balance_die_cremigkeit_5",
+        "key": "die_cremigkeit",
+        "label": "cremosidade",
+        "tags": [
+          "variable:balance",
+          "value:die_cremigkeit",
+          "technique:season"
+        ]
+      },
+      {
+        "id": "balance_die_frische_6",
+        "key": "die_frische",
+        "label": "frescura",
+        "tags": [
+          "variable:balance",
+          "value:die_frische",
+          "technique:season"
+        ]
+      }
+    ],
+    "grind_size": [
+      {
+        "id": "grind_size_fein_1",
+        "key": "fein",
+        "label": "finas",
+        "tags": [
+          "variable:grind_size",
+          "value:fein",
+          "technique:cut",
+          "technique:grate",
+          "grate",
+          "cut"
+        ]
+      },
+      {
+        "id": "grind_size_feine_2",
+        "key": "feine",
+        "label": "médias",
+        "tags": [
+          "variable:grind_size",
+          "value:feine",
+          "technique:cut",
+          "technique:grate",
+          "grate",
+          "cut"
+        ]
+      },
+      {
+        "id": "grind_size_mittel_3",
+        "key": "mittel",
+        "label": "grossas",
+        "tags": [
+          "variable:grind_size",
+          "value:mittel",
+          "technique:cut",
+          "technique:grate",
+          "cut"
+        ]
+      },
+      {
+        "id": "grind_size_mittlere_4",
+        "key": "mittlere",
+        "label": "finas",
+        "tags": [
+          "variable:grind_size",
+          "value:mittlere"
+        ]
+      },
+      {
+        "id": "grind_size_grob_5",
+        "key": "grob",
+        "label": "largas",
+        "tags": [
+          "variable:grind_size",
+          "value:grob",
+          "technique:cut",
+          "technique:grate",
+          "grate",
+          "cut"
+        ]
+      },
+      {
+        "id": "grind_size_grobe_6",
+        "key": "grobe",
+        "label": "pequenas",
+        "tags": [
+          "variable:grind_size",
+          "value:grobe",
+          "technique:cut",
+          "technique:grate",
+          "grate",
+          "cut"
+        ]
+      },
+      {
+        "id": "grind_size_d_nn_7",
+        "key": "d_nn",
+        "label": "grandes",
+        "tags": [
+          "variable:grind_size",
+          "value:d_nn"
+        ]
+      },
+      {
+        "id": "grind_size_d_nne_8",
+        "key": "d_nne",
+        "label": "dünne",
+        "tags": [
+          "variable:grind_size",
+          "value:d_nne"
+        ]
+      },
+      {
+        "id": "grind_size_breit_9",
+        "key": "breit",
+        "label": "breit",
+        "tags": [
+          "variable:grind_size",
+          "value:breit"
+        ]
+      },
+      {
+        "id": "grind_size_breite_10",
+        "key": "breite",
+        "label": "breite",
+        "tags": [
+          "variable:grind_size",
+          "value:breite"
+        ]
+      },
+      {
+        "id": "grind_size_klein_11",
+        "key": "klein",
+        "label": "klein",
+        "tags": [
+          "variable:grind_size",
+          "value:klein"
+        ]
+      },
+      {
+        "id": "grind_size_kleine_12",
+        "key": "kleine",
+        "label": "kleine",
+        "tags": [
+          "variable:grind_size",
+          "value:kleine"
+        ]
+      },
+      {
+        "id": "grind_size_gro_13",
+        "key": "gro",
+        "label": "groß",
+        "tags": [
+          "variable:grind_size",
+          "value:gro"
+        ]
+      },
+      {
+        "id": "grind_size_gro_e_14",
+        "key": "gro_e",
+        "label": "große",
+        "tags": [
+          "variable:grind_size",
+          "value:gro_e"
+        ]
+      },
+      {
+        "id": "grind_size_ca_1_cm_gro_15",
+        "key": "ca_1_cm_gro",
+        "label": "ca. 1 cm groß",
+        "tags": [
+          "variable:grind_size",
+          "value:ca_1_cm_gro"
+        ]
+      },
+      {
+        "id": "grind_size_ca_1_cm_gro_e_16",
+        "key": "ca_1_cm_gro_e",
+        "label": "ca. 1 cm große",
+        "tags": [
+          "variable:grind_size",
+          "value:ca_1_cm_gro_e"
+        ]
+      },
+      {
+        "id": "grind_size_ca_0_5_mm_gro_17",
+        "key": "ca_0_5_mm_gro",
+        "label": "ca. 0,5 mm groß",
+        "tags": [
+          "variable:grind_size",
+          "value:ca_0_5_mm_gro"
+        ]
+      },
+      {
+        "id": "grind_size_ca_0_5_mm_gro_e_18",
+        "key": "ca_0_5_mm_gro_e",
+        "label": "ca. 0,5 mm große",
+        "tags": [
+          "variable:grind_size",
+          "value:ca_0_5_mm_gro_e"
+        ]
+      }
+    ],
+    "item": [
+      {
+        "id": "item_den_teig_1",
+        "key": "den_teig",
+        "label": "🍞 massa",
+        "tags": [
+          "variable:item",
+          "value:den_teig",
+          "component:dough",
+          "base:dough",
+          "teig",
+          "dough",
+          "kneten",
+          "knead",
+          "ausrollen",
+          "roll_out"
+        ]
+      },
+      {
+        "id": "item_die_masse_2",
+        "key": "die_masse",
+        "label": "🥣 mistura",
+        "tags": [
+          "variable:item",
+          "value:die_masse"
+        ]
+      },
+      {
+        "id": "item_die_mischung_3",
+        "key": "die_mischung",
+        "label": "🥣 preparação",
+        "tags": [
+          "variable:item",
+          "value:die_mischung"
+        ]
+      },
+      {
+        "id": "item_das_gericht_4",
+        "key": "das_gericht",
+        "label": "🍽️ prato",
+        "tags": [
+          "variable:item",
+          "value:das_gericht",
+          "technique:serve",
+          "technique:rest"
+        ]
+      },
+      {
+        "id": "item_den_braten_5",
+        "key": "den_braten",
+        "label": "🍖 assado",
+        "tags": [
+          "variable:item",
+          "value:den_braten"
+        ]
+      }
+    ],
+    "equipment": [
+      {
+        "id": "equipment_pfanne_1",
+        "key": "pfanne",
+        "label": "🍳 a frigideira",
+        "tags": [
+          "variable:equipment",
+          "value:pfanne",
+          "equipment:pan",
+          "heat:stovetop",
+          "heat:dry",
+          "technique:saute",
+          "technique:fry",
+          "pfanne",
+          "pan",
+          "braten",
+          "fry",
+          "saute",
+          "kochfeld",
+          "heatplate",
+          "stovetop",
+          "dry_heat"
+        ]
+      },
+      {
+        "id": "equipment_topf_2",
+        "key": "topf",
+        "label": "🍲 a panela",
+        "tags": [
+          "variable:equipment",
+          "value:topf",
+          "equipment:pot",
+          "heat:stovetop",
+          "heat:wet",
+          "technique:boil",
+          "technique:simmer",
+          "topf",
+          "pot",
+          "kochen",
+          "boil",
+          "köcheln",
+          "koecheln",
+          "simmer",
+          "kochfeld",
+          "heatplate",
+          "stovetop",
+          "wet_heat"
+        ]
+      },
+      {
+        "id": "equipment_backofen_3",
+        "key": "backofen",
+        "label": "♨️ o forno",
+        "tags": [
+          "variable:equipment",
+          "value:backofen",
+          "equipment:oven",
+          "heat:dry",
+          "technique:bake",
+          "backofen",
+          "oven",
+          "backen",
+          "bake",
+          "dry_heat"
+        ]
+      },
+      {
+        "id": "equipment_br_ter_4",
+        "key": "br_ter",
+        "label": "🍲 a assadeira",
+        "tags": [
+          "variable:equipment",
+          "value:br_ter",
+          "equipment:roaster",
+          "bräter",
+          "braeter",
+          "roaster",
+          "schmoren",
+          "braise",
+          "wet_heat"
+        ]
+      },
+      {
+        "id": "equipment_kochfeld_5",
+        "key": "kochfeld",
+        "label": "🔥 o fogão",
+        "tags": [
+          "variable:equipment",
+          "value:kochfeld",
+          "kochfeld",
+          "heatplate",
+          "stovetop",
+          "braten",
+          "kochen"
+        ]
+      },
+      {
+        "id": "equipment_mixer_6",
+        "key": "mixer",
+        "label": "o liquidificador",
+        "tags": [
+          "variable:equipment",
+          "value:mixer",
+          "equipment:blender",
+          "technique:blend",
+          "mixer",
+          "blender",
+          "pürieren",
+          "puerieren",
+          "blend"
+        ]
+      },
+      {
+        "id": "equipment_grill_7",
+        "key": "grill",
+        "label": "🔥 a grelha",
+        "tags": [
+          "variable:equipment",
+          "value:grill",
+          "equipment:grill",
+          "technique:grill",
+          "heat:dry",
+          "grill",
+          "grillen",
+          "grill_heat",
+          "dry_heat"
+        ]
+      },
+      {
+        "id": "equipment_dampfgarer_8",
+        "key": "dampfgarer",
+        "label": "♨️ o cozedor a vapor",
+        "tags": [
+          "variable:equipment",
+          "value:dampfgarer",
+          "equipment:steamer",
+          "heat:wet",
+          "technique:steam",
+          "dampfgarer",
+          "steamer",
+          "dämpfen",
+          "daempfen",
+          "steam",
+          "wet_heat"
+        ]
+      },
+      {
+        "id": "equipment_sch_ssel_9",
+        "key": "sch_ssel",
+        "label": "🥣 a tigela",
+        "tags": [
+          "variable:equipment",
+          "value:sch_ssel",
+          "equipment:bowl",
+          "schüssel",
+          "schuessel",
+          "bowl",
+          "mischen",
+          "mix",
+          "einweichen",
+          "soak"
+        ]
+      },
+      {
+        "id": "equipment_sieb_10",
+        "key": "sieb",
+        "label": "a peneira",
+        "tags": [
+          "variable:equipment",
+          "value:sieb",
+          "equipment:strainer",
+          "technique:drain",
+          "technique:strain",
+          "sieb",
+          "strainer",
+          "drain",
+          "strain",
+          "abgießen"
+        ]
+      },
+      {
+        "id": "equipment_backform_11",
+        "key": "backform",
+        "label": "🍰 a forma",
+        "tags": [
+          "variable:equipment",
+          "value:backform",
+          "equipment:baking_pan",
+          "heat:dry",
+          "technique:bake",
+          "backform",
+          "baking_pan",
+          "backen",
+          "bake",
+          "füllen",
+          "fill",
+          "stuff",
+          "dry_heat"
+        ]
+      },
+      {
+        "id": "equipment_auflaufform_12",
+        "key": "auflaufform",
+        "label": "🍲 a travessa de forno",
+        "tags": [
+          "variable:equipment",
+          "value:auflaufform",
+          "equipment:casserole",
+          "heat:dry",
+          "technique:bake",
+          "auflaufform",
+          "casserole",
+          "gratin",
+          "überbacken",
+          "ueberbacken",
+          "backen",
+          "bake",
+          "füllen",
+          "fill",
+          "stuff",
+          "schichten",
+          "layer",
+          "dry_heat"
+        ]
+      }
+    ],
+    "marinade": [
+      {
+        "id": "marinade_oliven_l_und_gew_rzen_1",
+        "key": "oliven_l_und_gew_rzen",
+        "label": "azeite e especiarias",
+        "tags": [
+          "variable:marinade",
+          "value:oliven_l_und_gew_rzen",
+          "component:marinade",
+          "technique:marinate"
+        ]
+      },
+      {
+        "id": "marinade_joghurt_und_gew_rzen_2",
+        "key": "joghurt_und_gew_rzen",
+        "label": "iogurte e especiarias",
+        "tags": [
+          "variable:marinade",
+          "value:joghurt_und_gew_rzen",
+          "component:marinade",
+          "technique:marinate"
+        ]
+      },
+      {
+        "id": "marinade_sojasauce_knoblauch_und_ingwer_3",
+        "key": "sojasauce_knoblauch_und_ingwer",
+        "label": "molho de soja, alho e gengibre",
+        "tags": [
+          "variable:marinade",
+          "value:sojasauce_knoblauch_und_ingwer",
+          "component:marinade",
+          "technique:marinate",
+          "base:sauce",
+          "sauce",
+          "soße",
+          "köcheln",
+          "koecheln",
+          "simmer",
+          "reduce",
+          "stir"
+        ]
+      },
+      {
+        "id": "marinade_zitronensaft_l_und_kr_utern_4",
+        "key": "zitronensaft_l_und_kr_utern",
+        "label": "sumo de limão, azeite e ervas",
+        "tags": [
+          "variable:marinade",
+          "value:zitronensaft_l_und_kr_utern",
+          "component:marinade",
+          "technique:marinate"
+        ]
+      },
+      {
+        "id": "marinade_marinade_5",
+        "key": "marinade",
+        "label": "a marinada",
+        "tags": [
+          "variable:marinade",
+          "value:marinade",
+          "component:marinade",
+          "technique:marinate"
+        ]
+      }
+    ],
+    "method": [
+      {
+        "id": "method_vorsichtig_unter_1",
+        "key": "vorsichtig_unter",
+        "label": "incorpore delicadamente",
+        "tags": [
+          "variable:method",
+          "value:vorsichtig_unter"
+        ]
+      },
+      {
+        "id": "method_gleichm_ig_einr_hren_2",
+        "key": "gleichm_ig_einr_hren",
+        "label": "misture de forma uniforme",
+        "tags": [
+          "variable:method",
+          "value:gleichm_ig_einr_hren"
+        ]
+      },
+      {
+        "id": "method_kurz_vermengen_3",
+        "key": "kurz_vermengen",
+        "label": "misture rapidamente",
+        "tags": [
+          "variable:method",
+          "value:kurz_vermengen"
+        ]
+      },
+      {
+        "id": "method_gr_ndlich_vermischen_4",
+        "key": "gr_ndlich_vermischen",
+        "label": "misture bem",
+        "tags": [
+          "variable:method",
+          "value:gr_ndlich_vermischen"
+        ]
+      },
+      {
+        "id": "method_unterr_hren_5",
+        "key": "unterr_hren",
+        "label": "incorporar mexendo",
+        "tags": [
+          "variable:method",
+          "value:unterr_hren"
+        ]
+      },
+      {
+        "id": "method_schwenkend_6",
+        "key": "schwenkend",
+        "label": "salteando",
+        "tags": [
+          "variable:method",
+          "value:schwenkend"
+        ]
+      },
+      {
+        "id": "method_vorsichtig_7",
+        "key": "vorsichtig",
+        "label": "com cuidado",
+        "tags": [
+          "variable:method",
+          "value:vorsichtig"
+        ]
+      },
+      {
+        "id": "method_regelm_ig_8",
+        "key": "regelm_ig",
+        "label": "regularmente",
+        "tags": [
+          "variable:method",
+          "value:regelm_ig"
+        ]
+      }
+    ],
+    "mode": [
+      {
+        "id": "mode_ober_unterhitze_1",
+        "key": "ober_unterhitze",
+        "label": "calor superior/inferior",
+        "tags": [
+          "variable:mode",
+          "value:ober_unterhitze",
+          "equipment:oven",
+          "heat:dry",
+          "technique:bake"
+        ]
+      },
+      {
+        "id": "mode_umluft_2",
+        "key": "umluft",
+        "label": "ventilado",
+        "tags": [
+          "variable:mode",
+          "value:umluft",
+          "equipment:oven",
+          "heat:dry",
+          "technique:bake"
+        ]
+      },
+      {
+        "id": "mode_grillfunktion_3",
+        "key": "grillfunktion",
+        "label": "função grill",
+        "tags": [
+          "variable:mode",
+          "value:grillfunktion",
+          "equipment:oven",
+          "heat:dry",
+          "technique:bake"
+        ]
+      }
+    ],
+    "servings": [
+      {
+        "id": "servings_1_1",
+        "key": "1",
+        "label": "1",
+        "tags": [
+          "variable:servings",
+          "value:1"
+        ]
+      },
+      {
+        "id": "servings_2_2",
+        "key": "2",
+        "label": "2",
+        "tags": [
+          "variable:servings",
+          "value:2"
+        ]
+      },
+      {
+        "id": "servings_3_3",
+        "key": "3",
+        "label": "3",
+        "tags": [
+          "variable:servings",
+          "value:3"
+        ]
+      },
+      {
+        "id": "servings_4_4",
+        "key": "4",
+        "label": "4",
+        "tags": [
+          "variable:servings",
+          "value:4"
+        ]
+      },
+      {
+        "id": "servings_5_5",
+        "key": "5",
+        "label": "5",
+        "tags": [
+          "variable:servings",
+          "value:5"
+        ]
+      },
+      {
+        "id": "servings_6_6",
+        "key": "6",
+        "label": "6",
+        "tags": [
+          "variable:servings",
+          "value:6"
+        ]
+      },
+      {
+        "id": "servings_8_7",
+        "key": "8",
+        "label": "8",
+        "tags": [
+          "variable:servings",
+          "value:8"
+        ]
+      },
+      {
+        "id": "servings_10_8",
+        "key": "10",
+        "label": "10",
+        "tags": [
+          "variable:servings",
+          "value:10"
+        ]
+      },
+      {
+        "id": "servings_12_9",
+        "key": "12",
+        "label": "12",
+        "tags": [
+          "variable:servings",
+          "value:12"
+        ]
+      }
+    ],
+    "position": [
+      {
+        "id": "position_mittig_1",
+        "key": "mittig",
+        "label": "ao centro",
+        "tags": [
+          "variable:position",
+          "value:mittig"
+        ]
+      },
+      {
+        "id": "position_auf_oberer_schiene_2",
+        "key": "auf_oberer_schiene",
+        "label": "na prateleira superior",
+        "tags": [
+          "variable:position",
+          "value:auf_oberer_schiene"
+        ]
+      },
+      {
+        "id": "position_nah_unter_dem_grill_3",
+        "key": "nah_unter_dem_grill",
+        "label": "perto do grill",
+        "tags": [
+          "variable:position",
+          "value:nah_unter_dem_grill"
+        ]
+      }
+    ],
+    "keep": [
+      {
+        "id": "keep_das_kochwasser_1",
+        "key": "das_kochwasser",
+        "label": "água da cozedura",
+        "tags": [
+          "variable:keep",
+          "value:das_kochwasser"
+        ]
+      },
+      {
+        "id": "keep_die_br_he_2",
+        "key": "die_br_he",
+        "label": "caldo",
+        "tags": [
+          "variable:keep",
+          "value:die_br_he"
+        ]
+      },
+      {
+        "id": "keep_die_sauce_3",
+        "key": "die_sauce",
+        "label": "molho",
+        "tags": [
+          "variable:keep",
+          "value:die_sauce",
+          "base:sauce",
+          "sauce",
+          "soße",
+          "köcheln",
+          "koecheln",
+          "simmer",
+          "reduce",
+          "stir"
+        ]
+      },
+      {
+        "id": "keep_den_sud_4",
+        "key": "den_sud",
+        "label": "líquido",
+        "tags": [
+          "variable:keep",
+          "value:den_sud"
+        ]
+      }
+    ],
+    "surface": [
+      {
+        "id": "surface_einer_bemehlten_arbeitsfl_che_1",
+        "key": "einer_bemehlten_arbeitsfl_che",
+        "label": "uma superfície enfarinhada",
+        "tags": [
+          "variable:surface",
+          "value:einer_bemehlten_arbeitsfl_che",
+          "component:dough",
+          "technique:roll_out"
+        ]
+      },
+      {
+        "id": "surface_backpapier_2",
+        "key": "backpapier",
+        "label": "papel vegetal",
+        "tags": [
+          "variable:surface",
+          "value:backpapier",
+          "component:dough",
+          "technique:roll_out"
+        ]
+      },
+      {
+        "id": "surface_einer_silikonmatte_3",
+        "key": "einer_silikonmatte",
+        "label": "um tapete de silicone",
+        "tags": [
+          "variable:surface",
+          "value:einer_silikonmatte",
+          "component:dough",
+          "technique:roll_out"
+        ]
+      },
+      {
+        "id": "surface_der_arbeitsfl_che_4",
+        "key": "der_arbeitsfl_che",
+        "label": "a superfície de trabalho",
+        "tags": [
+          "variable:surface",
+          "value:der_arbeitsfl_che",
+          "component:dough",
+          "technique:roll_out"
+        ]
+      }
+    ],
+    "thickener": [
+      {
+        "id": "thickener_speisest_rke_1",
+        "key": "speisest_rke",
+        "label": "amido de milho",
+        "tags": [
+          "variable:thickener",
+          "value:speisest_rke",
+          "component:sauce",
+          "technique:thicken"
+        ]
+      },
+      {
+        "id": "thickener_mehl_2",
+        "key": "mehl",
+        "label": "farinha",
+        "tags": [
+          "variable:thickener",
+          "value:mehl",
+          "component:sauce",
+          "technique:thicken"
+        ]
+      },
+      {
+        "id": "thickener_anger_hrter_st_rke_3",
+        "key": "anger_hrter_st_rke",
+        "label": "amido dissolvido",
+        "tags": [
+          "variable:thickener",
+          "value:anger_hrter_st_rke",
+          "component:sauce",
+          "technique:thicken"
+        ]
+      },
+      {
+        "id": "thickener_einer_mehlschwitze_4",
+        "key": "einer_mehlschwitze",
+        "label": "um roux",
+        "tags": [
+          "variable:thickener",
+          "value:einer_mehlschwitze",
+          "component:sauce",
+          "technique:thicken"
+        ]
+      }
+    ],
+    "components": [
+      {
+        "id": "components_gem_se_und_sauce_1",
+        "key": "gem_se_und_sauce",
+        "label": "legumes e molho",
+        "tags": [
+          "variable:components",
+          "value:gem_se_und_sauce",
+          "technique:layer",
+          "component:mix",
+          "base:sauce",
+          "sauce",
+          "soße",
+          "köcheln",
+          "koecheln",
+          "simmer",
+          "reduce",
+          "stir"
+        ]
+      },
+      {
+        "id": "components_kartoffeln_und_gem_se_2",
+        "key": "kartoffeln_und_gem_se",
+        "label": "batatas e legumes",
+        "tags": [
+          "variable:components",
+          "value:kartoffeln_und_gem_se",
+          "technique:layer",
+          "component:mix"
+        ]
+      },
+      {
+        "id": "components_nudeln_und_sauce_3",
+        "key": "nudeln_und_sauce",
+        "label": "massa e molho",
+        "tags": [
+          "variable:components",
+          "value:nudeln_und_sauce",
+          "technique:layer",
+          "component:mix",
+          "base:sauce",
+          "sauce",
+          "soße",
+          "köcheln",
+          "koecheln",
+          "simmer",
+          "reduce",
+          "stir"
+        ]
+      },
+      {
+        "id": "components_schichten_aus_teig_und_f_llung_4",
+        "key": "schichten_aus_teig_und_f_llung",
+        "label": "camadas de massa e recheio",
+        "tags": [
+          "variable:components",
+          "value:schichten_aus_teig_und_f_llung",
+          "technique:layer",
+          "component:mix",
+          "base:filling",
+          "füllung",
+          "fuellung",
+          "filling",
+          "schichten",
+          "layer",
+          "base:dough",
+          "teig",
+          "dough",
+          "kneten",
+          "knead",
+          "ausrollen",
+          "roll_out"
+        ]
+      },
+      {
+        "id": "components_die_zutaten_5",
+        "key": "die_zutaten",
+        "label": "ingredientes",
+        "tags": [
+          "variable:components",
+          "value:die_zutaten",
+          "technique:layer",
+          "component:mix"
+        ]
+      },
+      {
+        "id": "components_bolognese_lasagnebl_tter_b_chamel_und_k_se_6",
+        "key": "bolognese_lasagnebl_tter_b_chamel_und_k_se",
+        "label": "bolonhesa, folhas de lasanha, béchamel e queijo",
+        "tags": [
+          "variable:components",
+          "value:bolognese_lasagnebl_tter_b_chamel_und_k_se",
+          "technique:layer",
+          "component:mix",
+          "base:sauce",
+          "family:pasta"
+        ]
+      },
+      {
+        "id": "components_hackfleischmischung_und_gem_se_7",
+        "key": "hackfleischmischung_und_gem_se",
+        "label": "mistura de carne moída e legumes",
+        "tags": [
+          "variable:components",
+          "value:hackfleischmischung_und_gem_se",
+          "technique:layer",
+          "technique:stuff",
+          "technique:assemble",
+          "component:mix",
+          "family:meat"
+        ]
+      },
+      {
+        "id": "components_br_tchen_salat_patty_tomate_und_sauce_8",
+        "key": "br_tchen_salat_patty_tomate_und_sauce",
+        "label": "pão, alface, hambúrguer, tomate e molho",
+        "tags": [
+          "variable:components",
+          "value:br_tchen_salat_patty_tomate_und_sauce",
+          "technique:assemble",
+          "component:mix",
+          "family:meat"
+        ]
+      },
+      {
+        "id": "components_f_llung_salsa_k_se_und_salat_9",
+        "key": "f_llung_salsa_k_se_und_salat",
+        "label": "recheio, salsa, queijo e alface",
+        "tags": [
+          "variable:components",
+          "value:f_llung_salsa_k_se_und_salat",
+          "technique:assemble",
+          "technique:wrap",
+          "component:mix"
+        ]
+      },
+      {
+        "id": "components_taco_shell_fleisch_avocado_tomaten_und_k_se_10",
+        "key": "taco_shell_fleisch_avocado_tomaten_und_k_se",
+        "label": "taco, carne, abacate, tomates e queijo",
+        "tags": [
+          "variable:components",
+          "value:taco_shell_fleisch_avocado_tomaten_und_k_se",
+          "technique:assemble",
+          "component:mix",
+          "family:meat"
+        ]
+      }
+    ],
+    "finish": [
+      {
+        "id": "finish_geriebenem_k_se_1",
+        "key": "geriebenem_k_se",
+        "label": "queijo ralado",
+        "tags": [
+          "variable:finish",
+          "value:geriebenem_k_se",
+          "technique:layer",
+          "technique:serve"
+        ]
+      },
+      {
+        "id": "finish_frischen_kr_utern_2",
+        "key": "frischen_kr_utern",
+        "label": "ervas frescas",
+        "tags": [
+          "variable:finish",
+          "value:frischen_kr_utern",
+          "technique:layer",
+          "technique:serve"
+        ]
+      },
+      {
+        "id": "finish_semmelbr_seln_3",
+        "key": "semmelbr_seln",
+        "label": "pão ralado",
+        "tags": [
+          "variable:finish",
+          "value:semmelbr_seln",
+          "technique:layer",
+          "technique:serve"
+        ]
+      },
+      {
+        "id": "finish_einem_schuss_oliven_l_4",
+        "key": "einem_schuss_oliven_l",
+        "label": "um fio de azeite",
+        "tags": [
+          "variable:finish",
+          "value:einem_schuss_oliven_l",
+          "technique:layer",
+          "technique:serve"
+        ]
+      },
+      {
+        "id": "finish_bechamelsauce_5",
+        "key": "bechamelsauce",
+        "label": "molho bechamel",
+        "tags": [
+          "variable:finish",
+          "value:bechamelsauce",
+          "technique:layer",
+          "technique:serve",
+          "base:sauce",
+          "sauce",
+          "soße",
+          "köcheln",
+          "koecheln",
+          "simmer",
+          "reduce",
+          "stir"
+        ]
+      }
+    ],
+    "extra": [
+      {
+        "id": "extra_sofort_hei_1",
+        "key": "sofort_hei",
+        "label": "servir de imediato bem quente",
+        "tags": [
+          "variable:extra",
+          "value:sofort_hei"
+        ]
+      },
+      {
+        "id": "extra_mit_frischen_kr_utern_2",
+        "key": "mit_frischen_kr_utern",
+        "label": "com ervas frescas",
+        "tags": [
+          "variable:extra",
+          "value:mit_frischen_kr_utern"
+        ]
+      },
+      {
+        "id": "extra_mit_einem_dip_3",
+        "key": "mit_einem_dip",
+        "label": "com um molho",
+        "tags": [
+          "variable:extra",
+          "value:mit_einem_dip"
+        ]
+      },
+      {
+        "id": "extra_mit_zitronenspalten_4",
+        "key": "mit_zitronenspalten",
+        "label": "com gomos de limão",
+        "tags": [
+          "variable:extra",
+          "value:mit_zitronenspalten"
+        ]
+      }
+    ],
+    "reason": [
+      {
+        "id": "reason_sich_die_aromen_verbinden_1",
+        "key": "sich_die_aromen_verbinden",
+        "label": "os sabores se integrem",
+        "tags": [
+          "variable:reason",
+          "value:sich_die_aromen_verbinden"
+        ]
+      },
+      {
+        "id": "reason_die_masse_stabil_bleibt_2",
+        "key": "die_masse_stabil_bleibt",
+        "label": "a mistura se mantenha estável",
+        "tags": [
+          "variable:reason",
+          "value:die_masse_stabil_bleibt"
+        ]
+      },
+      {
+        "id": "reason_der_saft_sich_verteilt_3",
+        "key": "der_saft_sich_verteilt",
+        "label": "os sucos se redistribuam",
+        "tags": [
+          "variable:reason",
+          "value:der_saft_sich_verteilt"
+        ]
+      },
+      {
+        "id": "reason_die_kruste_knusprig_bleibt_4",
+        "key": "die_kruste_knusprig_bleibt",
+        "label": "a crosta fique crocante",
+        "tags": [
+          "variable:reason",
+          "value:die_kruste_knusprig_bleibt"
+        ]
+      }
+    ],
+    "goal": [
+      {
+        "id": "goal_die_masse_luftig_bleibt_1",
+        "key": "die_masse_luftig_bleibt",
+        "label": "a mistura fique aerada",
+        "tags": [
+          "variable:goal",
+          "value:die_masse_luftig_bleibt"
+        ]
+      },
+      {
+        "id": "goal_keine_luft_entweicht_2",
+        "key": "keine_luft_entweicht",
+        "label": "não se perca ar",
+        "tags": [
+          "variable:goal",
+          "value:keine_luft_entweicht"
+        ]
+      },
+      {
+        "id": "goal_alles_gleichm_ig_verteilt_ist_3",
+        "key": "alles_gleichm_ig_verteilt_ist",
+        "label": "tudo fique distribuído de forma uniforme",
+        "tags": [
+          "variable:goal",
+          "value:alles_gleichm_ig_verteilt_ist"
+        ]
+      },
+      {
+        "id": "goal_die_struktur_erhalten_bleibt_4",
+        "key": "die_struktur_erhalten_bleibt",
+        "label": "a estrutura seja preservada",
+        "tags": [
+          "variable:goal",
+          "value:die_struktur_erhalten_bleibt"
+        ]
+      }
+    ],
+    "step1": [
+      {
+        "id": "step1_mehl_1",
+        "key": "mehl",
+        "label": "farinha",
+        "tags": [
+          "variable:step1",
+          "value:mehl"
+        ]
+      },
+      {
+        "id": "step1_st_rke_2",
+        "key": "st_rke",
+        "label": "amido",
+        "tags": [
+          "variable:step1",
+          "value:st_rke"
+        ]
+      },
+      {
+        "id": "step1_pankomehl_3",
+        "key": "pankomehl",
+        "label": "panko",
+        "tags": [
+          "variable:step1",
+          "value:pankomehl"
+        ]
+      }
+    ],
+    "step2": [
+      {
+        "id": "step2_verquirltem_ei_1",
+        "key": "verquirltem_ei",
+        "label": "ovo batido",
+        "tags": [
+          "variable:step2",
+          "value:verquirltem_ei"
+        ]
+      },
+      {
+        "id": "step2_buttermilch_2",
+        "key": "buttermilch",
+        "label": "leitelho",
+        "tags": [
+          "variable:step2",
+          "value:buttermilch"
+        ]
+      },
+      {
+        "id": "step2_pflanzlicher_milch_3",
+        "key": "pflanzlicher_milch",
+        "label": "bebida vegetal",
+        "tags": [
+          "variable:step2",
+          "value:pflanzlicher_milch"
+        ]
+      }
+    ],
+    "step3": [
+      {
+        "id": "step3_semmelbr_seln_1",
+        "key": "semmelbr_seln",
+        "label": "pão ralado",
+        "tags": [
+          "variable:step3",
+          "value:semmelbr_seln"
+        ]
+      },
+      {
+        "id": "step3_panko_2",
+        "key": "panko",
+        "label": "panko",
+        "tags": [
+          "variable:step3",
+          "value:panko"
+        ]
+      },
+      {
+        "id": "step3_zerdr_ckten_cornflakes_3",
+        "key": "zerdr_ckten_cornflakes",
+        "label": "cornflakes triturados",
+        "tags": [
+          "variable:step3",
+          "value:zerdr_ckten_cornflakes"
+        ]
+      }
+    ],
+    "dough": [
+      {
+        "id": "dough_teig_1",
+        "key": "teig",
+        "label": "massa",
+        "tags": [
+          "variable:dough",
+          "value:teig",
+          "component:dough",
+          "technique:knead",
+          "technique:rise",
+          "technique:roll_out",
+          "base:dough",
+          "teig",
+          "dough",
+          "kneten",
+          "knead",
+          "ausrollen",
+          "roll_out"
+        ]
+      },
+      {
+        "id": "dough_pizzateig_2",
+        "key": "pizzateig",
+        "label": "massa de pizza",
+        "tags": [
+          "variable:dough",
+          "value:pizzateig",
+          "component:dough",
+          "technique:knead",
+          "technique:rise",
+          "technique:roll_out",
+          "base:dough",
+          "teig",
+          "dough",
+          "kneten",
+          "knead",
+          "ausrollen",
+          "roll_out"
+        ]
+      },
+      {
+        "id": "dough_m_rbeteig_3",
+        "key": "m_rbeteig",
+        "label": "massa quebrada",
+        "tags": [
+          "variable:dough",
+          "value:m_rbeteig",
+          "component:dough",
+          "technique:knead",
+          "technique:rise",
+          "technique:roll_out",
+          "base:dough",
+          "teig",
+          "dough",
+          "kneten",
+          "knead",
+          "ausrollen",
+          "roll_out"
+        ]
+      },
+      {
+        "id": "dough_hefeteig_4",
+        "key": "hefeteig",
+        "label": "massa levedada",
+        "tags": [
+          "variable:dough",
+          "value:hefeteig",
+          "component:dough",
+          "technique:knead",
+          "technique:rise",
+          "technique:roll_out",
+          "base:dough",
+          "teig",
+          "dough",
+          "kneten",
+          "knead",
+          "ausrollen",
+          "roll_out"
+        ]
+      }
+    ],
+    "base_sauce": [
+      {
+        "id": "base_sauce_tomatensauce_1",
+        "key": "tomatensauce",
+        "label": "molho de tomate",
+        "tags": [
+          "variable:base_sauce",
+          "value:tomatensauce"
+        ]
+      },
+      {
+        "id": "base_sauce_cr_me_fra_che_2",
+        "key": "cr_me_fra_che",
+        "label": "crème fraîche",
+        "tags": [
+          "variable:base_sauce",
+          "value:cr_me_fra_che"
+        ]
+      },
+      {
+        "id": "base_sauce_pesto_3",
+        "key": "pesto",
+        "label": "pesto",
+        "tags": [
+          "variable:base_sauce",
+          "value:pesto"
+        ]
+      },
+      {
+        "id": "base_sauce_oliven_l_4",
+        "key": "oliven_l",
+        "label": "azeite",
+        "tags": [
+          "variable:base_sauce",
+          "value:oliven_l"
+        ]
+      }
+    ],
+    "toppings": [
+      {
+        "id": "toppings_mozzarella_und_belag_1",
+        "key": "mozzarella_und_belag",
+        "label": "mozzarella e coberturas",
+        "tags": [
+          "variable:toppings",
+          "value:mozzarella_und_belag"
+        ]
+      },
+      {
+        "id": "toppings_gem_se_2",
+        "key": "gem_se",
+        "label": "legumes",
+        "tags": [
+          "variable:toppings",
+          "value:gem_se"
+        ]
+      },
+      {
+        "id": "toppings_k_se_3",
+        "key": "k_se",
+        "label": "queijo",
+        "tags": [
+          "variable:toppings",
+          "value:k_se"
+        ]
+      }
+    ],
+    "filling": [
+      {
+        "id": "filling_hackfleischmischung_1",
+        "key": "hackfleischmischung",
+        "label": "mistura de carne moída",
+        "tags": [
+          "variable:filling",
+          "value:hackfleischmischung",
+          "technique:stuff"
+        ]
+      },
+      {
+        "id": "filling_reis_gem_se_f_llung_2",
+        "key": "reis_gem_se_f_llung",
+        "label": "recheio de arroz e legumes",
+        "tags": [
+          "variable:filling",
+          "value:reis_gem_se_f_llung",
+          "technique:stuff"
+        ]
+      },
+      {
+        "id": "filling_k_se_spinat_f_llung_3",
+        "key": "k_se_spinat_f_llung",
+        "label": "recheio de queijo e espinafre",
+        "tags": [
+          "variable:filling",
+          "value:k_se_spinat_f_llung",
+          "technique:stuff"
+        ]
+      }
+    ],
+    "wrapper": [
+      {
+        "id": "wrapper_teigblatt_1",
+        "key": "teigblatt",
+        "label": "folha de massa",
+        "tags": [
+          "variable:wrapper",
+          "value:teigblatt",
+          "technique:wrap"
+        ]
+      },
+      {
+        "id": "wrapper_reispapier_2",
+        "key": "reispapier",
+        "label": "papel de arroz",
+        "tags": [
+          "variable:wrapper",
+          "value:reispapier",
+          "technique:wrap"
+        ]
+      },
+      {
+        "id": "wrapper_kohlblatt_3",
+        "key": "kohlblatt",
+        "label": "folha de couve",
+        "tags": [
+          "variable:wrapper",
+          "value:kohlblatt",
+          "technique:wrap"
+        ]
+      },
+      {
+        "id": "wrapper_tortilla_4",
+        "key": "tortilla",
+        "label": "tortilha",
+        "tags": [
+          "variable:wrapper",
+          "value:tortilla",
+          "technique:wrap"
+        ]
+      }
+    ],
+    "folds": [
+      {
+        "id": "folds_einfache_tour_1",
+        "key": "einfache_tour",
+        "label": "numa dobra simples",
+        "tags": [
+          "variable:folds",
+          "value:einfache_tour",
+          "technique:laminate"
+        ]
+      },
+      {
+        "id": "folds_doppelte_tour_2",
+        "key": "doppelte_tour",
+        "label": "numa dobra dupla",
+        "tags": [
+          "variable:folds",
+          "value:doppelte_tour",
+          "technique:laminate"
+        ]
+      }
+    ],
+    "fat": [
+      {
+        "id": "fat_butter_1",
+        "key": "butter",
+        "label": "manteiga",
+        "tags": [
+          "variable:fat",
+          "value:butter",
+          "technique:laminate",
+          "technique:confit"
+        ]
+      },
+      {
+        "id": "fat_oliven_l_2",
+        "key": "oliven_l",
+        "label": "azeite",
+        "tags": [
+          "variable:fat",
+          "value:oliven_l",
+          "technique:confit"
+        ]
+      },
+      {
+        "id": "fat_entenfett_3",
+        "key": "entenfett",
+        "label": "gordura de pato",
+        "tags": [
+          "variable:fat",
+          "value:entenfett",
+          "technique:confit"
+        ]
+      },
+      {
+        "id": "fat_schmalz_4",
+        "key": "schmalz",
+        "label": "banha",
+        "tags": [
+          "variable:fat",
+          "value:schmalz",
+          "technique:confit"
+        ]
+      }
+    ],
+    "wood": [
+      {
+        "id": "wood_buchenholz_1",
+        "key": "buchenholz",
+        "label": "madeira de faia",
+        "tags": [
+          "variable:wood",
+          "value:buchenholz",
+          "technique:smoke"
+        ]
+      },
+      {
+        "id": "wood_hickory_2",
+        "key": "hickory",
+        "label": "nogueira",
+        "tags": [
+          "variable:wood",
+          "value:hickory",
+          "technique:smoke"
+        ]
+      },
+      {
+        "id": "wood_kirschholz_3",
+        "key": "kirschholz",
+        "label": "madeira de cerejeira",
+        "tags": [
+          "variable:wood",
+          "value:kirschholz",
+          "technique:smoke"
+        ]
+      }
+    ],
+    "spirit": [
+      {
+        "id": "spirit_cognac_1",
+        "key": "cognac",
+        "label": "conhaque",
+        "tags": [
+          "variable:spirit",
+          "value:cognac",
+          "technique:flambe"
+        ]
+      },
+      {
+        "id": "spirit_rum_2",
+        "key": "rum",
+        "label": "rum",
+        "tags": [
+          "variable:spirit",
+          "value:rum",
+          "technique:flambe"
+        ]
+      },
+      {
+        "id": "spirit_grand_marnier_3",
+        "key": "grand_marnier",
+        "label": "Grand Marnier",
+        "tags": [
+          "variable:spirit",
+          "value:grand_marnier",
+          "technique:flambe"
+        ]
+      }
+    ],
+    "glaze": [
+      {
+        "id": "glaze_zuckerguss_1",
+        "key": "zuckerguss",
+        "label": "glacê",
+        "tags": [
+          "variable:glaze",
+          "value:zuckerguss",
+          "technique:glaze"
+        ]
+      },
+      {
+        "id": "glaze_schokoladenglasur_2",
+        "key": "schokoladenglasur",
+        "label": "cobertura de chocolate",
+        "tags": [
+          "variable:glaze",
+          "value:schokoladenglasur",
+          "technique:glaze"
+        ]
+      },
+      {
+        "id": "glaze_honigglasur_3",
+        "key": "honigglasur",
+        "label": "cobertura de mel",
+        "tags": [
+          "variable:glaze",
+          "value:honigglasur",
+          "technique:glaze"
+        ]
+      }
+    ],
+    "decoration": [
+      {
+        "id": "decoration_puderzucker_1",
+        "key": "puderzucker",
+        "label": "açúcar de confeiteiro",
+        "tags": [
+          "variable:decoration",
+          "value:puderzucker",
+          "technique:decorate"
+        ]
+      },
+      {
+        "id": "decoration_frische_kr_uter_2",
+        "key": "frische_kr_uter",
+        "label": "ervas frescas",
+        "tags": [
+          "variable:decoration",
+          "value:frische_kr_uter",
+          "technique:decorate"
+        ]
+      },
+      {
+        "id": "decoration_sahnetupfen_3",
+        "key": "sahnetupfen",
+        "label": "pontinhos de chantilly",
+        "tags": [
+          "variable:decoration",
+          "value:sahnetupfen",
+          "technique:decorate"
+        ]
+      },
+      {
+        "id": "decoration_essbare_bl_ten_4",
+        "key": "essbare_bl_ten",
+        "label": "flores comestíveis",
+        "tags": [
+          "variable:decoration",
+          "value:essbare_bl_ten",
+          "technique:decorate"
+        ]
+      }
+    ],
+    "ingredient_fractions": [
+      {
+        "id": "ingredient_fractions_1_2_1",
+        "key": "1/2",
+        "label": "metade"
+      },
+      {
+        "id": "ingredient_fractions_1_3_2",
+        "key": "1/3",
+        "label": "um terço"
+      },
+      {
+        "id": "ingredient_fractions_2_3_3",
+        "key": "2/3",
+        "label": "dois terços"
+      },
+      {
+        "id": "ingredient_fractions_1_4_4",
+        "key": "1/4",
+        "label": "um quarto"
+      },
+      {
+        "id": "ingredient_fractions_3_4_5",
+        "key": "3/4",
+        "label": "três quartos"
+      }
+    ],
+    "removal": [
+      {
+        "id": "removal_schale_1",
+        "key": "schale",
+        "label": "casca",
+        "tags": [
+          "variable:removal",
+          "value:schale",
+          "prep",
+          "wash",
+          "clean"
+        ]
+      },
+      {
+        "id": "removal_graeten_2",
+        "key": "graeten",
+        "label": "espinhas",
+        "tags": [
+          "variable:removal",
+          "value:graeten",
+          "prep",
+          "fish",
+          "clean"
+        ]
+      },
+      {
+        "id": "removal_huelle_3",
+        "key": "huelle",
+        "label": "vagem",
+        "tags": [
+          "variable:removal",
+          "value:huelle",
+          "prep",
+          "wash",
+          "clean"
+        ]
+      },
+      {
+        "id": "removal_stiele_4",
+        "key": "stiele",
+        "label": "talos",
+        "tags": [
+          "variable:removal",
+          "value:stiele",
+          "prep",
+          "wash",
+          "clean",
+          "vegetable"
+        ]
+      },
+      {
+        "id": "removal_kerne_5",
+        "key": "kerne",
+        "label": "sementes",
+        "tags": [
+          "variable:removal",
+          "value:kerne",
+          "prep",
+          "wash",
+          "clean"
+        ]
+      },
+      {
+        "id": "removal_faeden_6",
+        "key": "faeden",
+        "label": "fios",
+        "tags": [
+          "variable:removal",
+          "value:faeden",
+          "prep",
+          "wash",
+          "clean",
+          "beans"
+        ]
+      },
+      {
+        "id": "removal_sand_7",
+        "key": "sand",
+        "label": "areia",
+        "tags": [
+          "variable:removal",
+          "value:sand",
+          "prep",
+          "wash",
+          "clean",
+          "seafood",
+          "mussels"
+        ]
+      },
+      {
+        "id": "removal_innereien_8",
+        "key": "innereien",
+        "label": "vísceras",
+        "tags": [
+          "variable:removal",
+          "value:innereien",
+          "prep",
+          "clean",
+          "fish",
+          "seafood"
+        ]
+      }
+    ]
+  }
+}

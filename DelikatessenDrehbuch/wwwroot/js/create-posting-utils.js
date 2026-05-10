@@ -16,16 +16,27 @@ window.CreatePostingUtils = {
         if (normalized === "dk") return "da";
         return normalized;
     },
-    getDataUrl: function (key) {
+    getDataUrl: function (key, options) {
         var dataUrls = (window.CreatePostingDataUrls || {});
-        return dataUrls[key] || "";
+        var baseUrl = dataUrls[key] || "";
+
+        // Support language-specific master_steps
+        if (key === 'masterSteps' && options && options.language) {
+            var lang = this.resolveLangKey(options.language);
+            var url = "/data/master_steps." + lang + ".json";
+            console.log("[CreatePostingUtils] Loading masterSteps for language:", options.language, "->", lang, "URL:", url);
+            return url;
+        }
+
+        return baseUrl;
     },
     fetchJson: function (key, options) {
-        var url = this.getDataUrl(key);
+        var url = this.getDataUrl(key, options);
         if (!url) {
             return Promise.reject(new Error("Missing CreatePosting data URL for key: " + key));
         }
-        return fetch(url, options || {}).then(function (response) {
+        var fetchOptions = options && options.fetchOptions ? options.fetchOptions : {};
+        return fetch(url, fetchOptions).then(function (response) {
             if (!response.ok) {
                 throw new Error("Failed to load JSON from " + url + " (" + response.status + ")");
             }

@@ -202,6 +202,29 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
         private async Task ProcessPreparationStepsAsync(RecipeBaseData recipe, SaveNewRecipeModel model)
         {
+            // WICHTIG: Alte Steps löschen bevor neue hinzugefügt werden!
+            // Sonst werden Steps bei jedem Save dupliziert
+            var existingSteps = await _context.RecipeSteps
+                .Where(s => s.RecipeId == recipe.Id)
+                .ToListAsync();
+
+            if (existingSteps.Any())
+            {
+                _context.RecipeSteps.RemoveRange(existingSteps);
+                _logger.LogInformation("Removed {Count} existing steps for recipe {RecipeId}", existingSteps.Count, recipe.Id);
+            }
+
+            // Lösche auch die Übersetzungen der alten Steps
+            var existingTranslations = await _context.RecipeStepTranslations
+                .Where(t => t.RecipeId == recipe.Id)
+                .ToListAsync();
+
+            if (existingTranslations.Any())
+            {
+                _context.RecipeStepTranslations.RemoveRange(existingTranslations);
+                _logger.LogInformation("Removed {Count} existing translations for recipe {RecipeId}", existingTranslations.Count, recipe.Id);
+            }
+
             // New Translation System: Save steps directly (no join table)
             foreach (var step in model.RecipeSteps ?? Enumerable.Empty<RecipeStep>())
             {
@@ -214,6 +237,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
         private async Task ProcessSmartStepsAsync(RecipeBaseData recipe, SaveNewRecipeModel model)
         {
+            // WICHTIG: Alte SmartStep-Joins löschen bevor neue hinzugefügt werden!
+            var existingSmartStepJoins = await _context.RecipeJoinSmartStep
+                .Where(j => j.RecipeId == recipe.Id)
+                .ToListAsync();
+
+            if (existingSmartStepJoins.Any())
+            {
+                _context.RecipeJoinSmartStep.RemoveRange(existingSmartStepJoins);
+                _logger.LogInformation("Removed {Count} existing smart step joins for recipe {RecipeId}", existingSmartStepJoins.Count, recipe.Id);
+            }
+
             foreach (var stepRef in model.SmartStepReferences ?? Enumerable.Empty<SmartStepReferenceInput>())
             {
                 var masterStepKey = (stepRef.MasterStepKey ?? string.Empty).Trim();

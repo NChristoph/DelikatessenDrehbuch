@@ -23,27 +23,34 @@
     function load(key, options) {
         const forceReload = !!(options && options.forceReload);
 
-        if (!forceReload && cache.has(key)) {
-            return Promise.resolve(cache.get(key));
+        // For masterSteps, include language in the cache key
+        let cacheKey = key;
+        if (key === 'masterSteps' && options && options.language) {
+            const lang = window.CreatePostingUtils.resolveLangKey(options.language);
+            cacheKey = key + '.' + lang;
         }
 
-        if (!forceReload && loadingPromises.has(key)) {
-            return loadingPromises.get(key);
+        if (!forceReload && cache.has(cacheKey)) {
+            return Promise.resolve(cache.get(cacheKey));
         }
 
-        const promise = window.CreatePostingUtils.fetchJson(key)
+        if (!forceReload && loadingPromises.has(cacheKey)) {
+            return loadingPromises.get(cacheKey);
+        }
+
+        const promise = window.CreatePostingUtils.fetchJson(key, options)
             .then(function (data) {
                 const validated = validateShape(key, data);
-                cache.set(key, validated);
-                loadingPromises.delete(key);
+                cache.set(cacheKey, validated);
+                loadingPromises.delete(cacheKey);
                 return validated;
             })
             .catch(function (error) {
-                loadingPromises.delete(key);
+                loadingPromises.delete(cacheKey);
                 throw error;
             });
 
-        loadingPromises.set(key, promise);
+        loadingPromises.set(cacheKey, promise);
         return promise;
     }
 
