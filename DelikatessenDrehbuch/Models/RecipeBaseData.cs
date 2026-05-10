@@ -27,7 +27,10 @@ namespace DelikatessenDrehbuch.Models
 
 
         public virtual ICollection<RecipeJoinIngredientMeasureQuantity> Ingredients { get; set; }
-        public virtual ICollection<RecipeJoinPreparationSteps> Steps { get; set; }
+
+        // NEW: Direkte Steps ohne Join-Tabelle (neues Translation System)
+        public virtual ICollection<RecipeStep> Steps { get; set; }
+
         public virtual ICollection<RecipeJoinSmartStep> SmartSteps { get; set; }
         public virtual ICollection<RecipeBaseDataImage> Images { get; set; }
         public virtual ICollection<RecipeBaseKeyword> RecipeKeywords { get; set; }

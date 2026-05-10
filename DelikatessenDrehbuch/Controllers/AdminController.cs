@@ -541,7 +541,7 @@ namespace DelikatessenDrehbuch.Controllers
             {
                 Recipes = recipe.Recipes,
                 IngredientMeasureQuantity = recipe.IngredientMeasureQuantity,
-                RecipeJoinPreparationSteps = recipe.RecipeJoinPreparationSteps,
+                RecipeSteps = recipe.RecipeSteps,  // New Translation System
                 Querys = recipe.Querys
             };
             await _saveNewRecipeService.SaveNewAsync(saveNewRecipeModel,false);
@@ -635,8 +635,7 @@ namespace DelikatessenDrehbuch.Controllers
                 Measure = await _measureService.GetMeasureFromDbAsync(),
                 Querys = string.Join(",", await _queryService.GetQuerysFromDbByRecipeIdAsync(recipeFromDb.Id)),
                 IngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
-                RecipePreparationSteps = await _context.RecipePreparationSteps.ToListAsync(),
-                RecipeJoinPreparationSteps = new(),
+                RecipeSteps = await _context.RecipeSteps.Where(s => s.RecipeId == recipeFromDb.Id).OrderBy(s => s.StepOrder).ToListAsync(),
                 IngredientMeasureQuantity = new()
 
             };

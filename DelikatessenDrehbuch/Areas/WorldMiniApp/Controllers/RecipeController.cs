@@ -20,6 +20,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IBlobUploadService _blobUpload;
         private readonly ISaveNewRecipeService _saveNewRecipeService;
         private readonly IMissingIngredientAiService _missingIngredientAiService;
+        private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IMemoryCache _memoryCache;
         private readonly ILogger<RecipeController> _logger;
         private const int UploadRateLimit = 5;
@@ -32,6 +33,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             IBlobUploadService blobUpload,
             ISaveNewRecipeService saveNewRecipeService,
             IMissingIngredientAiService missingIngredientAiService,
+            IServiceScopeFactory serviceScopeFactory,
             IMemoryCache memoryCache,
             ILogger<RecipeController> logger)
         {
@@ -39,6 +41,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _blobUpload = blobUpload;
             _saveNewRecipeService = saveNewRecipeService;
             _missingIngredientAiService = missingIngredientAiService;
+            _serviceScopeFactory = serviceScopeFactory;
             _memoryCache = memoryCache;
             _logger = logger;
         }
@@ -101,7 +104,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 },
                 Querys = posting.Recipe.Preferences,
                 IngredientMeasureQuantity = posting.IngredientMeasureQuantity,
-                RecipeJoinPreparationSteps = ExtractCreatePostingStepsFromRequest(Request.Form),
+                RecipeSteps = ExtractCreatePostingStepsFromRequest(Request.Form),
                 SmartStepReferences = ExtractCreatePostingSmartStepsFromRequest(Request.Form),
             };
 
@@ -116,35 +119,51 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
             var creatorName = user?.UserName ?? "Avocado";
 
-            using var transaction = await _context.Database.BeginTransactionAsync();
-            try
+            // Keine Transaction hier - SaveNewRecipeService hat schon eine Transaction gemacht
+            posting.CreationTime = DateTime.Now;
+            posting.CreatorName = creatorName;
+            posting.CreatorId = userHash;
+            posting.Source = uploadResult.SourceUrl;
+            posting.ThumbnailUrl = uploadResult.ThumbnailUrl;
+            posting.Recipe = recipe;
+
+            await _context.WorldUserPosting.AddAsync(posting);
+            await _context.SaveChangesAsync();
+
+            if (posting.SelectedKeywordIds != null && posting.SelectedKeywordIds.Any())
             {
-                posting.CreationTime = DateTime.Now;
-                posting.CreatorName = creatorName;
-                posting.CreatorId = userHash;
-                posting.Source = uploadResult.SourceUrl;
-                posting.ThumbnailUrl = uploadResult.ThumbnailUrl;
-                posting.Recipe = recipe;
+                var keywordLinks = posting.SelectedKeywordIds
+                    .Distinct()
+                    .Select(keywordId => new RecipeBaseKeyword
+                    {
+                        RecipeBaseDataId = recipe.Id,
+                        KeywordId = keywordId
+                    })
+                    .ToList();
 
-                await _context.WorldUserPosting.AddAsync(posting);
+                await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
                 await _context.SaveChangesAsync();
+            }
 
-                if (posting.SelectedKeywordIds != null && posting.SelectedKeywordIds.Any())
+                // Start background translation (4 core languages: DE, EN, ESP, PRT)
+                // Neuer Scope = eigener DbContext, verhindert Threading-Issues
+                var recipeIdForTranslation = recipe.Id;
+                _ = Task.Run(async () =>
                 {
-                    var keywordLinks = posting.SelectedKeywordIds
-                        .Distinct()
-                        .Select(keywordId => new RecipeBaseKeyword
-                        {
-                            RecipeBaseDataId = recipe.Id,
-                            KeywordId = keywordId
-                        })
-                        .ToList();
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var translationService = scope.ServiceProvider.GetRequiredService<IRecipeStepTranslationService>();
+                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<RecipeController>>();
 
-                    await _context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
-                    await _context.SaveChangesAsync();
-                }
-
-                await transaction.CommitAsync();
+                    try
+                    {
+                        await translationService.TranslateRecipeStepsAsync(recipeIdForTranslation);
+                        logger.LogInformation("Background translation completed for recipe {RecipeId}.", recipeIdForTranslation);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Background translation failed for recipe {RecipeId}.", recipeIdForTranslation);
+                    }
+                });
 
                 Response.Cookies.Append("createPostingDraftReset", "1", new CookieOptions
                 {
@@ -190,13 +209,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
 
                 return Json(successResponse);
-            }
-            catch (Exception ex)
-            {
-                await transaction.RollbackAsync();
-                _logger.LogError(ex, "Failed to create posting for recipe {RecipeId} by user {UserHash}.", recipe.Id, userHash);
-                throw;
-            }
         }
 
         public async Task<IActionResult> EditRecipe(int postingId, string userHash)
@@ -260,19 +272,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .ToList();
             ViewData["EditKeywordIds"] = JsonSerializer.Serialize(editKeywordIds);
 
-            var editSteps = (posting.Recipe.Steps ?? Enumerable.Empty<RecipeJoinPreparationSteps>())
-                .OrderBy(s => s.StepIndex)
-                .Where(s => s.RecipePreparationStep != null)
+            // Neues System: RecipeStep ohne Join
+            var editSteps = (posting.Recipe.Steps ?? Enumerable.Empty<RecipeStep>())
+                .OrderBy(s => s.StepOrder)
                 .Select(s => new
                 {
-                    preparationStepId = s.RecipePreparationStep.Id,
-                    stepIndex = s.StepIndex,
-                    stepDe = s.RecipePreparationStep.Step_DE ?? "",
-                    stepEn = s.RecipePreparationStep.Step_EN ?? "",
-                    stepEsp = s.RecipePreparationStep.Step_ESP ?? "",
-                    stepPrt = s.RecipePreparationStep.Step_PRT ?? "",
-                    phase = s.RecipePreparationStep.Phase,
-                    equipment = s.RecipePreparationStep.Equipment
+                    preparationStepId = s.Id,
+                    stepIndex = s.StepOrder,
+                    stepDe = s.StepText,  // Source language
+                    stepEn = "",  // Translations handled separately
+                    stepEsp = "",
+                    stepPrt = "",
+                    phase = 0,
+                    equipment = 0
                 })
                 .ToList();
             ViewData["EditSteps"] = JsonSerializer.Serialize(editSteps);
@@ -490,84 +502,44 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             });
         }
 
-        private List<RecipeJoinPreparationSteps> ExtractCreatePostingStepsFromRequest(IFormCollection form)
+        private List<RecipeStep> ExtractCreatePostingStepsFromRequest(IFormCollection form)
         {
-            var result = new List<RecipeJoinPreparationSteps>();
+            var result = new List<RecipeStep>();
 
             for (var i = 0; ; i++)
             {
-                var stepIdKey = $"RecipePreperationSteps[{i}].PreperationStepId";
                 var indexKey = $"RecipePreperationSteps[{i}].StepIndex";
                 var stepDeKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_DE";
-                var stepEnKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_EN";
-                var stepEspKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_ESP";
-                var stepPrtKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_PRT";
-                var phaseKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Phase";
-                var equipmentKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Equipment";
 
-                if (!form.ContainsKey(stepIdKey)
-                    && !form.ContainsKey(stepDeKey)
-                    && !form.ContainsKey(stepEnKey)
-                    && !form.ContainsKey(stepEspKey)
-                    && !form.ContainsKey(stepPrtKey))
+                // Break if no more steps found
+                if (!form.ContainsKey(stepDeKey) && !form.ContainsKey(indexKey))
                 {
                     break;
                 }
 
-                var preparationStepId = 0;
-                var stepIdRaw = form[stepIdKey].FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(stepIdRaw) && !int.TryParse(stepIdRaw, out preparationStepId))
-                {
-                    _logger.LogWarning("Failed to parse PreparationStepId at index {Index}: {Value}", i, stepIdRaw);
-                }
+                // Get step text (German = source language)
+                var stepText = (form[stepDeKey].FirstOrDefault() ?? string.Empty).Trim();
 
-                var stepIndex = 0;
-                var stepIndexRaw = form[indexKey].FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(stepIndexRaw) && !int.TryParse(stepIndexRaw, out stepIndex))
-                {
-                    _logger.LogWarning("Failed to parse StepIndex at index {Index}: {Value}", i, stepIndexRaw);
-                }
-
-                var phase = 0;
-                var phaseRaw = form[phaseKey].FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(phaseRaw) && !int.TryParse(phaseRaw, out phase))
-                {
-                    _logger.LogWarning("Failed to parse Phase at index {Index}: {Value}", i, phaseRaw);
-                }
-
-                var equipment = 0;
-                var equipmentRaw = form[equipmentKey].FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(equipmentRaw) && !int.TryParse(equipmentRaw, out equipment))
-                {
-                    _logger.LogWarning("Failed to parse Equipment at index {Index}: {Value}", i, equipmentRaw);
-                }
-
-                var recipeStep = new RecipePreparationSteps
-                {
-                    Step_DE = (form[stepDeKey].FirstOrDefault() ?? string.Empty).Trim(),
-                    Step_EN = (form[stepEnKey].FirstOrDefault() ?? string.Empty).Trim(),
-                    Step_ESP = (form[stepEspKey].FirstOrDefault() ?? string.Empty).Trim(),
-                    Step_PRT = (form[stepPrtKey].FirstOrDefault() ?? string.Empty).Trim(),
-                    Phase = phase,
-                    Equipment = equipment
-                };
-
-                var hasAnyText =
-                    !string.IsNullOrWhiteSpace(recipeStep.Step_DE) ||
-                    !string.IsNullOrWhiteSpace(recipeStep.Step_EN) ||
-                    !string.IsNullOrWhiteSpace(recipeStep.Step_ESP) ||
-                    !string.IsNullOrWhiteSpace(recipeStep.Step_PRT);
-
-                if (!hasAnyText && preparationStepId <= 0)
+                // Skip empty steps
+                if (string.IsNullOrWhiteSpace(stepText))
                 {
                     continue;
                 }
 
-                result.Add(new RecipeJoinPreparationSteps
+                // Get step order
+                var stepOrder = 0;
+                var stepIndexRaw = form[indexKey].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(stepIndexRaw) && !int.TryParse(stepIndexRaw, out stepOrder))
                 {
-                    PreparationStepId = preparationStepId,
-                    RecipePreparationStep = recipeStep,
-                    StepIndex = stepIndex > 0 ? stepIndex : i + 1
+                    _logger.LogWarning("Failed to parse StepIndex at index {Index}: {Value}", i, stepIndexRaw);
+                }
+
+                result.Add(new RecipeStep
+                {
+                    StepOrder = stepOrder > 0 ? stepOrder : i + 1,
+                    StepText = stepText,
+                    SourceLanguage = "de",
+                    CreatedAt = DateTime.UtcNow
                 });
             }
 
@@ -835,42 +807,44 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
             }
 
-            // Update steps (CreatePosting format: RecipePreperationSteps[i])
+            // Update steps (New Translation System)
             var parsedSteps = ExtractCreatePostingStepsFromRequest(form);
             if (parsedSteps.Any())
             {
-                var existingSteps = await _context.RecipeJoinPreparationSteps
-                    .Where(s => s.Recipe.Id == postingToEdit.Recipe.Id)
+                // Remove old steps
+                var existingSteps = await _context.RecipeSteps
+                    .Where(s => s.RecipeId == postingToEdit.Recipe.Id)
                     .ToListAsync();
-                _context.RecipeJoinPreparationSteps.RemoveRange(existingSteps);
+                _context.RecipeSteps.RemoveRange(existingSteps);
 
-                foreach (var stepJoin in parsedSteps)
+                // Add new steps
+                foreach (var step in parsedSteps)
                 {
-                    RecipePreparationSteps stepEntity;
-                    if (stepJoin.PreparationStepId > 0)
-                    {
-                        stepEntity = await _context.RecipePreparationSteps.FindAsync(stepJoin.PreparationStepId);
-                        if (stepEntity == null) continue;
-                    }
-                    else if (!string.IsNullOrWhiteSpace(stepJoin.RecipePreparationStep?.Step_DE)
-                          || !string.IsNullOrWhiteSpace(stepJoin.RecipePreparationStep?.Step_EN))
-                    {
-                        stepEntity = stepJoin.RecipePreparationStep;
-                        await _context.RecipePreparationSteps.AddAsync(stepEntity);
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    var newJoin = new RecipeJoinPreparationSteps
-                    {
-                        Recipe = postingToEdit.Recipe,
-                        RecipePreparationStep = stepEntity,
-                        StepIndex = stepJoin.StepIndex > 0 ? stepJoin.StepIndex : 1
-                    };
-                    await _context.RecipeJoinPreparationSteps.AddAsync(newJoin);
+                    step.RecipeId = postingToEdit.Recipe.Id;
+                    step.CreatedAt = DateTime.UtcNow;
+                    await _context.RecipeSteps.AddAsync(step);
                 }
+
+                // SaveChanges passiert später (Zeile 915) vor Transaction Commit
+
+                // Trigger background translation (neuer Scope = eigener DbContext)
+                var recipeIdForTranslation = postingToEdit.Recipe.Id;
+                _ = Task.Run(async () =>
+                {
+                    using var scope = _serviceScopeFactory.CreateScope();
+                    var translationService = scope.ServiceProvider.GetRequiredService<IRecipeStepTranslationService>();
+                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<RecipeController>>();
+
+                    try
+                    {
+                        await translationService.TranslateRecipeStepsAsync(recipeIdForTranslation);
+                        logger.LogInformation("Background translation completed for edited recipe {RecipeId}.", recipeIdForTranslation);
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(ex, "Background translation failed for edited recipe {RecipeId}.", recipeIdForTranslation);
+                    }
+                });
             }
 
             // Update keywords
@@ -997,7 +971,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     _context.RecipeJoinSmartStep.RemoveRange(posting.Recipe.SmartSteps);
 
                 if (posting.Recipe.Steps != null)
-                    _context.RecipeJoinPreparationSteps.RemoveRange(posting.Recipe.Steps);
+                    _context.RecipeSteps.RemoveRange(posting.Recipe.Steps);  // Neues System
 
                 if (posting.Recipe.Images != null)
                     _context.RecipeBaseDataImage.RemoveRange(posting.Recipe.Images);

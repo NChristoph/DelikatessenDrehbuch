@@ -29,6 +29,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
                 var recipeBaseData = await GetOrUpdateRecipeAsync(recipesModel);
 
+                // WICHTIG: SaveChanges hier um RecipeId zu bekommen
+                await _context.SaveChangesAsync();
 
                 await ProcessIngredientsAsync(recipeBaseData, recipesModel);
 
@@ -200,17 +202,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
         private async Task ProcessPreparationStepsAsync(RecipeBaseData recipe, SaveNewRecipeModel model)
         {
-            foreach (var step in model.RecipeJoinPreparationSteps ?? Enumerable.Empty<RecipeJoinPreparationSteps>())
+            // New Translation System: Save steps directly (no join table)
+            foreach (var step in model.RecipeSteps ?? Enumerable.Empty<RecipeStep>())
             {
-                step.Recipe = recipe;
-                step.RecipePreparationStep = await ResolvePreparationStepAsync(step);
-                if (step.RecipePreparationStep == null)
-                {
-                    continue;
-                }
-
-                _context.RecipeJoinPreparationSteps.Add(step);
+                step.RecipeId = recipe.Id;
+                step.CreatedAt = DateTime.UtcNow;
+                _context.RecipeSteps.Add(step);
             }
+            // SaveChanges wird von der Outer-Transaction gehandled
         }
 
         private async Task ProcessSmartStepsAsync(RecipeBaseData recipe, SaveNewRecipeModel model)

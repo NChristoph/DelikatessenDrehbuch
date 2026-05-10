@@ -70,6 +70,11 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeUserVariant> RecipeUserVariants { get; set; }
         public DbSet<RecipeCommunityVariant> RecipeCommunityVariants { get; set; }
 
+        // Recipe Translation System (NEW)
+        public DbSet<RecipeStep> RecipeSteps { get; set; }
+        public DbSet<RecipeStepTranslation> RecipeStepTranslations { get; set; }
+        public DbSet<RecipeTranslationStatus> RecipeTranslationStatuses { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {
@@ -78,6 +83,11 @@ namespace DelikatessenDrehbuch.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // Configure Recipe Translation System table names (singular)
+            builder.Entity<RecipeStep>().ToTable("RecipeStep");
+            builder.Entity<RecipeStepTranslation>().ToTable("RecipeStepTranslation");
+            builder.Entity<RecipeTranslationStatus>().ToTable("RecipeTranslationStatus");
 
             builder.Entity<RecipeBaseKeyword>()
                 .HasKey(link => new { link.RecipeBaseDataId, link.KeywordId });

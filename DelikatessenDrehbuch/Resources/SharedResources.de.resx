@@ -497,4 +497,7 @@
   <data name="Recipe.NutritionDisclaimer" xml:space="preserve">
     <value>Naehrwerte sind Richtwerte und koennen abweichen.</value>
   </data>
+  <data name="Recipe.Share" xml:space="preserve">
+    <value>Teilen</value>
+  </data>
 </root>

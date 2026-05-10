@@ -7,11 +7,11 @@
         ?? new Dictionary<int, List<int>>();
 
     var stepCatalogJson = JsonConvert.SerializeObject(
-        Model.RecipePreparationSteps?.Select(step => new {
+        Model.RecipeSteps?.Select(step => new {
             id = step.Id,
-            step_DE = step.Step_DE,
-            phase = step.Phase,
-            equipment = step.Equipment,
+            step_DE = step.StepText,  // New: StepText instead of Step_DE
+            phase = 0,  // Phase removed in new system
+            equipment = 0,  // Equipment removed in new system
             ingredientIds = stepIngredientBindings.ContainsKey(step.Id)
                 ? stepIngredientBindings[step.Id]
                 : new List<int>()

@@ -1005,11 +1005,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     });
                 }
 
-                var originalSteps = recipe.Steps
-                    .OrderBy(s => s.StepIndex)
-                    .Select(s => GetStepText(s.RecipePreparationStep, language))
-                    .Where(x => !string.IsNullOrWhiteSpace(x))
-                    .ToList();
+                // Neues System: RecipeStep direkt (ohne Join)
+                var originalSteps = new List<string>();
+                foreach (var step in recipe.Steps.OrderBy(s => s.StepOrder))
+                {
+                    var text = await GetStepText(step, language);
+                    if (!string.IsNullOrWhiteSpace(text))
+                        originalSteps.Add(text);
+                }
 
                 var swapByFromId = swaps
                     .Where(s => s.FromIngredientId > 0)
@@ -1170,15 +1173,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             };
         }
 
-        private static string GetStepText(RecipePreparationSteps step, string language)
+        private async Task<string> GetStepText(RecipeStep step, string language)
         {
-            return language switch
-            {
-                "en" => step.Step_EN,
-                "es" => step.Step_ESP,
-                "pt" => step.Step_PRT,
-                _ => step.Step_DE
-            };
+            // Check if translation is available
+            var translation = await _context.RecipeStepTranslations
+                .Where(t => t.StepId == step.Id && t.Language == language)
+                .Select(t => t.TranslatedText)
+                .FirstOrDefaultAsync();
+
+            // Return translation if available, otherwise return source text
+            return translation ?? step.StepText ?? string.Empty;
         }
 
         private static string FormatDecimal(double value)

@@ -21,6 +21,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IRecipeAiTransformService _recipeAiTransformService;
         private readonly IRecipeAiVariantJobService _recipeAiVariantJobService;
         private readonly IRecipeAiNutritionService _recipeAiNutritionService;
+        private readonly IRecipeStepTranslationService _recipeStepTranslationService;
         private readonly IStringLocalizer<SharedResources> _sharedLocalizer;
         private readonly ILogger<HomeController> _logger;
 
@@ -108,6 +109,7 @@ END;
             IRecipeAiTransformService recipeAiTransformService,
             IRecipeAiVariantJobService recipeAiVariantJobService,
             IRecipeAiNutritionService recipeAiNutritionService,
+            IRecipeStepTranslationService recipeStepTranslationService,
             IStringLocalizer<SharedResources> sharedLocalizer,
             ILogger<HomeController> logger)
         {
@@ -117,6 +119,7 @@ END;
             _recipeAiTransformService = recipeAiTransformService;
             _recipeAiVariantJobService = recipeAiVariantJobService;
             _recipeAiNutritionService = recipeAiNutritionService;
+            _recipeStepTranslationService = recipeStepTranslationService;
             _sharedLocalizer = sharedLocalizer;
             _logger = logger;
         }
@@ -377,12 +380,13 @@ END;
 
             var posting = await _context.WorldUserPosting
                 .Where(x => x.Recipe != null && x.Recipe.Id == id)
-                .Select(x => new { x.Id, x.ThumbnailUrl, x.Source })
+                .Select(x => new { x.Id, x.ThumbnailUrl, x.Source, x.CreatorName })
                 .FirstOrDefaultAsync();
 
             if (posting != null)
             {
                 ViewData["PostingThumbnailUrl"] = posting.ThumbnailUrl ?? posting.Source;
+                ViewData["PostingCreatorName"] = posting.CreatorName;
                 if (isSuperUser)
                 {
                     ViewData["ExistingPostingId"] = (int?)posting.Id;
@@ -510,6 +514,21 @@ END;
                 .AsNoTracking()
                 .CountAsync(v => v.OriginalRecipeId == id && v.Language == language);
             ViewData["CommunityVariantCount"] = communityVariantCount;
+
+            // Load translated steps for the current language
+            try
+            {
+                var translatedSteps = await _recipeStepTranslationService.GetStepsForLanguageAsync(id, language);
+                if (translatedSteps != null && translatedSteps.Count > 0)
+                {
+                    ViewData["TranslatedSteps"] = translatedSteps;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to load translated steps for recipe {RecipeId} in language {Language}", id, language);
+                // Continue without translations - view will fall back to source text
+            }
 
             return View(model);
         }

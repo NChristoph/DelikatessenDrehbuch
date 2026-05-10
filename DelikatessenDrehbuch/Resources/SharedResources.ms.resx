@@ -497,4 +497,7 @@
   <data name="Recipe.NutritionDisclaimer" xml:space="preserve">
     <value>Nilai nutrisi adalah anggaran dan boleh berubah.</value>
   </data>
+  <data name="Recipe.Share" xml:space="preserve">
+    <value>Kongsi</value>
+  </data>
 </root>

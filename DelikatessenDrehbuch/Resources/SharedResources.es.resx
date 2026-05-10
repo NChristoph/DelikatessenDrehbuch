@@ -497,4 +497,7 @@
   <data name="Recipe.NutritionDisclaimer" xml:space="preserve">
     <value>Los valores nutricionales son estimaciones y pueden variar.</value>
   </data>
+  <data name="Recipe.Share" xml:space="preserve">
+    <value>Compartir</value>
+  </data>
 </root>

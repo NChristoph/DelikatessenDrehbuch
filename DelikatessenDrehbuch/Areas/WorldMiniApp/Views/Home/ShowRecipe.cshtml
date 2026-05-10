@@ -56,6 +56,14 @@
     var currentCulture = requestCulture?.RequestCulture.Culture ?? CultureInfo.CurrentCulture;
     var language = currentCulture.TwoLetterISOLanguageName;
 
+    string T(string de, string en, string es, string pt) => language switch
+    {
+        "en" => en,
+        "es" => es,
+        "pt" => pt,
+        _ => de
+    };
+
     string IngredientName(DelikatessenDrehbuch.Models.IngredientsAndNutrients item) => language switch
     {
         "en" => item.Name_EN,
@@ -70,48 +78,118 @@
         _ => item.Name_DE
     };
 
-    string StepText(DelikatessenDrehbuch.Models.RecipePreparationSteps step) => language switch
+    string IngredientIcon(DelikatessenDrehbuch.Models.IngredientsAndNutrients item)
     {
-        "en" => step.Step_EN,
-        "es" => step.Step_ESP,
-        "pt" => step.Step_PRT,
-        _ => step.Step_DE
-    };
+        if (!string.IsNullOrWhiteSpace(item.Icon))
+        {
+            return item.Icon.Trim();
+        }
+
+        var source = $"{item.Name_DE} {item.Name_EN} {item.Name_ESP} {item.Name_PRT}".ToLowerInvariant();
+        if (source.Contains("garlic") || source.Contains("knoblauch")) return "🧄";
+        if (source.Contains("onion") || source.Contains("zwiebel")) return "🧅";
+        if (source.Contains("carrot") || source.Contains("karotte")) return "🥕";
+        if (source.Contains("tomat")) return "🍅";
+        if (source.Contains("potato") || source.Contains("kartoff")) return "🥔";
+        if (source.Contains("broccoli")) return "🥦";
+        if (source.Contains("paprika") || source.Contains("pepper")) return "🫑";
+        if (source.Contains("salat") || source.Contains("lettuce")) return "🥬";
+        if (source.Contains("pork") || source.Contains("schwein")) return "🥩";
+        if (source.Contains("beef") || source.Contains("rind")) return "🍖";
+        if (source.Contains("chicken") || source.Contains("huhn")) return "🍗";
+        if (source.Contains("fish") || source.Contains("lachs") || source.Contains("salmon")) return "🐟";
+        if (source.Contains("egg") || source.Contains("ei")) return "🥚";
+        if (source.Contains("milk") || source.Contains("milch")) return "🥛";
+        if (source.Contains("cheese") || source.Contains("käse") || source.Contains("kaese")) return "🧀";
+        if (source.Contains("rice") || source.Contains("reis")) return "🍚";
+        if (source.Contains("pasta") || source.Contains("nudel")) return "🍝";
+        if (source.Contains("bread") || source.Contains("brot")) return "🍞";
+        if (source.Contains("honey") || source.Contains("honig")) return "🍯";
+        if (source.Contains("beer") || source.Contains("bier")) return "🍺";
+        return "🥘";
+    }
+
+    List<string> GetTranslatedSteps()
+    {
+        if (ViewData["TranslatedSteps"] is List<string> translated && translated.Count > 0)
+        {
+            return translated;
+        }
+        return null;
+    }
+
+    string StepText(DelikatessenDrehbuch.Models.RecipeStep step, int stepIndex)
+    {
+        var translatedSteps = GetTranslatedSteps();
+
+        // If translations are available and valid for this step index
+        if (translatedSteps != null && stepIndex >= 0 && stepIndex < translatedSteps.Count)
+        {
+            return translatedSteps[stepIndex];
+        }
+
+        // Fall back to source text
+        return step.StepText ?? string.Empty;
+    }
 
     var canPublishToFeed = ViewData["CanPublishToFeed"] as bool? == true;
     var existingPostingId = ViewData["ExistingPostingId"] as int?;
+    var communityCount = ViewData["CommunityVariantCount"] as int? ?? 0;
+    var isSwapVariant = ViewData["SwapsJson"] is string;
+    var categoryLabel = string.IsNullOrWhiteSpace(Model.Category) ? T("Rezept", "Recipe", "Receta", "Receita") : Model.Category;
+    var recipeModeLabel = isSwapVariant ? T("Variante", "Variant", "Variante", "Variante") : T("Original", "Original", "Original", "Original");
+    var creatorName = (ViewData["PostingCreatorName"] as string ?? string.Empty).Trim();
+    if (string.IsNullOrWhiteSpace(creatorName))
+    {
+        creatorName = T("Delikatessen Drehbuch", "Delikatessen Drehbuch", "Delikatessen Drehbuch", "Delikatessen Drehbuch");
+    }
+    var authorInitial = creatorName.FirstOrDefault(char.IsLetter);
+    if (authorInitial == default)
+    {
+        authorInitial = 'D';
+    }
 }
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&family=Playfair+Display:ital,wght@0,700;1,700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
     :root {
-        --deli-primary: #2D4F1E;
-        --deli-gold: #D4AF37;
-        --deli-bg: #F8F9F5;
-        --deli-dark: #1A1A1A;
-        --shadow-sm: 0 4px 12px rgba(0,0,0,0.05);
-        --shadow-md: 0 12px 24px rgba(0,0,0,0.08);
-        --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        --bg-cream: #f5efe1;
+        --card: #ffffff;
+        --ink-deep: #14391f;
+        --ink-deep-2: #0e2415;
+        --ink-mute: #6b7868;
+        --ink-mute-2: #9aa295;
+        --ink-line: rgba(20,57,31,0.12);
+        --avocado: #5fa052;
+        --avocado-soft: rgba(95,160,82,0.14);
+        --coral: #ff7849;
+        --orange: #ff9a3c;
+        --ing-tile: #ede7d4;
+        --shadow-sm: 0 2px 8px rgba(20,57,31,0.06);
+        --shadow-md: 0 4px 12px rgba(20,57,31,0.10);
+        --shadow-lg: 0 12px 30px rgba(20,57,31,0.18);
+        --shadow-float: 0 2px 10px rgba(0,0,0,0.15);
+        --transition: all 0.2s ease;
     }
 
     body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background-color: var(--deli-bg);
-        color: var(--deli-dark);
+        font-family: 'Inter', sans-serif;
+        background: var(--bg-cream);
+        color: var(--ink-deep);
         margin: 0;
         padding: 0;
     }
 
-    h1, h2, .serif-font {
-        font-family: 'Playfair Display', serif;
-        font-weight: 700;
+    .recipe-detail-page {
+        min-height: 100vh;
+        background: var(--bg-cream);
+        padding-bottom: 126px;
     }
 
     .hero-container {
         position: relative;
-        height: 50vh;
-        min-height: 400px;
+        height: 320px;
         width: 100%;
         overflow: hidden;
     }
@@ -125,117 +203,308 @@
     .header-overlay {
         position: absolute;
         inset: 0;
-        background: linear-gradient(to bottom, rgba(0,0,0,0.3) 0%, transparent 30%, rgba(0,0,0,0.6) 100%);
+        background: linear-gradient(180deg, rgba(0,0,0,0.18) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 60%, #f5efe1 100%);
+    }
+
+    .hero-top-controls {
+        position: absolute;
+        top: 12px;
+        left: 14px;
+        right: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 5;
+    }
+
+    .hero-right-controls {
+        display: flex;
+        gap: 8px;
     }
 
     .back-btn {
-        position: absolute;
-        top: 50px;
-        left: 20px;
-        z-index: 100;
-        width: 45px;
-        height: 45px;
-        background: rgba(255,255,255,0.9);
-        backdrop-filter: blur(10px);
-        border-radius: 14px;
+        width: 38px;
+        height: 38px;
+        background: rgba(255,255,255,0.92);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        box-shadow: var(--shadow-md);
-        color: var(--deli-dark);
+        box-shadow: var(--shadow-float);
+        color: var(--ink-deep);
+        border: none;
+    }
+
+    .hero-icon-btn {
+        background: rgba(255,255,255,0.92);
+        box-shadow: var(--shadow-float);
+        border: none;
+        color: var(--ink-deep);
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+    }
+
+    .hero-icon-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .author-tag {
+        position: absolute;
+        left: 18px;
+        bottom: 60px;
+        z-index: 4;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: rgba(20,57,31,0.55);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        padding: 5px 5px 5px 5px;
+        border-radius: 999px;
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .author-monogram {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--orange), var(--coral));
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+        font-weight: 700;
     }
 
     .recipe-main-content {
         position: relative;
-        margin-top: -45px;
-        background: var(--deli-bg);
-        border-top-left-radius: 40px;
-        border-top-right-radius: 40px;
-        padding-top: 20px;
-        z-index: 20;
-        box-shadow: 0 -10px 30px rgba(0,0,0,0.05);
+        margin-top: -28px;
+        background: var(--bg-cream);
+        border-top-left-radius: 28px;
+        border-top-right-radius: 28px;
+        padding: 14px 18px 0;
+        z-index: 3;
     }
 
     .drag-handle {
-        width: 45px;
-        height: 5px;
-        background: #D1D1D1;
-        border-radius: 10px;
-        margin: 0 auto 25px;
+        width: 38px;
+        height: 4px;
+        background: rgba(20,57,31,0.18);
+        border-radius: 999px;
+        margin: 0 auto 14px;
     }
 
     .title-section {
-        padding: 0 25px;
-        margin-bottom: 30px;
+        margin-bottom: 14px;
+    }
+
+    .eyebrow-row {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 8px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--ink-mute);
+    }
+
+    .eyebrow-dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--avocado);
+    }
+
+    .recipe-title {
+        font-family: 'Fraunces', serif;
+        font-size: 26px;
+        font-weight: 600;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        color: var(--ink-deep);
+        margin: 0;
+        text-wrap: pretty;
+    }
+
+    .top-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 14px;
+    }
+
+    .top-pill-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 14px;
+        border-radius: 999px;
+        border: 1.5px solid rgba(20,57,31,0.18);
+        background: transparent;
+        color: var(--ink-deep);
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: none;
     }
 
     .badge-row {
         display: flex;
-        gap: 12px;
-        justify-content: center;
+        gap: 8px;
+        margin-top: 14px;
         flex-wrap: wrap;
     }
 
     .premium-badge {
         background: white;
-        padding: 10px 16px;
-        border-radius: 18px;
+        padding: 8px 14px;
+        border-radius: 999px;
         box-shadow: var(--shadow-sm);
         display: flex;
         align-items: center;
         gap: 8px;
+        border: 1px solid rgba(20,57,31,0.06);
+    }
+
+    .premium-badge i {
+        font-size: 0.95rem;
+    }
+
+    .premium-badge .badge-value {
+        font-family: 'Fraunces', serif;
+        font-size: 15px;
         font-weight: 600;
-        font-size: 0.85rem;
+        color: var(--ink-deep);
+        letter-spacing: -0.01em;
+    }
+
+    .premium-badge .badge-unit {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-mute);
     }
 
     .nav-pills-custom {
-        background: #EEEFEA;
-        padding: 6px;
-        border-radius: 22px;
-        margin: 0 20px 30px;
+        background: rgba(20,57,31,0.06);
+        padding: 4px;
+        border-radius: 999px;
+        margin: 14px 0 18px;
         display: flex;
+        gap: 2px;
     }
 
     .nav-pills-custom .nav-link {
         flex: 1;
-        border-radius: 18px;
-        color: #707070;
-        font-weight: 700;
+        border-radius: 999px;
+        color: var(--ink-mute);
+        font-weight: 600;
         border: none;
-        padding: 14px 5px;
-        font-size: 0.9rem;
+        padding: 10px 6px;
+        font-size: 13px;
         transition: var(--transition);
         background: transparent;
     }
 
     .nav-pills-custom .nav-link.active {
         background: white;
-        color: var(--deli-primary);
+        color: var(--ink-deep);
         box-shadow: var(--shadow-sm);
     }
 
     .portion-selector-wrapper {
-        margin-bottom: 25px;
+        display: flex;
+        justify-content: center;
+        margin-bottom: 14px;
     }
 
     .portion-stepper {
         background: white;
         border-radius: 100px;
-        padding: 10px 24px;
+        padding: 4px 6px 4px 16px;
         display: inline-flex;
         align-items: center;
         box-shadow: var(--shadow-sm);
+        gap: 12px;
+    }
+
+    .portion-stepper-label {
+        font-size: 13px;
+        color: var(--ink-mute);
+        font-weight: 500;
+    }
+
+    .portion-step-btn {
+        width: 26px;
+        height: 26px;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    .portion-step-btn.minus {
+        background: white;
+        border: 1px solid var(--ink-line);
+        color: var(--ink-deep);
+    }
+
+    .portion-step-btn.plus {
+        background: var(--ink-deep);
+        border: none;
+        color: white;
+    }
+
+    .portion-input {
+        width: 28px;
+        min-width: 28px;
+        border: none;
+        background: transparent;
+        color: var(--ink-deep);
+        font-family: 'Fraunces', serif;
+        font-size: 18px;
+        font-weight: 700;
+        text-align: center;
+        padding: 0;
+    }
+
+    .portion-input:focus {
+        outline: none;
+    }
+
+    .ingredient-group-label {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: var(--ink-mute-2);
+        padding: 0 4px 8px;
+        margin: 14px 0 0;
     }
 
     .ingredient-card {
         background: white;
-        margin: 0 20px 12px;
-        padding: 18px;
+        margin: 0 0 6px;
+        padding: 12px 14px;
         border-radius: 22px;
         display: flex;
         align-items: center;
         transition: var(--transition);
         cursor: pointer;
+        box-shadow: 0 2px 8px rgba(20,57,31,0.05);
     }
 
     .ingredient-card.checked {
@@ -245,104 +514,189 @@
     }
 
     .check-box {
-        width: 28px;
-        height: 28px;
+        width: 38px;
+        height: 38px;
         border-radius: 50%;
-        background: #D7DCD3;
+        background: var(--ing-tile);
         margin-right: 14px;
         display: flex;
         align-items: center;
         justify-content: center;
         flex-shrink: 0;
+        border: none;
+        color: var(--ink-deep);
+        font-size: 1.1rem;
     }
 
     .ingredient-card.checked .check-box {
-        background: var(--deli-primary);
+        background: var(--ink-deep);
+        color: white;
+    }
+
+    .ingredient-name {
+        font-size: 14px;
+        font-weight: 700;
+        line-height: 1.2;
+        color: var(--ink-deep);
+    }
+
+    .ingredient-quantity {
+        font-family: 'Fraunces', serif;
+        font-size: 16px;
+        font-weight: 600;
+        color: var(--ink-deep);
+        white-space: nowrap;
+    }
+
+    .ingredient-unit {
+        font-family: 'Inter', sans-serif;
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--ink-mute);
+        margin-left: 2px;
+    }
+
+    .swap-btn {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        padding: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        background: white;
+        border: 1px solid var(--ink-line);
+        color: var(--ink-deep);
     }
 
     .step-container {
-        padding: 0 20px 20px;
+        padding: 0 0 8px;
         display: grid;
-        gap: 14px;
+        gap: 10px;
     }
 
     .step-card {
         background: white;
-        border-radius: 24px;
-        padding: 20px;
-        box-shadow: var(--shadow-sm);
+        border-radius: 18px;
+        padding: 14px 16px 16px;
+        box-shadow: 0 2px 8px rgba(20,57,31,0.05);
     }
 
     .step-badge {
         display: inline-block;
         margin-bottom: 10px;
-        padding: 7px 12px;
+        padding: 4px 11px;
         border-radius: 999px;
-        background: rgba(45,79,30,0.08);
-        color: var(--deli-primary);
+        background: var(--avocado-soft);
+        color: var(--ink-deep);
+        font-family: 'Fraunces', serif;
         font-weight: 700;
-        font-size: 0.8rem;
+        font-size: 11px;
     }
 
     .nutri-grid {
-        padding: 0 20px 20px;
+        padding: 0 0 8px;
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 14px;
+        gap: 10px;
     }
 
     .nutri-item {
         background: white;
-        border-radius: 24px;
-        padding: 22px 16px;
-        text-align: center;
-        box-shadow: var(--shadow-sm);
+        border-radius: 18px;
+        padding: 20px 14px 16px;
+        box-shadow: 0 2px 8px rgba(20,57,31,0.05);
     }
 
     .nutri-item-main {
         grid-column: 1 / -1;
-        background: linear-gradient(145deg, #2D4F1E, #426B2E);
+        background: linear-gradient(135deg, #1a3a23, #0e2415);
         color: white;
+        border-radius: 22px;
+        padding: 24px 18px 20px;
+        box-shadow: var(--shadow-lg);
     }
 
     .nutri-val {
-        font-size: 1.8rem;
+        font-family: 'Fraunces', serif;
+        font-size: 38px;
         font-weight: 700;
         display: block;
         margin-bottom: 2px;
+        line-height: 1;
+        letter-spacing: -0.02em;
+        color: var(--ink-deep);
+        text-align: center;
     }
 
     .nutri-label {
-        font-size: 0.75rem;
+        font-size: 10px;
         text-transform: uppercase;
-        font-weight: 600;
-        opacity: 0.7;
-        letter-spacing: 1px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        color: var(--ink-mute-2);
+        display: block;
+        text-align: center;
+    }
+
+    .nutri-item-main .nutri-val {
+        font-size: 56px;
+        letter-spacing: -0.03em;
+        color: white;
+    }
+
+    .nutri-item-main .nutri-label {
+        color: rgba(255,255,255,0.75);
+    }
+
+    .nutrition-caption {
+        margin-top: 12px;
+        color: var(--ink-mute-2);
+        font-size: 11px;
+        font-style: italic;
+        line-height: 1.4;
+        text-align: center;
+    }
+
+    .bottom-action-bar {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 1030;
+        padding: 12px 16px calc(env(safe-area-inset-bottom, 0px) + 28px);
+        background: linear-gradient(180deg, rgba(245,239,225,0) 0%, rgba(245,239,225,0.95) 30%, #f5efe1 100%);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+    }
+
+    .bottom-action-inner {
+        display: block;
+        max-width: 520px;
+        margin: 0 auto;
+    }
+
+    .bottom-primary-btn {
+        width: 100%;
+        min-height: 56px;
+        border: none;
+        border-radius: 16px;
+        background: linear-gradient(135deg, #1a3a23, #0e2415);
+        color: white;
+        font-weight: 700;
+        font-size: 15px;
+        box-shadow: 0 6px 20px rgba(20,57,31,0.28);
     }
 
     @@media (max-width: 768px) {
         .hero-container {
-            min-height: 320px;
+            height: 320px;
         }
     }
 </style>
 
-<div class="min-vh-100 pb-5">
+<div class="recipe-detail-page">
     <div class="hero-container">
-        <div class="header-overlay"></div>
-        <a href="#" class="back-btn text-decoration-none" id="backToFeedBtn">
-            <i class="bi bi-chevron-left fs-5"></i>
-        </a>
-
-        @if (ViewData["SwapsJson"] is string)
-        {
-            <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = Model.Id, original = true })"
-               class="btn btn-sm btn-light shadow-sm"
-               style="position: absolute; top: 20px; right: 20px; z-index: 20; border-radius: 20px; font-weight: 600; padding: 8px 16px;">
-                <i class="bi bi-arrow-counterclockwise me-1"></i>Original
-            </a>
-        }
-
         @if (Model.Images != null && Model.Images.Any())
         {
             <img src="@Model.Images.First().Image" class="hero-image" alt="@displayTitle" />
@@ -369,59 +723,44 @@
                 <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
             </div>
         }
+
+        <div class="header-overlay"></div>
+
+        <div class="hero-top-controls">
+            <a href="#" class="back-btn text-decoration-none" id="backToFeedBtn" aria-label="Back">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+
+            <div class="hero-right-controls">
+                <button type="button" class="hero-icon-btn" id="favoriteRecipeBtn" aria-label="Favorite">
+                    <i class="bi bi-heart"></i>
+                </button>
+            </div>
+        </div>
+
+        <div class="author-tag">
+            <span class="author-monogram">@char.ToUpperInvariant(authorInitial)</span>
+            <span class="pe-2">@creatorName</span>
+        </div>
     </div>
 
     <div class="recipe-main-content">
         <div class="drag-handle"></div>
 
-        <div class="title-section text-center">
-            <h1 class="display-6 mb-3" id="recipeDisplayTitle">@displayTitle</h1>
-            <!-- Summary/description is meant for variant cards (discovery), not for the main ShowRecipe header. -->
+        <div class="title-section">
+            <div class="eyebrow-row">
+                <span class="eyebrow-dot"></span>
+                <span>@categoryLabel · @recipeModeLabel</span>
+            </div>
 
-            @{
-                var communityCount = ViewData["CommunityVariantCount"] as int? ?? 0;
-            }
-            @if (communityCount > 0)
+            <h1 class="recipe-title" id="recipeDisplayTitle">@displayTitle</h1>
+
+            @if (!string.IsNullOrWhiteSpace(variantSummary))
             {
-                <div class="mb-2 d-flex justify-content-center gap-2 flex-wrap">
-                    <button type="button"
-                            class="btn btn-sm btn-outline-dark px-3 py-2 shadow-sm"
-                            data-bs-toggle="offcanvas"
-                            data-bs-target="#communityVariantsCanvas"
-                            aria-controls="communityVariantsCanvas"
-                            style="border-radius: 999px; font-weight: 800;">
-                        <i class="bi bi-layers me-1"></i> Varianten (@communityCount)
-                    </button>
-                </div>
+                <p class="mt-2 mb-0" style="color: var(--ink-mute); font-size: 0.95rem; line-height: 1.45;">@variantSummary</p>
             }
 
-            @if (ViewData["SwapsJson"] is string)
-            {
-                <div class="mb-3">
-                    <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = Model.Id, original = true })"
-                       class="btn btn-dark btn-sm px-3 py-2 shadow-sm"
-                       style="border-radius: 999px; font-weight: 700;">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Originalrezept anzeigen
-                    </a>
-                </div>
-            }
-
-            @if (ViewData["SwapVariantId"] is int swapVariantId && swapVariantId > 0)
-            {
-                <div class="mb-3 d-flex justify-content-center gap-2 flex-wrap">
-                    <button type="button"
-                            class="btn btn-sm btn-success px-3 py-2 shadow-sm"
-                            id="publishCommunityVariantBtn"
-                            data-recipe-id="@Model.Id"
-                            data-swap-variant-id="@swapVariantId"
-                            data-parent-community-variant-id="@(ViewData["CommunityVariantId"] as int? ?? 0)"
-                            style="border-radius: 999px; font-weight: 800;">
-                        <i class="bi bi-check2-circle me-1"></i> Akzeptieren &amp; als Variante speichern
-                    </button>
-                </div>
-            }
-
-            <div class="badge-row mb-3">
+            <div class="badge-row">
                 @if (ViewData["SwapsJson"] is string swapsJsonBadge)
                 {
                     var swapCount = 0;
@@ -435,30 +774,59 @@
                     if (swapCount > 0)
                     {
                         <div class="premium-badge" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; font-weight: 700;">
-                            <i class="bi bi-arrow-left-right"></i> @swapCount Angepasst
+                            <i class="bi bi-arrow-left-right"></i>
+                            <span class="badge-value" style="color:white;">@swapCount</span>
+                            <span class="badge-unit" style="color:rgba(255,255,255,0.85);">@T("Angepasst", "Swaps", "Cambios", "Trocas")</span>
                         </div>
                     }
                 }
                 <div class="premium-badge">
-                    <i class="bi bi-people text-primary"></i> @Model.PersonCount
+                    <i class="bi bi-people" style="color: var(--ink-deep);"></i>
+                    <span class="badge-value">@Model.PersonCount</span>
                 </div>
                 <div class="premium-badge">
-                    <i class="bi bi-clock text-warning"></i> @Model.PreparationTime Min.
+                    <i class="bi bi-clock" style="color: var(--avocado);"></i>
+                    <span class="badge-value">@Model.PreparationTime</span>
+                    <span class="badge-unit">Min.</span>
                 </div>
                 <div class="premium-badge">
-                    <i class="bi bi-fire text-danger"></i>
-                    <span id="headerCalories" data-base="@((totalCalories / basePortions).ToString(CultureInfo.InvariantCulture))">@Math.Round(totalCalories / basePortions)</span> kcal
+                    <i class="bi bi-fire" style="color: var(--coral);"></i>
+                    <span class="badge-value" id="headerCalories" data-base="@((totalCalories / basePortions).ToString(CultureInfo.InvariantCulture))">@Math.Round(totalCalories / basePortions)</span>
+                    <span class="badge-unit">kcal</span>
                 </div>
             </div>
 
-            @if (canPublishToFeed)
-            {
-                <div class="mt-3">
+            <div class="top-actions">
+                @if (communityCount > 0)
+                {
+                    <button type="button"
+                            class="top-pill-btn"
+                            data-bs-toggle="offcanvas"
+                            data-bs-target="#communityVariantsCanvas"
+                            aria-controls="communityVariantsCanvas">
+                        <i class="bi bi-layers"></i> @T("Varianten", "Variants", "Variantes", "Variantes") (@communityCount)
+                    </button>
+                }
+
+                @if (ViewData["SwapVariantId"] is int swapVariantId && swapVariantId > 0)
+                {
+                    <button type="button"
+                            class="top-pill-btn"
+                            id="publishCommunityVariantBtn"
+                            data-recipe-id="@Model.Id"
+                            data-swap-variant-id="@swapVariantId"
+                            data-parent-community-variant-id="@(ViewData["CommunityVariantId"] as int? ?? 0)">
+                        <i class="bi bi-check2-circle"></i> @T("Als Variante speichern", "Save as variant", "Guardar como variante", "Guardar como variante")
+                    </button>
+                }
+
+                @if (canPublishToFeed)
+                {
                     @if (existingPostingId.HasValue)
                     {
-                        <a class="btn btn-sm btn-outline-primary"
+                        <a class="top-pill-btn"
                            href="@Url.Action("EditRecipe", "Home", new { area = "WorldMiniApp", postingId = existingPostingId.Value })">
-                            <i class="bi bi-pencil-square me-1"></i> Feed-Posting bearbeiten
+                            <i class="bi bi-pencil-square"></i> @T("Feed-Posting bearbeiten", "Edit feed post", "Editar post del feed", "Editar post do feed")
                         </a>
                     }
                     else
@@ -466,12 +834,17 @@
                         <form asp-action="PublishRecipeBaseDataToFeed" asp-controller="Home" asp-area="WorldMiniApp" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="recipeBaseDataId" value="@Model.Id" />
-                            <button type="submit" class="btn btn-sm btn-primary">
-                                <i class="bi bi-broadcast-pin me-1"></i> Als Feed-Posting anlegen
+                            <button type="submit" class="top-pill-btn">
+                                <i class="bi bi-broadcast-pin"></i> @T("Als Feed-Posting anlegen", "Create feed post", "Crear post del feed", "Criar post do feed")
                             </button>
                         </form>
                     }
-                </div>
+                }
+            </div>
+
+            @if (communityCount > 0)
+            {
+                <div style="height: 2px;"></div>
             }
         </div>
 
@@ -483,42 +856,56 @@
 
         <div class="tab-content">
             <div class="tab-pane fade show active" id="ingredients" role="tabpanel">
-                <div class="text-center portion-selector-wrapper">
+                <div class="portion-selector-wrapper">
                     <div class="portion-stepper">
-                        <span class="me-2 fw-bold text-muted small">@SharedLocalizer["Recipe.ServingsFor"]</span>
+                        <span class="portion-stepper-label">@SharedLocalizer["Recipe.ServingsFor"]</span>
+                        <button type="button" class="portion-step-btn minus" onclick="adjustPortions(-1)">−</button>
                         <input type="number"
                                id="portionInput"
-                               class="fw-bold text-center"
+                               class="portion-input"
                                value="@basePortions"
                                min="1"
                                onchange="updatePortions()"
-                               style="width:45px; border:none; background:transparent; color:var(--deli-primary); font-size:1.1rem;">
+                               inputmode="numeric">
+                        <button type="button" class="portion-step-btn plus" onclick="adjustPortions(1)">+</button>
                     </div>
                 </div>
 
                 <div id="ingredientListContainer">
                     @foreach (var group in Model.Ingredients.GroupBy(i => i.Ingredient.IngredientsAndNutrients.Group?.Name ?? "General"))
                     {
-                        <h6 class="text-uppercase fw-bold opacity-50 mb-3 px-4" style="font-size:0.7rem; letter-spacing:2px;">@group.Key</h6>
+                        <h6 class="ingredient-group-label">@group.Key</h6>
                         @foreach (var item in group)
                         {
-                            <div class="ingredient-card shadow-sm" data-ingredient-id="@item.Ingredient.IngredientsAndNutrients.Id">
+                            <div class="ingredient-card" data-ingredient-id="@item.Ingredient.IngredientsAndNutrients.Id">
                                 <div class="check-box" onclick="toggleCheck(this.parentElement)" style="cursor: pointer;">
-                                    <i class="bi bi-check-lg text-white d-none"></i>
+                                    @{
+                                        var ingredientIcon = IngredientIcon(item.Ingredient.IngredientsAndNutrients);
+                                        var ingredientIconIsImage = ingredientIcon.StartsWith("/") || ingredientIcon.StartsWith("http", StringComparison.OrdinalIgnoreCase) || ingredientIcon.Contains(".");
+                                    }
+                                    @if (ingredientIconIsImage)
+                                    {
+                                        <img src="@ingredientIcon" alt="" class="ingredient-icon-image" />
+                                    }
+                                    else
+                                    {
+                                        <span class="ingredient-emoji">@ingredientIcon</span>
+                                    }
+                                    <i class="bi bi-check-lg d-none"></i>
                                 </div>
                                 <div class="flex-grow-1">
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="ingredient-name fw-bold fs-6">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
+                                        <span class="ingredient-name">@IngredientName(item.Ingredient.IngredientsAndNutrients)</span>
                                         <div class="d-flex align-items-center gap-2">
-                                            <span class="text-muted small ingredient-quantity">
-                                                <span class="dyn-qty fw-bold text-dark" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span> <span class="ingredient-unit">@item.Ingredient.Measure.Metrics_DE</span>
+                                            <span class="ingredient-quantity">
+                                                <span class="dyn-qty" data-base-qty="@item.Ingredient.Quantity.Quantitys.ToString(CultureInfo.InvariantCulture)">@item.Ingredient.Quantity.Quantitys</span>
+                                                <span class="ingredient-unit">@item.Ingredient.Measure.Metrics_DE</span>
                                             </span>
-                                            <button class="btn btn-sm btn-outline-primary swap-btn"
+                                            <button class="swap-btn"
                                                     data-swap-ingredient="@item.Ingredient.IngredientsAndNutrients.Id"
                                                     data-recipe-id="@Model.Id"
                                                     data-ingredient-name="@IngredientName(item.Ingredient.IngredientsAndNutrients)"
-                                                    title="@SharedLocalizer["Recipe.SwapIngredient"]"
-                                                    style="padding: 4px 10px; font-size: 0.75rem; border-radius: 12px;">
+                                                    title="@SharedLocalizer["Recipe.SwapIngredient"]">
                                                 <i class="bi bi-arrow-left-right"></i>
                                             </button>
                                         </div>
@@ -534,20 +921,24 @@
 
             <div class="tab-pane fade" id="preparation" role="tabpanel">
                 <div class="step-container" id="preparationListContainer">
-                    @foreach (var step in Model.Steps.OrderBy(s => s.StepIndex))
+                    @{
+                        var stepIndex = 0;
+                    }
+                    @foreach (var step in Model.Steps.OrderBy(s => s.StepOrder))
                     {
                         <div class="step-card">
-                            <span class="step-badge">@SharedLocalizer["Recipe.Step"] @step.StepIndex</span>
-                            <p class="mb-0 lh-lg" style="font-size:1.05rem; color:#444;">@StepText(step.RecipePreparationStep)</p>
+                            <span class="step-badge">@SharedLocalizer["Recipe.Step"] @step.StepOrder</span>
+                            <p class="mb-0" style="font-size:14.5px; line-height:1.5; color:var(--ink-deep);">@StepText(step, stepIndex)</p>
                         </div>
+                        stepIndex++;
                     }
                 </div>
             </div>
 
             <div class="tab-pane fade" id="nutrition" role="tabpanel">
                 <div class="nutri-grid">
-                    <div class="nutri-item nutri-item-main shadow-lg">
-                        <span class="nutri-val dyn-nutri" data-base="@totalCalories.ToString(CultureInfo.InvariantCulture)" style="font-size:3rem;">@Math.Round(totalCalories)</span>
+                    <div class="nutri-item nutri-item-main">
+                        <span class="nutri-val dyn-nutri" data-base="@totalCalories.ToString(CultureInfo.InvariantCulture)">@Math.Round(totalCalories)</span>
                         <span class="nutri-label">Gesamt Kcal</span>
                     </div>
                     <div class="nutri-item">
@@ -568,11 +959,19 @@
                     </div>
                 </div>
 
-                <div class="text-center mt-5 px-4 text-muted small fst-italic">
+                <div class="nutrition-caption">
                     @SharedLocalizer["Recipe.NutritionDisclaimer"]
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<div class="bottom-action-bar">
+    <div class="bottom-action-inner">
+        <button type="button" class="bottom-primary-btn" id="sharePrimaryBtn">
+            @SharedLocalizer["Recipe.Share"]
+        </button>
     </div>
 </div>
 
@@ -686,7 +1085,18 @@
     function toggleCheck(element) {
         element.classList.toggle('checked');
         const icon = element.querySelector('.bi-check-lg');
+        const emoji = element.querySelector('.ingredient-emoji');
         if (icon) icon.classList.toggle('d-none');
+        if (emoji) emoji.classList.toggle('d-none');
+    }
+
+    function adjustPortions(delta) {
+        const input = document.getElementById('portionInput');
+        if (!input) return;
+        const current = parseFloat(input.value);
+        const next = Math.max(1, (Number.isFinite(current) ? current : basePortionCount) + delta);
+        input.value = next;
+        updatePortions();
     }
 
     function updatePortions() {
@@ -695,12 +1105,15 @@
         if (isNaN(newCount) || newCount < 0.1) newCount = 1;
 
         const ratio = newCount / basePortionCount;
+        input.value = newCount.toString().replace('.', ',');
 
         document.querySelectorAll('.dyn-qty').forEach(el => {
             const baseQty = parseFloat(el.getAttribute('data-base-qty').replace(',', '.'));
             if (!isNaN(baseQty)) {
                 const newVal = baseQty * ratio;
-                el.innerText = (Math.round(newVal * 100) / 100).toString().replace('.', ',');
+                const rounded = Math.round(newVal * 100) / 100;
+                const normalized = Number.isInteger(rounded) ? rounded.toString() : rounded.toString().replace(/\.?0+$/, '');
+                el.innerText = normalized.replace('.', ',');
             }
         });
 
@@ -715,6 +1128,66 @@
             }
         });
     }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const favoriteBtn = document.getElementById('favoriteRecipeBtn');
+        if (favoriteBtn) {
+            favoriteBtn.addEventListener('click', function () {
+                const icon = favoriteBtn.querySelector('i');
+                if (!icon) return;
+                const liked = icon.classList.contains('bi-heart-fill');
+                icon.classList.toggle('bi-heart-fill', !liked);
+                icon.classList.toggle('bi-heart', liked);
+                favoriteBtn.style.color = liked ? 'var(--ink-deep)' : 'var(--coral)';
+            });
+        }
+
+        const languageBadge = document.getElementById('recipeLanguageBadge');
+        if (languageBadge) {
+            languageBadge.addEventListener('click', function () {
+                const layoutLangTrigger = document.querySelector('.dropdown .dropdown-toggle');
+                if (layoutLangTrigger) {
+                    layoutLangTrigger.click();
+                }
+            });
+        }
+
+        const sharePrimaryBtn = document.getElementById('sharePrimaryBtn');
+        const runShareRecipe = async () => {
+                const shareData = {
+                    title: document.getElementById('recipeDisplayTitle')?.textContent?.trim() || document.title,
+                    text: document.getElementById('recipeDisplayTitle')?.textContent?.trim() || document.title,
+                    url: window.location.href
+                };
+
+                try {
+                    if (navigator.share) {
+                        await navigator.share(shareData);
+                        return;
+                    }
+                } catch {
+                }
+
+                try {
+                    await navigator.clipboard.writeText(window.location.href);
+                    if (sharePrimaryBtn) {
+                        const originalText = sharePrimaryBtn.textContent;
+                        sharePrimaryBtn.textContent = '✓';
+                        sharePrimaryBtn.disabled = true;
+                        setTimeout(() => {
+                            sharePrimaryBtn.textContent = originalText;
+                            sharePrimaryBtn.disabled = false;
+                        }, 1800);
+                    }
+                } catch {
+                    window.prompt('Link', window.location.href);
+                }
+        };
+
+        if (sharePrimaryBtn) {
+            sharePrimaryBtn.addEventListener('click', runShareRecipe);
+        }
+    });
 
     (function bindBackToFeedRestore() {
         const FEED_STATE_KEY = 'worldminiapp.feed.state.v1';

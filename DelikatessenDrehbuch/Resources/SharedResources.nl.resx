@@ -497,4 +497,7 @@
   <data name="Recipe.NutritionDisclaimer" xml:space="preserve">
     <value>Voedingswaarden zijn schattingen en kunnen afwijken.</value>
   </data>
+  <data name="Recipe.Share" xml:space="preserve">
+    <value>Delen</value>
+  </data>
 </root>

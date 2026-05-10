@@ -497,4 +497,7 @@
   <data name="Recipe.NutritionDisclaimer" xml:space="preserve">
     <value>Nilai nutrisi adalah perkiraan dan dapat bervariasi.</value>
   </data>
+  <data name="Recipe.Share" xml:space="preserve">
+    <value>Bagikan</value>
+  </data>
 </root>

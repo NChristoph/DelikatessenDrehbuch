@@ -5721,8 +5721,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private static List<RecipeAiTransformStepPreview> BuildStepPreview(RecipeBaseData recipe, string language)
         {
             return recipe.Steps?
-                .OrderBy(x => x.StepIndex)
-                .Select(x => new RecipeAiTransformStepPreview { Index = x.StepIndex, Text = PolishStepText(GetStepText(x.RecipePreparationStep, language), language) })
+                .OrderBy(x => x.StepOrder)
+                .Select(x => new RecipeAiTransformStepPreview { Index = x.StepOrder, Text = PolishStepText(x.StepText ?? string.Empty, language) })
                 .Where(x => !string.IsNullOrWhiteSpace(x.Text))
                 .ToList() ?? new List<RecipeAiTransformStepPreview>();
         }

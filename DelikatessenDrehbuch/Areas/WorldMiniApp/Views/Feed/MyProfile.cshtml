@@ -23,6 +23,22 @@
         return h.Length >= 8 ? h.Substring(0, 8) : h;
     }
 
+    string Initials(string? name)
+    {
+        var value = (name ?? string.Empty).Trim();
+        if (string.IsNullOrWhiteSpace(value)) return "AV";
+
+        var parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 1)
+        {
+            var clean = new string(parts[0].Where(char.IsLetterOrDigit).Take(2).ToArray());
+            return string.IsNullOrWhiteSpace(clean) ? "AV" : clean.ToUpperInvariant();
+        }
+
+        var initials = string.Concat(parts.Take(2).Select(p => p[0]));
+        return string.IsNullOrWhiteSpace(initials) ? "AV" : initials.ToUpperInvariant();
+    }
+
     string DeleteConfirmText(string title)
     {
         var text = T($"MÃ¶chtest du den Plan \"{title}\" wirklich lÃ¶schen?",
@@ -33,352 +49,353 @@
     }
 }
 
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="~/css/creator-shop-cards.css" />
 
 <style>
     :root {
-        --deli-primary: #2D4F1E;
-        --deli-gold: #D4AF37;
-        /* Theme-able surfaces (wichtig: Header + Settings sollen NICHT fix rosa/grÃ¼n sein) */
-        --surface: rgba(255,255,255,0.88);
-        --surface-2: rgba(255,255,255,0.72);
-        --text: #1A1A1A;
-        --muted: rgba(0,0,0,0.55);
-        --border: rgba(0,0,0,0.06);
-        --shadow: 0 10px 30px rgba(0,0,0,0.04);
-        /* Akzent, wird per Theme gesetzt */
-        --accent: #2D4F1E;
-        --accent-contrast: #ffffff;
-        /* Header Background, wird per Theme gesetzt */
-        --header-bg: linear-gradient(135deg, rgba(45,79,30,0.12) 0%, rgba(255, 153, 102, 0.12) 100%);
+        --bg-cream: #ffffff;
+        --card: #ffffff;
+        --card-soft: #faf6ec;
+        --hero-bg: linear-gradient(160deg,#f7f1e0 0%,#f1e6d4 60%,#f6d8c4 100%);
+        --ink-deep: #14391f;
+        --ink-deep-2: #0e2415;
+        --avocado: #5fa052;
+        --avocado-dark: #3f7536;
+        --coral: #ff7849;
+        --amber: #d99a3c;
+        --crimson: #c44e4e;
+        --ink-mute: #6b7868;
+        --ink-soft: #9aa295;
+        --ink-line: rgba(20,57,31,0.08);
+        --shadow-sm: 0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08);
+        --shadow-md: 0 8px 24px rgba(20,57,31,0.16), 0 4px 12px rgba(20,57,31,0.12);
+        --shadow-lg: 0 12px 32px rgba(20,57,31,0.18), 0 6px 16px rgba(20,57,31,0.14);
     }
 
     body {
-        font-family: 'Plus Jakarta Sans', sans-serif;
-        background: #F8FAF7;
-        color: var(--text);
-        transition: background 0.25s ease, color 0.25s ease;
+        font-family: 'Inter', sans-serif;
+        background: #ffffff;
+        color: var(--ink-deep);
     }
-
-        /* --- Themes: setzen Variablen statt fixen Farben --- */
-        body.profile-theme-color {
-            background: #F8FAF7;
-            --accent: #2D4F1E;
-            --accent-contrast: #ffffff;
-            --surface: rgba(255,255,255,0.88);
-            --surface-2: rgba(255,255,255,0.72);
-            --text: #1A1A1A;
-            --muted: rgba(0,0,0,0.55);
-            --border: rgba(0,0,0,0.06);
-            --header-bg: linear-gradient(135deg, rgba(45,79,30,0.12) 0%, rgba(255,153,102,0.12) 100%);
-        }
-
-        body.profile-theme-black {
-            background: #000;
-            --accent: #ffffff;
-            --accent-contrast: #000;
-            --surface: #111;
-            --surface-2: #111;
-            --text: #ffffff;
-            --muted: rgba(255,255,255,0.65);
-            --border: rgba(255,255,255,0.10);
-            --shadow: none;
-            --header-bg: #111;
-        }
-
-        body.profile-theme-white {
-            background: #fff;
-            --accent: #111;
-            --accent-contrast: #ffffff;
-            --surface: rgba(247,247,247,0.92);
-            --surface-2: rgba(245,245,245,0.85);
-            --text: #1A1A1A;
-            --muted: rgba(0,0,0,0.55);
-            --border: rgba(0,0,0,0.06);
-            --header-bg: linear-gradient(135deg, rgba(0,0,0,0.06) 0%, rgba(0,0,0,0.02) 100%);
-        }
-
-        body.profile-theme-rose {
-            background: linear-gradient(135deg, #FFF5F7 0%, #FEE2E7 100%);
-            --accent: #FFB6C1;
-            --accent-contrast: #3b0a14;
-            --surface: rgba(255,255,255,0.88);
-            --surface-2: rgba(255,255,255,0.72);
-            --text: #852D3E;
-            --muted: rgba(133,45,62,0.60);
-            --border: rgba(0,0,0,0.05);
-            --header-bg: linear-gradient(135deg, rgba(255,182,193,0.22) 0%, rgba(255,182,193,0.10) 100%);
-        }
-
-        body.profile-theme-lavender {
-            background: linear-gradient(135deg, #F3F0FF 0%, #EBE4FF 100%);
-            --accent: #A78BFA;
-            --accent-contrast: #160b2d;
-            --surface: rgba(255,255,255,0.88);
-            --surface-2: rgba(255,255,255,0.72);
-            --text: #4B3D8A;
-            --muted: rgba(75,61,138,0.60);
-            --border: rgba(0,0,0,0.05);
-            --header-bg: linear-gradient(135deg, rgba(167,139,250,0.22) 0%, rgba(167,139,250,0.10) 100%);
-        }
 
     .profile-wrap {
         max-width: 500px;
         margin: 0 auto;
-        padding: 14px 15px 110px;
+        padding: 12px 14px 120px;
     }
 
-    /* ZurÃ¼ck Button: oben links & scrollt mit */
-    .back-to-feed {
-        position: sticky;
-        top: 10px;
-        z-index: 999;
+    .profile-topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-bottom: 10px;
+    }
+
+    .topbar-pill {
         display: inline-flex;
         align-items: center;
         gap: 6px;
         text-decoration: none;
-        font-weight: 800;
-        font-size: 0.9rem;
-        color: var(--text);
-        opacity: 0.9;
-        padding: 8px 10px;
-        border-radius: 14px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        box-shadow: 0 8px 20px rgba(0,0,0,0.05);
-        margin-bottom: 12px;
+        background: var(--card);
+        color: var(--ink-deep);
+        border: none;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .topbar-lang {
+        font-size: 11px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
     }
 
     .profile-card {
-        padding: 18px 16px 16px;
-        border-radius: 35px;
-        margin-bottom: 22px;
-        background: var(--header-bg);
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow);
-        transition: all 0.25s ease;
-        backdrop-filter: blur(10px);
+        padding: 20px 18px;
+        border-radius: 24px;
+        margin-bottom: 12px;
+        background: rgba(245, 255, 250, 0.85);
+        border: 1px solid rgba(235, 250, 240, 0.9);
+        box-shadow: 0 8px 24px rgba(20,57,31,0.14), 0 4px 12px rgba(20,57,31,0.10);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
     }
 
-    /* Header layout genau wie du willst:
-           Links Avatar, rechts Orb -> darunter Name -> darunter Hash -> darunter Stats -> darunter Settings */
     .profile-top-row {
         display: flex;
         align-items: flex-start;
-        gap: 12px;
+        gap: 14px;
     }
 
     .avatar-main {
-        width: 88px;
-        height: 88px;
-        border-radius: 26px;
-        object-fit: cover;
-        border: 3px solid rgba(255,255,255,0.85);
-        background: #fff;
-        box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+        width: 76px;
+        height: 76px;
+        border-radius: 22px;
+        background: linear-gradient(135deg, var(--ink-deep), var(--ink-deep-2));
+        color: #fff;
+        font-family: 'Fraunces', serif;
+        font-size: 30px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
         flex: 0 0 auto;
+        box-shadow: 0 8px 22px rgba(20,57,31,0.18);
     }
 
     .profile-right {
         flex: 1;
         min-width: 0;
         text-align: left;
-        padding-top: 2px;
+        padding-top: 4px;
     }
 
     .orb-badge {
         display: inline-flex;
         align-items: center;
         gap: 6px;
-        padding: 6px 10px;
+        padding: 4px 10px 4px 8px;
         border-radius: 999px;
-        font-weight: 900;
-        font-size: 0.72rem;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        color: var(--text);
-        box-shadow: 0 8px 18px rgba(0,0,0,0.06);
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--ink-deep);
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
         margin-bottom: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.95);
+        box-shadow: 0 2px 6px rgba(20,57,31,0.08);
+        backdrop-filter: blur(16px);
+        -webkit-backdrop-filter: blur(16px);
     }
 
     .profile-name {
-        font-weight: 900;
-        font-size: 1.25rem;
-        line-height: 1.15;
-        margin: 0 0 4px 0;
-        color: var(--text);
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
+        font-family: 'Fraunces', serif;
+        font-size: 26px;
+        font-weight: 700;
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+        margin: 0 0 2px 0;
+        color: var(--ink-deep);
     }
 
     .profile-hash {
-        font-size: 0.78rem;
-        font-weight: 800;
-        opacity: 0.7;
-        color: var(--text);
-        margin-bottom: 12px;
+        font-size: 13px;
+        color: var(--ink-mute);
+        font-weight: 500;
     }
 
     .stats-container {
         display: flex;
         justify-content: flex-start;
-        gap: 18px;
-        margin: 10px 0 14px;
+        gap: 28px;
+        margin: 18px 0 0 4px;
         flex-wrap: wrap;
     }
 
-    .stat-item {
-        text-align: left;
-    }
-
     .stat-val {
-        font-size: 1.3rem;
-        font-weight: 900;
+        font-family: 'Fraunces', serif;
+        font-size: 22px;
+        font-weight: 700;
         display: block;
-        line-height: 1.1;
-        color: var(--text);
+        line-height: 1;
+        color: var(--ink-deep);
+        letter-spacing: -0.02em;
     }
 
     .stat-lbl {
-        font-size: 0.7rem;
-        opacity: 0.65;
+        margin-top: 4px;
+        font-size: 10px;
+        color: var(--ink-soft);
         text-transform: uppercase;
-        letter-spacing: 1.1px;
-        font-weight: 800;
-        color: var(--text);
+        letter-spacing: 0.14em;
+        font-weight: 700;
     }
 
     .btn-action {
-        background: var(--accent);
-        color: var(--accent-contrast) !important;
-        border-radius: 18px;
-        padding: 12px;
+        background: linear-gradient(135deg, var(--ink-deep), var(--ink-deep-2));
+        color: #fff !important;
+        border-radius: 16px;
+        padding: 13px;
         width: 100%;
         border: none;
-        font-weight: 900;
-        font-size: 0.95rem;
-        transition: transform 0.2s;
+        font-weight: 700;
+        font-size: 14px;
+        box-shadow: 0 6px 20px rgba(20,57,31,0.24);
     }
-
-        .btn-action:active {
-            transform: scale(0.98);
-        }
 
     .theme-dot {
         width: 28px;
         height: 28px;
         border-radius: 50%;
         cursor: pointer;
-        border: 2px solid transparent;
+        border: 2px solid rgba(20,57,31,0.08);
         transition: 0.2s;
     }
 
-        .theme-dot:hover {
-            transform: scale(1.1);
-        }
-
-    /* Settings Box: ebenfalls theme-fÃ¤hig */
     .settings-box {
-        background: var(--surface);
-        border: 1px solid var(--border);
+        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.9);
         border-radius: 18px;
         padding: 12px;
-        color: var(--text);
+        color: var(--ink-deep);
+        box-shadow: 0 4px 12px rgba(20,57,31,0.10);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
     }
 
-    /* --- Tabs: unverÃ¤ndert in Stil wie bei dir --- */
+    .quick-links {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .quick-link {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        text-decoration: none;
+        border-radius: 16px;
+        padding: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.85);
+        color: var(--ink-deep);
+        font-size: 13px;
+        font-weight: 700;
+        box-shadow: var(--shadow-sm);
+        white-space: pre-line;
+        text-align: left;
+        min-height: 48px;
+        backdrop-filter: blur(18px);
+        -webkit-backdrop-filter: blur(18px);
+    }
+
+    .quick-link-dashboard {
+        width: 100%;
+        margin-top: 8px;
+        margin-bottom: 16px;
+        border-radius: 16px;
+        padding: 13px;
+        justify-content: center;
+        background: var(--card);
+        border: 1px solid rgba(20,57,31,0.08);
+        color: var(--ink-deep);
+        box-shadow: var(--shadow-sm);
+    }
+
+    .quick-link-dashboard.is-open {
+        background: var(--ink-deep);
+        color: #fff;
+        border-color: transparent;
+        box-shadow: 0 6px 20px rgba(20,57,31,0.24);
+    }
+
+    .dashboard-embed-shell {
+        margin-top: 12px;
+        border-radius: 24px;
+        overflow: hidden;
+        border: 1px solid rgba(20,57,31,0.08);
+        background: linear-gradient(135deg, #1a3a23, #0e2415);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .dashboard-embed-header {
+        padding: 18px 18px 14px;
+        color: #fff;
+        border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+
+    .dashboard-eyebrow {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.72);
+        margin-bottom: 10px;
+    }
+
+    .dashboard-title {
+        font-family: 'Fraunces', serif;
+        font-size: 24px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        line-height: 1.05;
+        margin: 0 0 6px;
+    }
+
+    .dashboard-hash {
+        font-size: 12px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.72);
+    }
+
+    .dashboard-embed-frame {
+        width: 100%;
+        min-height: 980px;
+        border: 0;
+        display: block;
+        background: #fff;
+    }
+
     .nav-custom {
         display: flex;
-        background: rgba(128,128,128,0.1);
+        background: rgba(20,57,31,0.06);
         border-radius: 22px;
-        padding: 6px;
+        padding: 4px;
         border: none;
-        margin-bottom: 25px;
+        margin-bottom: 18px;
+        gap: 2px;
     }
 
-        .nav-custom .nav-item {
-            flex: 1;
-        }
+    .nav-custom .nav-item {
+        flex: 1;
+    }
 
-        .nav-custom .nav-link {
-            width: 100%;
-            border: none;
-            border-radius: 18px;
-            color: inherit;
-            padding: 12px 5px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 5px;
-            background: transparent;
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-            opacity: 0.5;
-        }
-
-            .nav-custom .nav-link.active {
-                background: var(--surface);
-                color: var(--accent);
-                opacity: 1;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-                transform: scale(1.02);
-            }
-
-    .likes-switcher {
-        display: inline-grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 6px;
-        padding: 6px;
-        margin-bottom: 16px;
+    .nav-custom .nav-link {
         width: 100%;
-        background: rgba(128,128,128,0.08);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-    }
-
-    .likes-switch-btn {
         border: none;
-        border-radius: 14px;
-        padding: 10px 12px;
+        border-radius: 16px;
+        padding: 8px 4px 6px;
         background: transparent;
-        color: var(--text);
-        font-weight: 800;
-        font-size: 0.84rem;
-        opacity: 0.7;
-        transition: all 0.2s ease;
+        color: var(--ink-soft);
+        font-weight: 700;
+        font-size: 9.5px;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 4px;
+        transition: all .2s;
     }
 
-    .likes-switch-btn.active {
-        background: var(--surface);
-        color: var(--accent);
-        opacity: 1;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    .nav-custom .nav-link.active {
+        background: var(--card);
+        color: var(--ink-deep);
+        box-shadow: 0 4px 12px rgba(20,57,31,0.10);
     }
 
-    .likes-panel {
-        display: none;
-    }
-
-    .likes-panel.active {
-        display: block;
-    }
-
-    /* --- Content Grid (Hochformat 9:16) --- */
     .video-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 6px;
+        gap: 8px;
     }
 
     .grid-item {
-        aspect-ratio: 9/16;
+        aspect-ratio: 9/14;
         border-radius: 14px;
         overflow: hidden;
         position: relative;
         background: #222;
         cursor: pointer;
+        box-shadow: 0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08);
     }
 
     .grid-img {
@@ -447,10 +464,12 @@
 
     .grid-action-btn.edit { background: rgba(0, 0, 0, 0.55); }
     .grid-action-btn.edit:hover { background: rgba(0, 0, 0, 0.75); }
-    .grid-action-btn.offline { background: rgba(255, 165, 0, 0.75); }
-    .grid-action-btn.offline:hover { background: rgba(255, 140, 0, 0.9); }
-    .grid-action-btn.delete { background: rgba(220, 53, 69, 0.75); }
-    .grid-action-btn.delete:hover { background: rgba(200, 35, 51, 0.9); }
+    .grid-action-btn.offline { background: rgba(217, 154, 60, 0.88); }
+    .grid-action-btn.offline:hover { background: rgba(217, 154, 60, 1); }
+    .grid-action-btn.online { background: rgba(95, 160, 82, 0.88); }
+    .grid-action-btn.online:hover { background: rgba(95, 160, 82, 1); }
+    .grid-action-btn.delete { background: rgba(196, 78, 78, 0.92); }
+    .grid-action-btn.delete:hover { background: rgba(196, 78, 78, 1); }
 
     .grid-item.is-offline {
         opacity: 0.45;
@@ -460,10 +479,10 @@
         text-align: center;
         padding: 44px 18px;
         border-radius: 22px;
-        background: var(--surface);
-        border: 1px solid var(--border);
-        color: var(--muted);
-        box-shadow: var(--shadow);
+        background: var(--card);
+        border: 1px solid rgba(20,57,31,0.08);
+        color: var(--ink-mute);
+        box-shadow: var(--shadow-sm);
     }
 
     .grid-offline-badge {
@@ -481,82 +500,103 @@
         letter-spacing: 1px;
     }
 
-    /* --- Buttons & Utilities --- */
-    .btn-action {
-        background: var(--deli-primary);
-        color: white !important;
-        border-radius: 18px;
-        color: var(--text);
+    .ai-card-footer {
+        position: absolute;
+        inset-inline: 0;
+        bottom: 0;
+        padding: 12px 10px 10px;
+        background: linear-gradient(180deg, rgba(20,57,31,0) 0%, rgba(20,57,31,0.88) 100%);
+        z-index: 3;
     }
 
-
-    .quick-links {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 10px;
-        margin-top: 10px;
-    }
-
-    .quick-link-dashboard {
-        width: 100%;
-        margin-top: 10px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text);
-    }
-
-    .dashboard-embed-shell {
-        margin-top: 12px;
-        border-radius: 22px;
-        overflow: hidden;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        box-shadow: var(--shadow);
-    }
-
-    .dashboard-embed-frame {
-        width: 100%;
-        min-height: 980px;
-        border: 0;
-        display: block;
-        background: #fff;
-    }
-    .quick-link {
+    .ai-card-tag,
+    .soft-pill,
+    .open-pill,
+    .plan-open-btn {
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        gap: 6px;
-        text-decoration: none;
-        border-radius: 14px;
-        padding: 10px 12px;
-        border: 1px solid var(--border);
-        background: var(--surface);
-        color: var(--text);
-        font-size: 0.85rem;
+        border-radius: 999px;
         font-weight: 800;
     }
 
-    body.profile-theme-black .plan-card,
-    body.profile-theme-black .list-group-item {
-        background: #111 !important;
+    .soft-pill {
+        background: rgba(255,255,255,0.92);
+        color: var(--ink-deep);
+        padding: 6px 10px;
+        border: 1px solid rgba(20,57,31,0.08);
+        font-size: 11px;
+    }
+
+    .ai-card-tag {
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.22);
+        color: #fff;
+        padding: 5px 9px;
+        font-size: 11px;
+    }
+
+    .follow-list,
+    .plan-card {
+        background: var(--card);
+        border: 1px solid rgba(20,57,31,0.08);
+        border-radius: 18px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .follow-list .list-group-item {
+        background: transparent;
+        border: 0;
+        color: var(--ink-deep);
+    }
+
+    .open-pill,
+    .plan-open-btn {
+        background: var(--ink-deep);
         color: #fff !important;
-        border-color: #222 !important;
+        padding: 8px 14px;
+        text-decoration: none;
+        font-size: 12px;
+    }
+
+    .trash-pill {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        border: none;
+        background: rgba(255, 120, 73, 0.12);
+        color: var(--coral);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .purchase-price {
+        font-family: 'Fraunces', serif;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--ink-deep);
+        letter-spacing: -0.02em;
     }
 </style>
 
 <div class="profile-wrap">
 
-    <a class="back-to-feed"
-       href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
-        <i class="bi bi-arrow-left"></i>
-        @Html.Raw(T("Zur&uuml;ck zum Feed", "Back to feed", "Volver al feed", "Voltar ao feed"))
-    </a>
+    <div class="profile-topbar">
+        <a class="topbar-pill"
+           href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
+            <i class="bi bi-arrow-left"></i>
+            @Html.Raw(T("Zur&uuml;ck zum Feed", "Back to feed", "Volver al feed", "Voltar ao feed"))
+        </a>
+        <button type="button" class="topbar-pill topbar-lang" id="profileLanguageProxy">
+            @language.ToUpperInvariant()
+            <i class="bi bi-chevron-down"></i>
+        </button>
+    </div>
 
     <div class="profile-card">
         <div class="profile-top-row">
-            <img src="https://ui-avatars.com/api/?name=@(string.IsNullOrWhiteSpace(Model.User.UserName) ? "User" : Model.User.UserName)&background=random&size=200"
-                 class="avatar-main"
-                 alt="Avatar" />
+            <div class="avatar-main">@Initials(Model.User.UserName)</div>
 
             <div class="profile-right">
                 @if (isOrb)
@@ -592,28 +632,15 @@
                         </div>
                     }
                 </div>
-
-                
-
             </div>
         </div>
-        <button class="btn-action shadow-sm" data-bs-toggle="collapse" data-bs-target="#settingsCollapse">
+
+        <button class="btn-action mt-3" data-bs-toggle="collapse" data-bs-target="#settingsCollapse">
             <i class="bi bi-gear-fill me-2"></i> @T("Einstellungen", "Settings", "Ajustes", "Ajustes")
         </button>
 
         <div class="collapse mt-2" id="settingsCollapse">
             <div class="settings-box">
-                <label class="small fw-800 mb-2 d-block text-uppercase opacity-75">@T("Design", "Design", "DiseÃ±o", "Design")</label>
-                <div class="d-flex gap-3 flex-wrap">
-                    <div class="theme-dot bg-dark" onclick="setTheme('black')" title="Black"></div>
-                    <div class="theme-dot bg-white border" onclick="setTheme('white')" title="White"></div>
-                    <div class="theme-dot bg-success" onclick="setTheme('color')" title="Green"></div>
-                    <div class="theme-dot" style="background: #FFB6C1;" onclick="setTheme('rose')" title="Rose"></div>
-                    <div class="theme-dot" style="background: #A78BFA;" onclick="setTheme('lavender')" title="Lavender"></div>
-                </div>
-
-                <hr class="opacity-25 my-3" />
-
                 <form method="post" action="@Url.Action("UpdateProfile", "Feed", new { area = "WorldMiniApp" })">
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="userHash" value="@Model.User.UserHash" />
@@ -640,26 +667,41 @@
                     <i class="bi bi-flag-fill"></i> @T("Kommentar-Moderation", "Comment moderation", "Moderacion", "Moderacao")
                 </a>
             }
+            else
+            {
+                <span></span>
+            }
         </div>
 
-        <button class="btn quick-link quick-link-dashboard"
+    </div>
+
+    @if (isOrb)
+    {
+        <button class="quick-link quick-link-dashboard"
+                id="dashboardToggleBtn"
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#dashboardEmbedCollapse"
                 aria-expanded="false"
                 aria-controls="dashboardEmbedCollapse">
-            <i class="bi bi-speedometer2"></i> Creator Deschbort
+            <i class="bi bi-speedometer2"></i> Creator Dashboard
+            <span class="ms-1 opacity-75" id="dashboardToggleCaret">▾</span>
         </button>
 
         <div class="collapse" id="dashboardEmbedCollapse">
             <div class="dashboard-embed-shell">
+                <div class="dashboard-embed-header">
+                    <div class="dashboard-eyebrow">Premium Creator Area</div>
+                    <h2 class="dashboard-title">@T("Creator Dashboard", "Creator dashboard", "Panel creator", "Painel creator")</h2>
+                    <div class="dashboard-hash">@Model.User.UserHash</div>
+                </div>
                 <iframe class="dashboard-embed-frame"
                         src="@Url.Action("UserDashboard", "Home", new { area = "WorldMiniApp" })"
                         loading="lazy"
-                        title="Creator Deschbort"></iframe>
+                        title="Creator Dashboard"></iframe>
             </div>
         </div>
-    </div>
+    }
 
     <!-- Tabs -->
     <ul class="nav nav-custom" role="tablist">
@@ -741,7 +783,7 @@
         <div class="tab-pane fade" id="tab-ai">
             @if (!Model.AiEditedRecipes.Any())
             {
-                <div class="text-center py-5 opacity-50">
+                <div class="empty-grid-state">
                     <i class="bi bi-stars fs-1"></i>
                     <p class="mt-3 fw-bold">@T("Noch keine AI-Varianten", "No AI variants yet", "AÃºn no hay variantes AI", "Ainda nÃ£o hÃ¡ variantes AI")</p>
                 </div>
@@ -757,14 +799,14 @@
                         <a href="@href" class="grid-item shadow-sm position-relative text-decoration-none" style="display: block; cursor: pointer;">
                             <img src="@card.ImageUrl" class="grid-img" loading="lazy">
                             <div class="position-absolute top-0 end-0 p-2" style="z-index:4;">
-                                <span class="badge rounded-pill" style="background: rgba(255,255,255,0.92); color:#111; font-weight:900;">
+                                <span class="soft-pill">
                                     <i class="bi-arrow-left-right text-warning me-1"></i>Angepasst
                                 </span>
                             </div>
-                            <div class="position-absolute start-0 end-0 bottom-0 p-2" style="z-index:3;">
+                            <div class="ai-card-footer">
                                 <div class="small fw-bold text-white text-truncate">@card.VariantTitle</div>
                                 <div class="d-flex flex-wrap gap-1 mt-1">
-                                    <span class="badge rounded-pill" style="background: rgba(255,255,255,0.16); border:1px solid rgba(255,255,255,0.22); color:#fff; font-weight:800;">@card.VariantLabel</span>
+                                    <span class="ai-card-tag">@card.VariantLabel</span>
                                 </div>
                             </div>
                         </a>
@@ -774,11 +816,11 @@
         </div>
 
         <div class="tab-pane fade" id="tab-abos">
-            <div class="list-group list-group-flush rounded-4 overflow-hidden shadow-sm">
+            <div class="list-group list-group-flush follow-list overflow-hidden">
                 @foreach (var creator in Model.Following)
                 {
                     <button class="list-group-item list-group-item-action d-flex align-items-center p-3 border-0"
-                            style="background: rgba(128,128,128,0.05);" onclick="openFeed('creator', 0, '@creator.UserHash')">
+                            onclick="openFeed('creator', 0, '@creator.UserHash')">
                         <img src="https://ui-avatars.com/api/?name=@creator.UserName" class="rounded-circle me-3" width="40" height="40" />
                         <span class="fw-bold">@creator.UserName</span>
                         <i class="bi bi-chevron-right ms-auto opacity-50"></i>
@@ -792,7 +834,7 @@
             {
                 <div class="text-center py-5 opacity-50">
                     <i class="bi bi-calendar2-x fs-1"></i>
-                    <p class="mt-3 fw-bold">@T("Noch keine erstellten PlÃ¤ne", "No created plans yet", "AÃºn no hay planes creados", "Ainda nÃ£o hÃ¡ planos criados")</p>
+                    <p class="mt-3 fw-bold">@T("Noch keine erstellten Pläne", "No created plans yet", "Än no hay planes creados", "Ainda nÃ£o hÃ¡ planos criados")</p>
                 </div>
             }
             else
@@ -806,7 +848,7 @@
                         </div>
                         <div class="d-flex gap-2">
                             <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })"
-                               class="btn btn-sm btn-dark rounded-pill px-3">OPEN</a>
+                               class="open-pill">OPEN</a>
 
                             <form method="post"
                                   action="@Url.Action("DeletePlan", "Home", new { area = "WorldMiniApp" })"
@@ -814,7 +856,7 @@
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@plan.Id" />
                                 <input type="hidden" name="userHash" value="@Model.User.UserHash" />
-                                <button type="submit" class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                                <button type="submit" class="trash-pill"
                                         title="@T("LÃ¶schen", "Delete", "Eliminar", "Apagar")">
                                     <i class="bi bi-trash"></i>
                                 </button>
@@ -828,11 +870,11 @@
         <div class="tab-pane fade" id="tab-purchases">
             @if (!Model.Purchases.Any())
             {
-                <div class="text-center py-5 opacity-50">
+                <div class="empty-grid-state">
                     <i class="bi bi-bag-x fs-1"></i>
-                    <p class="mt-3 fw-bold">@T("Noch keine gekauften PlÃ¤ne", "No purchased plans yet", "AÃºn no hay planes comprados", "Ainda nÃ£o hÃ¡ planos comprados")</p>
+                    <p class="mt-3 mb-0 fw-bold">@T("Noch keine gekauften Pläne", "No purchased plans yet", "AÃºn no hay planes comprados", "Ainda nÃ£o hÃ¡ planos comprados")</p>
                     <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })"
-                       class="btn btn-dark rounded-pill px-4 mt-2">
+                       class="btn btn-dark rounded-pill px-4 mt-3">
                         @T("Zum Marktplatz", "Go to Marketplace", "Ir al mercado", "Ir ao mercado")
                     </a>
                 </div>
@@ -841,34 +883,69 @@
             {
                 @foreach (var purchase in Model.Purchases)
                 {
-                    var shortTx = purchase.ReferenceTxHash?.Length >= 12
-                        ? purchase.ReferenceTxHash.Substring(0, 6) + "â€¦" + purchase.ReferenceTxHash.Substring(purchase.ReferenceTxHash.Length - 4)
-                        : purchase.ReferenceTxHash ?? "-";
-                    var worldScanUrl = $"https://worldscan.org/tx/{purchase.ReferenceTxHash}";
+                    var listing = purchase.Listing;
+                    if (listing == null) continue;
 
-                    <div class="plan-card p-3 mb-2 shadow-sm" style="border-radius:18px; background: var(--surface); border: 1px solid var(--border);">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div style="min-width:0; flex:1; padding-right:10px;">
-                                <div class="fw-bold text-truncate">@(purchase.Listing?.Title ?? "Essensplan")</div>
-                                <div class="small opacity-50">@purchase.PurchasedAt.ToString("dd.MM.yyyy HH:mm")</div>
-                            </div>
-                            <div class="text-end flex-shrink-0">
-                                <div class="fw-bold" style="color: var(--accent); font-size:1rem;">
-                                    @purchase.PricePaid.ToString("0.##") @purchase.PaymentToken
+                    var heroImage = ViewData[$"PurchaseHeroImage_{purchase.Id}"] as string;
+
+                    <div class="cs-card mb-3">
+                        <!-- Hero -->
+                        <div class="cs-hero">
+                            @if (!string.IsNullOrEmpty(heroImage))
+                            {
+                                <img src="@heroImage" class="cs-hero-img" alt="@listing.Title" />
+                            }
+                            else
+                            {
+                                <div class="cs-hero-fallback"></div>
+                            }
+                            <div class="cs-hero-overlay"></div>
+                            <div class="cs-hero-bottom">
+                                <h3 class="cs-title">@listing.Title</h3>
+                                <div class="cs-creator-row">
+                                    <div class="cs-creator-avatar">@listing.SellerName.Substring(0, Math.Min(2, listing.SellerName.Length)).ToUpper()</div>
+                                    <span class="cs-creator-name">@listing.SellerName</span>
+                                    <span class="cs-creator-sep">·</span>
+                                    <span class="cs-creator-duration">@listing.DayCount @T("Tage", "days", "días", "dias")</span>
                                 </div>
-                                @if (!string.IsNullOrWhiteSpace(purchase.ReferenceTxHash))
-                                {
-                                    <a href="@worldScanUrl" target="_blank" rel="noopener"
-                                       class="small opacity-60 text-decoration-none" style="font-size:0.72rem; color: var(--text);">
-                                        <i class="bi bi-box-arrow-up-right"></i> @shortTx
-                                    </a>
-                                }
                             </div>
                         </div>
-                        <a href="@Url.Action("ViewPlanAsync", "Home", new { area = "WorldMiniApp", id = purchase.CreatedMealPlanId })"
-                           class="btn btn-sm btn-dark rounded-pill px-3 w-100">
-                            <i class="bi bi-calendar2-week me-1"></i>@T("Plan Ã¶ffnen", "Open plan", "Abrir plan", "Abrir plano")
-                        </a>
+
+                        <!-- Stats strip -->
+                        <div class="cs-stats-strip">
+                            <div class="cs-stat-cell">
+                                <div class="cs-stat-value">@listing.DayCount</div>
+                                <div class="cs-stat-label">@T("Tage", "Days", "Días", "Dias")</div>
+                            </div>
+                            <div class="cs-stat-cell">
+                                <div class="cs-stat-value">@listing.RecipeCount</div>
+                                <div class="cs-stat-label">@T("Rezepte", "Recipes", "Recetas", "Receitas")</div>
+                            </div>
+                            <div class="cs-stat-cell">
+                                <div class="cs-stat-value">
+                                    <i class="bi bi-check-circle-fill text-success" style="font-size: 18px;"></i>
+                                </div>
+                                <div class="cs-stat-label">@T("Gekauft", "Purchased", "Comprado", "Comprado")</div>
+                            </div>
+                        </div>
+
+                        <!-- Footer -->
+                        <div class="cs-card-footer">
+                            <div style="flex: 1;">
+                                <div style="font-size: 10px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.04em;">
+                                    @T("Gekauft am", "Purchased on", "Comprado", "Comprado em")
+                                </div>
+                                <div style="font-size: 12px; color: var(--ink-deep); font-weight: 600; margin-top: 2px;">
+                                    @purchase.PurchasedAt.ToString("dd.MM.yyyy HH:mm")
+                                </div>
+                            </div>
+                            <div class="cs-footer-actions">
+                                <a href="@Url.Action("ViewPlanAsync", "Home", new { area = "WorldMiniApp", id = purchase.CreatedMealPlanId })"
+                                   class="cs-btn-preview" style="background: linear-gradient(135deg, var(--ink-deep), var(--ink-deep-2)); color: white; border: none;">
+                                    <i class="bi bi-calendar2-week me-1"></i>@T("Öffnen", "Open", "Abrir", "Abrir")
+                                </a>
+                            </div>
+                        </div>
                     </div>
                 }
             }
@@ -978,19 +1055,6 @@
             });
         }
 
-        // Theme setzen (wie vorher, aber sauber)
-        function setTheme(t) {
-            document.body.classList.remove(
-                'profile-theme-black',
-                'profile-theme-white',
-                'profile-theme-color',
-                'profile-theme-rose',
-                'profile-theme-lavender'
-            );
-            document.body.classList.add(`profile-theme-${t}`);
-            localStorage.setItem('profile_theme', t);
-        }
-
         // Feed Navigation (wie vorher)
         function openFeed(filterMode, scrollToId, targetUserHash = "") {
             const myUserHash = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken") || "@Model.User.UserHash";
@@ -1030,10 +1094,35 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            setTheme(localStorage.getItem('profile_theme') || 'color');
             animateCounters();
             initLikesSwitcher();
             initGridVideoFallback();
+
+            const languageProxy = document.getElementById('profileLanguageProxy');
+            if (languageProxy) {
+                languageProxy.addEventListener('click', () => {
+                    const layoutLangTrigger = document.querySelector('.dropdown .dropdown-toggle');
+                    if (layoutLangTrigger) {
+                        layoutLangTrigger.click();
+                    }
+                });
+            }
+
+            const dashboardToggleBtn = document.getElementById('dashboardToggleBtn');
+            const dashboardCaret = document.getElementById('dashboardToggleCaret');
+            const dashboardCollapse = document.getElementById('dashboardEmbedCollapse');
+            if (dashboardToggleBtn && dashboardCollapse) {
+                const syncDashboardState = (open) => {
+                    dashboardToggleBtn.classList.toggle('is-open', open);
+                    if (dashboardCaret) {
+                        dashboardCaret.textContent = open ? '▴' : '▾';
+                    }
+                };
+
+                syncDashboardState(dashboardCollapse.classList.contains('show'));
+                dashboardCollapse.addEventListener('shown.bs.collapse', () => syncDashboardState(true));
+                dashboardCollapse.addEventListener('hidden.bs.collapse', () => syncDashboardState(false));
+            }
 
             // Deep-link to a tab (e.g. .../MyProfile#tab-ai)
             try {

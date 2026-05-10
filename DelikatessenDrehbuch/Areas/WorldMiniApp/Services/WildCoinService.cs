@@ -329,6 +329,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         {
             return await _context.MealPlanPurchases
                 .Include(p => p.Listing)
+                    .ThenInclude(l => l.MealPlan)
                 .Where(p => p.BuyerHash == buyerHash)
                 .OrderByDescending(p => p.PurchasedAt)
                 .ToListAsync();

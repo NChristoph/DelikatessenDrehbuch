@@ -1105,32 +1105,25 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 EnsurePostingHasGridThumbnail(post);
             }
             
-            // AI variants created by this user (one card per variant; users can have multiple highprotein versions).
-            var rawAiVariants = await _context.RecipeAiVariants
+           
+            var rawAiVariants = await _context.RecipeUserVariants
                 .AsNoTracking()
-                .Where(x => x.CreatedByUserHash == userHash)
-                .Select(x => new { x.Id, x.BaseRecipeId, x.VariantType, Title = x.RenderedTitle, x.UpdatedAtUtc })
+                .Where(x => x.UserHash == userHash)
+                .Select(x => new { x.Id, BaseRecipeId = x.OriginalRecipeId, x.Title, CreatedAtUtc = x.CreatedAtUtc })
                 .ToListAsync();
 
             var aiRecipeIds = rawAiVariants.Select(x => x.BaseRecipeId).Distinct().ToList();
             var aiMediaMap = await BuildRecipeMediaMapAsync(aiRecipeIds);
 
             var aiEditedCards = rawAiVariants
-                .OrderByDescending(x => x.UpdatedAtUtc)
+                .OrderByDescending(x => x.CreatedAtUtc)
                 .Take(80)
                 .Select(v =>
                 {
                     var media = aiMediaMap.TryGetValue(v.BaseRecipeId, out var m) ? m : (ImageUrl: string.Empty, RecipeTitle: string.Empty);
                     var baseTitle = string.IsNullOrWhiteSpace(media.RecipeTitle) ? "Rezept" : media.RecipeTitle;
-                    var variantType = (v.VariantType ?? string.Empty).Trim().ToLowerInvariant();
-                    var variantLabel = variantType switch
-                    {
-                        "vegan" => "Vegan",
-                        "mealprep" => "Meal Prep",
-                        "lowcarb" => "Low Carb",
-                        "highprotein" => "Mehr Protein",
-                        _ => "AI"
-                    };
+                    const string variantType = "swap";
+                    const string variantLabel = "Variante";
 
                     return new WorldAiEditedRecipeCard
                     {
@@ -1141,7 +1134,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         ImageUrl = media.ImageUrl,
                         VariantType = variantType,
                         VariantLabel = variantLabel,
-                        UpdatedAtUtc = v.UpdatedAtUtc
+                        UpdatedAtUtc = v.CreatedAtUtc
                     };
                 })
                 .ToList();
@@ -1190,6 +1183,65 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .Where(id => id > 0)
                 .Distinct()
                 .ToHashSet();
+
+            // Load hero images for purchases
+            foreach (var purchase in purchases)
+            {
+                if (purchase.Listing?.MealPlan?.MealPlan != null)
+                {
+                    try
+                    {
+                        // Parse JSON using Newtonsoft.Json for more flexibility
+                        var jObject = Newtonsoft.Json.Linq.JObject.Parse(purchase.Listing.MealPlan.MealPlan);
+                        var firstRecipeId = 0;
+
+                        // Search through all days for the first recipe
+                        foreach (var day in jObject.Properties())
+                        {
+                            if (day.Value is Newtonsoft.Json.Linq.JArray meals && meals.Count > 0)
+                            {
+                                foreach (var meal in meals)
+                                {
+                                    // Check if meal is a direct integer (just the recipe ID)
+                                    if (meal.Type == Newtonsoft.Json.Linq.JTokenType.Integer)
+                                    {
+                                        firstRecipeId = (int)meal;
+                                        if (firstRecipeId > 0) break;
+                                    }
+                                    // Check if meal is an object with recipeId property
+                                    else if (meal.Type == Newtonsoft.Json.Linq.JTokenType.Object)
+                                    {
+                                        var recipeIdToken = meal["recipeId"];
+                                        if (recipeIdToken != null && recipeIdToken.Type == Newtonsoft.Json.Linq.JTokenType.Integer)
+                                        {
+                                            firstRecipeId = (int)recipeIdToken;
+                                            if (firstRecipeId > 0) break;
+                                        }
+                                    }
+                                }
+                                if (firstRecipeId > 0) break;
+                            }
+                        }
+
+                        if (firstRecipeId > 0)
+                        {
+                            var recipe = await _context.RecipeBaseData
+                                .Include(r => r.Images)
+                                .FirstOrDefaultAsync(r => r.Id == firstRecipeId);
+
+                            if (recipe?.Images != null && recipe.Images.Count > 0)
+                            {
+                                ViewData[$"PurchaseHeroImage_{purchase.Id}"] = NormalizeRecipeImagePath(recipe.Images.First().Image);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        // Log error for debugging
+                        System.Diagnostics.Debug.WriteLine($"Error loading hero image for purchase {purchase.Id}: {ex.Message}");
+                    }
+                }
+            }
 
             var createdMealPlans = mealPlans
                 .Where(p => !purchasedMealPlanIds.Contains(p.Id))

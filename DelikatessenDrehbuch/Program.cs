@@ -114,6 +114,9 @@ builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
 builder.Services.AddScoped<CaptionGenerationService>();
 
+// Recipe Translation System (NEW)
+builder.Services.AddScoped<IRecipeStepTranslationService, RecipeStepTranslationService>();
+
 // HttpClient für Bunny Storage API
 builder.Services.AddHttpClient("BunnyStorage", client =>
 {

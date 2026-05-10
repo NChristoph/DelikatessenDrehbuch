@@ -12,8 +12,7 @@
         public List<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
         public List<IngredientMeasureQuantity> IngredientMeasureQuantity { get; set; }
 
-        public List<RecipePreparationSteps> RecipePreparationSteps { get; set; }
-        public List<RecipeJoinPreparationSteps> RecipeJoinPreparationSteps { get; set; }
+        public List<RecipeStep> RecipeSteps { get; set; }  // New Translation System
         public EditRecipesModel()
         {
             Recipes = new Recipes();
