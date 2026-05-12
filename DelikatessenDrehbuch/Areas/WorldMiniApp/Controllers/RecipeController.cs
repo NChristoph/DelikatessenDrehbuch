@@ -23,10 +23,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IMemoryCache _memoryCache;
         private readonly ILogger<RecipeController> _logger;
+        private readonly IRecipeStepGeneratorService _stepGenerator;
         private const int UploadRateLimit = 5;
         private static readonly TimeSpan UploadRateWindow = TimeSpan.FromMinutes(10);
         private const int MissingIngredientSaveRateLimit = 10;
         private static readonly TimeSpan MissingIngredientSaveRateWindow = TimeSpan.FromMinutes(30);
+        private const int StepGenerationRateLimit = 20;
+        private static readonly TimeSpan StepGenerationRateWindow = TimeSpan.FromMinutes(10);
 
         public RecipeController(
             ApplicationDbContext context,
@@ -35,7 +38,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             IMissingIngredientAiService missingIngredientAiService,
             IServiceScopeFactory serviceScopeFactory,
             IMemoryCache memoryCache,
-            ILogger<RecipeController> logger)
+            ILogger<RecipeController> logger,
+            IRecipeStepGeneratorService stepGenerator)
         {
             _context = context;
             _blobUpload = blobUpload;
@@ -44,6 +48,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _serviceScopeFactory = serviceScopeFactory;
             _memoryCache = memoryCache;
             _logger = logger;
+            _stepGenerator = stepGenerator;
         }
 
         public async Task<IActionResult> Upload(string userHash)
@@ -556,6 +561,130 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 Message = "Neue Zutat gespeichert.",
                 Ingredient = MapCatalogItemDto(saved)
             });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerateRecipeSteps([FromBody] GenerateStepsRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.RecipeTitle))
+            {
+                return BadRequest(new { message = "Rezept-Titel fehlt." });
+            }
+
+            var userHash = ResolveUserHash(request.UserHash);
+            if (!await IsCreatorAllowedAsync(_context, userHash))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Nicht berechtigt."
+                });
+            }
+
+            if (!TryConsumeStepGenerationSlot(userHash, out var retryAfter))
+            {
+                if (retryAfter.HasValue)
+                {
+                    Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                }
+                return Json(new
+                {
+                    success = false,
+                    message = "Limit erreicht: maximal 20 Generierungen pro 10 Minuten."
+                });
+            }
+
+            try
+            {
+                var result = await _stepGenerator.GenerateStepsAsync(
+                    request.RecipeTitle,
+                    request.Category ?? "",
+                    request.IngredientNames ?? new List<string>(),
+                    request.Language ?? "de",
+                    request.InstructionsText,  // NEW: Pass instructions text
+                    cancellationToken);
+
+                return Json(new
+                {
+                    success = result.Success,
+                    steps = result.Steps,
+                    reasoning = result.Reasoning,
+                    message = result.Success ? "Steps erfolgreich generiert." : result.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler bei Step-Generierung für Rezept {Title}.", request.RecipeTitle);
+                return Json(new
+                {
+                    success = false,
+                    message = "Fehler bei der Step-Generierung: " + ex.Message
+                });
+            }
+        }
+
+        /// <summary>
+        /// NEUES SYSTEM: Generiert konkrete Steps mit Übersetzungen (kein Template-Matching)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> GenerateConcreteSteps([FromBody] GenerateConcreteStepsRequest request, CancellationToken cancellationToken)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.RecipeTitle))
+            {
+                return BadRequest(new { message = "Rezept-Titel fehlt." });
+            }
+
+            var userHash = ResolveUserHash(request.UserHash);
+            if (!await IsCreatorAllowedAsync(_context, userHash))
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = "Nicht berechtigt."
+                });
+            }
+
+            if (!TryConsumeStepGenerationSlot(userHash, out var retryAfter))
+            {
+                if (retryAfter.HasValue)
+                {
+                    Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                }
+                return Json(new
+                {
+                    success = false,
+                    message = "Limit erreicht: maximal 20 Generierungen pro 10 Minuten."
+                });
+            }
+
+            try
+            {
+                var result = await _stepGenerator.GenerateConcreteStepsAsync(
+                    request.RecipeTitle,
+                    request.Category ?? "",
+                    request.Ingredients ?? new List<(int, string)>(),
+                    request.InstructionsText,
+                    cancellationToken);
+
+                return Json(new
+                {
+                    success = result.Success,
+                    steps = result.Steps,
+                    reasoning = result.Reasoning,
+                    message = result.Success ? "Steps erfolgreich generiert." : result.ErrorMessage
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler bei Concrete-Step-Generierung für Rezept {Title}.", request.RecipeTitle);
+                return Json(new
+                {
+                    success = false,
+                    message = "Fehler bei der Step-Generierung: " + ex.Message
+                });
+            }
         }
 
         private List<RecipeStep> ExtractCreatePostingStepsFromRequest(IFormCollection form)
@@ -1125,6 +1254,43 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
             {
                 AbsoluteExpirationRelativeToNow = MissingIngredientSaveRateWindow
+            });
+            return true;
+        }
+
+        private bool TryConsumeStepGenerationSlot(string userHash, out TimeSpan? retryAfter)
+        {
+            retryAfter = null;
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return false;
+            }
+
+            var cacheKey = $"worldminiapp:step-generation:{userHash}";
+            var now = DateTimeOffset.UtcNow;
+            var state = _memoryCache.Get<UploadRateState>(cacheKey);
+
+            if (state == null)
+            {
+                state = new UploadRateState { Count = 1, WindowStart = now };
+                _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = StepGenerationRateWindow
+                });
+                return true;
+            }
+
+            if (state.Count >= StepGenerationRateLimit)
+            {
+                retryAfter = (state.WindowStart + StepGenerationRateWindow) - now;
+                _logger.LogWarning("Step-generation limit exceeded for user {UserHash}.", userHash);
+                return false;
+            }
+
+            state.Count += 1;
+            _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = StepGenerationRateWindow
             });
             return true;
         }

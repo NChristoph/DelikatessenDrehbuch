@@ -23,7 +23,8 @@ window.CreatePostingUtils = {
         // Support language-specific master_steps
         if (key === 'masterSteps' && options && options.language) {
             var lang = this.resolveLangKey(options.language);
-            var url = "/data/master_steps." + lang + ".json";
+            // Add cache-busting version parameter (increment when master_steps change)
+            var url = "/data/master_steps." + lang + ".json?v=2";
             console.log("[CreatePostingUtils] Loading masterSteps for language:", options.language, "->", lang, "URL:", url);
             return url;
         }

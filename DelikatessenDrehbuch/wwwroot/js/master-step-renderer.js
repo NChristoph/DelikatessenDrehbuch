@@ -15,7 +15,7 @@
         if (loadingPromise) return loadingPromise;
 
         const configuredUrl = window.MasterStepRendererConfig && window.MasterStepRendererConfig.dataUrl;
-        const dataUrl = configuredUrl || window.CreatePostingUtils.getDataUrl('masterSteps') || '/data/master_steps.json';
+        const dataUrl = configuredUrl || window.CreatePostingUtils.getDataUrl('masterSteps') || '/data/master_steps.json?v=2';
 
         if (window.CreatePostingDataStore && typeof window.CreatePostingDataStore.loadMany === 'function') {
             loadingPromise = window.CreatePostingDataStore.loadMany([

@@ -150,7 +150,10 @@ builder.Services.AddSingleton<IBackgroundTaskQueue>(_ => new BackgroundTaskQueue
 builder.Services.AddHostedService<WorldMiniAppQueuedHostedService>();
 builder.Services.AddSingleton<IRecipeAiVariantJobService, RecipeAiVariantJobService>();
 builder.Services.AddScoped<IRecipeAiNutritionService, RecipeAiNutritionService>();
-
+builder.Services.AddHttpClient<IRecipeStepGeneratorService, RecipeStepGeneratorService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(30);
+});
 
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddProblemDetails();

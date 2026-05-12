@@ -500,4 +500,18 @@
   <data name="Recipe.Share" xml:space="preserve">
     <value>Kongsi</value>
   </data>
+
+  <!-- AI Step Generator -->
+  <data name="AI.GenerateStepsFromText" xml:space="preserve">
+    <value>✨ Jana langkah dari teks (AI)</value>
+  </data>
+  <data name="AI.CollapseTextInput" xml:space="preserve">
+    <value>Kuncup</value>
+  </data>
+  <data name="AI.PasteInstructions" xml:space="preserve">
+    <value>Tampal arahan di sini (salin &amp; tampal):</value>
+  </data>
+  <data name="AI.CreateSteps" xml:space="preserve">
+    <value>Cipta langkah</value>
+  </data>
 </root>

@@ -810,7 +810,7 @@
             const map = {
                 1: { text: 'Vorb.', cls: 'phase-badge-1' },
                 2: { text: 'Kochen', cls: 'phase-badge-2' },
-                3: { text: 'WÃƒÂ¼rzen', cls: 'phase-badge-3' },
+                3: { text: 'Würzen', cls: 'phase-badge-3' },
                 4: { text: 'Finish', cls: 'phase-badge-4' }
             };
             const info = map[phase];

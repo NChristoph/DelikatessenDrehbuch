@@ -500,4 +500,18 @@
   <data name="Recipe.Share" xml:space="preserve">
     <value>Delen</value>
   </data>
+
+  <!-- AI Step Generator -->
+  <data name="AI.GenerateStepsFromText" xml:space="preserve">
+    <value>✨ Stappen genereren uit tekst (AI)</value>
+  </data>
+  <data name="AI.CollapseTextInput" xml:space="preserve">
+    <value>Inklappen</value>
+  </data>
+  <data name="AI.PasteInstructions" xml:space="preserve">
+    <value>Plak hier instructies (kopiëren en plakken):</value>
+  </data>
+  <data name="AI.CreateSteps" xml:space="preserve">
+    <value>Stappen maken</value>
+  </data>
 </root>

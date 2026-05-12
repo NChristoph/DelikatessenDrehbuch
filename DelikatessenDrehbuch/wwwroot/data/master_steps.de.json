@@ -455,7 +455,9 @@
       "equipment": 0,
       "description": "Fein hacken von Kräutern, Knoblauch etc.",
       "template": "Hacke {{ingredient}} mit einem Messer sehr fein.",
-      "variables": "ingredient",
+      "variables": [
+        "ingredient"
+      ],
       "required_variables": [
         "ingredient"
       ],
@@ -629,7 +631,9 @@
       "equipment": 9,
       "description": "Trockene Zutaten vermengen (Mehl, Gewürze, Backpulver etc.)",
       "template": "Vermenge {{ingredients}} in einer Schüssel.",
-      "variables": "ingredients",
+      "variables": [
+        "ingredients"
+      ],
       "required_variables": [
         "ingredients"
       ],
@@ -2487,7 +2491,9 @@
       "action": "make_marinade",
       "description": "Marinade aus Zutaten herstellen",
       "template": "Stelle aus {{ingredients}} eine Marinade her.",
-      "variables": "ingredients",
+      "variables": [
+        "ingredients"
+      ],
       "required_variables": [
         "ingredients"
       ],
@@ -4147,6 +4153,46 @@
         "variable:duration",
         "sub_group:wet_heat"
       ]
+    },
+    {
+      "master_id": "COOK_BLEND_SIMPLE_01",
+      "phase": 2,
+      "action": "blend",
+      "description": "Püriere alles mit einem Stabmixer",
+      "equipment": 0,
+      "template": "Püriere alles mit einem Stabmixer.",
+      "variables": [],
+      "required_variables": []
+    },
+    {
+      "master_id": "COOK_BOIL_SIMPLE_01",
+      "phase": 2,
+      "action": "boil",
+      "description": "Lass alles aufkochen",
+      "equipment": 3,
+      "template": "Lass alles aufkochen.",
+      "variables": [],
+      "required_variables": []
+    },
+    {
+      "master_id": "COOK_BOIL_AGAIN_01",
+      "phase": 2,
+      "action": "boil",
+      "description": "Lass alles nochmal kurz aufkochen",
+      "equipment": 3,
+      "template": "Lass alles nochmal kurz aufkochen.",
+      "variables": [],
+      "required_variables": []
+    },
+    {
+      "master_id": "COOK_REDUCE_HEAT_01",
+      "phase": 2,
+      "action": "adjust_heat",
+      "description": "Reduziere die Hitze",
+      "equipment": 0,
+      "template": "Reduziere die Hitze.",
+      "variables": [],
+      "required_variables": []
     }
   ],
   "variable_options": {

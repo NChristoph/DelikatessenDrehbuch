@@ -5139,7 +5139,9 @@
         renderStepButtons,
         // Ingredient matching (Phase 5)
         filterIngredientsByVarType,
-        selectIngredientsForDisplay
+        selectIngredientsForDisplay,
+        // Template utilities (for AI import)
+        resolveOptionalTemplateSegments
     });
 
 
@@ -5225,6 +5227,257 @@
         buildIngredientChipsHtml,
         resolveIngredientInsertValue
     });
+
+    // ════════════════════════════════════════════════════════════════════════════
+    // AI STEP GENERATOR INTEGRATION
+    // ════════════════════════════════════════════════════════════════════════════
+    /**
+     * Importiert AI-generierte Steps und fügt sie zum Rezept hinzu
+     * @param {Array} aiSteps - Array von {masterStepId, stepOrder, variables, previewText}
+     * @returns {Object} - {success: boolean, imported: number, skipped: number, errors: Array}
+     */
+    function importAiGeneratedSteps(aiSteps, currentLang) {
+        if (!Array.isArray(aiSteps) || aiSteps.length === 0) {
+            return {
+                success: false,
+                imported: 0,
+                skipped: 0,
+                errors: ["Keine Steps zum Importieren"]
+            };
+        }
+
+        // Get current language (fallback to de)
+        const lang = currentLang || document.documentElement.lang || 'de';
+
+        // Get master_steps from data store using language-specific cache key
+        const normalizedLang = window.CreatePostingUtils?.resolveLangKey(lang) || lang;
+        const cacheKey = "masterSteps." + normalizedLang;
+        const doc = window.CreatePostingDataStore?.peek(cacheKey) || window.CreatePostingDataStore?.peek("masterSteps");
+        const masterSteps = doc?.master_steps || [];
+
+        console.log(`[AI_IMPORT] Loading master_steps: lang=${lang}, cacheKey=${cacheKey}, steps=${masterSteps.length}`);
+
+        if (!masterSteps.length) {
+            return {
+                success: false,
+                imported: 0,
+                skipped: 0,
+                errors: ["Master steps nicht geladen. Bitte Seite neu laden."]
+            };
+        }
+
+        const results = {
+            success: true,
+            imported: 0,
+            skipped: 0,
+            errors: []
+        };
+
+        // Sort steps by stepOrder
+        const sortedSteps = [...aiSteps].sort((a, b) => (a.stepOrder || 0) - (b.stepOrder || 0));
+
+        sortedSteps.forEach((aiStep, index) => {
+            try {
+                const masterId = (aiStep.masterStepId || "").toString().trim();
+                if (!masterId) {
+                    results.skipped++;
+                    results.errors.push(`Step ${index + 1}: Keine MasterStepId`);
+                    return;
+                }
+
+                // Find step in master_steps data
+                const step = masterSteps.find(s => (s?.master_id || "") === masterId);
+                if (!step) {
+                    results.skipped++;
+                    results.errors.push(`Step ${index + 1}: MasterStepId "${masterId}" nicht gefunden`);
+                    return;
+                }
+
+                // Build payload with variables pre-filled
+                const variables = aiStep.variables || {};
+                const previewText = aiStep.previewText || "";
+
+                // Get the original template and process optional segments BEFORE rendering
+                let originalTemplate = step.template || "";
+
+                // Remove optional segments from the TEMPLATE (not the rendered text)
+                // Pattern matches: [...] with or without {{variables}}
+                const optionalPattern = /\[([^\[\]]*)\]|\(([^()]*)\)/g;
+                let previous = null;
+                while (originalTemplate !== previous) {
+                    previous = originalTemplate;
+                    originalTemplate = originalTemplate.replace(optionalPattern, (match, bracketInner, parenInner) => {
+                        const inner = (bracketInner || parenInner || "").toString();
+
+                        // Check if this segment contains variables
+                        const varPattern = /\{\{\s*([a-zA-Z0-9_]+)\s*\}\}/g;
+                        let varMatch;
+                        let hasAllValues = true;
+                        let hasVars = false;
+
+                        while ((varMatch = varPattern.exec(inner)) !== null) {
+                            hasVars = true;
+                            const varName = varMatch[1];
+                            if (!variables[varName] || String(variables[varName]).trim().length === 0) {
+                                hasAllValues = false;
+                                break;
+                            }
+                        }
+
+                        // CORRECT LOGIC:
+                        // - If segment has variables AND all have values → keep content (without brackets)
+                        // - If segment has variables BUT some are missing → remove entire segment
+                        // - If segment has NO variables (just text) → remove entire segment (it's optional text)
+                        return (hasVars && hasAllValues) ? inner : "";
+                    });
+                }
+
+                // Remove fallback syntax {~text~varName~}
+                originalTemplate = originalTemplate.replace(/\{~([^~]+)~([^~]+)~\}/g, (match, fallback, varNames) => {
+                    const hasAnyValue = (varNames || "")
+                        .split("|")
+                        .map(x => x.trim())
+                        .filter(Boolean)
+                        .some(name => variables[name] && String(variables[name]).trim().length > 0);
+                    return hasAnyValue ? "" : fallback;
+                });
+
+                // Create a temporary step object with the processed template
+                const processedStep = {
+                    ...step,
+                    template: originalTemplate
+                };
+
+                // Create a temporary draft with the AI variables
+                const tempDraft = {
+                    master_id: masterId,
+                    values: { ...variables }
+                };
+
+                // Render text for current language only (master_steps only has templates for one language)
+                // Use the processedStep with cleaned template
+                let renderedText = renderStepWithVariables(processedStep, variables, lang) || previewText || `Step ${index + 1}`;
+
+                // BRUTE FORCE: Remove ALL optional segments [...] and (...) and {~...~...~} after rendering
+                renderedText = renderedText.replace(/\[[^\[\]]*\]/g, '');  // Remove all [...]
+                renderedText = renderedText.replace(/\([^()]*\)/g, '');    // Remove all (...)
+                renderedText = renderedText.replace(/\{~[^~]+~[^~]+~\}/g, ''); // Remove all {~...~...~}
+                renderedText = renderedText.replace(/\s+/g, ' ').trim();   // Clean up extra spaces
+
+                // Map common language codes to database field names
+                const langFieldMap = {
+                    'de': 'de',
+                    'en': 'en',
+                    'es': 'esp',
+                    'esp': 'esp',
+                    'pt': 'prt',
+                    'prt': 'prt',
+                    'id': 'id',
+                    'nl': 'nl',
+                    'sv': 'sv',
+                    'da': 'da',
+                    'nb': 'nb',
+                    'ms': 'ms'
+                };
+
+                const currentLangField = langFieldMap[lang] || 'de';
+
+                // Create payload with text in current language, others empty (will be filled by backend if needed)
+                const payload = {
+                    de: currentLangField === 'de' ? renderedText : '',
+                    en: currentLangField === 'en' ? renderedText : '',
+                    esp: currentLangField === 'esp' ? renderedText : '',
+                    prt: currentLangField === 'prt' ? renderedText : '',
+                    phase: parseInt(step?.phase ?? 0, 10) || 0,
+                    equipment: parseInt(step?.equipment ?? 0, 10) || 0,
+                    masterTemplateId: masterId,
+                    stableReference: masterId // Use masterId as stable reference
+                };
+
+                // Use rendered text for display
+                const textCurrent = renderedText;
+
+                if (typeof window.addStep === "function") {
+                    const generatedId =
+                        typeof window.createFallbackStepId === "function"
+                            ? window.createFallbackStepId()
+                            : uid("ai_step");
+
+                    window.addStep(String(generatedId), null, textCurrent, {
+                        skipRender: true,
+                        ingredientName: variables.ingredient || "",
+                        masterTemplateId: masterId,
+                        stepData: payload,
+                        fractionData: null
+                    });
+
+                    results.imported++;
+                    console.log(`[AI_IMPORT] Imported step ${index + 1}/${sortedSteps.length}:`, masterId, textCurrent);
+                } else {
+                    results.skipped++;
+                    results.errors.push(`Step ${index + 1}: window.addStep() nicht verfügbar`);
+                }
+            } catch (error) {
+                results.skipped++;
+                results.errors.push(`Step ${index + 1}: ${error.message}`);
+                console.error(`[AI_IMPORT] Fehler bei Step ${index + 1}:`, error, aiStep);
+            }
+        });
+
+        // Update UI after all steps are added
+        if (results.imported > 0) {
+            if (typeof window.updateStepIndices === "function") {
+                window.updateStepIndices();
+            } else if (typeof window.updateStoryProgress === "function") {
+                window.updateStoryProgress();
+            }
+
+            console.log(`[AI_IMPORT] Import abgeschlossen:`, results);
+        }
+
+        return results;
+    }
+
+    /**
+     * Helper: Rendert einen Step mit vorgegebenen Variablen
+     */
+    function renderStepWithVariables(step, variables, lang) {
+        try {
+            let rendered = "";
+
+            // Use MasterStepRenderer if available
+            if (window.MasterStepRenderer && typeof window.MasterStepRenderer.render === "function") {
+                rendered = window.MasterStepRenderer.render(step.master_id, variables, lang);
+            } else {
+                // Fallback: Simple template replacement
+                let template = getStepTemplate(step, lang);
+                if (!template) return "";
+
+                Object.keys(variables).forEach(varName => {
+                    const value = variables[varName] || "";
+                    const placeholder = new RegExp(`\\{\\{\\s*${varName}\\s*\\}\\}`, "g");
+                    template = template.replace(placeholder, value);
+                });
+
+                rendered = template;
+            }
+
+            // Post-process: Remove optional segments [...] if variables are missing
+            if (window.CreatePostingSmartStepCreator && typeof window.CreatePostingSmartStepCreator.resolveOptionalTemplateSegments === "function") {
+                rendered = window.CreatePostingSmartStepCreator.resolveOptionalTemplateSegments(rendered, variables);
+            }
+
+            return rendered;
+        } catch (error) {
+            console.error(`[AI_IMPORT] Fehler beim Rendern von ${step.master_id} (${lang}):`, error);
+            return "";
+        }
+    }
+
+    // Export AI import function
+    window.CreatePostingSmartStepCreator = window.CreatePostingSmartStepCreator || {};
+    window.CreatePostingSmartStepCreator.importAiGeneratedSteps = importAiGeneratedSteps;
+
 })();
 
 

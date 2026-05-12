@@ -2,6 +2,8 @@
 @using System.Text.Json
 @using System.Linq
 @using Newtonsoft.Json
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 
 @{
     var isEditMode = ViewData["IsEditMode"] as bool? ?? false;
@@ -462,6 +464,42 @@
                         <div class="cp-section-counter">5/6</div>
                     </div>
                     <div class="cp-section-body">
+                        <!-- AI Step Generator -->
+                        <div class="mb-3" style="padding: 0 6px;">
+                            <button type="button" id="btnToggleAiTextInput" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
+                                <i class="bi bi-magic"></i>
+                                <span>@SharedLocalizer["AI.GenerateStepsFromText"]</span>
+                            </button>
+
+                            <!-- Collapsible Text Input -->
+                            <div id="aiTextInputCollapse" style="display: none;">
+                                <div class="card" style="background: rgba(248, 249, 255, 0.06); border: 1px solid rgba(170, 190, 255, 0.20); border-radius: 12px; padding: 14px;">
+                                    <label class="form-label small text-muted mb-2">
+                                        @SharedLocalizer["AI.PasteInstructions"]
+                                    </label>
+                                    <textarea
+                                        id="aiTextInput"
+                                        class="form-control mb-2"
+                                        rows="6"
+                                        style="font-size: 13px; resize: vertical;"
+                                        placeholder="Z.B.:
+1. Wasser zum Kochen bringen und Spaghetti 10 Min kochen
+2. Speck in Würfel schneiden und anbraten
+3. Eier mit Parmesan verrühren
+4. Spaghetti abgießen und mit Speck-Ei-Mischung vermischen"></textarea>
+                                    <div class="d-flex gap-2">
+                                        <button type="button" id="btnGenerateFromText" class="btn btn-sm btn-success">
+                                            <i class="bi bi-stars"></i>
+                                            <span>@SharedLocalizer["AI.CreateSteps"]</span>
+                                        </button>
+                                        <button type="button" id="btnCancelTextInput" class="btn btn-sm btn-outline-secondary">
+                                            <span>@SharedLocalizer["Common.Cancel"]</span>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
                         <!-- SmartStepCreator Partial -->
                         @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Home/_SmartStepCreatorPartial.cshtml")
                     </div>
@@ -628,6 +666,26 @@
 button, input, select, textarea { touch-action: manipulation; }
 .cp-hero, .cp-tabbar, .cp-publishbar { will-change: transform; }
 
+/* AI-Generated Step Badge */
+.selected-step-item {
+    position: relative;
+}
+
+.ai-badge {
+    position: absolute;
+    top: 8px;
+    right: 40px;
+    font-size: 16px;
+    opacity: 0.8;
+    pointer-events: none;
+    z-index: 5;
+}
+
+.selected-step-item[data-ai-generated="true"] .step-text {
+    background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(59, 130, 246, 0.05));
+    border-left: 3px solid #8b5cf6;
+}
+
 /* Ingredient row styles for selected zone */
 .ingredient-row.dynamic-item {
     display: flex;
@@ -719,6 +777,12 @@ button, input, select, textarea { touch-action: manipulation; }
             upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })",
             suggestMissingIngredientUrl: "@Url.Action("SuggestMissingIngredient", "Home", new { area = "WorldMiniApp" })",
             saveSuggestedIngredientUrl: "@Url.Action("SaveSuggestedIngredient", "Home", new { area = "WorldMiniApp" })"
+        };
+
+        // AI Step Generator i18n from SharedResources.resx
+        window.AiStepGeneratorI18n = {
+            btnOpenText: "@SharedLocalizer["AI.GenerateStepsFromText"]",
+            btnCollapseText: "@SharedLocalizer["AI.CollapseTextInput"]"
         };
     </script>
     <script defer src="~/js/create-posting-probability.js" asp-append-version="true"></script>
@@ -982,6 +1046,222 @@ button, input, select, textarea { touch-action: manipulation; }
             }
         }
 
+        // ========================================
+        // AI Step Generator (Text-based)
+        // ========================================
+        function toggleAiTextInput() {
+            const collapse = document.getElementById('aiTextInputCollapse');
+            const btn = document.getElementById('btnToggleAiTextInput');
+            const i18n = window.AiStepGeneratorI18n || {};
+
+            if (collapse.style.display === 'none' || !collapse.style.display) {
+                // Show
+                collapse.style.display = 'block';
+                btn.innerHTML = `<i class="bi bi-chevron-up"></i><span>${i18n.btnCollapseText || 'Einklappen'}</span>`;
+                setTimeout(() => document.getElementById('aiTextInput')?.focus(), 100);
+            } else {
+                // Hide
+                collapse.style.display = 'none';
+                btn.innerHTML = `<i class="bi bi-magic"></i><span>${i18n.btnOpenText || '✨ Steps generieren'}</span>`;
+            }
+        }
+
+        // ========================================
+        // NEW: Import Concrete Steps (with translations)
+        // ========================================
+
+        function importConcreteSteps(concreteSteps, currentLanguage) {
+            if (!Array.isArray(concreteSteps) || concreteSteps.length === 0) {
+                return 0;
+            }
+
+            const stepsList = document.getElementById('selectedSteps');
+            if (!stepsList) {
+                console.error('selectedSteps container not found');
+                return 0;
+            }
+
+            let imported = 0;
+
+            // Sort steps by step_order
+            const sortedSteps = [...concreteSteps].sort((a, b) => (a.step_order || 0) - (b.step_order || 0));
+
+            sortedSteps.forEach((step, index) => {
+                try {
+                    // NEW: Steps have only "text" field (German), user can edit, then we translate on save
+                    const stepText = step.text || 'Step ' + (index + 1);
+                    const phase = step.phase || 0;
+
+                    // Create step element
+                    const stepItem = document.createElement('div');
+                    stepItem.className = 'selected-step-item';
+                    stepItem.dataset.stepIndex = index;
+                    stepItem.dataset.phase = phase;
+                    stepItem.dataset.aiGenerated = 'true'; // Mark as AI-generated
+                    stepItem.dataset.ingredientId = step.ingredient_id || '';
+
+                    stepItem.innerHTML = `
+                        <div class="step-drag-handle">
+                            <i class="bi bi-grip-vertical"></i>
+                        </div>
+                        <div class="step-phase-badge phase-${phase}">
+                            ${getPhaseBadgeText(phase)}
+                        </div>
+                        <div class="step-text" contenteditable="true">${escapeHtml(stepText)}</div>
+                        <button type="button" class="step-remove-btn" onclick="removeSelectedStep(this)">
+                            <i class="bi bi-x"></i>
+                        </button>
+                        <span class="ai-badge" title="AI-generiert (wird beim Speichern übersetzt)">🤖</span>
+                    `;
+
+                    stepsList.appendChild(stepItem);
+                    imported++;
+
+                    console.log(`[AI_IMPORT] Imported editable step ${index + 1}: ${stepText.substring(0, 50)}...`);
+                } catch (error) {
+                    console.error('Error importing concrete step:', error, step);
+                }
+            });
+
+            // Re-index steps
+            if (typeof reindexSteps === 'function') {
+                reindexSteps();
+            }
+
+            return imported;
+        }
+
+        function getPhaseBadgeText(phase) {
+            const phaseNames = {
+                0: { de: 'Basis', en: 'Base' },
+                1: { de: 'Vorbereitung', en: 'Prep' },
+                2: { de: 'Kochen', en: 'Cook' },
+                3: { de: 'Würzen', en: 'Season' },
+                4: { de: 'Servieren', en: 'Serve' }
+            };
+            const lang = (document.documentElement.lang || 'de').toLowerCase();
+            return phaseNames[phase]?.[lang] || `Phase ${phase}`;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function generateAiStepsFromText() {
+            const textInput = document.getElementById('aiTextInput');
+            const instructionsText = textInput?.value?.trim() || '';
+            const titleInput = document.querySelector('input[name="Title"]');
+            const categorySelect = document.querySelector('select[name="Recipe.Category"]');
+            const title = titleInput?.value?.trim() || '';
+            const category = categorySelect?.value || '';
+            const language = document.documentElement.lang || 'de';
+
+            // Validation
+            if (!instructionsText) {
+                alert('Bitte füge deine Zubereitungsschritte ein.');
+                textInput?.focus();
+                return;
+            }
+
+            // Get button and show loading state
+            const button = document.getElementById('btnGenerateFromText');
+            const originalHtml = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analysiere...';
+
+            try {
+                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+                if (!token) {
+                    throw new Error('CSRF-Token nicht gefunden');
+                }
+
+                const userHash = getUserHashFromCookie();
+
+                // Collect ingredients with IDs from the form
+                const ingredients = [];
+                document.querySelectorAll('#selectedIngredients .selected-ingredient-item').forEach(item => {
+                    const id = parseInt(item.dataset.ingredientId || '0');
+                    const name = item.querySelector('.ingredient-name')?.textContent?.trim() || '';
+                    if (id && name) {
+                        ingredients.push({ id, name });
+                    }
+                });
+
+                console.log('🔍 Calling NEW AI System (GenerateConcreteSteps) with', ingredients.length, 'ingredients');
+
+                // Call NEW backend API (concrete steps with translations)
+                const response = await fetch('/WorldMiniApp/Home/GenerateConcreteSteps', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': token
+                    },
+                    body: JSON.stringify({
+                        userHash: userHash,
+                        recipeTitle: title || 'Rezept',
+                        category: category,
+                        ingredients: ingredients.map(ing => [ing.id, ing.name]), // Send as tuple array
+                        instructionsText: instructionsText
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`HTTP ${response.status}: ${errorText}`);
+                }
+
+                const result = await response.json();
+
+                if (result.success && result.steps && result.steps.length > 0) {
+                    console.log('✨ AI generierte Concrete Steps (mit Übersetzungen):', result.steps);
+
+                    // NEW: Import concrete steps with translations
+                    const imported = importConcreteSteps(result.steps, language);
+
+                    if (imported > 0) {
+                        alert(`✅ ${imported} Steps erfolgreich importiert!\n\n💡 Du kannst sie jetzt bearbeiten. Beim Speichern werden sie automatisch in alle 10 Sprachen übersetzt.`);
+
+                        // Clear textarea and hide
+                        textInput.value = '';
+                        document.getElementById('aiTextInputCollapse').style.display = 'none';
+                        const btn = document.getElementById('btnToggleAiTextInput');
+                        const i18n = window.AiStepGeneratorI18n || {};
+                        btn.innerHTML = `<i class="bi bi-magic"></i><span>${i18n.btnOpenText || '✨ Steps generieren'}</span>`;
+
+                        // Scroll to steps
+                        document.getElementById('selectedSteps')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+                        if (typeof updateCompletionStates === 'function') {
+                            updateCompletionStates();
+                        }
+                    } else {
+                        alert('⚠️ Keine Steps konnten importiert werden');
+                    }
+                } else {
+                    alert('❌ ' + (result.message || 'Unbekannter Fehler'));
+                }
+            } catch (error) {
+                console.error('Fehler bei AI Step-Generierung:', error);
+                alert('❌ Fehler: ' + error.message);
+            } finally {
+                button.disabled = false;
+                button.innerHTML = originalHtml;
+            }
+        }
+
+        function getUserHashFromCookie() {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === 'WorldMiniAppUserHash') {
+                    return decodeURIComponent(value);
+                }
+            }
+            return '';
+        }
+
         // Language toggle
         function setupLanguageToggle() {
             const langToggle = document.getElementById('langToggle');
@@ -1037,6 +1317,22 @@ button, input, select, textarea { touch-action: manipulation; }
             setupHeroLiveUpdates();
             updateCompletionStates();
             setupLanguageToggle();
+
+            // AI Step Generator (Text-based)
+            const btnToggleAiTextInput = document.getElementById('btnToggleAiTextInput');
+            if (btnToggleAiTextInput) {
+                btnToggleAiTextInput.addEventListener('click', toggleAiTextInput);
+            }
+
+            const btnGenerateFromText = document.getElementById('btnGenerateFromText');
+            if (btnGenerateFromText) {
+                btnGenerateFromText.addEventListener('click', generateAiStepsFromText);
+            }
+
+            const btnCancelTextInput = document.getElementById('btnCancelTextInput');
+            if (btnCancelTextInput) {
+                btnCancelTextInput.addEventListener('click', toggleAiTextInput);
+            }
         });
     </script>
 }

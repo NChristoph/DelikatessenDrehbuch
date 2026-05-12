@@ -1,5 +1,11 @@
+@using System.Globalization
+@using Microsoft.AspNetCore.Localization
+@{
+    var requestCultureFeature = Context.Features.Get<IRequestCultureFeature>();
+    var currentCultureLang = requestCultureFeature?.RequestCulture.Culture.TwoLetterISOLanguageName ?? "de";
+}
 <!DOCTYPE html>
-<html lang="@(Context.Request.Cookies["UserLanguage"] ?? "de")">
+<html lang="@currentCultureLang">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -23,16 +29,12 @@
 
     @await RenderSectionAsync("Styles", required: false)
 </head>
-@using System.Globalization
-@using Microsoft.AspNetCore.Localization
 @using Microsoft.Extensions.Localization
 @using DelikatessenDrehbuch
 @inject IStringLocalizer<SharedResources> _sharedLocalizer
 
 @{
-    var requestCulture = Context.Features.Get<IRequestCultureFeature>();
-    var currentCulture = requestCulture?.RequestCulture.Culture ?? CultureInfo.CurrentCulture;
-    var currentLang = currentCulture.TwoLetterISOLanguageName;
+    var currentLang = currentCultureLang;
 
     string Flag(string lang) => lang switch
     {
