@@ -21,13 +21,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILogger<MarketplaceController> _logger;
+        private readonly IMarketplaceRankingService _rankingService;
 
-        public MarketplaceController(IWildCoinService coinService, ApplicationDbContext context, IConfiguration configuration, ILogger<MarketplaceController> logger)
+        public MarketplaceController(IWildCoinService coinService, ApplicationDbContext context, IConfiguration configuration, ILogger<MarketplaceController> logger, IMarketplaceRankingService rankingService)
         {
             _coinService = coinService;
             _context = context;
             _configuration = configuration;
             _logger = logger;
+            _rankingService = rankingService;
         }
 
         private void SetWorldChainConfig()

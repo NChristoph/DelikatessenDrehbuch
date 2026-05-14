@@ -2867,7 +2867,6 @@
         const mode = pickBtn.dataset.pickMode;
         const val = pickBtn.dataset.pickValue ?? "";
 
-        console.log("🔵 _handlePickModeClick triggered", { mode, val });
         DEBUG("EVENT", "_handlePickModeClick triggered", { mode, val, useClassBasedIds, pickBtn, host });
 
         // Handle fraction mode

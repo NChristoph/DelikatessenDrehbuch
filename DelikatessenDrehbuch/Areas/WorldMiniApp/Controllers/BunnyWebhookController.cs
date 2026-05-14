@@ -43,11 +43,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 using var reader = new StreamReader(Request.Body);
                 var body = await reader.ReadToEndAsync();
 
-                _logger.LogWarning(
-                    "Bunny webhook received. RemoteIp={RemoteIp} ContentType={ContentType} Body={Body}",
+                _logger.LogInformation(
+                    "Bunny webhook received. RemoteIp={RemoteIp} ContentType={ContentType}",
                     HttpContext.Connection.RemoteIpAddress?.ToString(),
-                    Request.ContentType,
-                    body);
+                    Request.ContentType);
 
                 var signatureVersion = Request.Headers["X-BunnyStream-Signature-Version"].FirstOrDefault();
                 var signatureAlgorithm = Request.Headers["X-BunnyStream-Signature-Algorithm"].FirstOrDefault();
@@ -97,20 +96,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 if (!payload.TryGetProperty("VideoGuid", out var videoGuidElement))
                 {
-                    _logger.LogWarning("Bunny webhook rejected: missing VideoGuid. Body={Body}", body);
+                    _logger.LogWarning("Bunny webhook rejected: missing VideoGuid.");
                     return BadRequest("Missing VideoGuid");
                 }
 
                 var videoGuid = videoGuidElement.GetString();
                 if (string.IsNullOrWhiteSpace(videoGuid))
                 {
-                    _logger.LogWarning("Bunny webhook rejected: invalid VideoGuid. Body={Body}", body);
+                    _logger.LogWarning("Bunny webhook rejected: invalid VideoGuid.");
                     return BadRequest("Invalid VideoGuid");
                 }
 
                 if (!payload.TryGetProperty("Status", out var statusElement))
                 {
-                    _logger.LogWarning("Bunny webhook rejected: missing Status. VideoGuid={VideoGuid} Body={Body}", videoGuid, body);
+                    _logger.LogWarning("Bunny webhook rejected: missing Status. VideoGuid={VideoGuid}", videoGuid);
                     return BadRequest("Missing Status");
                 }
 
@@ -121,7 +120,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Bunny webhook rejected: Status is not an integer. VideoGuid={VideoGuid} Body={Body}", videoGuid, body);
+                    _logger.LogWarning(ex, "Bunny webhook rejected: Status is not an integer. VideoGuid={VideoGuid}", videoGuid);
                     return BadRequest("Invalid Status");
                 }
 
@@ -161,9 +160,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 _context.WorldUserPendingVideos.Remove(pendingVideo);
                 await _context.SaveChangesAsync();
 
-                _logger.LogWarning(
-                    "Bunny webhook processed successfully. UserHash={UserHash} PostingId={PostingId} VideoGuid={VideoGuid}",
-                    pendingVideo.UserHash,
+                _logger.LogInformation(
+                    "Bunny webhook processed successfully. PostingId={PostingId} VideoGuid={VideoGuid}",
                     pendingVideo.PostingId,
                     videoGuid);
 

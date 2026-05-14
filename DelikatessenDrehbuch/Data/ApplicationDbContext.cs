@@ -33,11 +33,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeBaseData> RecipeBaseData { get; set; }
         public DbSet<RecipeBaseDataImage> RecipeBaseDataImage { get; set; }
         public DbSet<RecipeJoinIngredientMeasureQuantity> RecipeJoinIngredientMeasureQuantity { get; set; }
-        public DbSet<RecipeJoinPreparationSteps> RecipeJoinPreparationSteps { get; set; }
-        public DbSet<RecipeJoinSmartStep> RecipeJoinSmartStep { get; set; }
         public DbSet<IngredientsAndNutrients> IngredientsAndNutrients { get; set; }
-        public DbSet<RecipePreparationSteps> RecipePreparationSteps { get; set; }
-        public DbSet<SmartRecipeStep> SmartRecipeStep { get; set; }
 
         public DbSet<SavedMealPlans> SavedMealPlan { get; set; }
         public DbSet<WorldAppUser> WorldAppUser { get; set; }
@@ -46,6 +42,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldSharedMealPlan> WorldSharedMealPlan { get; set; }
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
+        public DbSet<WorldUserInteraction> WorldUserInteractions { get; set; }
         public DbSet<WorldUserComment> WorldUserComments { get; set; }
         public DbSet<WorldUserCommentReaction> WorldUserCommentReactions { get; set; }
         public DbSet<WorldUserCommentReport> WorldUserCommentReports { get; set; }
@@ -60,21 +57,17 @@ namespace DelikatessenDrehbuch.Data
         // New canonical AI recipe storage (v2)
         public DbSet<Keyword> Keywords { get; set; }
         public DbSet<RecipeBaseKeyword> RecipeBaseKeywords { get; set; }
-        public DbSet<JoinIngredientPreparationStep> JoinIngredientPreparationStep { get; set; }
         public DbSet<MealPlanListing> MealPlanListings { get; set; }
         public DbSet<WildCoinTransaction> WildCoinTransactions { get; set; }
         public DbSet<MealPlanPurchase> MealPlanPurchases { get; set; }
         public DbSet<WorldSharedShoppingList> WorldSharedShoppingList { get; set; }
         public DbSet<WorldUserNotification> WorldUserNotifications { get; set; }
         public DbSet<WorldUserPendingVideo> WorldUserPendingVideos { get; set; }
-        public DbSet<WorldRecipeAiStep> WorldRecipeAiSteps { get; set; }
         public DbSet<RecipeUserVariant> RecipeUserVariants { get; set; }
         public DbSet<RecipeCommunityVariant> RecipeCommunityVariants { get; set; }
 
-        // Recipe Translation System (NEW)
-        public DbSet<RecipeStep> RecipeSteps { get; set; }
-        public DbSet<RecipeStepTranslation> RecipeStepTranslations { get; set; }
-        public DbSet<RecipeTranslationStatus> RecipeTranslationStatuses { get; set; }
+        // NEW: Simple AI Translation System (normalisiert)
+        public DbSet<RecipeSteps> RecipeSteps { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -84,11 +77,6 @@ namespace DelikatessenDrehbuch.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-
-            // Configure Recipe Translation System table names (singular)
-            builder.Entity<RecipeStep>().ToTable("RecipeStep");
-            builder.Entity<RecipeStepTranslation>().ToTable("RecipeStepTranslation");
-            builder.Entity<RecipeTranslationStatus>().ToTable("RecipeTranslationStatus");
 
             builder.Entity<RecipeBaseKeyword>()
                 .HasKey(link => new { link.RecipeBaseDataId, link.KeywordId });
@@ -243,9 +231,6 @@ namespace DelikatessenDrehbuch.Data
             builder.Entity<RecipeBaseData>()
                 .HasIndex(x => x.Title);
 
-            builder.Entity<SmartRecipeStep>()
-                .HasIndex(x => new { x.MasterStepKey, x.Phase, x.Equipment });
-
             builder.Entity<RecipeAiVariant>()
                 .HasIndex(x => new { x.BaseRecipeId, x.VariantType, x.Language, x.AiProvider, x.SelectedIngredientKey, x.IsSharedCanonical });
 
@@ -332,24 +317,6 @@ namespace DelikatessenDrehbuch.Data
 
             // --- Naming-Compatibility: C#-Klassen umbenannt, DB-Schema bleibt ---
 
-            builder.Entity<RecipePreparationSteps>().ToTable("RecipePreperationSteps");
-
-            builder.Entity<RecipeJoinPreparationSteps>(e =>
-            {
-                e.ToTable("RecipeJoinPreperationSteps");
-                e.HasOne(x => x.RecipePreparationStep)
-                    .WithMany()
-                    .HasForeignKey("RecipePreperationStepId");
-            });
-
-            builder.Entity<SmartRecipeStep>(e =>
-            {
-                e.ToTable("SmartRecipeSteps");
-                e.Property(x => x.MasterStepKey).IsRequired().HasMaxLength(128);
-                e.Property(x => x.VariablesJson).IsRequired();
-                e.Property(x => x.Equipment).HasMaxLength(256);
-            });
-
             builder.Entity<FoodCategory>(e =>
             {
                 e.ToTable("food_categories");
@@ -376,22 +343,6 @@ namespace DelikatessenDrehbuch.Data
                     .HasForeignKey(x => x.FoodCategoryId)
                     .OnDelete(DeleteBehavior.SetNull)
                     .HasConstraintName("FK_Ingredients_FoodCategories");
-            });
-
-            builder.Entity<RecipeJoinSmartStep>(e =>
-            {
-                e.ToTable("RecipeJoinSmartSteps");
-                e.HasOne(x => x.Recipe)
-                    .WithMany(x => x.SmartSteps)
-                    .HasForeignKey(x => x.RecipeId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                e.HasOne(x => x.SmartRecipeStep)
-                    .WithMany(x => x.RecipeLinks)
-                    .HasForeignKey(x => x.SmartRecipeStepId)
-                    .OnDelete(DeleteBehavior.Cascade);
-
-                e.HasIndex(x => new { x.RecipeId, x.StepIndex });
             });
 
             builder.Entity<RecipeAiVariant>(e =>
@@ -515,14 +466,6 @@ namespace DelikatessenDrehbuch.Data
 
             builder.Entity<Queries>().ToTable("Querys");
             builder.Entity<UserPreferencesQuery>().ToTable("UserPreferencesQuerys");
-
-            builder.Entity<JoinIngredientPreparationStep>(e =>
-            {
-                e.ToTable("JoinIngredientPreperationStep");
-                e.HasOne(x => x.Preparation)
-                    .WithMany()
-                    .HasForeignKey("PreperationId");
-            });
 
             builder.Entity<Measure>(e =>
             {

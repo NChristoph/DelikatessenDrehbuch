@@ -211,231 +211,31 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             if (existingSteps.Any())
             {
                 _context.RecipeSteps.RemoveRange(existingSteps);
-                _logger.LogInformation("Removed {Count} existing steps for recipe {RecipeId}", existingSteps.Count, recipe.Id);
             }
 
-            // Lösche auch die Übersetzungen der alten Steps
-            var existingTranslations = await _context.RecipeStepTranslations
-                .Where(t => t.RecipeId == recipe.Id)
-                .ToListAsync();
-
-            if (existingTranslations.Any())
+            // NEW SYSTEM: RecipeSteps (normalized, Culture + Text)
+            // Old translation system removed
+            // Steps are handled by RecipeTranslationService in the new system
+            if (model.RecipeSteps != null && model.RecipeSteps.Any())
             {
-                _context.RecipeStepTranslations.RemoveRange(existingTranslations);
-                _logger.LogInformation("Removed {Count} existing translations for recipe {RecipeId}", existingTranslations.Count, recipe.Id);
-            }
-
-            // New Translation System: Save steps directly (no join table)
-            foreach (var step in model.RecipeSteps ?? Enumerable.Empty<RecipeStep>())
-            {
-                step.RecipeId = recipe.Id;
-                step.CreatedAt = DateTime.UtcNow;
-                _context.RecipeSteps.Add(step);
+                foreach (var step in model.RecipeSteps)
+                {
+                    step.RecipeId = recipe.Id;
+                    step.CreatedAt = DateTime.UtcNow;
+                    _context.RecipeSteps.Add(step);
+                }
             }
             // SaveChanges wird von der Outer-Transaction gehandled
         }
 
         private async Task ProcessSmartStepsAsync(RecipeBaseData recipe, SaveNewRecipeModel model)
         {
-            // WICHTIG: Alte SmartStep-Joins löschen bevor neue hinzugefügt werden!
-            var existingSmartStepJoins = await _context.RecipeJoinSmartStep
-                .Where(j => j.RecipeId == recipe.Id)
-                .ToListAsync();
-
-            if (existingSmartStepJoins.Any())
-            {
-                _context.RecipeJoinSmartStep.RemoveRange(existingSmartStepJoins);
-                _logger.LogInformation("Removed {Count} existing smart step joins for recipe {RecipeId}", existingSmartStepJoins.Count, recipe.Id);
-            }
-
-            foreach (var stepRef in model.SmartStepReferences ?? Enumerable.Empty<SmartStepReferenceInput>())
-            {
-                var masterStepKey = (stepRef.MasterStepKey ?? string.Empty).Trim();
-                if (string.IsNullOrWhiteSpace(masterStepKey))
-                {
-                    continue;
-                }
-
-                // Validate MasterStepKey format (should match pattern: CATEGORY_ACTION_XX)
-                if (!Regex.IsMatch(masterStepKey, @"^[A-Z_]+_\d{2}$"))
-                {
-                    _logger.LogWarning("MasterStepKey '{MasterKey}' does not match expected pattern (CATEGORY_ACTION_XX). Allowing but flagging for review.", masterStepKey);
-                }
-
-                var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
-                var normalizedVariablesJson = NormalizeJson(parsed.variablesJson);
-
-                var existing = await _context.SmartRecipeStep
-                    .Where(x =>
-                        x.MasterStepKey == masterStepKey &&
-                        x.Phase == parsed.phase &&
-                        x.Equipment == parsed.equipment)
-                    .ToListAsync();
-
-                var match = existing.FirstOrDefault(x => NormalizeJson(x.VariablesJson) == normalizedVariablesJson);
-
-                var smartStep = match;
-                if (smartStep == null)
-                {
-                    smartStep = new SmartRecipeStep
-                    {
-                        MasterStepKey = masterStepKey,
-                        VariablesJson = normalizedVariablesJson,
-                        Phase = parsed.phase,
-                        Equipment = parsed.equipment
-                    };
-
-                    await _context.SmartRecipeStep.AddAsync(smartStep);
-                }
-
-                var join = new RecipeJoinSmartStep
-                {
-                    Recipe = recipe,
-                    SmartRecipeStep = smartStep,
-                    StepIndex = stepRef.StepIndex > 0 ? stepRef.StepIndex : 1
-                };
-
-                await _context.RecipeJoinSmartStep.AddAsync(join);
-            }
+            // OLD SYSTEM - SmartSteps removed
+            // Do nothing
+            await Task.CompletedTask;
         }
 
-        private static string NormalizeJson(string? json)
-        {
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return "{}";
-            }
-
-            try
-            {
-                using var document = JsonDocument.Parse(json);
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = false,
-                    PropertyNamingPolicy = null
-                };
-                return JsonSerializer.Serialize(document.RootElement, options);
-            }
-            catch
-            {
-                return "{}";
-            }
-        }
-
-        private (string variablesJson, int? phase, string? equipment) ParseSmartStepMetadata(string? metadataJson)
-        {
-            if (string.IsNullOrWhiteSpace(metadataJson))
-            {
-                return ("{}", null, null);
-            }
-
-            try
-            {
-                using var document = JsonDocument.Parse(metadataJson);
-                var root = document.RootElement;
-
-                var variablesJson = root.TryGetProperty("variables", out var variablesElement)
-                    ? variablesElement.GetRawText()
-                    : "{}";
-
-                int? phase = null;
-                if (root.TryGetProperty("phase_key", out var phaseElement))
-                {
-                    var phaseRaw = phaseElement.ValueKind == JsonValueKind.String
-                        ? phaseElement.GetString()
-                        : phaseElement.GetRawText();
-
-                    if (int.TryParse(phaseRaw, out var parsedPhase))
-                    {
-                        phase = parsedPhase;
-                    }
-                }
-
-                string? equipment = null;
-                if (root.TryGetProperty("equipment_key", out var equipmentElement))
-                {
-                    equipment = equipmentElement.ValueKind == JsonValueKind.String
-                        ? equipmentElement.GetString()
-                        : equipmentElement.GetRawText();
-
-                    equipment = string.IsNullOrWhiteSpace(equipment) ? null : equipment.Trim();
-                }
-
-                return (variablesJson, phase, equipment);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to parse smart step metadata JSON. Metadata: {MetadataJson}", metadataJson);
-                return ("{}", null, null);
-            }
-        }
-
-        private async Task<RecipePreparationSteps?> ResolvePreparationStepAsync(RecipeJoinPreparationSteps joinStep)
-        {
-            var postedStep = joinStep.RecipePreparationStep;
-            var hasPostedText = !string.IsNullOrWhiteSpace(postedStep?.Step_DE)
-                || !string.IsNullOrWhiteSpace(postedStep?.Step_EN)
-                || !string.IsNullOrWhiteSpace(postedStep?.Step_ESP)
-                || !string.IsNullOrWhiteSpace(postedStep?.Step_PRT);
-
-            if (joinStep.PreparationStepId > 0 && !hasPostedText)
-            {
-                return await _context.RecipePreparationSteps.FirstOrDefaultAsync(x => x.Id == joinStep.PreparationStepId);
-            }
-
-            if (!hasPostedText)
-            {
-                return null;
-            }
-
-            var de = (postedStep.Step_DE ?? string.Empty).Trim();
-            var en = (postedStep.Step_EN ?? string.Empty).Trim();
-            var esp = (postedStep.Step_ESP ?? string.Empty).Trim();
-            var prt = (postedStep.Step_PRT ?? string.Empty).Trim();
-            var phase = postedStep.Phase;
-            var equipment = postedStep.Equipment;
-
-            if (string.IsNullOrWhiteSpace(de) && string.IsNullOrWhiteSpace(en))
-            {
-                return null;
-            }
-
-            if (string.IsNullOrWhiteSpace(de))
-            {
-                de = en;
-            }
-
-            if (string.IsNullOrWhiteSpace(en))
-            {
-                en = de;
-            }
-
-            var existing = await _context.RecipePreparationSteps.FirstOrDefaultAsync(x => x.Step_DE == de
-                && x.Step_EN == en
-                && x.Step_ESP == esp
-                && x.Step_PRT == prt
-                && x.Phase == phase
-                && x.Equipment == equipment);
-
-            if (existing != null)
-            {
-                joinStep.PreparationStepId = existing.Id;
-                return existing;
-            }
-
-            var newStep = new RecipePreparationSteps
-            {
-                Step_DE = de,
-                Step_EN = en,
-                Step_ESP = esp,
-                Step_PRT = prt,
-                Phase = phase,
-                Equipment = equipment
-            };
-
-            _context.RecipePreparationSteps.Add(newStep);
-            return newStep;
-        }
+        // OLD SYSTEM helper methods removed (NormalizeJson, ParseSmartStepMetadata, ResolvePreparationStepAsync)
 
         private async Task ProcessRecipeImageAsync(RecipeBaseData recipe, SaveNewRecipeModel model,bool wordlUserImage)
         {

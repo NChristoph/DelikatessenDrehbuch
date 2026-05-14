@@ -26,6 +26,12 @@ using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Kestrel-Limits für große Video-Uploads erhöhen
+builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
+{
+    options.Limits.MaxRequestBodySize = 250_000_000; // 250 MB
+});
+
 // ================================================================================
 // 1. Localization Services registrieren
 // ================================================================================
@@ -113,9 +119,9 @@ builder.Services.AddScoped<IBlobUploadService, BunnyUploadService>();
 builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
 builder.Services.AddScoped<CaptionGenerationService>();
+builder.Services.AddScoped<WorldMiniApp.Services.IFeedAlgorithmService, WorldMiniApp.Services.FeedAlgorithmService>();
 
-// Recipe Translation System (NEW)
-builder.Services.AddScoped<IRecipeStepTranslationService, RecipeStepTranslationService>();
+// Recipe Translation System (NEW) - OLD service removed, using RecipeTranslationService now
 
 // HttpClient für Bunny Storage API
 builder.Services.AddHttpClient("BunnyStorage", client =>
@@ -138,6 +144,7 @@ builder.Services.AddHttpClient<IRecipeVariantSummaryAiService, RecipeVariantSumm
 builder.Services.AddScoped<IWildCoinService, WildCoinService>();
 builder.Services.AddScoped<IWorldClipWatchService, WorldClipWatchService>();
 builder.Services.AddScoped<IWorldAdPreferenceService, WorldAdPreferenceService>();
+builder.Services.AddScoped<IMarketplaceRankingService, MarketplaceRankingService>();
 builder.Services.AddHttpClient<IMissingIngredientAiService, MissingIngredientAiService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(120);
@@ -153,6 +160,12 @@ builder.Services.AddScoped<IRecipeAiNutritionService, RecipeAiNutritionService>(
 builder.Services.AddHttpClient<IRecipeStepGeneratorService, RecipeStepGeneratorService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);
+});
+
+// NEW: Simple Recipe Translation Service (replaces complex step system)
+builder.Services.AddHttpClient<RecipeTranslationService>(client =>
+{
+    client.Timeout = TimeSpan.FromSeconds(60);
 });
 
 builder.Services.AddHttpContextAccessor();

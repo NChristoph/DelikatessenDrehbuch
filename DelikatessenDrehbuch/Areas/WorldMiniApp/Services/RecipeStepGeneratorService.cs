@@ -45,11 +45,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var apiKey = _config["OpenAI:ApiKey"] ?? _config["SecretKeyOpenAi"];
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
-                    _logger.LogError("❌ OpenAI API key is missing in configuration");
+                    _logger.LogError("OpenAI API key is missing in configuration");
                     throw new InvalidOperationException("OpenAI API key is missing");
                 }
 
-                _logger.LogInformation("✓ API Key found (length: {Length})", apiKey.Length);
 
                 // Load available SmartSteps from master_steps.json
                 var masterSteps = LoadMasterSteps(language);
@@ -254,10 +253,6 @@ Return ONLY valid JSON matching the schema (enforced). The 'reasoning' field sho
         {
             _logger.LogInformation("🤖 Calling OpenAI API - Model: {Model}, Prompt length: {Length} chars", DefaultModel, prompt.Length);
 
-            if (_environment.IsDevelopment())
-            {
-                _logger.LogDebug("OpenAI Prompt: {Prompt}", prompt);
-            }
 
             var requestBody = new
             {
@@ -323,14 +318,10 @@ Return ONLY valid JSON matching the schema (enforced). The 'reasoning' field sho
 
             _logger.LogInformation("✅ OpenAI Response - Status: {Status}, Body length: {Length} chars", response.StatusCode, responseBody?.Length ?? 0);
 
-            if (_environment.IsDevelopment())
-            {
-                _logger.LogDebug("OpenAI Response Body: {ResponseBody}", responseBody);
-            }
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("❌ OpenAI API error: {Status} - {Body}", response.StatusCode, responseBody);
+                _logger.LogError("OpenAI API error: {Status}", response.StatusCode);
                 throw new InvalidOperationException($"OpenAI API error: {response.StatusCode} - {responseBody}");
             }
 
@@ -670,10 +661,6 @@ Return ONLY valid JSON matching the schema (enforced).
         {
             _logger.LogInformation("🤖 Calling OpenAI API for concrete steps - Prompt length: {Length} chars", prompt.Length);
 
-            if (_environment.IsDevelopment())
-            {
-                _logger.LogDebug("OpenAI Prompt: {Prompt}", prompt);
-            }
 
             var requestBody = new
             {
@@ -735,14 +722,10 @@ Return ONLY valid JSON matching the schema (enforced).
 
             _logger.LogInformation("✅ OpenAI Response - Status: {Status}, Body length: {Length} chars", response.StatusCode, responseBody?.Length ?? 0);
 
-            if (_environment.IsDevelopment())
-            {
-                _logger.LogDebug("OpenAI Response Body: {ResponseBody}", responseBody);
-            }
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("❌ OpenAI API error: {Status} - {Body}", response.StatusCode, responseBody);
+                _logger.LogError("OpenAI API error: {Status}", response.StatusCode);
                 throw new InvalidOperationException($"OpenAI API error: {response.StatusCode} - {responseBody}");
             }
 

@@ -54,7 +54,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         {
             try
             {
-                _logger.LogWarning("Caption generation started. VideoGuid={VideoGuid} VideoUrl={VideoUrl}", videoGuid, videoUrl);
+                _logger.LogInformation("Caption generation started. VideoGuid={VideoGuid}", videoGuid);
 
                 var videoPath = await DownloadVideoAsync(videoUrl, videoGuid);
                 if (string.IsNullOrWhiteSpace(videoPath))
@@ -148,12 +148,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                         var tempPath = Path.Combine(Path.GetTempPath(), $"{videoGuid}.mp4");
                         await using var fileStream = File.Create(tempPath);
                         await response.Content.CopyToAsync(fileStream);
-                        _logger.LogWarning("Video downloaded for captions. Url={Url} Size={Size}", candidateUrl, new FileInfo(tempPath).Length);
                         return tempPath;
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Video download candidate threw. Url={Url}", candidateUrl);
+                        _logger.LogWarning(ex, "Video download candidate failed.");
                     }
                 }
 
@@ -161,7 +160,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to download video for caption generation. VideoUrl={VideoUrl}", videoUrl);
+                _logger.LogError(ex, "Failed to download video for caption generation.");
                 return null;
             }
         }
@@ -215,7 +214,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 response.EnsureSuccessStatusCode();
 
                 var vttContent = await response.Content.ReadAsStringAsync();
-                _logger.LogWarning("Whisper transcription completed. Characters={Length}", vttContent.Length);
                 return vttContent;
             }
             catch (Exception ex)

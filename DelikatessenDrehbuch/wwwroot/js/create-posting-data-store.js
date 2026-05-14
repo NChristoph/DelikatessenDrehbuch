@@ -9,26 +9,14 @@
             throw new Error('Missing data for ' + key);
         }
 
-        if (key === 'masterSteps' && !Array.isArray(data.master_steps)) {
-            throw new Error('master_steps.json has an invalid format.');
-        }
-
-        if (key === 'recipeCategoryScoring' && !Array.isArray(data.categories)) {
-            throw new Error('recipe_category_scoring.json has an invalid format.');
-        }
-
+        // Validation removed - old step system deleted
         return data;
     }
 
     function load(key, options) {
         const forceReload = !!(options && options.forceReload);
 
-        // For masterSteps, include language in the cache key
-        let cacheKey = key;
-        if (key === 'masterSteps' && options && options.language) {
-            const lang = window.CreatePostingUtils.resolveLangKey(options.language);
-            cacheKey = key + '.' + lang;
-        }
+        const cacheKey = key;
 
         if (!forceReload && cache.has(cacheKey)) {
             return Promise.resolve(cache.get(cacheKey));

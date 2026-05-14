@@ -25,13 +25,12 @@ namespace DelikatessenDrehbuch.Models
 
         public int LikeCount { get; set; }
 
-
+        // Navigation Properties
         public virtual ICollection<RecipeJoinIngredientMeasureQuantity> Ingredients { get; set; }
 
-        // NEW: Direkte Steps ohne Join-Tabelle (neues Translation System)
-        public virtual ICollection<RecipeStep> Steps { get; set; }
+        // NEW: Zubereitungsschritte (AI-übersetzt, eigene Tabelle, normalisiert pro Sprache)
+        public virtual ICollection<RecipeSteps>? Steps { get; set; }
 
-        public virtual ICollection<RecipeJoinSmartStep> SmartSteps { get; set; }
         public virtual ICollection<RecipeBaseDataImage> Images { get; set; }
         public virtual ICollection<RecipeBaseKeyword> RecipeKeywords { get; set; }
 

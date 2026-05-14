@@ -11,13 +11,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public string Source { get; set; }
         public string ThumbnailUrl { get; set; }
         public string Title { get; set; }
-        
+
         public bool IsOffline { get; set; }
         public DateTime CreationTime { get; set; } = DateTime.Now;
 
         [NotMapped]
         public List<Measure> Measure { get; set; }
-        public RecipeBaseData Recipe { get; set; }
+        public RecipeBaseData Recipe { get; set; } = new RecipeBaseData();
        
         [NotMapped]
         public List<IngredientsAndNutrients> ToSelectIngredientsAndNutrients { get; set; }

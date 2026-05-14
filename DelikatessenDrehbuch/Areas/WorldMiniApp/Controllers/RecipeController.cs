@@ -1,5 +1,6 @@
 ﻿using DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
@@ -20,10 +21,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IBlobUploadService _blobUpload;
         private readonly ISaveNewRecipeService _saveNewRecipeService;
         private readonly IMissingIngredientAiService _missingIngredientAiService;
+        private readonly RecipeTranslationService _recipeTranslationService;
         private readonly IServiceScopeFactory _serviceScopeFactory;
         private readonly IMemoryCache _memoryCache;
         private readonly ILogger<RecipeController> _logger;
-        private readonly IRecipeStepGeneratorService _stepGenerator;
         private const int UploadRateLimit = 5;
         private static readonly TimeSpan UploadRateWindow = TimeSpan.FromMinutes(10);
         private const int MissingIngredientSaveRateLimit = 10;
@@ -36,19 +37,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             IBlobUploadService blobUpload,
             ISaveNewRecipeService saveNewRecipeService,
             IMissingIngredientAiService missingIngredientAiService,
+            RecipeTranslationService recipeTranslationService,
             IServiceScopeFactory serviceScopeFactory,
             IMemoryCache memoryCache,
-            ILogger<RecipeController> logger,
-            IRecipeStepGeneratorService stepGenerator)
+            ILogger<RecipeController> logger)
         {
             _context = context;
             _blobUpload = blobUpload;
             _saveNewRecipeService = saveNewRecipeService;
             _missingIngredientAiService = missingIngredientAiService;
+            _recipeTranslationService = recipeTranslationService;
             _serviceScopeFactory = serviceScopeFactory;
             _memoryCache = memoryCache;
             _logger = logger;
-            _stepGenerator = stepGenerator;
         }
 
         public async Task<IActionResult> Upload(string userHash)
@@ -67,6 +68,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        [ActionName("UploadNewVideo")]
+     
         public async Task<IActionResult> UploadNewVideoAsync(WorldUserPosting posting, string userHash)
         {
             userHash = ResolveUserHash(userHash);
@@ -75,6 +78,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Json(new { success = false, error = "Nicht berechtigt." });
             }
 
+            // Validate file upload
+            if (posting.Content == null || posting.Content.Length == 0)
+            {
+                return Json(new {
+                    success = false,
+                    error = "📁 Keine Datei ausgewählt!\n\nBitte wählen Sie ein Bild oder Video aus."
+                });
+            }
+
+            // Set creator info and creation time
+            posting.CreatorId = userHash;
+            posting.CreationTime = DateTime.Now;
+
             // Idempotency check: prevent duplicate uploads on network retry
             var idempotencyKey = Request.Headers["X-Idempotency-Key"].FirstOrDefault();
             if (!string.IsNullOrWhiteSpace(idempotencyKey))
@@ -82,7 +98,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 var cacheKey = $"worldminiapp:idempotency:{userHash}:{idempotencyKey}";
                 if (_memoryCache.TryGetValue<object>(cacheKey, out var cachedResult))
                 {
-                    _logger.LogInformation("Duplicate upload request detected for user {UserHash} with idempotency key {Key}.", userHash, idempotencyKey);
+                    _logger.LogInformation("Duplicate upload request detected with idempotency key {Key}.", idempotencyKey);
                     return Json(cachedResult);
                 }
             }
@@ -96,7 +112,132 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Json(new { success = false, error = "Upload-Limit erreicht. Bitte später erneut versuchen." });
             }
 
+            // Check if content is a video
+            var isVideo = posting.Content != null &&
+                          !string.IsNullOrEmpty(posting.Content.ContentType) &&
+                          posting.Content.ContentType.StartsWith("video/", StringComparison.OrdinalIgnoreCase);
+
+            if (isVideo)
+            {
+                // ASYNC PATH: Process video in background
+
+                // 1. Load video into memory (so we can access it after request ends)
+                var videoBytes = new byte[posting.Content.Length];
+                using (var stream = posting.Content.OpenReadStream())
+                {
+                    await stream.ReadAsync(videoBytes, 0, videoBytes.Length);
+                }
+
+                // 2. Copy all needed data (so we can access it after request ends)
+                // IMPORTANT: Extract simple data, not Entity objects to avoid DbContext tracking issues
+                var ingredientData = posting.IngredientMeasureQuantity?.Select(imq => new
+                {
+                    IngredientId = imq.IngredientsAndNutrients?.Id ?? 0,
+                    Quantity = imq.Quantity?.Quantitys ?? 0,
+                    MeasureDe = imq.Measure?.Metrics_DE ?? ""
+                }).ToList();
+
+                var uploadData = new
+                {
+                    UserHash = userHash,
+                    Title = posting.Title,
+                    Category = posting.Recipe.Category,
+                    PersonCount = posting.Recipe.PersonCount,
+                    PreparationTime = posting.Recipe.PreparationTime,
+                    Preferences = posting.Recipe.Preferences,
+                    IngredientData = ingredientData,
+                    SelectedKeywordIds = posting.SelectedKeywordIds,
+                    StepsText = Request.Form["StepsText"].FirstOrDefault() ?? "",
+                    VideoBytes = videoBytes,
+                    FileName = posting.Content.FileName,
+                    ContentType = posting.Content.ContentType
+                };
+
+                // Extract values for error logging (avoid dynamic in lambda)
+                var capturedUserHash = userHash;
+                var capturedTitle = posting.Title;
+
+                // 3. Start background task (Fire-and-Forget)
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        await ProcessVideoUploadInBackgroundAsync(uploadData);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Background video upload failed for user {UserHash}", capturedUserHash);
+
+                        // Send error notification
+                        await SendUploadErrorNotificationAsync(capturedUserHash, capturedTitle, ex.Message);
+                    }
+                });
+
+                // 4. Return success immediately
+                var asyncSuccessResponse = new
+                {
+                    success = true,
+                    isAsync = true,
+                    isVideo = true,
+                    message = "Upload wird verarbeitet..."
+                };
+
+                // Cache for idempotency
+                if (!string.IsNullOrWhiteSpace(idempotencyKey))
+                {
+                    var cacheKey = $"worldminiapp:idempotency:{userHash}:{idempotencyKey}";
+                    _memoryCache.Set(cacheKey, asyncSuccessResponse, TimeSpan.FromMinutes(10));
+                }
+
+                return Json(asyncSuccessResponse);
+            }
+
+            // SYNC PATH: Images remain synchronous (fast enough)
             var uploadResult = await _blobUpload.UploadContentToBlob(posting.Content);
+
+            // Get steps text from form
+            var stepsText = (Request.Form["StepsText"].FirstOrDefault() ?? "").Trim();
+            var recipeSteps = new List<RecipeSteps>();
+
+            // Translate steps if provided
+            if (!string.IsNullOrWhiteSpace(stepsText))
+            {
+                var recipeTitle = posting.Title ?? "Rezept";
+                var translation = await _recipeTranslationService.TranslateRecipeAsync(
+                    recipeTitle,
+                    stepsText,
+                    CancellationToken.None);
+
+                var now = DateTime.UtcNow;
+                var stepTranslations = new Dictionary<string, string>
+                {
+                    { "de", translation.Steps.De },
+                    { "en", translation.Steps.En },
+                    { "esp", translation.Steps.Esp },
+                    { "prt", translation.Steps.Prt },
+                    { "id", translation.Steps.Id },
+                    { "nl", translation.Steps.Nl },
+                    { "sv", translation.Steps.Sv },
+                    { "da", translation.Steps.Da },
+                    { "no", translation.Steps.No },
+                    { "ms", translation.Steps.Ms }
+                };
+
+                foreach (var kvp in stepTranslations)
+                {
+                    if (!string.IsNullOrWhiteSpace(kvp.Value))
+                    {
+                        recipeSteps.Add(new RecipeSteps
+                        {
+                            Culture = kvp.Key,
+                            Text = kvp.Value,
+                            CreatedAt = now
+                        });
+                    }
+                }
+
+            }
+
             SaveNewRecipeModel recipeModel = new()
             {
                 Recipes = new Recipes()
@@ -105,12 +246,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     Category = posting.Recipe.Category,
                     RecipePersonCount = posting.Recipe.PersonCount,
                     PreparationTime = posting.Recipe.PreparationTime,
-                    ImagePath = uploadResult.SourceUrl
+                    // For videos, use thumbnail; for images, use the image itself
+                    ImagePath = !string.IsNullOrEmpty(uploadResult.ThumbnailUrl)
+                        ? uploadResult.ThumbnailUrl
+                        : uploadResult.SourceUrl
                 },
                 Querys = posting.Recipe.Preferences,
                 IngredientMeasureQuantity = posting.IngredientMeasureQuantity,
-                RecipeSteps = ExtractCreatePostingStepsFromRequest(Request.Form),
-                SmartStepReferences = ExtractCreatePostingSmartStepsFromRequest(Request.Form),
+                RecipeSteps = recipeSteps,
             };
 
             var recipe = await _saveNewRecipeService.SaveNewAsync(recipeModel, true);
@@ -153,71 +296,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 // Start background translation (4 core languages: DE, EN, ESP, PRT)
                 // Neuer Scope = eigener DbContext, verhindert Threading-Issues
                 var recipeIdForTranslation = recipe.Id;
-                var postingIdForNotification = posting.Id;
-                var userHashForNotification = userHash;
-                var recipeTitleForNotification = recipe.Title;
-
-                _ = Task.Run(async () =>
-                {
-                    using var scope = _serviceScopeFactory.CreateScope();
-                    var translationService = scope.ServiceProvider.GetRequiredService<IRecipeStepTranslationService>();
-                    var dbContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<RecipeController>>();
-
-                    try
-                    {
-                        logger.LogInformation("🌍 Starting background translation for recipe {RecipeId}...", recipeIdForTranslation);
-                        await translationService.TranslateRecipeStepsAsync(recipeIdForTranslation);
-                        logger.LogInformation("✅ Background translation completed for recipe {RecipeId}.", recipeIdForTranslation);
-
-                        // Benachrichtigung: Übersetzungen fertig!
-                        var notification = new WorldUserNotification
-                        {
-                            UserHash = userHashForNotification,
-                            Icon = "bi-translate",
-                            Sender = "Translation Service",
-                            Description = $"✅ Recipe \"{recipeTitleForNotification}\" is now available in 4 languages!",
-                            Href = $"/WorldMiniApp/Home/ShowRecipe/{recipeIdForTranslation}",
-                            NotificationKey = $"recipe_translation_{recipeIdForTranslation}",
-                            EventType = "recipe_translated",
-                            CreatedAtUtc = DateTime.UtcNow,
-                            IsSeen = false
-                        };
-
-                        await dbContext.WorldUserNotifications.AddAsync(notification);
-                        await dbContext.SaveChangesAsync();
-
-                        logger.LogInformation("📬 Translation notification sent to user {UserHash}", userHashForNotification);
-                    }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "❌ Background translation failed for recipe {RecipeId}.", recipeIdForTranslation);
-
-                        // Fehler-Benachrichtigung
-                        try
-                        {
-                            var errorNotification = new WorldUserNotification
-                            {
-                                UserHash = userHashForNotification,
-                                Icon = "bi-exclamation-triangle",
-                                Sender = "Translation Service",
-                                Description = $"⚠️ Translation failed for recipe \"{recipeTitleForNotification}\". Manual check needed.",
-                                Href = $"/WorldMiniApp/Home/ShowRecipe/{recipeIdForTranslation}",
-                                NotificationKey = $"recipe_translation_error_{recipeIdForTranslation}",
-                                EventType = "recipe_translation_error",
-                                CreatedAtUtc = DateTime.UtcNow,
-                                IsSeen = false
-                            };
-
-                            await dbContext.WorldUserNotifications.AddAsync(errorNotification);
-                            await dbContext.SaveChangesAsync();
-                        }
-                        catch (Exception notifEx)
-                        {
-                            logger.LogError(notifEx, "Failed to send error notification");
-                        }
-                    }
-                });
+                // OLD SYSTEM - Background translation removed (used IRecipeStepTranslationService)
+                // NEW SYSTEM: Translation happens synchronously in SaveRecipeWithTranslation endpoint
 
                 Response.Cookies.Append("createPostingDraftReset", "1", new CookieOptions
                 {
@@ -232,13 +312,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 // Check if uploaded content is a video (HLS or regular video file)
                 var sourceLower = (uploadResult.SourceUrl ?? string.Empty).ToLowerInvariant();
-                var isVideo = sourceLower.Contains(".m3u8")
+                var isVideoContent = sourceLower.Contains(".m3u8")
                     || sourceLower.Contains(".mp4")
                     || sourceLower.Contains(".mov")
                     || sourceLower.Contains(".webm");
 
                 // If video with VideoGuid (Bunny Stream), track for notification when ready
-                if (isVideo && !string.IsNullOrEmpty(uploadResult.VideoGuid))
+                if (isVideoContent && !string.IsNullOrEmpty(uploadResult.VideoGuid))
                 {
                     var pendingVideo = new WorldUserPendingVideo
                     {
@@ -255,7 +335,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 var successResponse = new {
                     success = true,
-                    isVideo = isVideo,
+                    isVideo = isVideoContent,
                     recipeId = recipe.Id,
                     postingId = posting.Id,
                     translationInProgress = true,
@@ -333,33 +413,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .ToList();
             ViewData["EditKeywordIds"] = JsonSerializer.Serialize(editKeywordIds);
 
-            // Neues System: RecipeStep ohne Join
-            var editSteps = (posting.Recipe.Steps ?? Enumerable.Empty<RecipeStep>())
-                .OrderBy(s => s.StepOrder)
-                .Select(s => new
-                {
-                    preparationStepId = s.Id,
-                    stepIndex = s.StepOrder,
-                    stepDe = s.StepText,  // Source language
-                    stepEn = "",  // Translations handled separately
-                    stepEsp = "",
-                    stepPrt = "",
-                    phase = 0,
-                    equipment = 0
-                })
-                .ToList();
-            ViewData["EditSteps"] = JsonSerializer.Serialize(editSteps);
+            // NEW SYSTEM: RecipeSteps (normalized, Culture + Text)
+            // Get German steps for editing (or fallback to first available)
+            var stepsForEdit = posting.Recipe.Steps?.FirstOrDefault(s => s.Culture == "de")
+                ?? posting.Recipe.Steps?.FirstOrDefault();
 
-            var editSmartSteps = (posting.Recipe.SmartSteps ?? Enumerable.Empty<RecipeJoinSmartStep>())
-                .OrderBy(ss => ss.StepIndex)
-                .Select(ss => new
-                {
-                    masterStepKey = ss.SmartRecipeStep.MasterStepKey ?? "",
-                    variablesJson = ss.SmartRecipeStep.VariablesJson ?? "{}",
-                    stepIndex = ss.StepIndex
-                })
-                .ToList();
-            ViewData["EditSmartSteps"] = JsonSerializer.Serialize(editSmartSteps);
+            ViewData["EditStepsText"] = stepsForEdit?.Text ?? "";
+            // SmartSteps REMOVED - using new simple translation system
 
             return View("~/Areas/WorldMiniApp/Views/Home/CreatePosting.cshtml", model);
         }
@@ -368,52 +428,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpsertStep([FromBody] UpsertStepRequest request, string userHash)
         {
-            userHash = ResolveUserHash(userHash);
-            var isAdmin = User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
-            if (!isAdmin && !await IsCreatorAllowedAsync(_context, userHash))
-            {
-                return Forbid();
-            }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.De) || string.IsNullOrWhiteSpace(request.En))
-            {
-                return BadRequest(new { message = "Ungültige Step-Daten." });
-            }
-
-            var de = request.De.Trim();
-            var en = request.En.Trim();
-            var esp = (request.Esp ?? string.Empty).Trim();
-            var prt = (request.Prt ?? string.Empty).Trim();
-            var phase = request.Phase;
-            var equipment = request.Equipment;
-
-            var existing = await _context.RecipePreparationSteps
-                .FirstOrDefaultAsync(x => x.Step_DE == de
-                    && x.Step_EN == en
-                    && x.Step_ESP == esp
-                    && x.Step_PRT == prt
-                    && x.Phase == phase
-                    && x.Equipment == equipment);
-
-            if (existing != null)
-            {
-                return Json(new { id = existing.Id, reused = true });
-            }
-
-            var step = new RecipePreparationSteps
-            {
-                Step_DE = de,
-                Step_EN = en,
-                Step_ESP = esp,
-                Step_PRT = prt,
-                Phase = phase,
-                Equipment = equipment
-            };
-
-            await _context.RecipePreparationSteps.AddAsync(step);
-            await _context.SaveChangesAsync();
-
-            return Json(new { id = step.Id, reused = false });
+            // OLD SYSTEM - RecipePreparationSteps removed
+            // New system uses simple textarea with AI translation
+            await Task.CompletedTask;
+            return Json(new { success = false, message = "Old step system removed - use simple textarea instead" });
         }
 
         [HttpPost]
@@ -563,221 +581,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GenerateRecipeSteps([FromBody] GenerateStepsRequest request, CancellationToken cancellationToken)
-        {
-            if (request == null || string.IsNullOrWhiteSpace(request.RecipeTitle))
-            {
-                return BadRequest(new { message = "Rezept-Titel fehlt." });
-            }
 
-            var userHash = ResolveUserHash(request.UserHash);
-            if (!await IsCreatorAllowedAsync(_context, userHash))
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = "Nicht berechtigt."
-                });
-            }
-
-            if (!TryConsumeStepGenerationSlot(userHash, out var retryAfter))
-            {
-                if (retryAfter.HasValue)
-                {
-                    Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
-                }
-                return Json(new
-                {
-                    success = false,
-                    message = "Limit erreicht: maximal 20 Generierungen pro 10 Minuten."
-                });
-            }
-
-            try
-            {
-                var result = await _stepGenerator.GenerateStepsAsync(
-                    request.RecipeTitle,
-                    request.Category ?? "",
-                    request.IngredientNames ?? new List<string>(),
-                    request.Language ?? "de",
-                    request.InstructionsText,  // NEW: Pass instructions text
-                    cancellationToken);
-
-                return Json(new
-                {
-                    success = result.Success,
-                    steps = result.Steps,
-                    reasoning = result.Reasoning,
-                    message = result.Success ? "Steps erfolgreich generiert." : result.ErrorMessage
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Fehler bei Step-Generierung für Rezept {Title}.", request.RecipeTitle);
-                return Json(new
-                {
-                    success = false,
-                    message = "Fehler bei der Step-Generierung: " + ex.Message
-                });
-            }
-        }
-
-        /// <summary>
-        /// NEUES SYSTEM: Generiert konkrete Steps mit Übersetzungen (kein Template-Matching)
-        /// </summary>
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> GenerateConcreteSteps([FromBody] GenerateConcreteStepsRequest request, CancellationToken cancellationToken)
-        {
-            if (request == null || string.IsNullOrWhiteSpace(request.RecipeTitle))
-            {
-                return BadRequest(new { message = "Rezept-Titel fehlt." });
-            }
-
-            var userHash = ResolveUserHash(request.UserHash);
-            if (!await IsCreatorAllowedAsync(_context, userHash))
-            {
-                return Json(new
-                {
-                    success = false,
-                    message = "Nicht berechtigt."
-                });
-            }
-
-            if (!TryConsumeStepGenerationSlot(userHash, out var retryAfter))
-            {
-                if (retryAfter.HasValue)
-                {
-                    Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
-                }
-                return Json(new
-                {
-                    success = false,
-                    message = "Limit erreicht: maximal 20 Generierungen pro 10 Minuten."
-                });
-            }
-
-            try
-            {
-                var result = await _stepGenerator.GenerateConcreteStepsAsync(
-                    request.RecipeTitle,
-                    request.Category ?? "",
-                    request.Ingredients ?? new List<(int, string)>(),
-                    request.InstructionsText,
-                    cancellationToken);
-
-                return Json(new
-                {
-                    success = result.Success,
-                    steps = result.Steps,
-                    reasoning = result.Reasoning,
-                    message = result.Success ? "Steps erfolgreich generiert." : result.ErrorMessage
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Fehler bei Concrete-Step-Generierung für Rezept {Title}.", request.RecipeTitle);
-                return Json(new
-                {
-                    success = false,
-                    message = "Fehler bei der Step-Generierung: " + ex.Message
-                });
-            }
-        }
-
-        private List<RecipeStep> ExtractCreatePostingStepsFromRequest(IFormCollection form)
-        {
-            var result = new List<RecipeStep>();
-
-            for (var i = 0; ; i++)
-            {
-                var indexKey = $"RecipePreperationSteps[{i}].StepIndex";
-                var stepDeKey = $"RecipePreperationSteps[{i}].RecipePreperationStep.Step_DE";
-
-                // Break if no more steps found
-                if (!form.ContainsKey(stepDeKey) && !form.ContainsKey(indexKey))
-                {
-                    break;
-                }
-
-                // Get step text (German = source language)
-                var stepText = (form[stepDeKey].FirstOrDefault() ?? string.Empty).Trim();
-
-                // Skip empty steps
-                if (string.IsNullOrWhiteSpace(stepText))
-                {
-                    continue;
-                }
-
-                // Get step order
-                var stepOrder = 0;
-                var stepIndexRaw = form[indexKey].FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(stepIndexRaw) && !int.TryParse(stepIndexRaw, out stepOrder))
-                {
-                    _logger.LogWarning("Failed to parse StepIndex at index {Index}: {Value}", i, stepIndexRaw);
-                }
-
-                result.Add(new RecipeStep
-                {
-                    StepOrder = stepOrder > 0 ? stepOrder : i + 1,
-                    StepText = stepText,
-                    SourceLanguage = "de",
-                    CreatedAt = DateTime.UtcNow
-                });
-            }
-
-            return result;
-        }
-
-        private List<SmartStepReferenceInput> ExtractCreatePostingSmartStepsFromRequest(IFormCollection form)
-        {
-            var result = new List<SmartStepReferenceInput>();
-
-            for (var i = 0; ; i++)
-            {
-                var masterKeyField = $"SmartStepReferences[{i}].MasterStepKey";
-                var metadataField = $"SmartStepReferences[{i}].MetadataJson";
-                var stepIndexField = $"RecipePreperationSteps[{i}].StepIndex";
-
-                if (!form.ContainsKey(masterKeyField) && !form.ContainsKey(metadataField))
-                {
-                    break;
-                }
-
-                var masterKey = (form[masterKeyField].FirstOrDefault() ?? string.Empty).Trim();
-                var metadataJson = (form[metadataField].FirstOrDefault() ?? string.Empty).Trim();
-
-                var stepIndex = 0;
-                var stepIndexRaw = form[stepIndexField].FirstOrDefault();
-                if (!string.IsNullOrWhiteSpace(stepIndexRaw) && !int.TryParse(stepIndexRaw, out stepIndex))
-                {
-                    _logger.LogWarning("Failed to parse SmartStep StepIndex at index {Index}: {Value}", i, stepIndexRaw);
-                }
-
-                if (string.IsNullOrWhiteSpace(masterKey))
-                {
-                    _logger.LogWarning("Empty MasterStepKey at SmartStep index {Index}, skipping.", i);
-                    continue;
-                }
-
-                // Validate MasterStepKey format (should match pattern: CATEGORY_ACTION_XX)
-                if (!Regex.IsMatch(masterKey, @"^[A-Z_]+_\d{2}$"))
-                {
-                    _logger.LogWarning("MasterStepKey '{MasterKey}' at index {Index} does not match expected pattern (CATEGORY_ACTION_XX). Allowing but flagging for review.", masterKey, i);
-                }
-
-                result.Add(new SmartStepReferenceInput
-                {
-                    MasterStepKey = masterKey,
-                    MetadataJson = string.IsNullOrWhiteSpace(metadataJson) ? "{}" : metadataJson,
-                    StepIndex = stepIndex > 0 ? stepIndex : i + 1
-                });
-            }
-
-            return result;
-        }
 
         private List<int> ExtractKeywordIdsFromRequest(IFormCollection form)
         {
@@ -992,44 +796,57 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
             }
 
-            // Update steps (New Translation System)
-            var parsedSteps = ExtractCreatePostingStepsFromRequest(form);
-            if (parsedSteps.Any())
+            // Update steps (NEW SYSTEM: simple textarea + AI translation)
+            var stepsText = (form["StepsText"].FirstOrDefault() ?? "").Trim();
+            if (!string.IsNullOrWhiteSpace(stepsText))
             {
-                // Remove old steps
+                // Remove existing steps
                 var existingSteps = await _context.RecipeSteps
                     .Where(s => s.RecipeId == postingToEdit.Recipe.Id)
                     .ToListAsync();
-                _context.RecipeSteps.RemoveRange(existingSteps);
-
-                // Add new steps
-                foreach (var step in parsedSteps)
+                if (existingSteps.Any())
                 {
-                    step.RecipeId = postingToEdit.Recipe.Id;
-                    step.CreatedAt = DateTime.UtcNow;
-                    await _context.RecipeSteps.AddAsync(step);
+                    _context.RecipeSteps.RemoveRange(existingSteps);
                 }
 
-                // SaveChanges passiert später (Zeile 915) vor Transaction Commit
+                // Translate steps to all languages using AI
+                var translation = await _recipeTranslationService.TranslateRecipeAsync(
+                    postingToEdit.Recipe.Title,
+                    stepsText,
+                    CancellationToken.None);
 
-                // Trigger background translation (neuer Scope = eigener DbContext)
-                var recipeIdForTranslation = postingToEdit.Recipe.Id;
-                _ = Task.Run(async () =>
+                // Save RecipeSteps rows (one per language)
+                var now = DateTime.UtcNow;
+                var stepTranslations = new Dictionary<string, string>
                 {
-                    using var scope = _serviceScopeFactory.CreateScope();
-                    var translationService = scope.ServiceProvider.GetRequiredService<IRecipeStepTranslationService>();
-                    var logger = scope.ServiceProvider.GetRequiredService<ILogger<RecipeController>>();
+                    { "de", translation.Steps.De },
+                    { "en", translation.Steps.En },
+                    { "esp", translation.Steps.Esp },
+                    { "prt", translation.Steps.Prt },
+                    { "id", translation.Steps.Id },
+                    { "nl", translation.Steps.Nl },
+                    { "sv", translation.Steps.Sv },
+                    { "da", translation.Steps.Da },
+                    { "no", translation.Steps.No },
+                    { "ms", translation.Steps.Ms }
+                };
 
-                    try
+                foreach (var kvp in stepTranslations)
+                {
+                    if (!string.IsNullOrWhiteSpace(kvp.Value))
                     {
-                        await translationService.TranslateRecipeStepsAsync(recipeIdForTranslation);
-                        logger.LogInformation("Background translation completed for edited recipe {RecipeId}.", recipeIdForTranslation);
+                        var step = new RecipeSteps
+                        {
+                            RecipeId = postingToEdit.Recipe.Id,
+                            Culture = kvp.Key,
+                            Text = kvp.Value,
+                            CreatedAt = now
+                        };
+                        _context.RecipeSteps.Add(step);
                     }
-                    catch (Exception ex)
-                    {
-                        logger.LogError(ex, "Background translation failed for edited recipe {RecipeId}.", recipeIdForTranslation);
-                    }
-                });
+                }
+
+                _logger.LogInformation("Translated and saved steps for recipe {RecipeId} in 10 languages", postingToEdit.Recipe.Id);
             }
 
             // Update keywords
@@ -1054,48 +871,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }
             }
 
-            // Update smart steps (same format as CreatePosting)
-            var parsedSmartSteps = ExtractCreatePostingSmartStepsFromRequest(form);
-            if (parsedSmartSteps.Any() || form.Keys.Any(k => k.StartsWith("SmartStepReferences[", StringComparison.OrdinalIgnoreCase)))
-            {
-                var existingSmartSteps = await _context.RecipeJoinSmartStep
-                    .Where(ss => ss.RecipeId == postingToEdit.Recipe.Id)
-                    .ToListAsync();
-                _context.RecipeJoinSmartStep.RemoveRange(existingSmartSteps);
-
-                foreach (var stepRef in parsedSmartSteps)
-                {
-                    var parsed = ParseSmartStepMetadata(stepRef.MetadataJson);
-
-                    var existingSmartStep = await _context.SmartRecipeStep
-                        .FirstOrDefaultAsync(x =>
-                            x.MasterStepKey == stepRef.MasterStepKey &&
-                            x.VariablesJson == parsed.variablesJson &&
-                            x.Phase == parsed.phase &&
-                            x.Equipment == parsed.equipment);
-
-                    var smartStep = existingSmartStep;
-                    if (smartStep == null)
-                    {
-                        smartStep = new SmartRecipeStep
-                        {
-                            MasterStepKey = stepRef.MasterStepKey,
-                            VariablesJson = parsed.variablesJson,
-                            Phase = parsed.phase,
-                            Equipment = parsed.equipment
-                        };
-                        await _context.SmartRecipeStep.AddAsync(smartStep);
-                    }
-
-                    var smartJoin = new RecipeJoinSmartStep
-                    {
-                        Recipe = postingToEdit.Recipe,
-                        SmartRecipeStep = smartStep,
-                        StepIndex = stepRef.StepIndex > 0 ? stepRef.StepIndex : 1
-                    };
-                    await _context.RecipeJoinSmartStep.AddAsync(smartJoin);
-                }
-            }
+            // SmartSteps REMOVED - using new simple translation system
 
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
@@ -1130,8 +906,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .Include(p => p.Recipe)
                     .ThenInclude(r => r.Steps)
                 .Include(p => p.Recipe)
-                    .ThenInclude(r => r.SmartSteps)
-                .Include(p => p.Recipe)
                     .ThenInclude(r => r.RecipeKeywords)
                 .Include(p => p.Recipe)
                     .ThenInclude(r => r.Images)
@@ -1151,9 +925,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 if (posting.Recipe.RecipeKeywords != null)
                     _context.RecipeBaseKeywords.RemoveRange(posting.Recipe.RecipeKeywords);
-
-                if (posting.Recipe.SmartSteps != null)
-                    _context.RecipeJoinSmartStep.RemoveRange(posting.Recipe.SmartSteps);
 
                 if (posting.Recipe.Steps != null)
                     _context.RecipeSteps.RemoveRange(posting.Recipe.Steps);  // Neues System
@@ -1612,6 +1383,238 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 "no" => value is "EN" or "EI" or "ET" or "PL" or "-",
                 _ => false
             };
+        }
+
+        // Helper method for background video processing
+        private async Task ProcessVideoUploadInBackgroundAsync(dynamic uploadData)
+        {
+            // Extract all values from dynamic object to avoid dynamic binding issues
+            string title = uploadData.Title;
+            string userHash = uploadData.UserHash;
+            byte[] videoBytes = uploadData.VideoBytes;
+            string fileName = uploadData.FileName;
+            string contentType = uploadData.ContentType;
+            string stepsText = uploadData.StepsText;
+            string category = uploadData.Category;
+            int personCount = uploadData.PersonCount;
+            int preparationTime = uploadData.PreparationTime;
+            string preferences = uploadData.Preferences;
+            var ingredientData = uploadData.IngredientData as IEnumerable<dynamic>;
+            List<int> selectedKeywordIds = uploadData.SelectedKeywordIds;
+
+            // Create new scope (important for DbContext!)
+            using var scope = _serviceScopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            var blobUpload = scope.ServiceProvider.GetRequiredService<IBlobUploadService>();
+            var saveRecipeService = scope.ServiceProvider.GetRequiredService<ISaveNewRecipeService>();
+            var translationService = scope.ServiceProvider.GetRequiredService<RecipeTranslationService>();
+
+            _logger.LogInformation("Starting background upload for {Title} by {UserHash}", title, userHash);
+
+            // 1. Upload video to Bunny (BLOCKS 3-4 minutes, but in background)
+            var videoFile = CreateFormFileFromBytes(videoBytes, fileName, contentType);
+            var uploadResult = await blobUpload.UploadContentToBlob(videoFile);
+
+            _logger.LogInformation("Video uploaded to Bunny: {Url}", uploadResult.SourceUrl);
+
+            // 2. AI translation (if steps provided)
+            List<RecipeSteps> recipeSteps = new();
+            if (!string.IsNullOrWhiteSpace(stepsText))
+            {
+                var translation = await translationService.TranslateRecipeAsync(
+                    title,
+                    stepsText,
+                    CancellationToken.None);
+
+                var now = DateTime.UtcNow;
+                var stepTranslations = new Dictionary<string, string>
+                {
+                    { "de", translation.Steps.De },
+                    { "en", translation.Steps.En },
+                    { "esp", translation.Steps.Esp },
+                    { "prt", translation.Steps.Prt },
+                    { "id", translation.Steps.Id },
+                    { "nl", translation.Steps.Nl },
+                    { "sv", translation.Steps.Sv },
+                    { "da", translation.Steps.Da },
+                    { "no", translation.Steps.No },
+                    { "ms", translation.Steps.Ms }
+                };
+
+                foreach (var kvp in stepTranslations)
+                {
+                    if (!string.IsNullOrWhiteSpace(kvp.Value))
+                    {
+                        recipeSteps.Add(new RecipeSteps
+                        {
+                            Culture = kvp.Key,
+                            Text = kvp.Value,
+                            CreatedAt = now
+                        });
+                    }
+                }
+            }
+
+            // 3. Reconstruct IngredientMeasureQuantity from simple data (avoid DbContext tracking issues)
+            var ingredientMeasureQuantity = new List<IngredientMeasureQuantity>();
+            if (ingredientData != null)
+            {
+                foreach (var item in ingredientData)
+                {
+                    int ingredientId = item.IngredientId;
+                    double quantity = item.Quantity;
+                    string measureDe = item.MeasureDe;
+
+                    if (ingredientId > 0 && quantity > 0)
+                    {
+                        var ingredient = await context.IngredientsAndNutrients.FindAsync(ingredientId);
+                        var measure = await context.Metrics.FirstOrDefaultAsync(m => m.Metrics_DE == measureDe);
+
+                        if (ingredient != null && measure != null)
+                        {
+                            ingredientMeasureQuantity.Add(new IngredientMeasureQuantity
+                            {
+                                IngredientsAndNutrients = ingredient,
+                                Measure = measure,
+                                Quantity = new Quantity { Quantitys = quantity }
+                            });
+                        }
+                    }
+                }
+            }
+
+            // 4. Save recipe
+            var recipeModel = new SaveNewRecipeModel
+            {
+                Recipes = new Recipes
+                {
+                    Name = title,
+                    Category = category,
+                    RecipePersonCount = personCount,
+                    PreparationTime = preparationTime,
+                    // For videos, use thumbnail URL; for images, use the image itself
+                    ImagePath = !string.IsNullOrEmpty(uploadResult.ThumbnailUrl)
+                        ? uploadResult.ThumbnailUrl
+                        : uploadResult.SourceUrl
+                },
+                Querys = preferences,
+                IngredientMeasureQuantity = ingredientMeasureQuantity,
+                RecipeSteps = recipeSteps
+            };
+
+            var recipe = await saveRecipeService.SaveNewAsync(recipeModel, true);
+
+            if (recipe == null)
+            {
+                throw new InvalidOperationException("Recipe save failed");
+            }
+
+            // 5. Create WorldUserPosting
+            var user = await context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
+            var creatorName = user?.UserName ?? "Avocado";
+
+            var posting = new WorldUserPosting
+            {
+                CreationTime = DateTime.Now,
+                CreatorName = creatorName,
+                CreatorId = userHash,
+                Title = title,
+                Source = uploadResult.SourceUrl,
+                ThumbnailUrl = uploadResult.ThumbnailUrl,
+                Recipe = recipe
+            };
+
+            await context.WorldUserPosting.AddAsync(posting);
+            await context.SaveChangesAsync();
+
+            // 6. Link keywords
+            if (selectedKeywordIds != null && selectedKeywordIds.Count > 0)
+            {
+                var keywordLinks = selectedKeywordIds
+                    .Distinct()
+                    .Select(keywordId => new RecipeBaseKeyword
+                    {
+                        RecipeBaseDataId = recipe.Id,
+                        KeywordId = keywordId
+                    })
+                    .ToList();
+
+                await context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
+                await context.SaveChangesAsync();
+            }
+
+            // 7. Track pending video for transcoding notifications
+            if (!string.IsNullOrEmpty(uploadResult.VideoGuid))
+            {
+                var pendingVideo = new WorldUserPendingVideo
+                {
+                    PostingId = posting.Id,
+                    VideoGuid = uploadResult.VideoGuid,
+                    UserHash = userHash,
+                    CreatedAt = DateTime.UtcNow
+                };
+                await context.WorldUserPendingVideos.AddAsync(pendingVideo);
+                await context.SaveChangesAsync();
+
+                _logger.LogInformation("Pending video tracked: {VideoGuid} for posting {PostingId}",
+                    uploadResult.VideoGuid, posting.Id);
+            }
+
+            // 8. Send success notification
+            var notification = new WorldUserNotification
+            {
+                UserHash = userHash,
+                Description = $"Dein Video \"{title}\" wurde hochgeladen!",
+                CreatedAtUtc = DateTime.UtcNow,
+                IsSeen = false,
+                EventType = "upload-complete",
+                Icon = "bi-check-circle-fill",
+                Sender = "system",
+                Href = $"/WorldMiniApp/Feed/Index?postingId={posting.Id}",
+                NotificationKey = $"upload-complete:{posting.Id}",
+                ContextText = title
+            };
+
+            await context.WorldUserNotifications.AddAsync(notification);
+            await context.SaveChangesAsync();
+
+            _logger.LogInformation("Upload completed successfully. Posting {PostingId} for user {UserHash}",
+                posting.Id, userHash);
+        }
+
+        // Helper to create IFormFile from bytes
+        private IFormFile CreateFormFileFromBytes(byte[] bytes, string fileName, string contentType)
+        {
+            var stream = new MemoryStream(bytes);
+            return new FormFile(stream, 0, bytes.Length, "Content", fileName)
+            {
+                Headers = new HeaderDictionary(),
+                ContentType = contentType
+            };
+        }
+
+        // Helper to send error notification
+        private async Task SendUploadErrorNotificationAsync(string userHash, string title, string errorMessage)
+        {
+            using var scope = _serviceScopeFactory.CreateScope();
+            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+            var notification = new WorldUserNotification
+            {
+                UserHash = userHash,
+                Description = $"Upload von \"{title}\" fehlgeschlagen. Bitte erneut versuchen.",
+                CreatedAtUtc = DateTime.UtcNow,
+                IsSeen = false,
+                EventType = "upload-failed",
+                Icon = "bi-exclamation-triangle-fill",
+                Sender = "system",
+                Href = "/WorldMiniApp/Home/Upload",
+                NotificationKey = $"upload-failed:{Guid.NewGuid()}",
+                ContextText = errorMessage.Length > 200 ? errorMessage.Substring(0, 200) : errorMessage
+            };
+
+            await context.WorldUserNotifications.AddAsync(notification);
+            await context.SaveChangesAsync();
         }
     }
 }

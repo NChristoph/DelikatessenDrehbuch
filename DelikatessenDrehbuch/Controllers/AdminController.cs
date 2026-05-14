@@ -87,6 +87,12 @@ namespace DelikatessenDrehbuch.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> ExportRecipeJsonSchemaAsync()
         {
+            // OLD SYSTEM - REMOVED (used RecipePreparationSteps)
+            TempData["ExportJsonMessage"] = "Export nicht verfügbar - altes Step-System wurde entfernt";
+            return RedirectToAction(nameof(Index));
+
+            /*
+            // OLD CODE - REMOVED
             var recipes = await _context.Recipes
                 .AsNoTracking()
                 .OrderBy(x => x.Id)
@@ -235,6 +241,7 @@ namespace DelikatessenDrehbuch.Controllers
 
             TempData["ExportJsonMessage"] = $"JSON Export erstellt: data/exports/{fileName}";
             return RedirectToAction(nameof(Index));
+            */
         }
 
         private static string MapCategoryToCourse(string? category)
@@ -291,145 +298,13 @@ namespace DelikatessenDrehbuch.Controllers
             return View(new AddNewRecipesModel());
         }
 
-        public IActionResult CreatePreparationStep()
-        {
-            var model=_context.RecipePreparationSteps.ToList();
-            return View(model);
-        }
+        // OLD SYSTEM - CreatePreparationStep REMOVED
 
-        public async Task<IActionResult> JoinIngredientPreparationStep()
-        {
-            var model = new JoinIngredientPreparationStepViewModel
-            {
-                PreparationSteps = await _context.RecipePreparationSteps.OrderBy(x => x.Id).ToListAsync(),
-                Ingredients = await _context.IngredientsAndNutrients
-                    .Include(x => x.Group)
-                    .OrderBy(x => x.Name_DE)
-                    .ToListAsync(),
-                ExistingJoins = await _context.JoinIngredientPreparationStep
-                    .Include(x => x.Preparation)
-                    .Include(x => x.Ingredient)
-                    .ToListAsync()
-            };
+        // OLD SYSTEM - JoinIngredientPreparationStep REMOVED
 
-            return View(model);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveJoinIngredientPreparationStep(int selectedStepId, string selectedStepIds, string selectedIngredientIds)
-        {
-            var stepIds = (selectedStepIds ?? string.Empty)
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => int.TryParse(x, out var id) ? id : 0)
-                .Where(x => x > 0)
-                .Distinct()
-                .ToList();
-
-            if (stepIds.Count == 0 && selectedStepId > 0)
-                stepIds.Add(selectedStepId);
-
-            if (stepIds.Count == 0)
-                return BadRequest("Bitte mindestens einen Zubereitungsschritt auswählen.");
-
-            var ingredientIds = (selectedIngredientIds ?? string.Empty)
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => int.TryParse(x, out var id) ? id : 0)
-                .Where(x => x > 0)
-                .Distinct()
-                .ToList();
-
-            if (ingredientIds.Count == 0)
-                return BadRequest("Bitte mindestens eine Zutat auswählen.");
-
-            var existingRows = await _context.JoinIngredientPreparationStep
-                .Where(x => x.Preparation != null && stepIds.Contains(x.Preparation.Id))
-                .ToListAsync();
-
-            if (existingRows.Count > 0)
-                _context.JoinIngredientPreparationStep.RemoveRange(existingRows);
-
-            var preparations = await _context.RecipePreparationSteps
-                .Where(x => stepIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id);
-
-            var ingredients = await _context.IngredientsAndNutrients
-                .Where(x => ingredientIds.Contains(x.Id))
-                .ToDictionaryAsync(x => x.Id);
-
-            var newRows = new List<JoinIngredientPreparationStep>();
-            foreach (var stepId in stepIds)
-            {
-                if (!preparations.TryGetValue(stepId, out var preparation))
-                    continue;
-
-                foreach (var ingredientId in ingredientIds)
-                {
-                    if (!ingredients.TryGetValue(ingredientId, out var ingredient))
-                        continue;
-
-                    newRows.Add(new JoinIngredientPreparationStep
-                    {
-                        Preparation = preparation,
-                        Ingredient = ingredient
-                    });
-                }
-            }
-
-            if (newRows.Count > 0)
-                await _context.JoinIngredientPreparationStep.AddRangeAsync(newRows);
-
-            await _context.SaveChangesAsync();
-
-            return RedirectToAction(nameof(JoinIngredientPreparationStep));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteJoinIngredientPreparationStep(int stepId, int ingredientId)
-        {
-            if (stepId <= 0 || ingredientId <= 0)
-                return BadRequest("Ungültige Verknüpfung.");
-
-            var rows = await _context.JoinIngredientPreparationStep
-                .Where(x => x.Preparation != null && x.Ingredient != null && x.Preparation.Id == stepId && x.Ingredient.Id == ingredientId)
-                .ToListAsync();
-
-            if (rows.Count > 0)
-            {
-                _context.JoinIngredientPreparationStep.RemoveRange(rows);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(nameof(JoinIngredientPreparationStep));
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteJoinIngredientPreparationStepsBulk(string selectedJoinIds)
-        {
-            var joinIds = (selectedJoinIds ?? string.Empty)
-                .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                .Select(x => int.TryParse(x, out var id) ? id : 0)
-                .Where(x => x > 0)
-                .Distinct()
-                .ToList();
-
-            if (joinIds.Count == 0)
-                return RedirectToAction(nameof(JoinIngredientPreparationStep));
-
-            var rows = await _context.JoinIngredientPreparationStep
-                .Where(x => joinIds.Contains(x.Id))
-                .ToListAsync();
-
-            if (rows.Count > 0)
-            {
-                _context.JoinIngredientPreparationStep.RemoveRange(rows);
-                await _context.SaveChangesAsync();
-            }
-
-            return RedirectToAction(nameof(JoinIngredientPreparationStep));
-        }
+        // OLD SYSTEM - SaveJoinIngredientPreparationStep REMOVED
+        // OLD SYSTEM - DeleteJoinIngredientPreparationStep REMOVED
+        // OLD SYSTEM - DeleteJoinIngredientPreparationStepsBulk REMOVED
 
         [HttpGet]
         public async Task<IActionResult> GetIngredientTableData()
@@ -460,64 +335,12 @@ namespace DelikatessenDrehbuch.Controllers
         [HttpGet]
         public async Task<IActionResult> GetPreparationStepTableData(string selectedIngredientIds = "")
         {
-            try
-            {
-                var ingredientIds = (selectedIngredientIds ?? string.Empty)
-                    .Split(',', StringSplitOptions.RemoveEmptyEntries)
-                    .Select(x => int.TryParse(x, out var id) ? id : 0)
-                    .Where(x => x > 0)
-                    .Distinct()
-                    .ToList();
-
-                IQueryable<RecipePreparationSteps> query = _context.RecipePreparationSteps;
-
-                if (ingredientIds.Count > 0)
-                {
-                    var stepIds = await _context.JoinIngredientPreparationStep
-                        .Where(x => x.Preparation != null && x.Ingredient != null && ingredientIds.Contains(x.Ingredient.Id))
-                        .Select(x => x.Preparation.Id)
-                        .Distinct()
-                        .ToListAsync();
-
-                    query = query.Where(x => stepIds.Contains(x.Id));
-                }
-
-                var preparationSteps = await query
-                    .OrderBy(x => x.Id)
-                    .Select(x => new
-                    {
-                        x.Id,
-                        x.Step_DE,
-                        x.Phase,
-                        x.Equipment,
-                        IngredientIds = _context.JoinIngredientPreparationStep
-                            .Where(join => join.Preparation != null && join.Ingredient != null && join.Preparation.Id == x.Id)
-                            .Select(join => join.Ingredient.Id)
-                            .Distinct()
-                            .ToList()
-                    })
-                    .ToListAsync();
-
-                return Json(preparationSteps);
-            }
-            catch (Exception ex)
-            {
-#if DEBUG
-                throw new Exception("Fehler beim Laden der Zubereitungsschritte-Tabelle.", ex);
-#else
-                return StatusCode(500, new { message = "Fehler beim Laden der Zubereitungsschritte-Tabelle." });
-#endif
-            }
+            // OLD SYSTEM - REMOVED (used RecipePreparationSteps)
+            await Task.CompletedTask;
+            return Json(new object[0]);
         }
 
-        public IActionResult SavePreparationStep(RecipePreparationSteps step)
-        {
-            _context.RecipePreparationSteps.Add(step);
-            _context.SaveChanges();
-
-
-            return RedirectToAction("Index");
-        }
+        // OLD SYSTEM - SavePreparationStep REMOVED
 
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -619,14 +442,8 @@ namespace DelikatessenDrehbuch.Controllers
             if (recipeFromDb == null)
                 return BadRequest("Zu bearbeitendes Rezept nicht gefunden");
 
-            var joinRows = await _context.JoinIngredientPreparationStep
-                .Where(x => x.Preparation != null && x.Ingredient != null)
-                .Select(x => new { StepId = x.Preparation.Id, IngredientId = x.Ingredient.Id })
-                .ToListAsync();
-
-            ViewData["StepIngredientBindings"] = joinRows
-                .GroupBy(x => x.StepId)
-                .ToDictionary(g => g.Key, g => g.Select(x => x.IngredientId).Distinct().ToList());
+            // OLD SYSTEM - JoinIngredientPreparationStep removed
+            ViewData["StepIngredientBindings"] = new Dictionary<int, List<int>>();
 
             EditRecipesModel editRecipesModel = new()
             {
@@ -635,7 +452,7 @@ namespace DelikatessenDrehbuch.Controllers
                 Measure = await _measureService.GetMeasureFromDbAsync(),
                 Querys = string.Join(",", await _queryService.GetQuerysFromDbByRecipeIdAsync(recipeFromDb.Id)),
                 IngredientsAndNutrients = await _context.IngredientsAndNutrients.ToListAsync(),
-                RecipeSteps = await _context.RecipeSteps.Where(s => s.RecipeId == recipeFromDb.Id).OrderBy(s => s.StepOrder).ToListAsync(),
+                RecipeSteps = await _context.RecipeSteps.Where(s => s.RecipeId == recipeFromDb.Id).ToListAsync(),
                 IngredientMeasureQuantity = new()
 
             };

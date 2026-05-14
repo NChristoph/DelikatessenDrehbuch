@@ -1,5 +1,6 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
@@ -21,7 +22,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IRecipeAiTransformService _recipeAiTransformService;
         private readonly IRecipeAiVariantJobService _recipeAiVariantJobService;
         private readonly IRecipeAiNutritionService _recipeAiNutritionService;
-        private readonly IRecipeStepTranslationService _recipeStepTranslationService;
+        private readonly RecipeTranslationService _recipeTranslationService;
         private readonly IStringLocalizer<SharedResources> _sharedLocalizer;
         private readonly ILogger<HomeController> _logger;
 
@@ -109,7 +110,7 @@ END;
             IRecipeAiTransformService recipeAiTransformService,
             IRecipeAiVariantJobService recipeAiVariantJobService,
             IRecipeAiNutritionService recipeAiNutritionService,
-            IRecipeStepTranslationService recipeStepTranslationService,
+            RecipeTranslationService recipeTranslationService,
             IStringLocalizer<SharedResources> sharedLocalizer,
             ILogger<HomeController> logger)
         {
@@ -119,7 +120,7 @@ END;
             _recipeAiTransformService = recipeAiTransformService;
             _recipeAiVariantJobService = recipeAiVariantJobService;
             _recipeAiNutritionService = recipeAiNutritionService;
-            _recipeStepTranslationService = recipeStepTranslationService;
+            _recipeTranslationService = recipeTranslationService;
             _sharedLocalizer = sharedLocalizer;
             _logger = logger;
         }
@@ -515,19 +516,11 @@ END;
                 .CountAsync(v => v.OriginalRecipeId == id && v.Language == language);
             ViewData["CommunityVariantCount"] = communityVariantCount;
 
-            // Load translated steps for the current language
-            try
+            // NEW SYSTEM: Steps sind schon geladen via Include, filtern nach Sprache
+            var stepsForLanguage = model.Steps?.FirstOrDefault(s => s.Culture == language);
+            if (stepsForLanguage != null && !string.IsNullOrWhiteSpace(stepsForLanguage.Text))
             {
-                var translatedSteps = await _recipeStepTranslationService.GetStepsForLanguageAsync(id, language);
-                if (translatedSteps != null && translatedSteps.Count > 0)
-                {
-                    ViewData["TranslatedSteps"] = translatedSteps;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to load translated steps for recipe {RecipeId} in language {Language}", id, language);
-                // Continue without translations - view will fall back to source text
+                ViewData["TranslatedSteps"] = stepsForLanguage.Text;
             }
 
             return View(model);
@@ -964,6 +957,167 @@ END;
             }
 
             return Json(strings);
+        }
+
+        /// <summary>
+        /// Neues System: Speichert Rezept und übersetzt Title + Steps in alle 10 Sprachen
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveRecipeWithTranslation([FromBody] SaveRecipeRequest request, CancellationToken cancellationToken)
+        {
+            try
+            {
+                // Validation
+                if (string.IsNullOrWhiteSpace(request.Title))
+                {
+                    return BadRequest(new { success = false, message = "Titel fehlt" });
+                }
+
+                if (string.IsNullOrWhiteSpace(request.Steps))
+                {
+                    return BadRequest(new { success = false, message = "Zubereitungsschritte fehlen" });
+                }
+
+                if (request.Ingredients == null || !request.Ingredients.Any())
+                {
+                    return BadRequest(new { success = false, message = "Zutaten fehlen" });
+                }
+
+                _logger.LogInformation("💾 Saving recipe with AI translation: {Title}", request.Title);
+
+                // 1. AI-Übersetzung (Titel + Steps in alle 10 Sprachen)
+                var translation = await _recipeTranslationService.TranslateRecipeAsync(
+                    request.Title,
+                    request.Steps,
+                    cancellationToken);
+
+                if (!translation.Success)
+                {
+                    _logger.LogError("AI translation failed: {Error}", translation.ErrorMessage);
+                    return StatusCode(500, new { success = false, message = "Übersetzung fehlgeschlagen: " + translation.ErrorMessage });
+                }
+
+                // 2. Datenbank-Transaktion starten
+                using var transaction = await _context.Database.BeginTransactionAsync(cancellationToken);
+
+                // 3. RecipeBaseData erstellen (nur Basis-Daten, Steps kommen in eigene Tabelle)
+                var recipe = new RecipeBaseData
+                {
+                    Title = request.Title,
+                    Category = request.Category ?? "Hauptspeise",
+                    PersonCount = request.PersonCount > 0 ? request.PersonCount : 2,
+                    PreparationTime = request.PreparationTime > 0 ? request.PreparationTime : 30,
+                    Preferences = request.Preferences ?? "",
+                    LikeCount = 0
+                };
+
+                _context.RecipeBaseData.Add(recipe);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                _logger.LogInformation("✅ RecipeBaseData saved with Id: {RecipeId}", recipe.Id);
+
+                // 4. RecipeSteps erstellen (10 Rows, eine pro Sprache)
+                var cultures = new[] { "de", "en", "esp", "prt", "id", "nl", "sv", "da", "no", "ms" };
+                var now = DateTime.UtcNow;
+
+                foreach (var culture in cultures)
+                {
+                    var text = culture switch
+                    {
+                        "de" => translation.Steps.De,
+                        "en" => translation.Steps.En,
+                        "esp" => translation.Steps.Esp,
+                        "prt" => translation.Steps.Prt,
+                        "id" => translation.Steps.Id,
+                        "nl" => translation.Steps.Nl,
+                        "sv" => translation.Steps.Sv,
+                        "da" => translation.Steps.Da,
+                        "no" => translation.Steps.No,
+                        "ms" => translation.Steps.Ms,
+                        _ => translation.Steps.De
+                    };
+
+                    _context.RecipeSteps.Add(new RecipeSteps
+                    {
+                        RecipeId = recipe.Id,
+                        Culture = culture,
+                        Text = text,
+                        CreatedAt = now
+                    });
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("✅ RecipeSteps saved (10 languages)");
+
+                // 5. Zutaten verknüpfen (werden nicht übersetzt, sind schon mehrsprachig in DB!)
+                foreach (var ing in request.Ingredients)
+                {
+                    if (ing.IngredientMeasureQuantityId <= 0)
+                    {
+                        _logger.LogWarning("⚠️ Skipping ingredient with invalid IngredientMeasureQuantityId: {Id}", ing.IngredientMeasureQuantityId);
+                        continue;
+                    }
+
+                    // Load the IngredientMeasureQuantity entity
+                    var ingredientEntity = await _context.IngredientMeasureQuantity
+                        .FirstOrDefaultAsync(i => i.Id == ing.IngredientMeasureQuantityId, cancellationToken);
+
+                    if (ingredientEntity == null)
+                    {
+                        _logger.LogWarning("⚠️ IngredientMeasureQuantity not found: {Id}", ing.IngredientMeasureQuantityId);
+                        continue;
+                    }
+
+                    _context.RecipeJoinIngredientMeasureQuantity.Add(new RecipeJoinIngredientMeasureQuantity
+                    {
+                        Recipe = recipe,
+                        Ingredient = ingredientEntity
+                    });
+                }
+
+                await _context.SaveChangesAsync(cancellationToken);
+                _logger.LogInformation("✅ Ingredients linked: {Count} items", request.Ingredients.Count);
+
+                // 6. Commit
+                await transaction.CommitAsync(cancellationToken);
+
+                _logger.LogInformation("🎉 Recipe saved successfully with Id: {RecipeId}", recipe.Id);
+
+                return Json(new
+                {
+                    success = true,
+                    recipeId = recipe.Id,
+                    message = "Rezept erfolgreich gespeichert und übersetzt!",
+                    translations = new
+                    {
+                        title = translation.Title,
+                        steps = translation.Steps
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "❌ Failed to save recipe with translation");
+                return StatusCode(500, new { success = false, message = "Fehler beim Speichern: " + ex.Message });
+            }
+        }
+
+        // DTO für SaveRecipeWithTranslation
+        public class SaveRecipeRequest
+        {
+            public string Title { get; set; }
+            public string Steps { get; set; }
+            public string? Category { get; set; }
+            public int PersonCount { get; set; }
+            public int PreparationTime { get; set; }
+            public string? Preferences { get; set; }
+            public List<IngredientItem> Ingredients { get; set; }
+        }
+
+        public class IngredientItem
+        {
+            public int IngredientMeasureQuantityId { get; set; }
         }
     }
 }

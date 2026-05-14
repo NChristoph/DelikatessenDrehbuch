@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Globalization;
 using System.Text;
+using WorldMiniApp.Services;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -35,13 +36,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly ILogger<FeedController> _logger;
         private readonly IWildCoinService _coinService;
         private readonly IConfiguration _configuration;
+        private readonly IFeedAlgorithmService _feedAlgorithmService;
 
-        public FeedController(ApplicationDbContext context, ILogger<FeedController> logger, IWildCoinService coinService, IConfiguration configuration)
+        public FeedController(ApplicationDbContext context, ILogger<FeedController> logger, IWildCoinService coinService, IConfiguration configuration, IFeedAlgorithmService feedAlgorithmService)
         {
             _context = context;
             _logger = logger;
             _coinService = coinService;
             _configuration = configuration;
+            _feedAlgorithmService = feedAlgorithmService;
         }
         
         public async Task<IActionResult> Index(string filter = "feed", string userHash = "", int scrollToId = 0, string searchTerm = "", string category = "", int? maxPrepTime = null)
@@ -2112,6 +2115,45 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             public decimal Protein { get; set; }
             public decimal Fat { get; set; }
             public decimal Carbohydrates { get; set; }
+        }
+
+        /// <summary>
+        /// Trackt User-Interaktionen für den Feed-Algorithmus (kein AntiForgeryToken nötig für AJAX)
+        /// </summary>
+        [HttpPost]
+        public async Task<IActionResult> TrackInteraction([FromBody] TrackInteractionRequest request)
+        {
+            var userHash = ResolveUserHash(request.UserHash);
+            if (string.IsNullOrEmpty(userHash))
+            {
+                return Ok(); // Nicht eingeloggt, kein Tracking
+            }
+
+            try
+            {
+                await _feedAlgorithmService.TrackInteractionAsync(
+                    userHash: userHash,
+                    postingId: request.PostingId,
+                    type: request.InteractionType,
+                    duration: request.Duration
+                );
+
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Tracking von Interaction: {Type} für Posting {PostingId}",
+                    request.InteractionType, request.PostingId);
+                return Ok(); // Tracking-Fehler sollten nicht die UX beeinträchtigen
+            }
+        }
+
+        public class TrackInteractionRequest
+        {
+            public string UserHash { get; set; } = string.Empty;
+            public int PostingId { get; set; }
+            public InteractionType InteractionType { get; set; }
+            public double? Duration { get; set; }
         }
     }
 }

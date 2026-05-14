@@ -3044,12 +3044,9 @@
         }
 
         function renderTemplateCards() {
-            return window.CreatePostingTemplateBuilder.renderTemplateCards({
-                creatorState,
-                buildVariablesForTemplate,
-                updatePreviewText,
-                currentLang: () => currentLang
-            });
+            // OLD SYSTEM - SmartStep Template Builder removed
+            // No-op stub to prevent errors
+            return;
         }
 
 
@@ -3063,22 +3060,16 @@
         }
 
         function setMasterTemplateError(message) {
-            return window.CreatePostingTemplateBuilder.setMasterTemplateError(message);
+            // OLD SYSTEM - SmartStep Template Builder removed
+            // No-op stub to prevent errors
+            console.log('Template error (old system):', message);
+            return;
         }
 
         function refreshMasterTemplateBuilder() {
-            return window.CreatePostingTemplateBuilder.refreshMasterTemplateBuilder({
-                creatorState,
-                buildVariablesForTemplate,
-                updatePreviewText,
-                applyCurrentThemeAttributes,
-                applyDerivedIngredientRowVisuals,
-                renderIngredientChips,
-                updateStoryProgress,
-                renderAcceptedRecipeTextCard,
-                showMasterStepCreatorError,
-                currentLang: () => currentLang
-            });
+            // OLD SYSTEM - SmartStep Template Builder removed
+            // No-op stub to prevent errors
+            return;
         }
 
 
@@ -4744,7 +4735,30 @@
         async function publishAsync() {
             if (!prepareBinding()) return;
             const form = document.getElementById('recipeForm');
+
+            // Prüfe, ob eine Datei ausgewählt wurde (per ID, da asp-for den Namen anders generieren könnte)
+            const contentInput = document.getElementById('videoInput');
+            if (!contentInput || !contentInput.files || contentInput.files.length === 0) {
+                alert('📁 Keine Datei ausgewählt!\n\nBitte wählen Sie zuerst ein Bild oder Video aus.\n\n💡 Tipp: Bei wiederhergestellten Entwürfen müssen Sie die Datei erneut auswählen.');
+                return;
+            }
+
             const formData = new FormData(form);
+
+            // WICHTIG: AntiForgeryToken explizit zum FormData hinzufügen
+            const token = form.querySelector('input[name="__RequestVerificationToken"]');
+            if (token && token.value) {
+                // Token sollte bereits im FormData sein, aber zur Sicherheit nochmal hinzufügen
+                if (!formData.has('__RequestVerificationToken')) {
+                    formData.append('__RequestVerificationToken', token.value);
+                    console.log('AntiForgeryToken hinzugefügt:', token.value.substring(0, 20) + '...');
+                } else {
+                    console.log('AntiForgeryToken bereits im FormData vorhanden');
+                }
+            } else {
+                console.error('AntiForgeryToken nicht gefunden!');
+            }
+
             const submitBtn = form.querySelector('[type="submit"]');
 
             // Show loading state (mit wichtiger CSS-Priorität)
@@ -4776,11 +4790,17 @@
             }
 
             try {
+                // DEBUG: Zeige die Action-URL
+                console.log('Form Action URL:', form.action);
+
+                // WICHTIG: Keine Content-Type Header setzen! FormData setzt das automatisch korrekt.
+                // Nur X-Idempotency-Key Header hinzufügen
                 const resp = await fetch(form.action, {
                     method: 'POST',
                     body: formData,
                     headers: {
                         'X-Idempotency-Key': idempotencyKey
+                        // AntiForgeryToken ist bereits im FormData enthalten
                     }
                 });
                 const data = await resp.json();
@@ -4791,7 +4811,10 @@
                     sessionStorage.removeItem('createPostingIdempotencyKey');
 
                     // Different redirect based on content type and translation status
-                    if (data.isVideo) {
+                    if (data.isAsync) {
+                        // Immediate redirect - upload runs in background
+                        window.location.href = '/WorldMiniApp/Home/Index?toast=upload-processing';
+                    } else if (data.isVideo) {
                         window.location.href = '/WorldMiniApp/Home/Index?toast=video-uploading';
                     } else if (data.translationInProgress) {
                         // Sofortiger Wechsel mit Info über laufende Übersetzung
@@ -5324,7 +5347,6 @@
                 if (catalogRow.length) {
                     // Zutat im Katalog gefunden - normal hinzufügen
                     addIngredient(ingId, catalogRow[0]);
-                    showCreatorToast('Vorhandene Zutat hinzugefügt');
                 } else {
                     // ✅ NEU: Zutat nicht im sichtbaren Katalog → Direkt mit Match-Daten hinzufügen
                     const matchData = {
@@ -5336,7 +5358,6 @@
                         unitDe: $btn.data('unit-de') || 'g.'
                     };
                     addIngredientFromMatchData(matchData);
-                    showCreatorToast('Zutat hinzugefügt');
                 }
             });
             // AI ingredient quick-unit buttons
@@ -5724,7 +5745,6 @@
                 }
 
                 addIngredient(ingId, catalogRow[0]);
-                showCreatorToast('Zutat hinzugefügt');
                 $(this).prop('disabled', true).addClass('opacity-50');
                 catalogRow[0]?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             });
@@ -6185,13 +6205,11 @@
                 e.preventDefault();
                 e.stopPropagation();
                 const unit = $(this).data('unit');
-                console.log('🔵 Quick-Unit clicked:', unit);
 
                 const $select = $('#ingredientAddUnit');
 
                 // Prüfe ob Option existiert
                 const optionExists = $select.find(`option[value="${unit}"]`).length > 0;
-                console.log('🔵 Option exists?', optionExists, 'Options:', $select.find('option').map(function() { return $(this).val(); }).get());
 
                 if (!optionExists) {
                     // Füge Option hinzu wenn sie fehlt
@@ -6213,8 +6231,6 @@
                     'color': 'white',
                     'border-color': 'var(--cp-avocado)'
                 });
-
-                showCreatorToast(`Einheit: ${unit}`);
             });
 
             // Add Button
@@ -6299,8 +6315,6 @@
                 // Overlay schließen
                 $('#ingredientAddDropdown, #ingredientAddOverlay').css('display', 'none');
                 currentIngredientRow = null;
-
-                showCreatorToast('Zutat hinzugefügt');
             });
 
             $('#btnCloseIngredientConfig, #btnCancelIngredientConfig').on('click', function (e) {

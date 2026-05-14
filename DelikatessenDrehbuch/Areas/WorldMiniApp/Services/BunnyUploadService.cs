@@ -67,7 +67,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var sourceUrl = await UploadToBunnyAsync(bunnyStorageAddress, bunnyStoragePassword, bunnyCdnHostname, sourceName, sourceStream, "image/webp");
                 var thumbUrl = await UploadToBunnyAsync(bunnyStorageAddress, bunnyStoragePassword, bunnyCdnHostname, thumbName, thumbStream, "image/webp");
 
-                _logger.LogInformation("✅ Image uploaded to Bunny: {SourceBlob} + {ThumbBlob}", sourceName, thumbName);
 
                 return new UploadContentResult
                 {
@@ -85,7 +84,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             if (useBunnyStream)
             {
                 // Bunny Stream: Automatisches Transcoding & Thumbnails (non-blocking)
-                _logger.LogInformation("🎬 Uploading video to Bunny Stream (Library: {LibraryId})", bunnyStreamLibraryId);
                 var streamResult = await UploadToBunnyStreamAsync(bunnyStreamApiKey, bunnyStreamLibraryId, bunnyStreamHostname, file, fileName, waitForTranscoding: false);
 
                 return new UploadContentResult
@@ -98,7 +96,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             else
             {
                 // Fallback: Bunny Storage (ohne automatisches Processing)
-                _logger.LogWarning("⚠️ Bunny Stream nicht konfiguriert. Video wird zu Bunny Storage hochgeladen (kein automatisches Processing!)");
+                _logger.LogWarning("Bunny Stream not configured. Video will be uploaded to Bunny Storage without automatic processing.");
 
                 var videoName = $"{fileName}_{uniqueToken}.mp4";
                 await using var videoStream = file.OpenReadStream();

@@ -22,7 +22,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
         {
             try
             {
-                _logger.LogInformation($"VerifyUrl={VERIFY_URL}",VERIFY_URL);
                 using var client = new HttpClient();
 
                 // Headers setzen
@@ -53,10 +52,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                     Signal = signalToSend
                 };
 
-                _logger.LogInformation("📤 Sende Verify Request an: {Url}", VERIFY_URL);
-                _logger.LogInformation("📋 Action: {Action}, Level: {Level}",
-                    data.Action,
-                    data.Payload.VerificationLevel);
 
                 // API Call
                 var response = await client.PostAsJsonAsync(VERIFY_URL, requestBody);
@@ -65,9 +60,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                 // Erfolg?
                 if (!response.IsSuccessStatusCode)
                 {
-                    _logger.LogError("❌ Worldcoin API Error {Status}: {Response}",
-                        response.StatusCode,
-                        jsonString);
+                    _logger.LogError("Worldcoin API Error: {Status}",
+                        response.StatusCode);
 
                     throw new WorldMiniAppExternalServiceException("Worldcoin",
                         $"Worldcoin API Error {response.StatusCode}: " +
@@ -81,7 +75,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
                 if (result == null)
                 {
-                    _logger.LogError("❌ Deserialization failed: {Json}", jsonString);
+                    _logger.LogError("Worldcoin API response deserialization failed.");
                     return new WorldcoinVerifyResponse
                     {
                         Success = false,
@@ -89,12 +83,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                     };
                 }
 
-                _logger.LogInformation("✅ Worldcoin Verification: {Success}", result.Success);
-
-                if (!result.Success)
-                {
-                    _logger.LogWarning("⚠️ Verification failed: {Detail}", result.Detail);
-                }
 
                 return result;
             }

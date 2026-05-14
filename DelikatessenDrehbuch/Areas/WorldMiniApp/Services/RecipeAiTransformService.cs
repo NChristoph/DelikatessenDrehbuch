@@ -2872,7 +2872,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("OpenAI structured ingredient call failed: {StatusCode} {Body}", response.StatusCode, responseContent);
+                _logger.LogError("OpenAI structured ingredient call failed: {StatusCode}", response.StatusCode);
                 throw new InvalidOperationException(BuildApiErrorMessage(response.StatusCode, responseContent));
             }
 
@@ -2895,7 +2895,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var outputText = TryExtractOutputText(document.RootElement);
             if (string.IsNullOrWhiteSpace(outputText))
             {
-                _logger.LogError("OpenAI structured ingredient call returned no usable output text. Response: {Body}", responseContent);
+                _logger.LogError("OpenAI structured ingredient call returned no usable output text.");
                 return default;
             }
 
@@ -2914,7 +2914,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 }
                 catch (JsonException ex)
                 {
-                    _logger.LogWarning(ex, "OpenAI structured call returned invalid JSON. Falling back. Output: {Output}", outputText);
+                    _logger.LogWarning(ex, "OpenAI structured call returned invalid JSON. Falling back.");
                     return default;
                 }
             }
@@ -2976,7 +2976,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
             catch (JsonException ex)
             {
-                _logger.LogWarning(ex, "OpenAI structured call returned invalid JSON. Output: {Output}", outputText);
+                _logger.LogWarning(ex, "OpenAI structured call returned invalid JSON.");
                 throw new InvalidOperationException($"AI returned invalid JSON for schema '{promptRequest.SchemaName}'. Output starts with: {(outputText.Length <= 220 ? outputText : outputText.Substring(0, 220) + "...")}");
             }
         }
@@ -3334,7 +3334,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("OpenAI tool-call request failed: {StatusCode} {Body}", response.StatusCode, responseContent);
+                _logger.LogError("OpenAI tool-call request failed: {StatusCode}", response.StatusCode);
                 throw new InvalidOperationException(BuildApiErrorMessage(response.StatusCode, responseContent));
             }
 
@@ -4922,21 +4922,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         private List<RecipeAiTransformStepPlanItem> BuildSourceStepPlan(RecipeBaseData recipe, string language)
         {
-            if (recipe.SmartSteps == null)
-            {
-                return new List<RecipeAiTransformStepPlanItem>();
-            }
-
-            return recipe.SmartSteps
-                .OrderBy(x => x.StepIndex)
-                .Select(x => CreateStepPlanItem(
-                    x.SmartRecipeStep?.MasterStepKey,
-                    x.SmartRecipeStep?.Phase,
-                    ParseVariablesJson(x.SmartRecipeStep?.VariablesJson),
-                    language))
-                .Where(x => x != null)
-                .Cast<RecipeAiTransformStepPlanItem>()
-                .ToList();
+            // NEW SYSTEM: SmartSteps removed - returning empty list
+            // AI Transform system now uses RecipeSteps (plain text) instead
+            return new List<RecipeAiTransformStepPlanItem>();
         }
 
         private RecipeAiTransformStepPlanItem? CreateStepPlanItem(string? masterStepKey, int? phase, Dictionary<string, string>? variables, string language)
@@ -5720,11 +5708,29 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         private static List<RecipeAiTransformStepPreview> BuildStepPreview(RecipeBaseData recipe, string language)
         {
-            return recipe.Steps?
-                .OrderBy(x => x.StepOrder)
-                .Select(x => new RecipeAiTransformStepPreview { Index = x.StepOrder, Text = PolishStepText(x.StepText ?? string.Empty, language) })
+            // NEW SYSTEM: RecipeSteps ist normalisiert (Culture + Text)
+            // Wir holen den Text für die gewünschte Sprache
+            var stepsForLanguage = recipe.Steps?.FirstOrDefault(x => x.Culture == language);
+            if (stepsForLanguage == null || string.IsNullOrWhiteSpace(stepsForLanguage.Text))
+            {
+                return new List<RecipeAiTransformStepPreview>();
+            }
+
+            // Steps Text ist ein String mit Zeilenumbrüchen - wir splitten ihn
+            var stepLines = stepsForLanguage.Text
+                .Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(x => x.Trim())
+                .Where(x => !string.IsNullOrWhiteSpace(x))
+                .ToList();
+
+            return stepLines
+                .Select((text, index) => new RecipeAiTransformStepPreview
+                {
+                    Index = index + 1,
+                    Text = PolishStepText(text, language)
+                })
                 .Where(x => !string.IsNullOrWhiteSpace(x.Text))
-                .ToList() ?? new List<RecipeAiTransformStepPreview>();
+                .ToList();
         }
 
         private static string BuildPreparationTextFromStepPlan(IEnumerable<RecipeAiTransformStepPlanItem>? stepPlan, string language)
@@ -6143,18 +6149,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             } ?? ingredient.Name_DE ?? string.Empty;
         }
 
-        private static string GetStepText(RecipePreparationSteps? step, string language)
-        {
-            if (step == null) return string.Empty;
-            // Steps only have DE/EN/ESP/PRT - other languages fall back to EN
-            return language switch
-            {
-                "en" or "id" or "nl" or "sv" or "da" or "no" or "ms" => step.Step_EN,
-                "es" => step.Step_ESP,
-                "pt" => step.Step_PRT,
-                _ => step.Step_DE
-            } ?? step.Step_DE ?? string.Empty;
-        }
+        // OLD SYSTEM - GetStepText removed (RecipePreparationSteps no longer exists)
 
         private static string NormalizeVariantType(string? variantType)
         {

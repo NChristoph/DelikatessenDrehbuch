@@ -51,7 +51,7 @@
                 <span class="cp-hero-stat" id="heroDuration">· 30 Min</span>
                 <span class="cp-hero-progress-wrapper">
                     <span class="cp-hero-progress-number" id="heroProgressNum">0</span>
-                    <span class="cp-hero-progress-total">/ 6</span>
+                    <span class="cp-hero-progress-total">/ 5</span>
                 </span>
             </div>
             <div class="cp-hero-progressbar">
@@ -70,9 +70,7 @@
             <button type="button" class="cp-tab" data-section="card-ingredients">
                 <span>🛒</span> <span class="label-lang" data-de="Zutaten" data-en="Ingredients">Zutaten</span>
             </button>
-            <button type="button" class="cp-tab" data-section="card-probability">
-                <span>💡</span> <span class="label-lang" data-de="Vorschläge" data-en="Suggestions">Vorschläge</span>
-            </button>
+            @* OLD SYSTEM - Probability tab removed *@
             <button type="button" class="cp-tab" data-section="card-steps">
                 <span>📝</span> <span class="label-lang" data-de="Steps" data-en="Steps">Steps</span>
             </button>
@@ -420,34 +418,9 @@
                 </section>
 
                 <!-- Section 4a: Arbeitschritte (Probability) -->
-                <section class="cp-section" id="card-probability">
-                    <div class="cp-section-header">
-                        <div class="cp-section-icon">
-                            <i class="bi bi-lightbulb"></i>
-                        </div>
-                        <div class="cp-section-info">
-                            <h2 class="cp-section-title label-lang"
-                                data-de="Rezept-Vorschläge"
-                                data-en="Recipe Suggestions">Rezept-Vorschläge</h2>
-                            <p class="cp-section-subtitle label-lang"
-                               data-de="KI-Erkennung & Vorschläge"
-                               data-en="AI detection & suggestions">KI-Erkennung & Vorschläge</p>
-                        </div>
-                        <div class="cp-section-counter">4/6</div>
-                    </div>
-                    <div class="cp-section-body">
-                        <!-- Probability Area -->
-                        <div style="margin-bottom:24px;">
-                            <div style="font-family:var(--cp-font-serif);font-size:16px;font-weight:600;color:var(--cp-ink-deep);margin-bottom:8px;" class="label-lang"
-                                 data-de="Was könnte es sein?"
-                                 data-en="What could it be?">Was könnte es sein?</div>
-                            <div id="ingredientProbabilityBadges" style="font-size:13px;color:var(--cp-ink-mute);">Wähle Zutaten aus, um Wahrscheinlichkeiten zu sehen.</div>
-                            <div id="ingredientProbabilityTemplates" class="mt-2 d-none"></div>
-                        </div>
-                    </div>
-                </section>
+                @* OLD SYSTEM - Probability Area removed (SmartStep suggestions based on ingredients) *@
 
-                <!-- Section 4b: Zubereitungsschritte (SmartStepCreator) -->
+                <!-- Section 4b: Zubereitungsschritte (VEREINFACHT) -->
                 <section class="cp-section" id="card-steps">
                     <div class="cp-section-header">
                         <div class="cp-section-icon">
@@ -458,50 +431,51 @@
                                 data-de="Zubereitungsschritte"
                                 data-en="Preparation Steps">Zubereitungsschritte</h2>
                             <p class="cp-section-subtitle label-lang"
-                               data-de="Erstelle & bearbeite deine Steps"
-                               data-en="Create & edit your steps">Erstelle & bearbeite deine Steps</p>
+                               data-de="Schreib deine Schritte - wird beim Speichern in 10 Sprachen übersetzt"
+                               data-en="Write your steps - will be translated to 10 languages on save">
+                               Schreib deine Schritte - wird beim Speichern in 10 Sprachen übersetzt 🌍
+                            </p>
                         </div>
-                        <div class="cp-section-counter">5/6</div>
+                        <div class="cp-section-counter">4/5</div>
                     </div>
                     <div class="cp-section-body">
-                        <!-- AI Step Generator -->
-                        <div class="mb-3" style="padding: 0 6px;">
-                            <button type="button" id="btnToggleAiTextInput" class="btn btn-sm btn-primary" style="display: inline-flex; align-items: center; gap: 6px;">
-                                <i class="bi bi-magic"></i>
-                                <span>@SharedLocalizer["AI.GenerateStepsFromText"]</span>
-                            </button>
+                        <!-- Einfaches Textarea für Steps -->
+                        <div class="mb-3">
+                            <label class="form-label" style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">
+                                <span class="label-lang" data-de="Zubereitungsschritte" data-en="Cooking Instructions">
+                                    Zubereitungsschritte
+                                </span>
+                                <span style="color: #888; font-weight: 400; font-size: 13px;">
+                                    (wird automatisch übersetzt)
+                                </span>
+                            </label>
+                            <textarea
+                                name="StepsText"
+                                id="stepsTextInput"
+                                class="form-control"
+                                rows="12"
+                                required
+                                style="font-size: 14px; line-height: 1.6; resize: vertical; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
+                                placeholder="Schreibe deine Zubereitungsschritte hier...
 
-                            <!-- Collapsible Text Input -->
-                            <div id="aiTextInputCollapse" style="display: none;">
-                                <div class="card" style="background: rgba(248, 249, 255, 0.06); border: 1px solid rgba(170, 190, 255, 0.20); border-radius: 12px; padding: 14px;">
-                                    <label class="form-label small text-muted mb-2">
-                                        @SharedLocalizer["AI.PasteInstructions"]
-                                    </label>
-                                    <textarea
-                                        id="aiTextInput"
-                                        class="form-control mb-2"
-                                        rows="6"
-                                        style="font-size: 13px; resize: vertical;"
-                                        placeholder="Z.B.:
-1. Wasser zum Kochen bringen und Spaghetti 10 Min kochen
-2. Speck in Würfel schneiden und anbraten
-3. Eier mit Parmesan verrühren
-4. Spaghetti abgießen und mit Speck-Ei-Mischung vermischen"></textarea>
-                                    <div class="d-flex gap-2">
-                                        <button type="button" id="btnGenerateFromText" class="btn btn-sm btn-success">
-                                            <i class="bi bi-stars"></i>
-                                            <span>@SharedLocalizer["AI.CreateSteps"]</span>
-                                        </button>
-                                        <button type="button" id="btnCancelTextInput" class="btn btn-sm btn-outline-secondary">
-                                            <span>@SharedLocalizer["Common.Cancel"]</span>
-                                        </button>
-                                    </div>
-                                </div>
+Beispiel:
+1. Wasser zum Kochen bringen und Spaghetti nach Packungsanweisung kochen
+2. Speck in kleine Würfel schneiden und in einer Pfanne knusprig braten
+3. Eier mit geriebenem Parmesan in einer Schüssel verquirlen
+4. Spaghetti abgießen (etwas Nudelwasser aufheben)
+5. Heiße Spaghetti mit der Ei-Käse-Mischung und Speck vermengen
+6. Mit Nudelwasser die gewünschte Konsistenz erreichen
+7. Mit Pfeffer abschmecken und sofort servieren"></textarea>
+
+                            <div class="form-text" style="margin-top: 8px; font-size: 12px; color: #6c757d;">
+                                <i class="bi bi-info-circle"></i>
+                                <span class="label-lang"
+                                      data-de="Schreib einfach deine Steps auf - beim Speichern übersetzt KI in alle Sprachen (Deutsch, Englisch, Spanisch, Portugiesisch, Indonesisch, Niederländisch, Schwedisch, Dänisch, Norwegisch, Malaiisch)"
+                                      data-en="Just write your steps - AI will translate to all languages on save (German, English, Spanish, Portuguese, Indonesian, Dutch, Swedish, Danish, Norwegian, Malay)">
+                                    Schreib einfach deine Steps auf - beim Speichern übersetzt KI in alle Sprachen 🤖
+                                </span>
                             </div>
                         </div>
-
-                        <!-- SmartStepCreator Partial -->
-                        @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Home/_SmartStepCreatorPartial.cshtml")
                     </div>
                 </section>
 
@@ -519,7 +493,7 @@
                                data-de="Hilft beim Feed & bei Suche"
                                data-en="Helps feed & search">Hilft beim Feed & bei Suche</p>
                         </div>
-                        <div class="cp-section-counter">6/6</div>
+                        <div class="cp-section-counter">5/5</div>
                     </div>
                     <div class="cp-section-body">
                         <div style="display:flex;flex-wrap:wrap;gap:8px;">
@@ -766,12 +740,13 @@ button, input, select, textarea { touch-action: manipulation; }
     <script src="~/js/create-posting-data-store.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-feedback.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-page-data.js" asp-append-version="true"></script>
-    <script src="~/js/create-posting-template-builder.js" asp-append-version="true"></script>
-    <script src="~/js/create-posting-template-draft-engine.js" asp-append-version="true"></script>
-    <script src="~/js/create-posting-step-filter-ui.js" asp-append-version="true"></script>
-    <script defer src="~/js/master-step-renderer.js" asp-append-version="true"></script>
-    <script defer src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script>
-    <script defer src="~/js/recipe-step-suggest.js" asp-append-version="true"></script>
+    @* OLD SYSTEM - SmartStep scripts removed (not used in new RecipeSteps system) *@
+    @* <script src="~/js/create-posting-template-builder.js" asp-append-version="true"></script> *@
+    @* <script src="~/js/create-posting-template-draft-engine.js" asp-append-version="true"></script> *@
+    @* <script src="~/js/create-posting-step-filter-ui.js" asp-append-version="true"></script> *@
+    @* <script defer src="~/js/master-step-renderer.js" asp-append-version="true"></script> *@
+    @* <script defer src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script> *@
+    @* <script defer src="~/js/recipe-step-suggest.js" asp-append-version="true"></script> *@
     <script>
         window.CreatePostingPageConfig = {
             upsertStepUrl: "@Url.Action("UpsertStep", "Home", new { area = "WorldMiniApp" })",
@@ -785,7 +760,8 @@ button, input, select, textarea { touch-action: manipulation; }
             btnCollapseText: "@SharedLocalizer["AI.CollapseTextInput"]"
         };
     </script>
-    <script defer src="~/js/create-posting-probability.js" asp-append-version="true"></script>
+    @* OLD SYSTEM - Probability script removed *@
+    @* <script defer src="~/js/create-posting-probability.js" asp-append-version="true"></script> *@
     <script defer src="~/js/CreatePostingPage.js" asp-append-version="true"></script>
     <script defer src="~/js/create-posting-publish-checklist.js" asp-append-version="true"></script>
 
@@ -799,7 +775,6 @@ button, input, select, textarea { touch-action: manipulation; }
             'card-basics': false,
             'card-media': false,
             'card-ingredients': false,
-            'card-probability': false,
             'card-steps': false,
             'card-keywords': false
         };
@@ -861,12 +836,9 @@ button, input, select, textarea { touch-action: manipulation; }
             const selectedIngredients = document.getElementById('selectedIngredients');
             completionStates['card-ingredients'] = selectedIngredients.children.length > 0;
 
-            // Probability (optional - always true for now)
-            completionStates['card-probability'] = true;
-
-            // Steps (check if SmartStepCreator has steps)
-            const stepsList = document.getElementById('smartStepCreatorStepsList') || document.getElementById('selectedSteps');
-            completionStates['card-steps'] = stepsList && stepsList.children.length > 0;
+            // Steps (check if textarea has content)
+            const stepsInput = document.getElementById('stepsTextInput');
+            completionStates['card-steps'] = stepsInput && stepsInput.value.trim().length > 0;
 
             // Keywords
             const selectedKeywords = document.getElementById('selectedKeywords');
@@ -878,7 +850,7 @@ button, input, select, textarea { touch-action: manipulation; }
 
         function updateCompletionUI() {
             let completedCount = 0;
-            const total = 6;
+            const total = 5;
 
             Object.keys(completionStates).forEach((id, index) => {
                 const isComplete = completionStates[id];
@@ -893,8 +865,8 @@ button, input, select, textarea { touch-action: manipulation; }
                     icon.innerHTML = '<i class="bi bi-check-lg"></i>';
                 } else {
                     section.classList.remove('complete');
-                    // Restore original icon
-                    const icons = ['bi-ui-checks-grid', 'bi-camera-reels', 'bi-basket', 'bi-lightbulb', 'bi-list-check', 'bi-hash'];
+                    // Restore original icon (removed bi-lightbulb for probability section)
+                    const icons = ['bi-ui-checks-grid', 'bi-camera-reels', 'bi-basket', 'bi-list-check', 'bi-hash'];
                     icon.innerHTML = `<i class="bi ${icons[index]}"></i>`;
                 }
             });
@@ -965,13 +937,10 @@ button, input, select, textarea { touch-action: manipulation; }
                 });
             }
 
-            // Steps (MutationObserver)
-            const stepsList = document.getElementById('smartStepCreatorStepsList') || document.getElementById('selectedSteps');
-            if (stepsList) {
-                new MutationObserver(updateCompletionStates).observe(stepsList, {
-                    childList: true,
-                    subtree: true
-                });
+            // Steps (input event listener)
+            const stepsInput = document.getElementById('stepsTextInput');
+            if (stepsInput) {
+                stepsInput.addEventListener('input', updateCompletionStates);
             }
 
             // Keywords
@@ -1046,222 +1015,6 @@ button, input, select, textarea { touch-action: manipulation; }
             }
         }
 
-        // ========================================
-        // AI Step Generator (Text-based)
-        // ========================================
-        function toggleAiTextInput() {
-            const collapse = document.getElementById('aiTextInputCollapse');
-            const btn = document.getElementById('btnToggleAiTextInput');
-            const i18n = window.AiStepGeneratorI18n || {};
-
-            if (collapse.style.display === 'none' || !collapse.style.display) {
-                // Show
-                collapse.style.display = 'block';
-                btn.innerHTML = `<i class="bi bi-chevron-up"></i><span>${i18n.btnCollapseText || 'Einklappen'}</span>`;
-                setTimeout(() => document.getElementById('aiTextInput')?.focus(), 100);
-            } else {
-                // Hide
-                collapse.style.display = 'none';
-                btn.innerHTML = `<i class="bi bi-magic"></i><span>${i18n.btnOpenText || '✨ Steps generieren'}</span>`;
-            }
-        }
-
-        // ========================================
-        // NEW: Import Concrete Steps (with translations)
-        // ========================================
-
-        function importConcreteSteps(concreteSteps, currentLanguage) {
-            if (!Array.isArray(concreteSteps) || concreteSteps.length === 0) {
-                return 0;
-            }
-
-            const stepsList = document.getElementById('selectedSteps');
-            if (!stepsList) {
-                console.error('selectedSteps container not found');
-                return 0;
-            }
-
-            let imported = 0;
-
-            // Sort steps by step_order
-            const sortedSteps = [...concreteSteps].sort((a, b) => (a.step_order || 0) - (b.step_order || 0));
-
-            sortedSteps.forEach((step, index) => {
-                try {
-                    // NEW: Steps have only "text" field (German), user can edit, then we translate on save
-                    const stepText = step.text || 'Step ' + (index + 1);
-                    const phase = step.phase || 0;
-
-                    // Create step element
-                    const stepItem = document.createElement('div');
-                    stepItem.className = 'selected-step-item';
-                    stepItem.dataset.stepIndex = index;
-                    stepItem.dataset.phase = phase;
-                    stepItem.dataset.aiGenerated = 'true'; // Mark as AI-generated
-                    stepItem.dataset.ingredientId = step.ingredient_id || '';
-
-                    stepItem.innerHTML = `
-                        <div class="step-drag-handle">
-                            <i class="bi bi-grip-vertical"></i>
-                        </div>
-                        <div class="step-phase-badge phase-${phase}">
-                            ${getPhaseBadgeText(phase)}
-                        </div>
-                        <div class="step-text" contenteditable="true">${escapeHtml(stepText)}</div>
-                        <button type="button" class="step-remove-btn" onclick="removeSelectedStep(this)">
-                            <i class="bi bi-x"></i>
-                        </button>
-                        <span class="ai-badge" title="AI-generiert (wird beim Speichern übersetzt)">🤖</span>
-                    `;
-
-                    stepsList.appendChild(stepItem);
-                    imported++;
-
-                    console.log(`[AI_IMPORT] Imported editable step ${index + 1}: ${stepText.substring(0, 50)}...`);
-                } catch (error) {
-                    console.error('Error importing concrete step:', error, step);
-                }
-            });
-
-            // Re-index steps
-            if (typeof reindexSteps === 'function') {
-                reindexSteps();
-            }
-
-            return imported;
-        }
-
-        function getPhaseBadgeText(phase) {
-            const phaseNames = {
-                0: { de: 'Basis', en: 'Base' },
-                1: { de: 'Vorbereitung', en: 'Prep' },
-                2: { de: 'Kochen', en: 'Cook' },
-                3: { de: 'Würzen', en: 'Season' },
-                4: { de: 'Servieren', en: 'Serve' }
-            };
-            const lang = (document.documentElement.lang || 'de').toLowerCase();
-            return phaseNames[phase]?.[lang] || `Phase ${phase}`;
-        }
-
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        async function generateAiStepsFromText() {
-            const textInput = document.getElementById('aiTextInput');
-            const instructionsText = textInput?.value?.trim() || '';
-            const titleInput = document.querySelector('input[name="Title"]');
-            const categorySelect = document.querySelector('select[name="Recipe.Category"]');
-            const title = titleInput?.value?.trim() || '';
-            const category = categorySelect?.value || '';
-            const language = document.documentElement.lang || 'de';
-
-            // Validation
-            if (!instructionsText) {
-                alert('Bitte füge deine Zubereitungsschritte ein.');
-                textInput?.focus();
-                return;
-            }
-
-            // Get button and show loading state
-            const button = document.getElementById('btnGenerateFromText');
-            const originalHtml = button.innerHTML;
-            button.disabled = true;
-            button.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Analysiere...';
-
-            try {
-                const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-                if (!token) {
-                    throw new Error('CSRF-Token nicht gefunden');
-                }
-
-                const userHash = getUserHashFromCookie();
-
-                // Collect ingredients with IDs from the form
-                const ingredients = [];
-                document.querySelectorAll('#selectedIngredients .selected-ingredient-item').forEach(item => {
-                    const id = parseInt(item.dataset.ingredientId || '0');
-                    const name = item.querySelector('.ingredient-name')?.textContent?.trim() || '';
-                    if (id && name) {
-                        ingredients.push({ id, name });
-                    }
-                });
-
-                console.log('🔍 Calling NEW AI System (GenerateConcreteSteps) with', ingredients.length, 'ingredients');
-
-                // Call NEW backend API (concrete steps with translations)
-                const response = await fetch('/WorldMiniApp/Home/GenerateConcreteSteps', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'RequestVerificationToken': token
-                    },
-                    body: JSON.stringify({
-                        userHash: userHash,
-                        recipeTitle: title || 'Rezept',
-                        category: category,
-                        ingredients: ingredients.map(ing => [ing.id, ing.name]), // Send as tuple array
-                        instructionsText: instructionsText
-                    })
-                });
-
-                if (!response.ok) {
-                    const errorText = await response.text();
-                    throw new Error(`HTTP ${response.status}: ${errorText}`);
-                }
-
-                const result = await response.json();
-
-                if (result.success && result.steps && result.steps.length > 0) {
-                    console.log('✨ AI generierte Concrete Steps (mit Übersetzungen):', result.steps);
-
-                    // NEW: Import concrete steps with translations
-                    const imported = importConcreteSteps(result.steps, language);
-
-                    if (imported > 0) {
-                        alert(`✅ ${imported} Steps erfolgreich importiert!\n\n💡 Du kannst sie jetzt bearbeiten. Beim Speichern werden sie automatisch in alle 10 Sprachen übersetzt.`);
-
-                        // Clear textarea and hide
-                        textInput.value = '';
-                        document.getElementById('aiTextInputCollapse').style.display = 'none';
-                        const btn = document.getElementById('btnToggleAiTextInput');
-                        const i18n = window.AiStepGeneratorI18n || {};
-                        btn.innerHTML = `<i class="bi bi-magic"></i><span>${i18n.btnOpenText || '✨ Steps generieren'}</span>`;
-
-                        // Scroll to steps
-                        document.getElementById('selectedSteps')?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-
-                        if (typeof updateCompletionStates === 'function') {
-                            updateCompletionStates();
-                        }
-                    } else {
-                        alert('⚠️ Keine Steps konnten importiert werden');
-                    }
-                } else {
-                    alert('❌ ' + (result.message || 'Unbekannter Fehler'));
-                }
-            } catch (error) {
-                console.error('Fehler bei AI Step-Generierung:', error);
-                alert('❌ Fehler: ' + error.message);
-            } finally {
-                button.disabled = false;
-                button.innerHTML = originalHtml;
-            }
-        }
-
-        function getUserHashFromCookie() {
-            const cookies = document.cookie.split(';');
-            for (let cookie of cookies) {
-                const [name, value] = cookie.trim().split('=');
-                if (name === 'WorldMiniAppUserHash') {
-                    return decodeURIComponent(value);
-                }
-            }
-            return '';
-        }
-
         // Language toggle
         function setupLanguageToggle() {
             const langToggle = document.getElementById('langToggle');
@@ -1317,22 +1070,6 @@ button, input, select, textarea { touch-action: manipulation; }
             setupHeroLiveUpdates();
             updateCompletionStates();
             setupLanguageToggle();
-
-            // AI Step Generator (Text-based)
-            const btnToggleAiTextInput = document.getElementById('btnToggleAiTextInput');
-            if (btnToggleAiTextInput) {
-                btnToggleAiTextInput.addEventListener('click', toggleAiTextInput);
-            }
-
-            const btnGenerateFromText = document.getElementById('btnGenerateFromText');
-            if (btnGenerateFromText) {
-                btnGenerateFromText.addEventListener('click', generateAiStepsFromText);
-            }
-
-            const btnCancelTextInput = document.getElementById('btnCancelTextInput');
-            if (btnCancelTextInput) {
-                btnCancelTextInput.addEventListener('click', toggleAiTextInput);
-            }
         });
     </script>
 }

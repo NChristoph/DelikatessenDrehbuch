@@ -81,7 +81,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var sourceUrl = await UploadStreamAsync(blobContainerClient, sourceName, sourceStream, "image/webp");
                 var thumbUrl = await UploadStreamAsync(blobContainerClient, thumbName, thumbStream, "image/webp");
 
-                _logger.LogInformation("✅ Image uploaded: {SourceBlob} + {ThumbBlob}", sourceName, thumbName);
 
                 return new UploadContentResult
                 {
@@ -100,8 +99,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             // Nach Video-Upload: Queue-Job erstellen
             try
             {
-                _logger.LogInformation("Preparing video queue job. Queue={QueueName}, QueueConnectionSource={QueueConnectionSource}, Container={Container}, Blob={BlobName}",
-                    queueName, queueConnectionSource, containerName, videoResult.BlobName);
 
                 await EnqueueVideoJobAsync(
                     queueConnectionString,
@@ -110,12 +107,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     videoResult.BlobName // wichtig: BlobName fürs Processing
                 );
 
-                _logger.LogInformation("📩 Video job enqueued: {BlobName} -> {Queue}", videoResult.BlobName, queueName);
             }
             catch (Exception ex)
             {
                 // Upload war erfolgreich, Queue aber nicht: das willst du sehen!
-                _logger.LogError(ex, "❌ Video uploaded but enqueue failed for blob: {BlobName}", videoResult.BlobName);
+                _logger.LogError(ex, "Video uploaded but enqueue failed for blob: {BlobName}", videoResult.BlobName);
 
                 // Option A: trotzdem OK zurückgeben (Upload steht ja im Blob)
                 // Option B: Exception werfen, damit UI es merkt
