@@ -8,103 +8,28 @@ using System.Text.RegularExpressions;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 {
-    public class WildCoinService : IWildCoinService
+    /// <summary>
+    /// Service for managing the Meal Plan Marketplace.
+    /// Handles listing creation, purchases via World Chain blockchain (WLD/USDT/USDCE),
+    /// and marketplace operations.
+    /// Implements both IMarketplaceService and IWildCoinService (legacy) for backwards compatibility.
+    /// </summary>
+    public class MarketplaceService : IMarketplaceService, IWildCoinService
     {
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
-        private readonly ILogger<WildCoinService> _logger;
+        private readonly ILogger<MarketplaceService> _logger;
         private static readonly Regex TxHashRegex = new("^0x[a-fA-F0-9]{64}$", RegexOptions.Compiled);
-        // TODO: Secret noch entfernen — RPC-URL in Konfiguration auslagern
         private const string WorldChainRpcUrl = "https://worldchain-mainnet.g.alchemy.com/public";
 
-        public WildCoinService(ApplicationDbContext context, IConfiguration configuration, ILogger<WildCoinService> logger)
+        public MarketplaceService(ApplicationDbContext context, IConfiguration configuration, ILogger<MarketplaceService> logger)
         {
             _context = context;
             _configuration = configuration;
             _logger = logger;
         }
 
-        public async Task<decimal> GetBalanceAsync(string userHash)
-        {
-            var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
-            return user?.WildCoinBalance ?? 0;
-        }
-
-        public async Task<bool> TransferAsync(string fromHash, string toHash, decimal amount, string referenceInfo)
-        {
-            if (amount <= 0) return false;
-
-            await using var transaction = await _context.Database.BeginTransactionAsync();
-            try
-            {
-                var sender = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == fromHash);
-                var receiver = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == toHash);
-                if (sender == null || receiver == null) return false;
-                if (sender.WildCoinBalance < amount) return false;
-
-                sender.WildCoinBalance -= amount;
-                receiver.WildCoinBalance += amount;
-
-                _context.Add(new WildCoinTransaction
-                {
-                    UserHash = fromHash,
-                    Amount = -amount,
-                    BalanceAfter = sender.WildCoinBalance,
-                    Type = "purchase",
-                    ReferenceInfo = referenceInfo
-                });
-                _context.Add(new WildCoinTransaction
-                {
-                    UserHash = toHash,
-                    Amount = amount,
-                    BalanceAfter = receiver.WildCoinBalance,
-                    Type = "sale",
-                    ReferenceInfo = referenceInfo
-                });
-
-                await _context.SaveChangesAsync();
-                await transaction.CommitAsync();
-                return true;
-            }
-            catch
-            {
-                await transaction.RollbackAsync();
-                return false;
-            }
-        }
-
-        public async Task<bool> RewardAsync(string userHash, decimal amount, string referenceInfo)
-        {
-            if (amount <= 0) return false;
-
-            var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
-            if (user == null) return false;
-
-            user.WildCoinBalance += amount;
-
-            _context.Add(new WildCoinTransaction
-            {
-                UserHash = userHash,
-                Amount = amount,
-                BalanceAfter = user.WildCoinBalance,
-                Type = "reward",
-                ReferenceInfo = referenceInfo
-            });
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<WildCoinTransaction>> GetTransactionsAsync(string userHash, int take = 20)
-        {
-            return await _context.WildCoinTransactions
-                .Where(t => t.UserHash == userHash)
-                .OrderByDescending(t => t.CreatedAt)
-                .Take(take)
-                .ToListAsync();
-        }
-
-        // ---- Marketplace ----
+        // ---- Marketplace Listings ----
 
         public async Task<MealPlanListing> CreateListingAsync(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null, string? sellerUsdtWalletAddress = null)
         {
@@ -223,6 +148,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return true;
         }
 
+        // ---- Marketplace Purchases (Blockchain) ----
 
         public async Task<MealPlanPurchase?> FinalizeWorldChainPurchaseAsync(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
         {
@@ -403,4 +329,3 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         }
     }
 }
-

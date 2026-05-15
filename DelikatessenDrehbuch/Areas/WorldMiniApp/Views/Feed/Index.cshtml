@@ -2111,6 +2111,59 @@
             background: rgba(255,122,89,0.06);
         }
 
+        /* Meal Mode Toggle */
+        .v1-day-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-left: auto;
+        }
+        .v1-mode-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--avo-muted);
+            white-space: nowrap;
+        }
+        .v1-toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 20px;
+        }
+        .v1-toggle-input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .v1-toggle-slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: 0.3s;
+            border-radius: 20px;
+        }
+        .v1-toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 14px;
+            width: 14px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: 0.3s;
+            border-radius: 50%;
+        }
+        .v1-toggle-input:checked + .v1-toggle-slider {
+            background-color: var(--avo-coral);
+        }
+        .v1-toggle-input:checked + .v1-toggle-slider:before {
+            transform: translateX(16px);
+        }
+
         .v1-day-meals {
             display: flex;
             flex-direction: column;
@@ -2449,6 +2502,80 @@
             font-size: 0.75rem;
             opacity: 0.75;
             margin-top: 6px;
+        }
+
+        /* Category Pills */
+        .category-pills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .category-pill {
+            padding: 8px 14px;
+            border-radius: 20px;
+            border: 1.5px solid rgba(255,255,255,0.2);
+            background: rgba(0,0,0,0.15);
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+        }
+        .category-pill:hover {
+            background: rgba(0,0,0,0.25);
+            border-color: rgba(255,255,255,0.35);
+            transform: translateY(-1px);
+        }
+        .category-pill.active {
+            background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);
+            border-color: #FF5E62;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 94, 98, 0.4);
+        }
+        .category-pill:active {
+            transform: scale(0.96);
+        }
+
+        /* Report Modal */
+        .report-reason-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+        .report-reason-btn {
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 2px solid rgba(0,0,0,0.1);
+            background: rgba(0,0,0,0.03);
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            white-space: nowrap;
+        }
+        .report-reason-btn:hover {
+            background: rgba(0,0,0,0.06);
+            border-color: rgba(0,0,0,0.2);
+            transform: translateY(-1px);
+        }
+        .report-reason-btn.active {
+            background: linear-gradient(135deg, #FF5E62 0%, #FF3838 100%);
+            border-color: #FF3838;
+            color: #fff;
+            box-shadow: 0 4px 12px rgba(255, 56, 56, 0.3);
+        }
+        .report-reason-btn:active {
+            transform: scale(0.97);
+        }
+        .report-reason-btn i {
+            font-size: 16px;
         }
 
         .marketplace-card {
@@ -3201,6 +3328,11 @@
                             <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
                             <span class="action-label">@SharedLocalizer["Feed.Recipe"]</span>
                         </div>
+
+                        <div class="action-btn report-btn" role="button" aria-label="Inhalt melden" data-posting-id="@item.Id" onclick="event.stopPropagation(); openReportModal(@item.Id, '@(item.Title?.Replace("'", "\\'"))')">
+                            <div class="icon-circle"><i class="bi bi-flag-fill"></i></div>
+                            <span class="action-label">Melden</span>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -3570,18 +3702,84 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label">@T("Kategorie", "Category", "Categoría", "Categoria")</label>
-                            <select name="category" class="form-select">
-                                <option value="">@T("Alle Kategorien", "All categories", "Todas las categorías", "Todas as categorias")</option>
-                                <option value="appetizer" selected="@(selectedCategory == "appetizer")">@SharedLocalizer["Meal.Starter"]</option>
-                                <option value="main" selected="@(selectedCategory == "main")">@SharedLocalizer["Meal.Main"]</option>
-                                <option value="dessert" selected="@(selectedCategory == "dessert")">@SharedLocalizer["Meal.Dessert"]</option>
-                            </select>
+                            <input type="hidden" name="category" id="categoryHiddenInput" value="@selectedCategoryRaw" />
+                            <div class="category-pills">
+                                <button type="button" class="category-pill @(string.IsNullOrEmpty(selectedCategoryRaw) ? "active" : "")" data-category="">
+                                    @T("Alle", "All", "Todas", "Todas")
+                                </button>
+                                <button type="button" class="category-pill @(selectedCategoryRaw == "appetizer" ? "active" : "")" data-category="appetizer">
+                                    🥗 @SharedLocalizer["Meal.Starter"]
+                                </button>
+                                <button type="button" class="category-pill @(selectedCategoryRaw == "main" ? "active" : "")" data-category="main">
+                                    🍽️ @SharedLocalizer["Meal.Main"]
+                                </button>
+                                <button type="button" class="category-pill @(selectedCategoryRaw == "dessert" ? "active" : "")" data-category="dessert">
+                                    🍰 @SharedLocalizer["Meal.Dessert"]
+                                </button>
+                                <button type="button" class="category-pill @(selectedCategoryRaw == "breakfast" ? "active" : "")" data-category="breakfast">
+                                    🥐 @T("Frühstück", "Breakfast", "Desayuno", "Café da manhã")
+                                </button>
+                                <button type="button" class="category-pill @(selectedCategoryRaw == "lunch" ? "active" : "")" data-category="lunch">
+                                    🍱 @T("Mittag", "Lunch", "Almuerzo", "Almoço")
+                                </button>
+                                <button type="button" class="category-pill @(selectedCategoryRaw == "dinner" ? "active" : "")" data-category="dinner">
+                                    🍝 @T("Abend", "Dinner", "Cena", "Jantar")
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="modal-footer border-0">
                         <button type="submit" class="btn plan-btn-primary w-100">@SharedLocalizer["Feed.Search"]</button>
                     </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- REPORT MODAL -->
+    <div class="modal fade" id="reportModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header border-0">
+                    <h5 class="modal-title">@T("Inhalt melden", "Report Content", "Reportar contenido", "Denunciar conteúdo")</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="reportPostingId" />
+                    <div class="mb-3">
+                        <label class="form-label">@T("Grund", "Reason", "Razón", "Motivo")</label>
+                        <div class="report-reason-buttons">
+                            <button type="button" class="report-reason-btn" data-reason="spam">
+                                <i class="bi bi-exclamation-triangle-fill"></i>
+                                <span>@T("Spam", "Spam", "Spam", "Spam")</span>
+                            </button>
+                            <button type="button" class="report-reason-btn" data-reason="inappropriate">
+                                <i class="bi bi-slash-circle-fill"></i>
+                                <span>@T("Unangemessen", "Inappropriate", "Inapropiado", "Inapropriado")</span>
+                            </button>
+                            <button type="button" class="report-reason-btn" data-reason="copyright">
+                                <i class="bi bi-shield-exclamation"></i>
+                                <span>@T("Urheberrecht", "Copyright", "Derechos de autor", "Direitos autorais")</span>
+                            </button>
+                            <button type="button" class="report-reason-btn" data-reason="other">
+                                <i class="bi bi-three-dots"></i>
+                                <span>@T("Sonstiges", "Other", "Otro", "Outro")</span>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">@T("Beschreibung (optional)", "Description (optional)", "Descripción (opcional)", "Descrição (opcional)")</label>
+                        <textarea id="reportDescription" class="form-control" rows="3" maxlength="500"
+                                  placeholder="@T("Weitere Details...", "Additional details...", "Detalles adicionales...", "Detalhes adicionais...")"></textarea>
+                    </div>
+                    <div id="reportFeedback" class="alert" style="display:none;"></div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">@T("Abbrechen", "Cancel", "Cancelar", "Cancelar")</button>
+                    <button type="button" class="btn btn-danger" id="submitReportBtn" onclick="submitReport()">
+                        @T("Melden", "Report", "Reportar", "Denunciar")
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -4868,7 +5066,26 @@
         }
 
         const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-        const slots = ["Vorspeise", "Hauptspeise", "Dessert"];
+        const slotsGaenge = ["Vorspeise", "Hauptspeise", "Dessert"];
+        const slotsMahlzeiten = ["🥐 Frühstück", "🍱 Mittag", "🍝 Abend"];
+
+        // Track meal mode per day (false = Gänge, true = Mahlzeiten)
+        const dayMealModes = {};
+
+        // Load saved preferences from localStorage
+        function loadDayMealModes() {
+            for (let i = 0; i < 7; i++) {
+                const saved = localStorage.getItem(`feedPlanMealMode_day${i}`);
+                dayMealModes[i] = saved === 'mahlzeiten';
+            }
+        }
+
+        // Get slots for a specific day
+        function getSlotsForDay(dayIndex) {
+            return dayMealModes[dayIndex] ? slotsMahlzeiten : slotsGaenge;
+        }
+
+        loadDayMealModes();
 
         function clonePlanRecipe(recipe) {
             if (!recipe) return null;
@@ -4884,7 +5101,8 @@
         }
 
         function getDaySlotKeys(dayIndex) {
-            return slots.map((_, slotIndex) => getSlotKey(dayIndex, slotIndex));
+            const currentSlots = getSlotsForDay(dayIndex);
+            return currentSlots.map((_, slotIndex) => getSlotKey(dayIndex, slotIndex));
         }
 
         function commitPlanStateChange({ render = true, save = true, updateHeader = false } = {}) {
@@ -5035,17 +5253,28 @@
                 const isDupSource = duplicateSourceDayIndex === dayIndex;
                 const isDupTarget = duplicateSourceDayIndex !== null && duplicateSourceDayIndex !== dayIndex;
 
+                const currentMealMode = dayMealModes[dayIndex];
+                const mealModeLabel = currentMealMode ? 'Mahlzeiten' : 'Gänge';
+
                 let dayHtml = `<div class="v1-day" id="day-section-${dayIndex}" data-day-index="${dayIndex}">
                     <div class="v1-day-head">
                         <div class="v1-day-num">${dayNums[dayIndex]}</div>
                         <div class="v1-day-name">${day}</div>
+                        <div class="v1-day-mode-toggle">
+                            <small class="v1-mode-label" id="modeLabel-${dayIndex}">${mealModeLabel}</small>
+                            <label class="v1-toggle-switch">
+                                <input type="checkbox" class="v1-toggle-input" id="mealModeToggle-${dayIndex}" data-day-index="${dayIndex}" ${currentMealMode ? 'checked' : ''}>
+                                <span class="v1-toggle-slider"></span>
+                            </label>
+                        </div>
                         <button type="button" class="v1-day-dup btn-reset${isDupSource ? ' is-source' : ''}${isDupTarget ? ' is-target' : ''}" data-action="duplicate-day" data-day-index="${dayIndex}" aria-label="${isDupSource ? 'Abbrechen' : duplicateSourceDayIndex === null ? 'Duplizieren' : 'Hierhin kopieren'}">
                             ${svgCopy}
                         </button>
                     </div>
                     <div class="v1-day-meals">`;
 
-                slots.forEach((slotName, slotIndex) => {
+                const currentSlots = getSlotsForDay(dayIndex);
+                currentSlots.forEach((slotName, slotIndex) => {
                     const key = getSlotKey(dayIndex, slotIndex);
                     const item = weeklyPlanData[key];
 
@@ -5147,6 +5376,31 @@
             updateHeroChips();
             updateDayNavDots();
             scheduleNutritionUpdate();
+            attachMealModeToggleListeners();
+        }
+
+        function attachMealModeToggleListeners() {
+            for (let i = 0; i < 7; i++) {
+                const toggle = document.getElementById(`mealModeToggle-${i}`);
+                if (toggle && !toggle.dataset.listenerAttached) {
+                    toggle.dataset.listenerAttached = 'true';
+                    toggle.addEventListener('change', function() {
+                        const dayIndex = parseInt(this.getAttribute('data-day-index'));
+                        const isChecked = this.checked;
+                        dayMealModes[dayIndex] = isChecked;
+                        localStorage.setItem(`feedPlanMealMode_day${dayIndex}`, isChecked ? 'mahlzeiten' : 'gaenge');
+
+                        // Update label
+                        const label = document.getElementById(`modeLabel-${dayIndex}`);
+                        if (label) {
+                            label.textContent = isChecked ? 'Mahlzeiten' : 'Gänge';
+                        }
+
+                        // Re-render plan
+                        renderPlan();
+                    });
+                }
+            }
         }
 
         function addToSlot(key) {
@@ -6438,6 +6692,23 @@
             }
             initPlanInteractionHandlers();
 
+            // Category pill selection
+            document.querySelectorAll('.category-pill').forEach(pill => {
+                pill.addEventListener('click', function() {
+                    const category = this.getAttribute('data-category');
+
+                    // Update active state
+                    document.querySelectorAll('.category-pill').forEach(p => p.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Update hidden input
+                    const hiddenInput = document.getElementById('categoryHiddenInput');
+                    if (hiddenInput) {
+                        hiddenInput.value = category;
+                    }
+                });
+            });
+
             // Weekly nutrition segment toggle
             const weeklySegment = document.getElementById('nutritionSegment');
             if (weeklySegment) {
@@ -7054,6 +7325,99 @@
                 if (submitBtn) submitBtn.disabled = false;
             }
         }
+
+        // ========== REPORT FUNCTIONS ==========
+        let selectedReportReason = '';
+
+        function openReportModal(postingId) {
+            const modal = new bootstrap.Modal(document.getElementById('reportModal'));
+            document.getElementById('reportPostingId').value = postingId;
+            document.getElementById('reportDescription').value = '';
+            selectedReportReason = '';
+
+            // Reset reason buttons
+            document.querySelectorAll('.report-reason-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            // Hide feedback
+            const feedback = document.getElementById('reportFeedback');
+            if (feedback) feedback.style.display = 'none';
+
+            modal.show();
+        }
+
+        async function submitReport() {
+            const postingId = document.getElementById('reportPostingId').value;
+            const description = document.getElementById('reportDescription').value.trim();
+            const submitBtn = document.getElementById('submitReportBtn');
+            const feedback = document.getElementById('reportFeedback');
+
+            if (!selectedReportReason) {
+                feedback.className = 'alert alert-warning';
+                feedback.textContent = '@T("Bitte wähle einen Grund aus.", "Please select a reason.", "Por favor selecciona una razón.", "Por favor selecione um motivo.")';
+                feedback.style.display = 'block';
+                return;
+            }
+
+            submitBtn.disabled = true;
+            feedback.style.display = 'none';
+
+            try {
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                const response = await fetch('/WorldMiniApp/Feed/ReportPosting', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': tokenInput ? tokenInput.value : ''
+                    },
+                    body: JSON.stringify({
+                        userHash: getUserHash() || '',
+                        postingId: parseInt(postingId),
+                        reason: selectedReportReason,
+                        description: description
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    feedback.className = 'alert alert-success';
+                    feedback.textContent = result.message || '@T("Vielen Dank für deine Meldung!", "Thank you for your report!", "¡Gracias por tu reporte!", "Obrigado pela sua denúncia!")';
+                    feedback.style.display = 'block';
+
+                    setTimeout(() => {
+                        const modal = bootstrap.Modal.getInstance(document.getElementById('reportModal'));
+                        if (modal) modal.hide();
+                    }, 1500);
+                } else {
+                    feedback.className = 'alert alert-danger';
+                    if (result.cooldown) {
+                        feedback.textContent = result.message || '@T("Du hast zu viele Meldungen eingereicht. Bitte warte einen Moment.", "You have submitted too many reports. Please wait a moment.", "Has enviado demasiados reportes. Por favor espera un momento.", "Você enviou muitas denúncias. Por favor, aguarde um momento.")';
+                    } else {
+                        feedback.textContent = result.message || '@T("Fehler beim Senden der Meldung.", "Error sending report.", "Error al enviar el reporte.", "Erro ao enviar a denúncia.")';
+                    }
+                    feedback.style.display = 'block';
+                }
+            } catch (error) {
+                feedback.className = 'alert alert-danger';
+                feedback.textContent = '@T("Fehler beim Senden der Meldung.", "Error sending report.", "Error al enviar el reporte.", "Erro ao enviar a denúncia.")';
+                feedback.style.display = 'block';
+            } finally {
+                submitBtn.disabled = false;
+            }
+        }
+
+        // Initialize report reason button handlers
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelectorAll('.report-reason-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.report-reason-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedReportReason = this.dataset.reason;
+                });
+            });
+        });
 
         function attachFeedHandlers() {
             prepareExpandableTitles(document);

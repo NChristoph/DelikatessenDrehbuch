@@ -465,25 +465,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
         }
 
-        // GET: Transaktionshistorie
-        [HttpGet]
-        public async Task<IActionResult> Transactions()
-        {
-            var userHash = GetUserHash();
-            if (string.IsNullOrWhiteSpace(userHash))
-                return Json(new List<object>());
-
-            var transactions = await _coinService.GetTransactionsAsync(userHash);
-            return Json(transactions.Select(t => new
-            {
-                t.Amount,
-                t.BalanceAfter,
-                t.Type,
-                t.ReferenceInfo,
-                date = t.CreatedAt.ToString("dd.MM.yyyy HH:mm")
-            }));
-        }
-
         // GET: Plan-Vorschau (Gerichte + Nährwerte) für ein Listing
         [HttpGet]
         public async Task<IActionResult> GetListingPreview(int listingId)

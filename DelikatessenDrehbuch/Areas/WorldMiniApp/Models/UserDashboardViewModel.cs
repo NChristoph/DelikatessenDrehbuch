@@ -11,6 +11,5 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public CreatorWatchAnalyticsViewModel WatchAnalytics { get; set; } = new();
         public AdPreferenceDashboardViewModel AdPreferences { get; set; } = new();
         public List<MealPlanPurchase> SalesHistory { get; set; } = new();
-        public List<WildCoinTransaction> WildCoinHistory { get; set; } = new();
     }
 }

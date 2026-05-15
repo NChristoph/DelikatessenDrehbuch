@@ -16,6 +16,9 @@ namespace DelikatessenDrehbuch.StaticScripts
         public static List<int> MainMeals { get; private set; } = new();
         public static List<int> Appetizers { get; private set; } = new();
         public static List<int> Desserts { get; private set; } = new();
+        public static List<int> Breakfast { get; private set; } = new();
+        public static List<int> Lunch { get; private set; } = new();
+        public static List<int> Dinner { get; private set; } = new();
         public static Dictionary<int, List<int>> RecipeAndIngredients { get; private set; } = new();
         public static Dictionary<int, List<int>> RecipeAndIngredHandlers { get; private set; } = new();
         public static Dictionary<int, List<int>> RecipeAndNutrients { get; private set; } = new();
@@ -134,8 +137,11 @@ namespace DelikatessenDrehbuch.StaticScripts
             MainMeals = await GetRecipeIdsByCategoryAsync("Hauptspeise", context);
             Appetizers = await GetRecipeIdsByCategoryAsync("Vorspeise", context);
             Desserts = await GetRecipeIdsByCategoryAsync("Dessert", context);
+            Breakfast = await GetRecipeIdsByCategoryAsync("Frühstück", context);
+            Lunch = await GetRecipeIdsByCategoryAsync("Mittag", context);
+            Dinner = await GetRecipeIdsByCategoryAsync("Abend", context);
 
-         
+
 
             RecipeAndIngredients = await GetRecipeAndIngredients(context);
             RecipeAndIngredHandlers = await GetRecipeAndIngredientHandlers(context);
@@ -169,6 +175,9 @@ namespace DelikatessenDrehbuch.StaticScripts
                 "hauptspeise" => MainMeals,
                 "vorspeise" => Appetizers,
                 "dessert" => Desserts,
+                "frühstück" => Breakfast,
+                "mittag" => Lunch,
+                "abend" => Dinner,
                 _ => new List<int>()
             };
         }

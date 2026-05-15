@@ -357,19 +357,68 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             _logger.LogInformation("📹 Created Bunny Stream video: {VideoGuid}", videoGuid);
 
-            // Schritt 2: Video hochladen
-            var uploadUrl = $"https://video.bunnycdn.com/library/{libraryId}/videos/{videoGuid}";
-            var uploadRequest = new HttpRequestMessage(HttpMethod.Put, uploadUrl);
-            uploadRequest.Headers.Add("AccessKey", apiKey);
+            // Schritt 2: Video hochladen (mit Retry-Logic für Timeouts)
+            const int maxRetries = 3;
+            Exception? lastException = null;
 
-            await using var videoStream = file.OpenReadStream();
-            uploadRequest.Content = new StreamContent(videoStream);
-            uploadRequest.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+            for (int retry = 0; retry < maxRetries; retry++)
+            {
+                try
+                {
+                    _logger.LogInformation("⬆️ Uploading video to Bunny Stream (Attempt {Retry}/{Max})...", retry + 1, maxRetries);
 
-            var uploadResponse = await _httpClient.SendAsync(uploadRequest);
-            uploadResponse.EnsureSuccessStatusCode();
+                    var uploadUrl = $"https://video.bunnycdn.com/library/{libraryId}/videos/{videoGuid}";
+                    var uploadRequest = new HttpRequestMessage(HttpMethod.Put, uploadUrl);
+                    uploadRequest.Headers.Add("AccessKey", apiKey);
 
-            _logger.LogInformation("✅ Video uploaded to Bunny Stream: {VideoGuid}", videoGuid);
+                    await using var videoStream = file.OpenReadStream();
+                    uploadRequest.Content = new StreamContent(videoStream);
+                    uploadRequest.Content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue("application/octet-stream");
+
+                    var uploadResponse = await _httpClient.SendAsync(uploadRequest);
+                    uploadResponse.EnsureSuccessStatusCode();
+
+                    _logger.LogInformation("✅ Video uploaded to Bunny Stream: {VideoGuid}", videoGuid);
+                    break; // Erfolg - raus aus Retry-Loop
+                }
+                catch (TaskCanceledException ex) when (ex.InnerException is TimeoutException)
+                {
+                    lastException = ex;
+                    _logger.LogWarning("⚠️ Upload timeout (Attempt {Retry}/{Max}): {Message}",
+                        retry + 1, maxRetries, ex.Message);
+
+                    if (retry < maxRetries - 1)
+                    {
+                        var delaySeconds = (retry + 1) * 2; // Exponential backoff: 2s, 4s, 6s
+                        _logger.LogInformation("⏳ Waiting {Delay}s before retry...", delaySeconds);
+                        await Task.Delay(TimeSpan.FromSeconds(delaySeconds));
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    lastException = ex;
+                    _logger.LogWarning("⚠️ Upload network error (Attempt {Retry}/{Max}): {Message}",
+                        retry + 1, maxRetries, ex.Message);
+
+                    if (retry < maxRetries - 1)
+                    {
+                        await Task.Delay(TimeSpan.FromSeconds((retry + 1) * 2));
+                    }
+                }
+            }
+
+            // Wenn alle Retries fehlgeschlagen sind
+            if (lastException != null)
+            {
+                _logger.LogError(lastException,
+                    "❌ Video upload failed after {MaxRetries} attempts. File size: {FileSize:N0} bytes",
+                    maxRetries, file.Length);
+                throw new InvalidOperationException(
+                    $"Video-Upload fehlgeschlagen nach {maxRetries} Versuchen. " +
+                    $"Datei zu groß ({file.Length / 1024 / 1024:N1} MB) oder Verbindung zu langsam. " +
+                    "Bitte versuchen Sie es später erneut oder verwenden Sie eine schnellere Internetverbindung.",
+                    lastException);
+            }
 
             // Hostname einmal vorbereiten
             var hostname = streamHostname.Replace("https://", "").Replace("http://", "").TrimEnd('/');

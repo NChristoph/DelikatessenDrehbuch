@@ -216,12 +216,6 @@ END;
                 .Take(100)
                 .ToListAsync();
 
-            var transactionHistory = await _context.WildCoinTransactions
-                .Where(x => x.UserHash == userHash)
-                .OrderByDescending(x => x.CreatedAt)
-                .Take(100)
-                .ToListAsync();
-
             var openWldAmount = sales
                 .Where(x => (x.PaymentToken ?? "WLD").Equals("WLD", StringComparison.OrdinalIgnoreCase))
                 .Sum(x => x.CreatorAmount);
@@ -246,8 +240,7 @@ END;
                 OpenUsdcAmount = openUsdcAmount,
                 WatchAnalytics = watchAnalytics,
                 AdPreferences = adPreferences,
-                SalesHistory = sales,
-                WildCoinHistory = transactionHistory
+                SalesHistory = sales
             };
 
             return View(model);

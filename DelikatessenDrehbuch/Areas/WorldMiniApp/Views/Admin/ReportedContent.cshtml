@@ -1,0 +1,399 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers.ReportedContentListViewModel
+@{
+    Layout = "_MiniAppLayout";
+    ViewData["Title"] = "Gemeldete Inhalte - Admin";
+    var isImpersonating = !string.IsNullOrEmpty(Context.Request.Cookies["AdminOriginalHash"]);
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .admin-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .admin-header {
+        background: white;
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .admin-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .admin-subtitle {
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .filter-tabs {
+        display: flex;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    .filter-tab {
+        padding: 8px 16px;
+        border-radius: 20px;
+        border: 2px solid #e5e7eb;
+        background: white;
+        cursor: pointer;
+        font-weight: 600;
+        text-decoration: none;
+        color: #6b7280;
+        transition: all 0.2s;
+    }
+
+    .filter-tab:hover {
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .filter-tab.active {
+        background: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+
+    .report-card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .report-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: start;
+        margin-bottom: 16px;
+    }
+
+    .report-info {
+        flex: 1;
+    }
+
+    .report-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 8px;
+    }
+
+    .report-meta {
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: #6b7280;
+    }
+
+    .report-thumbnail {
+        width: 120px;
+        height: 160px;
+        object-fit: cover;
+        border-radius: 8px;
+    }
+
+    .report-details {
+        background: #f9fafb;
+        border-radius: 8px;
+        padding: 12px;
+        margin: 12px 0;
+    }
+
+    .report-reason {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+
+    .reason-spam { background: #fef3c7; color: #92400e; }
+    .reason-inappropriate { background: #fee2e2; color: #991b1b; }
+    .reason-copyright { background: #dbeafe; color: #1e40af; }
+    .reason-other { background: #e5e7eb; color: #374151; }
+
+    .status-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+    .status-pending { background: #fef3c7; color: #92400e; }
+    .status-reviewed { background: #dbeafe; color: #1e40af; }
+    .status-dismissed { background: #e5e7eb; color: #6b7280; }
+    .status-action_taken { background: #dcfce7; color: #166534; }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        margin-top: 12px;
+    }
+
+    .btn-review {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-approve {
+        background: #10b981;
+        color: white;
+    }
+
+    .btn-approve:hover {
+        background: #059669;
+    }
+
+    .btn-dismiss {
+        background: #6b7280;
+        color: white;
+    }
+
+    .btn-dismiss:hover {
+        background: #4b5563;
+    }
+
+    .btn-delete {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-delete:hover {
+        background: #dc2626;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .stat-card {
+        background: rgba(255,255,255,0.2);
+        border-radius: 12px;
+        padding: 16px;
+        text-align: center;
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 700;
+        color: white;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: rgba(255,255,255,0.9);
+        margin-top: 4px;
+    }
+</style>
+
+<div class="admin-container">
+    @if (isImpersonating)
+    {
+        <div class="alert alert-warning">
+            <strong>⚠️ Du bist als Creator angemeldet!</strong>
+        </div>
+    }
+
+    <div class="admin-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div class="admin-title">🚩 Gemeldete Inhalte</div>
+            <div style="display: flex; gap: 8px;">
+                <a href="@Url.Action("CreatorManager", "Admin", new { area = "WorldMiniApp" })" class="btn btn-light">
+                    <i class="bi bi-people-fill"></i> Creator Manager
+                </a>
+                <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = Model.CurrentUserHash })" class="btn btn-light">
+                    <i class="bi bi-person-circle"></i> Mein Profil
+                </a>
+            </div>
+        </div>
+        <div class="admin-subtitle">Moderiere gemeldete Beiträge und schütze die Community</div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">@Model.Reports.Count</div>
+                <div class="stat-label">Gesamt Reports</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">@Model.Reports.Count(r => r.Status == "pending")</div>
+                <div class="stat-label">Ausstehend</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">@Model.Reports.Count(r => r.Status == "action_taken")</div>
+                <div class="stat-label">Bearbeitet</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">@Model.Reports.Count(r => r.IsHidden)</div>
+                <div class="stat-label">Versteckt</div>
+            </div>
+        </div>
+
+        <div class="filter-tabs">
+            <a href="@Url.Action("ReportedContent", new { status = "all" })" class="filter-tab @(Model.CurrentFilter == "all" ? "active" : "")">
+                Alle
+            </a>
+            <a href="@Url.Action("ReportedContent", new { status = "pending" })" class="filter-tab @(Model.CurrentFilter == "pending" ? "active" : "")">
+                Ausstehend
+            </a>
+            <a href="@Url.Action("ReportedContent", new { status = "action_taken" })" class="filter-tab @(Model.CurrentFilter == "action_taken" ? "active" : "")">
+                Bearbeitet
+            </a>
+            <a href="@Url.Action("ReportedContent", new { status = "dismissed" })" class="filter-tab @(Model.CurrentFilter == "dismissed" ? "active" : "")">
+                Abgelehnt
+            </a>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            @TempData["Error"]
+        </div>
+    }
+
+    @if (!Model.Reports.Any())
+    {
+        <div class="report-card">
+            <div style="text-align: center; padding: 40px;">
+                <i class="bi bi-check-circle" style="font-size: 48px; color: #10b981;"></i>
+                <h3 style="margin-top: 16px;">Keine gemeldeten Inhalte</h3>
+                <p style="color: #6b7280;">Es gibt aktuell keine Reports in dieser Kategorie.</p>
+            </div>
+        </div>
+    }
+    else
+    {
+        @foreach (var report in Model.Reports)
+        {
+            <div class="report-card">
+                <div class="report-header">
+                    <div class="report-info">
+                        <div class="report-title">@report.PostTitle</div>
+                        <div class="report-meta">
+                            <span><i class="bi bi-flag-fill"></i> Report #@report.ReportId</span>
+                            <span><i class="bi bi-calendar"></i> @report.CreatedAt.ToString("dd.MM.yyyy HH:mm")</span>
+                            <span><i class="bi bi-exclamation-triangle"></i> @report.ReportCount Reports</span>
+                            @if (report.IsHidden)
+                            {
+                                <span style="color: #ef4444;"><i class="bi bi-eye-slash-fill"></i> Versteckt</span>
+                            }
+                        </div>
+                    </div>
+                    @if (!string.IsNullOrEmpty(report.PostThumbnail))
+                    {
+                        <img src="@report.PostThumbnail" alt="Thumbnail" class="report-thumbnail" />
+                    }
+                </div>
+
+                <div class="report-details">
+                    <div>
+                        <span class="report-reason reason-@report.Reason.ToLower()">
+                            @report.Reason switch
+                            {
+                                "spam" => "Spam",
+                                "inappropriate" => "Unangemessen",
+                                "copyright" => "Urheberrecht",
+                                "other" => "Sonstiges",
+                                _ => report.Reason
+                            }
+                        </span>
+                        <span class="status-badge status-@report.Status.Replace("_", "")">
+                            @report.Status switch
+                            {
+                                "pending" => "Ausstehend",
+                                "action_taken" => "Bearbeitet",
+                                "dismissed" => "Abgelehnt",
+                                "reviewed" => "Geprüft",
+                                _ => report.Status
+                            }
+                        </span>
+                    </div>
+                    @if (!string.IsNullOrEmpty(report.Description))
+                    {
+                        <div style="margin-top: 8px; color: #374151;">
+                            <strong>Beschreibung:</strong> @report.Description
+                        </div>
+                    }
+                    @if (report.ReviewedAt.HasValue)
+                    {
+                        <div style="margin-top: 8px; font-size: 12px; color: #6b7280;">
+                            <i class="bi bi-check2"></i> Geprüft am @report.ReviewedAt.Value.ToString("dd.MM.yyyy HH:mm")
+                            @if (!string.IsNullOrEmpty(report.ReviewNotes))
+                            {
+                                <span> - @report.ReviewNotes</span>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="action-buttons">
+                    <a href="@Url.Action("ShowRecipe", "Home", new { area = "WorldMiniApp", id = report.PostingId })" class="btn btn-sm btn-light" target="_blank">
+                        <i class="bi bi-eye"></i> Ansehen
+                    </a>
+
+                    @if (report.Status == "pending")
+                    {
+                        <form method="post" action="@Url.Action("ReviewReport")" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="reportId" value="@report.ReportId" />
+                            <input type="hidden" name="action" value="approve" />
+                            <button type="submit" class="btn-review btn-approve" onclick="return confirm('Report genehmigen und Inhalt verstecken?')">
+                                <i class="bi bi-check-circle"></i> Genehmigen
+                            </button>
+                        </form>
+
+                        <form method="post" action="@Url.Action("ReviewReport")" style="display: inline;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="reportId" value="@report.ReportId" />
+                            <input type="hidden" name="action" value="dismiss" />
+                            <button type="submit" class="btn-review btn-dismiss">
+                                <i class="bi bi-x-circle"></i> Ablehnen
+                            </button>
+                        </form>
+                    }
+
+                    <form method="post" action="@Url.Action("DeleteReportedPosting")" style="display: inline;">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="postingId" value="@report.PostingId" />
+                        <button type="submit" class="btn-review btn-delete" onclick="return confirm('Posting ENDGÜLTIG löschen? Diese Aktion kann nicht rückgängig gemacht werden!')">
+                            <i class="bi bi-trash"></i> Löschen
+                        </button>
+                    </form>
+                </div>
+            </div>
+        }
+    }
+</div>

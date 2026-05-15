@@ -25,7 +25,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             ["appetizer"] = new[] { "appetizer", "aperetizer", "vorspeise", "entrada" },
             ["main"] = new[] { "main", "maincourse", "hauptspeise", "platoprincipal", "pratoprincipal" },
-            ["dessert"] = new[] { "dessert", "postre", "sobremesa", "nachspeise" }
+            ["dessert"] = new[] { "dessert", "postre", "sobremesa", "nachspeise" },
+            ["breakfast"] = new[] { "breakfast", "frühstück", "fruehstueck", "desayuno", "cafédamanhã", "cafedamanha" },
+            ["lunch"] = new[] { "lunch", "mittag", "almuerzo", "almoço", "almoco" },
+            ["dinner"] = new[] { "dinner", "abend", "cena", "jantar" }
         };
 
         private static readonly Dictionary<string, string> CategoryAliasLookup = CategoryAliases
@@ -59,7 +62,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .ThenInclude(r => r.RecipeKeywords)
                 .ThenInclude(link => link.Keyword);
 
-            IQueryable<WorldUserPosting> query = baseQuery.Where(p => !p.IsOffline);
+            IQueryable<WorldUserPosting> query = baseQuery
+                .Where(p => !p.IsOffline && !p.IsHiddenPendingReview);
 
             switch (filter)
             {
@@ -2146,6 +2150,109 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     request.InteractionType, request.PostingId);
                 return Ok(); // Tracking-Fehler sollten nicht die UX beeinträchtigen
             }
+        }
+
+        // POST: Feed/ReportPosting
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ReportPosting([FromBody] ReportPostingRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.UserHash) || request.PostingId <= 0)
+            {
+                return BadRequest(new { success = false, message = "Ungültige Anfrage." });
+            }
+
+            try
+            {
+                // 1. Cooldown Check: Max 5 Reports pro Stunde
+                var oneHourAgo = DateTime.UtcNow.AddHours(-1);
+                var recentReportCount = await _context.WorldUserReports
+                    .Where(r => r.ReporterHash == request.UserHash && r.CreatedAt >= oneHourAgo)
+                    .CountAsync();
+
+                if (recentReportCount >= 5)
+                {
+                    return Ok(new
+                    {
+                        success = false,
+                        message = "Du hast zu viele Inhalte in kurzer Zeit gemeldet. Bitte warte eine Weile.",
+                        cooldown = true
+                    });
+                }
+
+                // 2. Prüfe ob User diesen Post bereits gemeldet hat
+                var existingReport = await _context.WorldUserReports
+                    .FirstOrDefaultAsync(r => r.PostingId == request.PostingId && r.ReporterHash == request.UserHash);
+
+                if (existingReport != null)
+                {
+                    return Ok(new
+                    {
+                        success = false,
+                        message = "Du hast diesen Inhalt bereits gemeldet.",
+                        alreadyReported = true
+                    });
+                }
+
+                // 3. Prüfe ob Posting existiert
+                var posting = await _context.WorldUserPosting.FirstOrDefaultAsync(p => p.Id == request.PostingId);
+                if (posting == null)
+                {
+                    return NotFound(new { success = false, message = "Inhalt nicht gefunden." });
+                }
+
+                // 4. Erstelle Report
+                var report = new WorldUserReport
+                {
+                    ReporterHash = request.UserHash,
+                    PostingId = request.PostingId,
+                    Reason = request.Reason ?? "other",
+                    Description = request.Description,
+                    CreatedAt = DateTime.UtcNow,
+                    Status = "pending"
+                };
+
+                await _context.WorldUserReports.AddAsync(report);
+
+                // 5. Erhöhe ReportCount
+                posting.ReportCount++;
+
+                // 6. Ab 3 Reports → Automatisch verstecken
+                if (posting.ReportCount >= 3 && !posting.IsHiddenPendingReview)
+                {
+                    posting.IsHiddenPendingReview = true;
+                    _logger.LogWarning(
+                        "Content auto-hidden due to reports. PostingId={PostingId}, ReportCount={ReportCount}",
+                        posting.Id, posting.ReportCount);
+                }
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation(
+                    "User {UserHash} reported posting {PostingId} for {Reason}. Total reports: {Count}",
+                    request.UserHash, request.PostingId, request.Reason, posting.ReportCount);
+
+                return Ok(new
+                {
+                    success = true,
+                    message = "Danke für deine Meldung. Wir werden den Inhalt prüfen.",
+                    reportCount = posting.ReportCount,
+                    isHidden = posting.IsHiddenPendingReview
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Melden von Posting {PostingId}", request.PostingId);
+                return StatusCode(500, new { success = false, message = "Ein Fehler ist aufgetreten." });
+            }
+        }
+
+        public class ReportPostingRequest
+        {
+            public string UserHash { get; set; } = string.Empty;
+            public int PostingId { get; set; }
+            public string? Reason { get; set; } // "spam", "inappropriate", "copyright", "other"
+            public string? Description { get; set; }
         }
 
         public class TrackInteractionRequest

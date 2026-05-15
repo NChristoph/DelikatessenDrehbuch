@@ -165,9 +165,12 @@
                                             <option value="" selected disabled class="lang-opt"
                                                     data-txt-de="Kategorie"
                                                     data-txt-en="Category">Kategorie</option>
-                                            <option value="Appetizer" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer">Vorspeise</option>
-                                            <option value="Main" class="lang-opt" data-txt-de="Hauptspeise" data-txt-en="Main Course">Hauptspeise</option>
+                                            <option value="Vorspeise" class="lang-opt" data-txt-de="Vorspeise" data-txt-en="Appetizer">Vorspeise</option>
+                                            <option value="Hauptspeise" class="lang-opt" data-txt-de="Hauptspeise" data-txt-en="Main Course">Hauptspeise</option>
                                             <option value="Dessert" class="lang-opt" data-txt-de="Dessert" data-txt-en="Dessert">Dessert</option>
+                                            <option value="Frühstück" class="lang-opt" data-txt-de="Frühstück" data-txt-en="Breakfast">Frühstück</option>
+                                            <option value="Mittag" class="lang-opt" data-txt-de="Mittag" data-txt-en="Lunch">Mittag</option>
+                                            <option value="Abend" class="lang-opt" data-txt-de="Abend" data-txt-en="Dinner">Abend</option>
                                         </select>
                                         <i class="bi bi-chevron-down cp-input-icon"></i>
                                     </div>
@@ -465,7 +468,7 @@ Beispiel:
 4. Spaghetti abgießen (etwas Nudelwasser aufheben)
 5. Heiße Spaghetti mit der Ei-Käse-Mischung und Speck vermengen
 6. Mit Nudelwasser die gewünschte Konsistenz erreichen
-7. Mit Pfeffer abschmecken und sofort servieren"></textarea>
+7. Mit Pfeffer abschmecken und sofort servieren">@(ViewData["EditStepsText"] ?? "")</textarea>
 
                             <div class="form-text" style="margin-top: 8px; font-size: 12px; color: #6c757d;">
                                 <i class="bi bi-info-circle"></i>
@@ -973,9 +976,12 @@ button, input, select, textarea { touch-action: manipulation; }
             const heroCategoryEmoji = document.getElementById('heroCategoryEmoji');
             const heroCategoryLabel = document.getElementById('heroCategoryLabel');
             const categoryEmojis = {
-                'Appetizer': '🥗',
-                'Main': '🍽️',
-                'Dessert': '🍰'
+                'Vorspeise': '🥗',
+                'Hauptspeise': '🍽️',
+                'Dessert': '🍰',
+                'Frühstück': '🥐',
+                'Mittag': '🍱',
+                'Abend': '🍝'
             };
             if (categorySelect && heroCategoryEmoji && heroCategoryLabel) {
                 categorySelect.addEventListener('change', (e) => {

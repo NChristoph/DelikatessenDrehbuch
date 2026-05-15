@@ -666,9 +666,17 @@
                 <a class="quick-link" href="@Url.Action("CommentModeration", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
                     <i class="bi bi-flag-fill"></i> @T("Kommentar-Moderation", "Comment moderation", "Moderacion", "Moderacao")
                 </a>
+                <a class="quick-link" href="@Url.Action("ReportedContent", "Admin", new { area = "WorldMiniApp" })">
+                    <i class="bi bi-shield-exclamation"></i> @T("Gemeldete Inhalte", "Reported Content", "Contenido Reportado", "Conteúdo Denunciado")
+                </a>
+                <a class="quick-link" href="@Url.Action("CreatorManager", "Admin", new { area = "WorldMiniApp" })">
+                    <i class="bi bi-people-fill"></i> @T("Creator Manager", "Creator Manager", "Gestor de Creadores", "Gerenciador de Criadores")
+                </a>
             }
             else
             {
+                <span></span>
+                <span></span>
                 <span></span>
             }
         </div>

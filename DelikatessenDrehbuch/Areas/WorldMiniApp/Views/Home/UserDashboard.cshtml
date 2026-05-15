@@ -207,32 +207,6 @@
                 }
             </section>
 
-            @if (Model.WildCoinHistory.Any())
-            {
-                <section class="content-card mb-5" aria-label="Transactions History">
-                    <h2 class="section-title mb-3">Transactions History</h2>
-                    <div class="activity-feed muted-feed">
-                        @foreach (var tx in Model.WildCoinHistory.OrderByDescending(x => x.CreatedAt))
-                        {
-                            <article class="activity-card compact">
-                                <div class="activity-head">
-                                    <div class="activity-status neutral" aria-hidden="true"><i class="bi bi-arrow-left-right"></i></div>
-                                    <div class="flex-grow-1">
-                                        <h3 class="activity-title mb-1">@tx.Type</h3>
-                                        <p class="activity-amount mb-0">@tx.Amount.ToString("0.######") WLD</p>
-                                    </div>
-                                    <time class="activity-time" datetime="@tx.CreatedAt.ToString("o")">@tx.CreatedAt.ToString("dd.MM.yyyy HH:mm")</time>
-                                </div>
-                                <div class="activity-details-grid mt-2">
-                                    <div><span>Saldo danach</span><strong>@tx.BalanceAfter.ToString("0.######")</strong></div>
-                                    <div><span>Referenz</span><strong>@(tx.ReferenceInfo ?? "-")</strong></div>
-                                </div>
-                            </article>
-                        }
-                    </div>
-                </section>
-            }
-
             <div class="quick-actions-bar">
                 <button type="button" class="btn creator-btn-primary flex-grow-1">
                     <i class="bi bi-cash-coin me-2"></i>Geld anfordern

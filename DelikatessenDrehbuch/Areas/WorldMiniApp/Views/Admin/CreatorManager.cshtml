@@ -1,0 +1,476 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers.CreatorManagerViewModel
+@{
+    Layout = "_MiniAppLayout";
+    ViewData["Title"] = "Creator Manager - Admin";
+    var isImpersonating = !string.IsNullOrEmpty(Context.Request.Cookies["AdminOriginalHash"]);
+}
+
+<style>
+    body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+    }
+
+    .admin-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+    }
+
+    .admin-header {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .admin-title {
+        font-size: 28px;
+        font-weight: 800;
+        color: #2d3748;
+        margin-bottom: 8px;
+    }
+
+    .admin-subtitle {
+        color: #718096;
+        font-size: 14px;
+    }
+
+    .admin-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 16px;
+        padding: 24px;
+        margin-bottom: 24px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    }
+
+    .card-title {
+        font-size: 20px;
+        font-weight: 700;
+        color: #2d3748;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #4a5568;
+        margin-bottom: 6px;
+        font-size: 14px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 2px solid #e2e8f0;
+        border-radius: 8px;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .form-check-input {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        color: white;
+    }
+
+    .btn-success:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(72, 187, 120, 0.3);
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #fc8181 0%, #f56565 100%);
+        color: white;
+    }
+
+    .btn-danger:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(245, 101, 101, 0.3);
+    }
+
+    .btn-warning {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        color: white;
+    }
+
+    .btn-warning:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 16px rgba(237, 137, 54, 0.3);
+    }
+
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 12px;
+    }
+
+    .alert {
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 16px;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .alert-success {
+        background: #c6f6d5;
+        color: #22543d;
+        border: 1px solid #9ae6b4;
+    }
+
+    .alert-danger {
+        background: #fed7d7;
+        color: #742a2a;
+        border: 1px solid #fc8181;
+    }
+
+    .alert-info {
+        background: #bee3f8;
+        color: #2c5282;
+        border: 1px solid #90cdf4;
+    }
+
+    .creator-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+    }
+
+    .creator-table th {
+        background: #f7fafc;
+        padding: 12px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        color: #4a5568;
+        border-bottom: 2px solid #e2e8f0;
+    }
+
+    .creator-table td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        font-size: 14px;
+        color: #2d3748;
+    }
+
+    .creator-table tr:hover {
+        background: #f7fafc;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 4px 10px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .badge-orb {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .badge-device {
+        background: #e2e8f0;
+        color: #4a5568;
+    }
+
+    .hash-display {
+        font-family: 'Courier New', monospace;
+        font-size: 11px;
+        color: #718096;
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .action-buttons {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .impersonation-banner {
+        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        color: white;
+        padding: 16px 24px;
+        border-radius: 16px;
+        margin-bottom: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 8px 32px rgba(237, 137, 54, 0.3);
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .stat-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    }
+
+    .stat-value {
+        font-size: 32px;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .stat-label {
+        font-size: 13px;
+        opacity: 0.9;
+    }
+</style>
+
+<div class="admin-container">
+    @if (isImpersonating)
+    {
+        <div class="impersonation-banner">
+            <div>
+                <strong>⚠️ Du bist als Creator angemeldet!</strong>
+                <div style="font-size: 12px; opacity: 0.9; margin-top: 4px;">
+                    Aktueller Hash: @Model.CurrentUserHash
+                </div>
+            </div>
+            <form asp-action="ReturnToAdmin" method="post" style="margin: 0;">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="btn btn-warning">
+                    <i class="bi bi-arrow-left"></i> Zurück zum Admin
+                </button>
+            </form>
+        </div>
+    }
+
+    <div class="admin-header">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div class="admin-title">🎨 Creator Manager</div>
+            <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = Model.CurrentUserHash })" class="btn btn-light">
+                <i class="bi bi-person-circle"></i> Mein Profil
+            </a>
+        </div>
+        <div class="admin-subtitle">Verwalte deine ersten 100 Creators und erstelle Content in ihrem Namen</div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value">@Model.Creators.Count</div>
+                <div class="stat-label">Gesamt Creators</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">@Model.Creators.Count(c => c.IsVerified == "orb")</div>
+                <div class="stat-label">Orb Verifiziert</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">@Model.Creators.Count(c => c.IsVerified != "orb")</div>
+                <div class="stat-label">Device Verifiziert</div>
+            </div>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle-fill"></i>
+            @TempData["Success"]
+        </div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="admin-card">
+        <div class="card-title">
+            <i class="bi bi-person-plus-fill"></i>
+            Neuen Creator anlegen
+        </div>
+
+        <form asp-action="CreateCreator" method="post">
+            @Html.AntiForgeryToken()
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="form-group">
+                        <label class="form-label">Benutzername *</label>
+                        <input type="text" name="userName" class="form-control" placeholder="z.B. ChefKoch123" required />
+                    </div>
+                </div>
+                <div class="col-md-5">
+                    <div class="form-group">
+                        <label class="form-label">Bio (optional)</label>
+                        <input type="text" name="bio" class="form-control" placeholder="Leidenschaftlicher Koch aus Wien..." />
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="form-group">
+                        <label class="form-label">Verifizierung</label>
+                        <div class="form-check">
+                            <input type="hidden" name="isOrbVerified" value="false" />
+                            <input type="checkbox" name="isOrbVerified" class="form-check-input" id="orbCheck" value="true" />
+                            <label class="form-check-label" for="orbCheck">Orb-Verifiziert</label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i>
+                Creator erstellen
+            </button>
+        </form>
+    </div>
+
+    <div class="admin-card">
+        <div class="card-title">
+            <i class="bi bi-people-fill"></i>
+            Creator Liste (@Model.Creators.Count)
+        </div>
+
+        @if (!Model.Creators.Any())
+        {
+            <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i>
+                Noch keine Creators angelegt. Erstelle deinen ersten Creator oben!
+            </div>
+        }
+        else
+        {
+            <div style="overflow-x: auto;">
+                <table class="creator-table">
+                    <thead>
+                        <tr>
+                            <th>Benutzername</th>
+                            <th>Hash</th>
+                            <th>Bio</th>
+                            <th>Verifizierung</th>
+                            <th>Erstellt am</th>
+                            <th>Aktionen</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var creator in Model.Creators)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@creator.UserName</strong>
+                                </td>
+                                <td>
+                                    <div class="hash-display" title="@creator.UserHash">
+                                        @creator.UserHash
+                                    </div>
+                                </td>
+                                <td>
+                                    @(string.IsNullOrWhiteSpace(creator.Bio) ? "-" : creator.Bio)
+                                </td>
+                                <td>
+                                    @if (creator.IsVerified == "orb")
+                                    {
+                                        <span class="badge badge-orb">🌐 Orb</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-device">📱 Device</span>
+                                    }
+                                </td>
+                                <td>
+                                    @(creator.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")
+                                </td>
+                                <td>
+                                    <div class="action-buttons">
+                                        <form asp-action="LoginAsCreator" method="post" style="margin: 0;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="targetHash" value="@creator.UserHash" />
+                                            <button type="submit" class="btn btn-success btn-sm">
+                                                <i class="bi bi-box-arrow-in-right"></i>
+                                                Anmelden als
+                                            </button>
+                                        </form>
+                                        <form asp-action="DeleteCreator" method="post" style="margin: 0;" onsubmit="return confirm('Creator @creator.UserName wirklich löschen?')">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="userHash" value="@creator.UserHash" />
+                                            <button type="submit" class="btn btn-danger btn-sm">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+
+    <div class="admin-card" style="background: linear-gradient(135deg, #fef5e7 0%, #fdebd0 100%);">
+        <div class="card-title">
+            <i class="bi bi-lightbulb-fill"></i>
+            Wie funktioniert's?
+        </div>
+        <ol style="margin: 0; padding-left: 20px; color: #7c6045;">
+            <li style="margin-bottom: 8px;">Erstelle Creator mit dem Formular oben</li>
+            <li style="margin-bottom: 8px;">Klicke auf "Anmelden als" um dich als dieser Creator anzumelden</li>
+            <li style="margin-bottom: 8px;">Erstelle Posts, lade Videos hoch, etc. im Namen des Creators</li>
+            <li style="margin-bottom: 8px;">Klicke auf "Zurück zum Admin" um zu deinem Admin-Account zurückzukehren</li>
+        </ol>
+    </div>
+</div>

@@ -46,6 +46,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldUserComment> WorldUserComments { get; set; }
         public DbSet<WorldUserCommentReaction> WorldUserCommentReactions { get; set; }
         public DbSet<WorldUserCommentReport> WorldUserCommentReports { get; set; }
+        public DbSet<WorldUserReport> WorldUserReports { get; set; }
         public DbSet<WorldClipWatchSession> WorldClipWatchSessions { get; set; }
         public DbSet<WorldAdPreferenceProfile> WorldAdPreferenceProfiles { get; set; }
         public DbSet<WorldAdPreferenceInterest> WorldAdPreferenceInterests { get; set; }
@@ -226,6 +227,38 @@ namespace DelikatessenDrehbuch.Data
             builder.Entity<WorldUserCommentReport>()
                 .Property(x => x.Reason)
                 .HasMaxLength(500);
+
+            // WorldUserReport — Content reporting system
+            builder.Entity<WorldUserReport>()
+                .ToTable("WorldUserReports");
+
+            builder.Entity<WorldUserReport>()
+                .HasIndex(x => new { x.PostingId, x.ReporterHash })
+                .IsUnique(); // Ein User kann einen Post nur einmal melden
+
+            builder.Entity<WorldUserReport>()
+                .HasIndex(x => x.PostingId); // Für schnelles Zählen von Reports pro Post
+
+            builder.Entity<WorldUserReport>()
+                .HasIndex(x => x.ReporterHash); // Für Cooldown-Check
+
+            builder.Entity<WorldUserReport>()
+                .HasIndex(x => x.CreatedAt);
+
+            builder.Entity<WorldUserReport>()
+                .HasIndex(x => x.Status);
+
+            builder.Entity<WorldUserReport>()
+                .Property(x => x.ReporterHash)
+                .HasMaxLength(128);
+
+            builder.Entity<WorldUserReport>()
+                .Property(x => x.Reason)
+                .HasMaxLength(50);
+
+            builder.Entity<WorldUserReport>()
+                .Property(x => x.Status)
+                .HasMaxLength(20);
 
             // RecipeBaseData.Title — Lookup bei Upload (SaveNewRecipeService)
             builder.Entity<RecipeBaseData>()

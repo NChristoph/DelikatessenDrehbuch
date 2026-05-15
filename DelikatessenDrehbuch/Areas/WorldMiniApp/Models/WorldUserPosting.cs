@@ -15,6 +15,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public bool IsOffline { get; set; }
         public DateTime CreationTime { get; set; } = DateTime.Now;
 
+        // Content Moderation
+        public int ReportCount { get; set; } = 0;
+        public bool IsHiddenPendingReview { get; set; } = false;
+
         [NotMapped]
         public List<Measure> Measure { get; set; }
         public RecipeBaseData Recipe { get; set; } = new RecipeBaseData();

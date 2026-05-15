@@ -126,22 +126,30 @@ builder.Services.AddScoped<WorldMiniApp.Services.IFeedAlgorithmService, WorldMin
 // HttpClient für Bunny Storage API
 builder.Services.AddHttpClient("BunnyStorage", client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(120);
+    // 15 Minuten Timeout für große Video-Uploads (bis zu 200MB)
+    // Bei 2 Mbit/s Upload: ~13 Minuten für 200MB
+    client.Timeout = TimeSpan.FromMinutes(15);
     client.DefaultRequestHeaders.UserAgent.ParseAdd("DelikatessenDrehbuch/1.0");
 });
 builder.Services.AddHttpClient<IIngredientSwapAiService, IngredientSwapAiService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(60);
+    // 2 Minuten für AI-Rezept-Transformationen (OpenAI API)
+    client.Timeout = TimeSpan.FromMinutes(2);
 });
 builder.Services.AddHttpClient<IRecipeSwapStepAiService, RecipeSwapStepAiService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(60);
+    // 2 Minuten für AI-Rezept-Schritte (OpenAI API)
+    client.Timeout = TimeSpan.FromMinutes(2);
 });
 builder.Services.AddHttpClient<IRecipeVariantSummaryAiService, RecipeVariantSummaryAiService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(30);
+    // 2 Minuten für AI-Varianten-Zusammenfassung (OpenAI API)
+    client.Timeout = TimeSpan.FromMinutes(2);
 });
-builder.Services.AddScoped<IWildCoinService, WildCoinService>();
+// Marketplace Service (formerly WildCoinService - renamed for clarity)
+builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
+// DEPRECATED: IWildCoinService still available for backwards compatibility
+builder.Services.AddScoped<IWildCoinService, MarketplaceService>();
 builder.Services.AddScoped<IWorldClipWatchService, WorldClipWatchService>();
 builder.Services.AddScoped<IWorldAdPreferenceService, WorldAdPreferenceService>();
 builder.Services.AddScoped<IMarketplaceRankingService, MarketplaceRankingService>();
@@ -165,7 +173,9 @@ builder.Services.AddHttpClient<IRecipeStepGeneratorService, RecipeStepGeneratorS
 // NEW: Simple Recipe Translation Service (replaces complex step system)
 builder.Services.AddHttpClient<RecipeTranslationService>(client =>
 {
-    client.Timeout = TimeSpan.FromSeconds(60);
+    // 3 Minuten Timeout für OpenAI API-Übersetzungen
+    // Lange Rezepte mit vielen Schritten können länger dauern
+    client.Timeout = TimeSpan.FromMinutes(3);
 });
 
 builder.Services.AddHttpContextAccessor();

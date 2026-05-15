@@ -35,15 +35,25 @@
             var vorspeise = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "vorspeise");
             var hauptspeise = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "hauptspeise");
             var dessert = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "dessert");
+            var fruehstueck = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "frühstück");
+            var mittag = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "mittag");
+            var abend = dayGroup.FirstOrDefault(x => (x.Recipes?.Category ?? "").Trim().ToLower() == "abend");
 
             <div class="glass-card mb-4 overflow-hidden">
 
                 <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-light bg-white bg-opacity-50">
-                    <h5 class="fw-bold m-0 text-dark">Tag @(dayIndex)</h5> <span class="badge bg-white text-dark shadow-sm rounded-pill border">3 Gänge</span>
+                    <h5 class="fw-bold m-0 text-dark">Tag @(dayIndex)</h5>
+                    <div class="d-flex align-items-center gap-2">
+                        <small class="text-muted meal-mode-label-@dayIndex">Gänge</small>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input meal-mode-toggle" type="checkbox" id="mealModeToggle_@dayIndex" data-day="@dayIndex" style="cursor: pointer;">
+                        </div>
+                    </div>
                 </div>
 
                 <div class="px-3 pt-3">
-                    <ul class="nav nav-pills nav-fill gap-2 p-1 bg-white rounded-pill shadow-sm" id="pills-tab-@dayIndex" role="tablist" style="font-size: 0.8rem;">
+                    @* Gänge-Modus (Standard) *@
+                    <ul class="nav nav-pills nav-fill gap-2 p-1 bg-white rounded-pill shadow-sm tabs-gaenge-@dayIndex" id="pills-tab-gaenge-@dayIndex" role="tablist" style="font-size: 0.8rem;">
                         <li class="nav-item" role="presentation">
                             <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#appetizer_@dayIndex" type="button">Vorspeise</button>
                         </li>
@@ -54,11 +64,23 @@
                             <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#dessert_@dayIndex" type="button">Dessert</button>
                         </li>
                     </ul>
+                    @* Mahlzeiten-Modus *@
+                    <ul class="nav nav-pills nav-fill gap-2 p-1 bg-white rounded-pill shadow-sm tabs-mahlzeiten-@dayIndex d-none" id="pills-tab-mahlzeiten-@dayIndex" role="tablist" style="font-size: 0.8rem;">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#breakfast_@dayIndex" type="button">🥐 Frühstück</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active rounded-pill py-1 fw-bold" data-bs-toggle="pill" data-bs-target="#lunch_@dayIndex" type="button">🍱 Mittag</button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#dinner_@dayIndex" type="button">🍝 Abend</button>
+                        </li>
+                    </ul>
                 </div>
 
                 <div class="tab-content p-3">
-
-                    <div class="tab-pane fade" id="appetizer_@dayIndex" role="tabpanel">
+                    @* Gänge-Modus Tabs *@
+                    <div class="tab-pane fade content-gaenge-@dayIndex" id="appetizer_@dayIndex" role="tabpanel">
                         @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
                         vorspeise,
                                         new ViewDataDictionary(ViewData) {
@@ -66,28 +88,59 @@
                                         { "Category", "Vorspeise" },
                                         { "NamePrefix", "appetizer_" }
                                         })
-                </div>
+                    </div>
 
-                <div class="tab-pane fade show active" id="main_@dayIndex" role="tabpanel">
-                    @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
+                    <div class="tab-pane fade show active content-gaenge-@dayIndex" id="main_@dayIndex" role="tabpanel">
+                        @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
                                         hauptspeise,
                                         new ViewDataDictionary(ViewData) {
                                         { "DayIndex", dayIndex },
                                         { "Category", "Hauptspeise" },
                                         { "NamePrefix", "main_" }
                                         })
-                </div>
+                    </div>
 
-                <div class="tab-pane fade" id="dessert_@dayIndex" role="tabpanel">
-                    @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
+                    <div class="tab-pane fade content-gaenge-@dayIndex" id="dessert_@dayIndex" role="tabpanel">
+                        @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
                                         dessert,
                                         new ViewDataDictionary(ViewData) {
                                         { "DayIndex", dayIndex },
                                         { "Category", "Dessert" },
                                         { "NamePrefix", "dessert_" }
                                         })
+                    </div>
+
+                    @* Mahlzeiten-Modus Tabs *@
+                    <div class="tab-pane fade content-mahlzeiten-@dayIndex d-none" id="breakfast_@dayIndex" role="tabpanel">
+                        @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
+                        fruehstueck,
+                                        new ViewDataDictionary(ViewData) {
+                                        { "DayIndex", dayIndex },
+                                        { "Category", "Frühstück" },
+                                        { "NamePrefix", "breakfast_" }
+                                        })
+                    </div>
+
+                    <div class="tab-pane fade content-mahlzeiten-@dayIndex d-none" id="lunch_@dayIndex" role="tabpanel">
+                        @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
+                                        mittag,
+                                        new ViewDataDictionary(ViewData) {
+                                        { "DayIndex", dayIndex },
+                                        { "Category", "Mittag" },
+                                        { "NamePrefix", "lunch_" }
+                                        })
+                    </div>
+
+                    <div class="tab-pane fade content-mahlzeiten-@dayIndex d-none" id="dinner_@dayIndex" role="tabpanel">
+                        @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/_MobileMealCard.cshtml",
+                                        abend,
+                                        new ViewDataDictionary(ViewData) {
+                                        { "DayIndex", dayIndex },
+                                        { "Category", "Abend" },
+                                        { "NamePrefix", "dinner_" }
+                                        })
+                    </div>
                 </div>
-            </div>
         </div>
                 }
     </div>
@@ -127,7 +180,79 @@
                 if (offcanvasEl) {
                     searchOffcanvasInstance = new bootstrap.Offcanvas(offcanvasEl);
                 }
+
+                // Toggle-Funktionalität für Gänge/Mahlzeiten Modus
+                const toggles = document.querySelectorAll('.meal-mode-toggle');
+                toggles.forEach(toggle => {
+                    const dayIndex = toggle.getAttribute('data-day');
+
+                    // Lade gespeicherte Präferenz aus localStorage
+                    const savedMode = localStorage.getItem(`mealMode_day${dayIndex}`);
+                    if (savedMode === 'mahlzeiten') {
+                        toggle.checked = true;
+                        switchToMahlzeitenMode(dayIndex);
+                    }
+
+                    // Event Listener für Toggle
+                    toggle.addEventListener('change', function() {
+                        if (this.checked) {
+                            switchToMahlzeitenMode(dayIndex);
+                            localStorage.setItem(`mealMode_day${dayIndex}`, 'mahlzeiten');
+                        } else {
+                            switchToGaengeMode(dayIndex);
+                            localStorage.setItem(`mealMode_day${dayIndex}`, 'gaenge');
+                        }
+                    });
+                });
             });
+
+            function switchToMahlzeitenMode(dayIndex) {
+                // Tabs umschalten
+                document.querySelector(`.tabs-gaenge-${dayIndex}`).classList.add('d-none');
+                document.querySelector(`.tabs-mahlzeiten-${dayIndex}`).classList.remove('d-none');
+
+                // Content umschalten
+                document.querySelectorAll(`.content-gaenge-${dayIndex}`).forEach(el => {
+                    el.classList.add('d-none');
+                    el.classList.remove('show', 'active');
+                });
+                document.querySelectorAll(`.content-mahlzeiten-${dayIndex}`).forEach(el => {
+                    el.classList.remove('d-none');
+                });
+                // Aktiviere Mittag als Standard
+                const lunchTab = document.querySelector(`#lunch_${dayIndex}`);
+                if (lunchTab) {
+                    lunchTab.classList.add('show', 'active');
+                }
+
+                // Label aktualisieren
+                const label = document.querySelector(`.meal-mode-label-${dayIndex}`);
+                if (label) label.textContent = 'Mahlzeiten';
+            }
+
+            function switchToGaengeMode(dayIndex) {
+                // Tabs umschalten
+                document.querySelector(`.tabs-mahlzeiten-${dayIndex}`).classList.add('d-none');
+                document.querySelector(`.tabs-gaenge-${dayIndex}`).classList.remove('d-none');
+
+                // Content umschalten
+                document.querySelectorAll(`.content-mahlzeiten-${dayIndex}`).forEach(el => {
+                    el.classList.add('d-none');
+                    el.classList.remove('show', 'active');
+                });
+                document.querySelectorAll(`.content-gaenge-${dayIndex}`).forEach(el => {
+                    el.classList.remove('d-none');
+                });
+                // Aktiviere Hauptspeise als Standard
+                const mainTab = document.querySelector(`#main_${dayIndex}`);
+                if (mainTab) {
+                    mainTab.classList.add('show', 'active');
+                }
+
+                // Label aktualisieren
+                const label = document.querySelector(`.meal-mode-label-${dayIndex}`);
+                if (label) label.textContent = 'Gänge';
+            }
 
             // 1. WÜRFELN (Lade zufälliges Rezept in die Karte)
             function ChangeOrAddRecipeMobile(btn) {
