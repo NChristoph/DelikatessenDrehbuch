@@ -338,6 +338,7 @@ async function fetchNonce() {
     if (!data?.nonce) {
         throw new Error('Nonce fehlt');
     }
+
     return data.nonce;
 }
 
@@ -348,6 +349,8 @@ function normalizeNonce(rawNonce) {
     }
     return normalized;
 }
+
+// Debug-Funktionen entfernt für Production
 
 async function startWalletAuth() {
     const env = await diagnoseEnvironment();
@@ -362,23 +365,82 @@ async function startWalletAuth() {
         console.warn("Install Note:", e);
     }
 
+    console.log('🟢 [startWalletAuth] Fetching nonce...');
     const nonce = normalizeNonce(await fetchNonce());
+    console.log('🟢 [startWalletAuth] Nonce:', nonce);
 
-    const { commandPayload, finalPayload } = await MiniKit.walletAuth({
-        nonce
-    });
+    console.log('🟢 [startWalletAuth] Calling MiniKit.walletAuth with action: wallet-auth-marketplace');
 
-    if (finalPayload?.status === 'success') {
-        return await completeSiwe(finalPayload, nonce);
-    } else {
-        const details = [
-            finalPayload?.error_code,
-            finalPayload?.errorCode,
-            finalPayload?.message,
-            finalPayload?.detail
-        ].filter(Boolean).join(' | ') || 'WalletAuth abgebrochen oder nicht unterstützt.';
-        throw new Error(`WalletAuth fehlgeschlagen: ${details}`);
+    let result;
+    try {
+        // Versuche walletAuth ODER signMessage als Fallback
+        if (hasWalletAuth) {
+            console.log('🔵 Using MiniKit.walletAuth');
+            result = await MiniKit.walletAuth({ nonce });
+        } else if (hasSignMessage) {
+            console.log('🔵 Using MiniKit.signMessage (Fallback)');
+            alert('⚠️ walletAuth nicht verfügbar, versuche signMessage...');
+            result = await MiniKit.signMessage({
+                message: `Wallet verbinden\nNonce: ${nonce}`
+            });
+        } else {
+            throw new Error('Weder walletAuth noch signMessage verfügbar!');
+        }
+    } catch (error) {
+        alert(`❌ MiniKit Call hat einen Fehler geworfen:\n\n${error.message || error}\n\nStack:\n${error.stack || 'keine'}`);
+        showMiniKitDebugAlert('MiniKit Call Fehler', error, {
+            flow: 'connectWalletOnly',
+            nonce,
+            hasWalletAuth,
+            hasSignMessage,
+            isInstalledValue
+        });
+        throw error;
     }
+
+    console.log('🟢 [startWalletAuth] Raw result:', JSON.stringify(result, null, 2));
+
+    if (!result) {
+        alert(`❌ MiniKit.walletAuth() gab kein Ergebnis zurück!\n\nresult ist: ${result}\nTyp: ${typeof result}`);
+        throw new Error('MiniKit.walletAuth returned undefined');
+    }
+
+    // Neue MiniKit API: result.data enthält die Daten
+    console.log('🔍 Result structure (startWalletAuth):', {
+        'result.data': result.data,
+        'result.executedWith': result.executedWith,
+        'full': result
+    });
+    const payload = result.data || result;
+
+    console.log('🟢 [startWalletAuth] payload:', JSON.stringify(payload, null, 2));
+
+    // Check für Success und completeSiwe aufrufen
+    if (payload?.address || result?.address) {
+        console.log('✅ [startWalletAuth] Success! Completing SIWE...');
+        return await completeSiwe(payload, nonce);
+    }
+
+    // Fehler
+    const errorDetails = {
+        status: payload?.status || result?.status,
+        error_code: payload?.error_code || result?.error_code,
+        message: payload?.message || result?.message
+    };
+    console.error('❌ [startWalletAuth] Error:', errorDetails);
+
+    const debugText = `❌ WALLET AUTH DEBUG (startWalletAuth)
+
+Status: ${errorDetails.status || 'undefined'}
+Error Code: ${errorDetails.error_code || 'none'}
+Message: ${errorDetails.message || 'none'}
+
+--- Full Result ---
+${JSON.stringify(result, null, 2)}`;
+
+    alert(debugText);
+
+    throw new Error('WalletAuth fehlgeschlagen: Keine Address im Result');
 }
 
 async function completeSiwe(payload, nonce) {
@@ -422,24 +484,27 @@ async function connectWalletOnly() {
 
     const nonce = normalizeNonce(await fetchNonce());
 
-    const { commandPayload, finalPayload } = await MiniKit.walletAuth({
-        nonce
-    });
-
-    if (finalPayload?.status === 'success') {
-        const address = finalPayload.address;
-        if (!address) throw new Error('Keine Wallet-Adresse in der Antwort.');
-        return address;
-    } else {
-        const details = [
-            finalPayload?.error_code,
-            finalPayload?.message
-        ].filter(Boolean).join(' | ') || 'WalletAuth abgebrochen.';
-        throw new Error(`Wallet-Verbindung fehlgeschlagen: ${details}`);
+    let result;
+    try {
+        result = await MiniKit.walletAuth({ nonce });
+    } catch (error) {
+        console.error('walletAuth Fehler:', error);
+        throw error;
     }
+
+    const address = result?.address || result?.data?.address;
+
+    if (address) {
+        return address;
+    }
+
+    console.error('Keine Address im walletAuth Result:', result);
+    throw new Error('Wallet-Verbindung fehlgeschlagen: Keine Adresse erhalten');
 }
 
 window.connectWalletOnly = connectWalletOnly;
+
+// Debug Helper entfernt für Production
 
 // ── MiniKit Pay (für Marketplace-Käufe) ──
 

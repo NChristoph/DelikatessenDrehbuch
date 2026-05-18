@@ -356,7 +356,7 @@ END;
             });
         }
 
-        public async Task<IActionResult> ShowRecipe(int id, int? aiVariantId = null, int? swapVariantId = null, int? communityVariantId = null, bool original = false)
+        public async Task<IActionResult> ShowRecipe(int id, int? aiVariantId = null, int? swapVariantId = null, int? communityVariantId = null, bool original = false, string share = null, string direct = null)
         {
             var model = await _context.RecipeBaseData
                 .IncludeFullRecipeDetails()
@@ -366,6 +366,27 @@ END;
             {
                 return NotFound();
             }
+
+            // Wenn als Share-Link aufgerufen (share=1) und NICHT mit direct
+            // UND NICHT bereits in World App → Landing Page
+            var isWorldApp = IsWorldAppRequest();
+            if (!string.IsNullOrEmpty(share) && string.IsNullOrEmpty(direct) && !isWorldApp)
+            {
+                ViewData["ShareType"] = "recipe";
+                ViewData["Token"] = id.ToString();
+                ViewData["Title"] = model.Title ?? "Rezept";
+                ViewData["Description"] = $"Öffne dieses Rezept in der World App: {model.Title}";
+                var queryParams = $"id={id}&direct=true";
+                if (aiVariantId.HasValue) queryParams += $"&aiVariantId={aiVariantId}";
+                if (swapVariantId.HasValue) queryParams += $"&swapVariantId={swapVariantId}";
+                if (communityVariantId.HasValue) queryParams += $"&communityVariantId={communityVariantId}";
+                if (original) queryParams += "&original=true";
+                ViewData["TargetPath"] = $"/WorldMiniApp/Home/ShowRecipe?{queryParams}";
+                return View("~/Areas/WorldMiniApp/Views/Home/SharedLinkLanding.cshtml");
+            }
+
+            // Wenn in World App oder mit direct=true → direkt zur View
+            // (kein share Parameter oder bereits in App)
 
             var userHash = ResolveUserHash(string.Empty);
             var isSuperUser = userHash == SuperUserHash;
@@ -886,8 +907,16 @@ END;
                 _ => "AI Vorschau"
             };
         }
+        private bool IsWorldAppRequest()
+        {
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            return userAgent.Contains("WorldApp", StringComparison.OrdinalIgnoreCase) ||
+                   userAgent.Contains("MiniKit", StringComparison.OrdinalIgnoreCase) ||
+                   userAgent.Contains("Worldcoin", StringComparison.OrdinalIgnoreCase);
+        }
+
         [HttpGet]
-        public async Task<IActionResult> SharedShoppingList(string token)
+        public async Task<IActionResult> SharedShoppingList(string token, bool? direct)
         {
             if (string.IsNullOrWhiteSpace(token))
                 return NotFound();
@@ -895,6 +924,18 @@ END;
             var list = await _context.WorldSharedShoppingList.FirstOrDefaultAsync(x => x.ShareToken == token);
             if (list == null)
                 return NotFound();
+
+            // Wenn nicht mit direct=true UND nicht in World App → Landing Page zeigen
+            var isWorldApp = IsWorldAppRequest();
+            if (direct != true && !isWorldApp)
+            {
+                ViewData["ShareType"] = "shopping-list";
+                ViewData["Token"] = token;
+                ViewData["Title"] = "Geteilte Einkaufsliste";
+                ViewData["Description"] = "Öffne diese Einkaufsliste in der World App, um sie live zu synchronisieren.";
+                ViewData["TargetPath"] = $"/WorldMiniApp/Home/SharedShoppingList?token={token}&direct=true";
+                return View("~/Areas/WorldMiniApp/Views/Home/SharedLinkLanding.cshtml");
+            }
 
             ViewData["Token"] = list.ShareToken;
             ViewData["Items"] = list.ItemsJson;

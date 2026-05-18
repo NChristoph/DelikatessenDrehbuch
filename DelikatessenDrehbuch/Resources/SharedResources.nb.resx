@@ -514,4 +514,59 @@
   <data name="AI.CreateSteps" xml:space="preserve">
     <value>Opprett trinn</value>
   </data>
+
+  <!-- Recipe Categories -->
+  <data name="Category.Hauptspeise" xml:space="preserve">
+    <value>Hovedrett</value>
+  </data>
+  <data name="Category.Vorspeise" xml:space="preserve">
+    <value>Forrett</value>
+  </data>
+  <data name="Category.Dessert" xml:space="preserve">
+    <value>Dessert</value>
+  </data>
+  <data name="Category.Fruehstueck" xml:space="preserve">
+    <value>Frokost</value>
+  </data>
+  <data name="Category.Snack" xml:space="preserve">
+    <value>Snacks</value>
+  </data>
+  <data name="Category.Getraenk" xml:space="preserve">
+    <value>Drikke</value>
+  </data>
+  <data name="Category.Salat" xml:space="preserve">
+    <value>Salat</value>
+  </data>
+  <data name="Category.Suppe" xml:space="preserve">
+    <value>Suppe</value>
+  </data>
+  <data name="Category.Beilage" xml:space="preserve">
+    <value>Tilbehør</value>
+  </data>
+  <data name="Category.Rezept" xml:space="preserve">
+    <value>Oppskrift</value>
+  </data>
+  <data name="Category.Original" xml:space="preserve">
+    <value>Original</value>
+  </data>
+  <data name="Category.Variante" xml:space="preserve">
+    <value>Variant</value>
+  </data>
+
+  <!-- Video Upload Validation -->
+  <data name="Video.TooLong.Title" xml:space="preserve">
+    <value>Videoen er for lang!</value>
+  </data>
+  <data name="Video.TooLong.MaxLength" xml:space="preserve">
+    <value>Maksimal lengde: 90 sekunder</value>
+  </data>
+  <data name="Video.TooLong.YourLength" xml:space="preserve">
+    <value>Din videolengde: {0} sekunder</value>
+  </data>
+  <data name="Video.TooLong.Message" xml:space="preserve">
+    <value>Vennligst velg en kortere video.</value>
+  </data>
+  <data name="Video.LoadError" xml:space="preserve">
+    <value>Feil ved lasting av video. Prøv igjen.</value>
+  </data>
 </root>

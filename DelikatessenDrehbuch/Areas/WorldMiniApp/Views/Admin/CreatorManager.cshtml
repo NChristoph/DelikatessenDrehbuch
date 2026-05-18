@@ -278,6 +278,112 @@
         font-size: 13px;
         opacity: 0.9;
     }
+
+    .creator-item {
+        border: 2px solid #e2e8f0;
+        border-radius: 12px;
+        margin-bottom: 12px;
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+
+    .creator-item:hover {
+        border-color: #cbd5e0;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    .creator-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px;
+        background: #f7fafc;
+    }
+
+    .creator-info {
+        flex: 1;
+    }
+
+    .creator-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    .recipe-collapse {
+        padding: 16px;
+        background: white;
+        border-top: 1px solid #e2e8f0;
+    }
+
+    .recipe-loading {
+        text-align: center;
+        color: #718096;
+        padding: 20px;
+    }
+
+    .recipe-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 16px;
+        margin-top: 12px;
+    }
+
+    .recipe-card {
+        border: 1px solid #e2e8f0;
+        border-radius: 8px;
+        overflow: hidden;
+        transition: all 0.2s;
+    }
+
+    .recipe-card:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        transform: translateY(-2px);
+    }
+
+    .recipe-thumbnail {
+        width: 100%;
+        height: 150px;
+        object-fit: cover;
+        background: #f7fafc;
+    }
+
+    .recipe-info {
+        padding: 12px;
+    }
+
+    .recipe-title {
+        font-weight: 600;
+        font-size: 14px;
+        color: #2d3748;
+        margin-bottom: 8px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .recipe-meta {
+        font-size: 11px;
+        color: #718096;
+        margin-bottom: 8px;
+    }
+
+    .no-recipes {
+        text-align: center;
+        color: #718096;
+        padding: 20px;
+        font-style: italic;
+    }
+
+    .toggle-recipes i {
+        transition: transform 0.3s;
+    }
+
+    .toggle-recipes.expanded i {
+        transform: rotate(180deg);
+    }
 </style>
 
 <div class="admin-container">
@@ -394,34 +500,21 @@
         }
         else
         {
-            <div style="overflow-x: auto;">
-                <table class="creator-table">
-                    <thead>
-                        <tr>
-                            <th>Benutzername</th>
-                            <th>Hash</th>
-                            <th>Bio</th>
-                            <th>Verifizierung</th>
-                            <th>Erstellt am</th>
-                            <th>Aktionen</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var creator in Model.Creators)
-                        {
-                            <tr>
-                                <td>
-                                    <strong>@creator.UserName</strong>
-                                </td>
-                                <td>
-                                    <div class="hash-display" title="@creator.UserHash">
-                                        @creator.UserHash
-                                    </div>
-                                </td>
-                                <td>
-                                    @(string.IsNullOrWhiteSpace(creator.Bio) ? "-" : creator.Bio)
-                                </td>
-                                <td>
+            <!-- Suchleiste -->
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label class="form-label">Creator suchen</label>
+                <input type="text" id="creatorSearchInput" class="form-control" placeholder="Benutzername oder Hash eingeben..." />
+            </div>
+
+            <!-- Creator Accordion -->
+            <div class="accordion" id="creatorAccordion">
+                @foreach (var creator in Model.Creators)
+                {
+                    <div class="creator-item" data-username="@creator.UserName.ToLowerInvariant()" data-hash="@creator.UserHash.ToLowerInvariant()">
+                        <div class="creator-header">
+                            <div class="creator-info">
+                                <div style="display: flex; align-items: center; gap: 12px;">
+                                    <strong style="font-size: 16px;">@creator.UserName</strong>
                                     @if (creator.IsVerified == "orb")
                                     {
                                         <span class="badge badge-orb">🌐 Orb</span>
@@ -430,33 +523,41 @@
                                     {
                                         <span class="badge badge-device">📱 Device</span>
                                     }
-                                </td>
-                                <td>
-                                    @(creator.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <form asp-action="LoginAsCreator" method="post" style="margin: 0;">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="targetHash" value="@creator.UserHash" />
-                                            <button type="submit" class="btn btn-success btn-sm">
-                                                <i class="bi bi-box-arrow-in-right"></i>
-                                                Anmelden als
-                                            </button>
-                                        </form>
-                                        <form asp-action="DeleteCreator" method="post" style="margin: 0;" onsubmit="return confirm('Creator @creator.UserName wirklich löschen?')">
-                                            @Html.AntiForgeryToken()
-                                            <input type="hidden" name="userHash" value="@creator.UserHash" />
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="bi bi-trash"></i>
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
+                                </div>
+                                <div class="hash-display" title="@creator.UserHash" style="margin-top: 4px;">
+                                    @creator.UserHash
+                                </div>
+                                <div style="font-size: 12px; color: #718096; margin-top: 4px;">
+                                    Erstellt: @(creator.CreatedAt?.ToString("dd.MM.yyyy HH:mm") ?? "-")
+                                </div>
+                            </div>
+                            <div class="creator-actions">
+                                <button class="btn btn-primary btn-sm toggle-recipes" data-creator-hash="@creator.UserHash" data-target="#recipes-@creator.UserHash.GetHashCode()">
+                                    <i class="bi bi-chevron-down"></i> Rezepte anzeigen
+                                </button>
+                                <form asp-action="LoginAsCreator" method="post" style="margin: 0; display: inline;">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="targetHash" value="@creator.UserHash" />
+                                    <button type="submit" class="btn btn-success btn-sm">
+                                        <i class="bi bi-box-arrow-in-right"></i> Anmelden als
+                                    </button>
+                                </form>
+                                <form asp-action="DeleteCreator" method="post" style="margin: 0; display: inline;" onsubmit="return confirm('Creator @creator.UserName wirklich löschen?')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userHash" value="@creator.UserHash" />
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                        <div id="recipes-@creator.UserHash.GetHashCode()" class="recipe-collapse" style="display: none;">
+                            <div class="recipe-loading">
+                                <i class="bi bi-hourglass-split"></i> Lade Rezepte...
+                            </div>
+                        </div>
+                    </div>
+                }
             </div>
         }
     </div>
@@ -471,6 +572,149 @@
             <li style="margin-bottom: 8px;">Klicke auf "Anmelden als" um dich als dieser Creator anzumelden</li>
             <li style="margin-bottom: 8px;">Erstelle Posts, lade Videos hoch, etc. im Namen des Creators</li>
             <li style="margin-bottom: 8px;">Klicke auf "Zurück zum Admin" um zu deinem Admin-Account zurückzukehren</li>
+            <li style="margin-bottom: 8px;">Klicke auf "Rezepte anzeigen" um die Rezepte eines Creators zu laden und zu löschen</li>
         </ol>
     </div>
 </div>
+
+<script>
+    // Search-Filter für Creators
+    document.getElementById('creatorSearchInput')?.addEventListener('input', function(e) {
+        const searchTerm = e.target.value.toLowerCase().trim();
+        const creatorItems = document.querySelectorAll('.creator-item');
+
+        creatorItems.forEach(item => {
+            const username = item.getAttribute('data-username');
+            const hash = item.getAttribute('data-hash');
+            const matches = username.includes(searchTerm) || hash.includes(searchTerm);
+            item.style.display = matches ? 'block' : 'none';
+        });
+    });
+
+    // Toggle Rezepte (Lazy Loading)
+    document.querySelectorAll('.toggle-recipes').forEach(btn => {
+        btn.addEventListener('click', async function() {
+            const creatorHash = this.getAttribute('data-creator-hash');
+            const targetId = this.getAttribute('data-target');
+            const collapseDiv = document.querySelector(targetId);
+            const isExpanded = collapseDiv.style.display === 'block';
+
+            if (isExpanded) {
+                // Collapse
+                collapseDiv.style.display = 'none';
+                this.classList.remove('expanded');
+                this.innerHTML = '<i class="bi bi-chevron-down"></i> Rezepte anzeigen';
+            } else {
+                // Expand
+                collapseDiv.style.display = 'block';
+                this.classList.add('expanded');
+                this.innerHTML = '<i class="bi bi-chevron-up"></i> Rezepte ausblenden';
+
+                // Lade Rezepte falls noch nicht geladen
+                if (!collapseDiv.hasAttribute('data-loaded')) {
+                    await loadCreatorRecipes(creatorHash, collapseDiv);
+                    collapseDiv.setAttribute('data-loaded', 'true');
+                }
+            }
+        });
+    });
+
+    // Rezepte via AJAX laden
+    async function loadCreatorRecipes(creatorHash, container) {
+        try {
+            const response = await fetch(`@Url.Action("GetCreatorRecipes", "Admin")?creatorHash=${encodeURIComponent(creatorHash)}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            const result = await response.json();
+
+            if (result.success && result.recipes && result.recipes.length > 0) {
+                const recipesHtml = `
+                    <div class="recipe-grid">
+                        ${result.recipes.map(recipe => `
+                            <div class="recipe-card" data-recipe-id="${recipe.recipeId}">
+                                <img src="${recipe.thumbnail || '/images/placeholder.jpg'}"
+                                     alt="${recipe.title}"
+                                     class="recipe-thumbnail"
+                                     onerror="this.src='/images/placeholder.jpg'" />
+                                <div class="recipe-info">
+                                    <div class="recipe-title">${recipe.title}</div>
+                                    <div class="recipe-meta">
+                                        ${new Date(recipe.createdAt).toLocaleDateString('de-DE')}
+                                    </div>
+                                    <button class="btn btn-danger btn-sm delete-recipe"
+                                            data-recipe-id="${recipe.recipeId}"
+                                            data-recipe-title="${recipe.title}">
+                                        <i class="bi bi-trash"></i> Löschen
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.innerHTML = recipesHtml;
+
+                // Event-Listener für Delete-Buttons
+                container.querySelectorAll('.delete-recipe').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        deleteRecipe(this.getAttribute('data-recipe-id'), this.getAttribute('data-recipe-title'));
+                    });
+                });
+            } else {
+                container.innerHTML = '<div class="no-recipes">Noch keine Rezepte erstellt.</div>';
+            }
+        } catch (error) {
+            console.error('Fehler beim Laden der Rezepte:', error);
+            container.innerHTML = '<div class="alert alert-danger"><i class="bi bi-exclamation-triangle"></i> Fehler beim Laden der Rezepte.</div>';
+        }
+    }
+
+    // Rezept löschen
+    async function deleteRecipe(recipeId, recipeTitle) {
+        if (!confirm(`Rezept "${recipeTitle}" wirklich löschen?\n\nDies löscht auch alle zugehörigen Postings und Bilder!`)) {
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('recipeId', recipeId);
+            formData.append('__RequestVerificationToken', document.querySelector('input[name="__RequestVerificationToken"]').value);
+
+            const response = await fetch('@Url.Action("DeleteRecipe", "Admin")', {
+                method: 'POST',
+                body: formData
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Entferne das Rezept aus der UI
+                const recipeCard = document.querySelector(`.recipe-card[data-recipe-id="${recipeId}"]`);
+                if (recipeCard) {
+                    recipeCard.style.transition = 'opacity 0.3s';
+                    recipeCard.style.opacity = '0';
+                    setTimeout(() => {
+                        recipeCard.remove();
+
+                        // Prüfe ob noch Rezepte vorhanden sind
+                        const parentGrid = recipeCard.closest('.recipe-collapse');
+                        if (parentGrid && !parentGrid.querySelector('.recipe-card')) {
+                            parentGrid.querySelector('.recipe-grid')?.remove();
+                            parentGrid.innerHTML = '<div class="no-recipes">Noch keine Rezepte erstellt.</div>';
+                        }
+                    }, 300);
+                }
+
+                alert('Rezept erfolgreich gelöscht!');
+            } else {
+                alert('Fehler beim Löschen: ' + (result.error || 'Unbekannter Fehler'));
+            }
+        } catch (error) {
+            console.error('Fehler beim Löschen:', error);
+            alert('Fehler beim Löschen des Rezepts.');
+        }
+    }
+</script>

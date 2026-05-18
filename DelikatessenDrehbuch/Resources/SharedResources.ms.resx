@@ -514,4 +514,59 @@
   <data name="AI.CreateSteps" xml:space="preserve">
     <value>Cipta langkah</value>
   </data>
+
+  <!-- Recipe Categories -->
+  <data name="Category.Hauptspeise" xml:space="preserve">
+    <value>Hidangan Utama</value>
+  </data>
+  <data name="Category.Vorspeise" xml:space="preserve">
+    <value>Pembuka Selera</value>
+  </data>
+  <data name="Category.Dessert" xml:space="preserve">
+    <value>Pencuci Mulut</value>
+  </data>
+  <data name="Category.Fruehstueck" xml:space="preserve">
+    <value>Sarapan</value>
+  </data>
+  <data name="Category.Snack" xml:space="preserve">
+    <value>Snek</value>
+  </data>
+  <data name="Category.Getraenk" xml:space="preserve">
+    <value>Minuman</value>
+  </data>
+  <data name="Category.Salat" xml:space="preserve">
+    <value>Salad</value>
+  </data>
+  <data name="Category.Suppe" xml:space="preserve">
+    <value>Sup</value>
+  </data>
+  <data name="Category.Beilage" xml:space="preserve">
+    <value>Lauk Pauk</value>
+  </data>
+  <data name="Category.Rezept" xml:space="preserve">
+    <value>Resipi</value>
+  </data>
+  <data name="Category.Original" xml:space="preserve">
+    <value>Asal</value>
+  </data>
+  <data name="Category.Variante" xml:space="preserve">
+    <value>Varian</value>
+  </data>
+
+  <!-- Video Upload Validation -->
+  <data name="Video.TooLong.Title" xml:space="preserve">
+    <value>Video terlalu panjang!</value>
+  </data>
+  <data name="Video.TooLong.MaxLength" xml:space="preserve">
+    <value>Panjang maksimum: 90 saat</value>
+  </data>
+  <data name="Video.TooLong.YourLength" xml:space="preserve">
+    <value>Panjang video anda: {0} saat</value>
+  </data>
+  <data name="Video.TooLong.Message" xml:space="preserve">
+    <value>Sila pilih video yang lebih pendek.</value>
+  </data>
+  <data name="Video.LoadError" xml:space="preserve">
+    <value>Ralat memuatkan video. Sila cuba lagi.</value>
+  </data>
 </root>

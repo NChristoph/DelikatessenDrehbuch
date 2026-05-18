@@ -514,4 +514,59 @@
   <data name="AI.CreateSteps" xml:space="preserve">
     <value>Stappen maken</value>
   </data>
+
+  <!-- Recipe Categories -->
+  <data name="Category.Hauptspeise" xml:space="preserve">
+    <value>Hoofdgerecht</value>
+  </data>
+  <data name="Category.Vorspeise" xml:space="preserve">
+    <value>Voorgerecht</value>
+  </data>
+  <data name="Category.Dessert" xml:space="preserve">
+    <value>Nagerecht</value>
+  </data>
+  <data name="Category.Fruehstueck" xml:space="preserve">
+    <value>Ontbijt</value>
+  </data>
+  <data name="Category.Snack" xml:space="preserve">
+    <value>Snack</value>
+  </data>
+  <data name="Category.Getraenk" xml:space="preserve">
+    <value>Drank</value>
+  </data>
+  <data name="Category.Salat" xml:space="preserve">
+    <value>Salade</value>
+  </data>
+  <data name="Category.Suppe" xml:space="preserve">
+    <value>Soep</value>
+  </data>
+  <data name="Category.Beilage" xml:space="preserve">
+    <value>Bijgerecht</value>
+  </data>
+  <data name="Category.Rezept" xml:space="preserve">
+    <value>Recept</value>
+  </data>
+  <data name="Category.Original" xml:space="preserve">
+    <value>Origineel</value>
+  </data>
+  <data name="Category.Variante" xml:space="preserve">
+    <value>Variant</value>
+  </data>
+
+  <!-- Video Upload Validation -->
+  <data name="Video.TooLong.Title" xml:space="preserve">
+    <value>Video is te lang!</value>
+  </data>
+  <data name="Video.TooLong.MaxLength" xml:space="preserve">
+    <value>Maximale lengte: 90 seconden</value>
+  </data>
+  <data name="Video.TooLong.YourLength" xml:space="preserve">
+    <value>Uw videolengte: {0} seconden</value>
+  </data>
+  <data name="Video.TooLong.Message" xml:space="preserve">
+    <value>Kies alstublieft een kortere video.</value>
+  </data>
+  <data name="Video.LoadError" xml:space="preserve">
+    <value>Fout bij het laden van de video. Probeer het opnieuw.</value>
+  </data>
 </root>

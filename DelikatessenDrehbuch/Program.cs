@@ -120,6 +120,8 @@ builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
 builder.Services.AddScoped<CaptionGenerationService>();
 builder.Services.AddScoped<WorldMiniApp.Services.IFeedAlgorithmService, WorldMiniApp.Services.FeedAlgorithmService>();
+builder.Services.AddScoped<TradingAgentService>();
+builder.Services.AddScoped<BlockchainService>();
 
 // Recipe Translation System (NEW) - OLD service removed, using RecipeTranslationService now
 

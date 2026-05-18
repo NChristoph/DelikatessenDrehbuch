@@ -36,6 +36,7 @@
     <PackageReference Include="Azure.Storage.Queues" Version="12.25.0" />
     <PackageReference Include="MessagePack" Version="3.1.4" />
     <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
+    <PackageReference Include="Nethereum.Web3" Version="6.1.0" />
     <PackageReference Include="NuGet.Protocol" Version="7.3.1" />
 
     <!-- Fix für dein Downgrade-Problem: nur 1x, und auf 8.0.1 -->
@@ -61,7 +62,7 @@
     <!-- Sonstiges -->
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.23" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <PackageReference Include="Nethereum.Signer" Version="5.0.0" />
+    <PackageReference Include="Nethereum.Signer" Version="6.1.0" />
     <PackageReference Include="Polly" Version="8.4.1" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.1.12" />
     <PackageReference Include="Stripe.net" Version="50.3.0" />

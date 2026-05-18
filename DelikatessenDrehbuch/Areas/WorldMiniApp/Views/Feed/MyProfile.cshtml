@@ -1,6 +1,7 @@
 ﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 @model UserProfileViewModel
 @using System.Globalization
+@inject IConfiguration Configuration
 @{
     ViewData["Title"] = "Mein Profil";
     Layout = "_MiniAppLayout";
@@ -711,6 +712,30 @@
         </div>
     }
 
+    <!-- Trading Agent Dropdown -->
+    <button class="quick-link quick-link-dashboard"
+            id="tradingAgentToggleBtn"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#tradingAgentCollapse"
+            aria-expanded="false"
+            aria-controls="tradingAgentCollapse">
+        <i class="bi bi-robot"></i> Trading Agent
+        <span class="ms-1 opacity-75" id="tradingAgentToggleCaret">▾</span>
+    </button>
+
+    <div class="collapse mt-1 mb-1" id="tradingAgentCollapse">
+        <div class="dashboard-embed-shell" style="background: white; border-radius: 16px; padding: 24px;">
+            <div id="agent-container">
+                <div class="text-center" style="padding: 40px 20px;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Tabs -->
     <ul class="nav nav-custom" role="tablist">
         <li class="nav-item">
@@ -1042,6 +1067,12 @@
 </div>
 
 @section Scripts {
+    <!-- MiniKit für World App (ES6 Module) -->
+    <script type="module" src="~/js/minikitt.js"></script>
+
+    <!-- ethers.js für Wallet Interaktion -->
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
+
     <script>
         // Counter Animation
         function animateCounters() {
@@ -1143,7 +1174,703 @@
                     }
                 }
             } catch { /* ignore */ }
+
+            // Trading Agent initialization
+            initTradingAgent();
         });
+
+        // Trading Agent Functions
+        let currentAgent = null;
+        let agentLoaded = false;
+
+        function initTradingAgent() {
+            const tradingAgentToggleBtn = document.getElementById('tradingAgentToggleBtn');
+            const tradingAgentCaret = document.getElementById('tradingAgentToggleCaret');
+            const tradingAgentCollapse = document.getElementById('tradingAgentCollapse');
+
+            if (!tradingAgentCollapse) return;
+
+            // Sync toggle button state
+            const syncTradingAgentState = (open) => {
+                if (tradingAgentToggleBtn) {
+                    tradingAgentToggleBtn.classList.toggle('is-open', open);
+                }
+                if (tradingAgentCaret) {
+                    tradingAgentCaret.textContent = open ? '▴' : '▾';
+                }
+            };
+
+            // Load agent when collapse is opened
+            tradingAgentCollapse.addEventListener('shown.bs.collapse', () => {
+                syncTradingAgentState(true);
+                if (!agentLoaded) {
+                    loadAgentStatus();
+                    agentLoaded = true;
+                }
+            });
+
+            tradingAgentCollapse.addEventListener('hidden.bs.collapse', () => {
+                syncTradingAgentState(false);
+            });
+        }
+
+        async function loadAgentStatus() {
+            const container = document.getElementById('agent-container');
+            if (!container) return;
+
+            container.innerHTML = '<div class="text-center" style="padding: 40px 20px;"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+
+            try {
+                const response = await fetch('@Url.Action("GetAgentStatus", "TradingAgent", new { area = "WorldMiniApp" })');
+                const data = await response.json();
+
+                if (!data.success) {
+                    container.innerHTML = `<div class="alert alert-danger">${data.error || 'Fehler beim Laden'}</div>`;
+                    return;
+                }
+
+                if (!data.hasAgent) {
+                    renderCreateAgentForm(container);
+                } else {
+                    currentAgent = data.agent;
+                    renderAgentDashboard(container, data.agent, data.recentTrades || []);
+                }
+            } catch (error) {
+                console.error('Error loading agent:', error);
+                container.innerHTML = '<div class="alert alert-danger">Fehler beim Laden des Trading Agents</div>';
+            }
+        }
+
+        function renderCreateAgentForm(container) {
+            container.innerHTML = `
+                <div style="max-width: 500px; margin: 0 auto; text-align: center;">
+                    <div style="font-size: 60px; margin-bottom: 20px;">🤖</div>
+                    <h3 style="margin-bottom: 16px;">Trading Agent erstellen</h3>
+                    <p style="color: var(--ink-mute); margin-bottom: 20px;">
+                        Erstelle einen autonomen Trading Agent mit eigenem Wallet.<br>
+                        Der Agent handelt automatisch mit deinem Funding (30 WLD empfohlen).
+                    </p>
+                    <div style="background: var(--surface-2); padding: 16px; border-radius: 12px; margin-bottom: 30px; text-align: left; font-size: 14px;">
+                        <div style="font-weight: 600; margin-bottom: 8px;"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Auto-Swap Feature:</div>
+                        <ul style="margin: 0; padding-left: 20px; color: var(--ink-mute);">
+                            <li>Beim Funding wird automatisch 1 WLD → ETH für Gas (~$0.02)</li>
+                            <li>Bei niedrigem ETH swapped Agent automatisch nach</li>
+                            <li>Keine manuellen Gas-Überweisungen nötig! 🎉</li>
+                        </ul>
+                    </div>
+                    <form id="createAgentForm" onsubmit="handleCreateAgent(event)">
+                        @Html.AntiForgeryToken()
+                        <div class="mb-3">
+                            <input type="text" class="form-control" name="agentName" placeholder="Agent Name (optional)" style="border-radius: 12px; padding: 12px;">
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-lg" style="border-radius: 12px; padding: 12px 40px; width: 100%;">
+                            <i class="bi bi-robot me-2"></i>Agent erstellen
+                        </button>
+                    </form>
+                </div>
+            `;
+        }
+
+        async function handleCreateAgent(event) {
+            event.preventDefault();
+            const form = event.target;
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Erstelle...';
+
+            try {
+                const response = await fetch('@Url.Action("CreateAgent", "TradingAgent", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    await loadAgentStatus();
+                } else {
+                    alert(data.error || 'Fehler beim Erstellen');
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i class="bi bi-robot me-2"></i>Agent erstellen';
+                }
+            } catch (error) {
+                console.error('Error creating agent:', error);
+                alert('Fehler beim Erstellen des Agents');
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-robot me-2"></i>Agent erstellen';
+            }
+        }
+
+        function renderAgentDashboard(container, agent, trades) {
+            const statusColor = agent.status === 'Active' ? 'success' : agent.status === 'Paused' ? 'warning' : 'secondary';
+            const profitColor = agent.profitLoss >= 0 ? 'success' : 'danger';
+            const profitSign = agent.profitLoss >= 0 ? '+' : '';
+
+            container.innerHTML = `
+                <div style="max-width: 800px; margin: 0 auto;">
+                    <!-- Header -->
+                    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 30px;">
+                        <div>
+                            <h3 style="margin: 0 0 8px 0;">${agent.name}</h3>
+                            <span class="badge bg-${statusColor}">${agent.status}</span>
+                        </div>
+                        <div style="text-align: right;">
+                            <div style="font-size: 12px; color: var(--ink-mute);">Wallet</div>
+                            <div style="font-size: 11px; font-family: monospace;">${agent.walletAddress.substring(0, 10)}...${agent.walletAddress.substring(agent.walletAddress.length - 8)}</div>
+                        </div>
+                    </div>
+
+                    <!-- Stats Grid -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-6 col-md-3">
+                            <div class="card" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <div class="card-body text-center">
+                                    <div style="font-size: 12px; color: var(--ink-mute); margin-bottom: 4px;">WLD Balance</div>
+                                    <div style="font-size: 20px; font-weight: 700;">${agent.currentBalance.toFixed(2)}</div>
+                                    <div style="font-size: 11px; color: var(--ink-mute);">Trading</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <div class="card-body text-center">
+                                    <div style="font-size: 12px; color: var(--ink-mute); margin-bottom: 4px;">ETH Balance</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: ${agent.currentBalanceETH < agent.autoSwapThreshold ? 'var(--bs-warning)' : 'var(--bs-success)'};">${agent.currentBalanceETH.toFixed(6)}</div>
+                                    <div style="font-size: 11px; color: var(--ink-mute);">Gas Fees ${agent.currentBalanceETH < agent.autoSwapThreshold ? '⚠️' : '✓'}</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <div class="card-body text-center">
+                                    <div style="font-size: 12px; color: var(--ink-mute); margin-bottom: 4px;">Profit/Loss</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: var(--bs-${profitColor});">${profitSign}${agent.profitLoss.toFixed(2)}</div>
+                                    <div style="font-size: 11px; color: var(--ink-mute);">${profitSign}${agent.profitLossPercent.toFixed(1)}%</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <div class="card" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                                <div class="card-body text-center">
+                                    <div style="font-size: 12px; color: var(--ink-mute); margin-bottom: 4px;">Total Trades</div>
+                                    <div style="font-size: 20px; font-weight: 700;">${agent.totalTrades}</div>
+                                    <div style="font-size: 11px; color: var(--ink-mute);">${agent.totalTrades > 0 ? ((agent.successfulTrades / agent.totalTrades) * 100).toFixed(1) : 0}% success</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Controls -->
+                    <div class="card mb-4" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <div class="card-body">
+                            <h5 class="mb-3">Steuerung</h5>
+                            <div class="d-flex gap-2 flex-wrap">
+                                ${agent.status !== 'Active' ? `
+                                    <button class="btn btn-success"
+                                            onclick="window.handleStartAgent(${agent.id})"
+                                            ${agent.currentBalance < 1 ? 'disabled title="Mindestens 1 WLD Funding erforderlich"' : ''}>
+                                        <i class="bi bi-play-fill me-1"></i>${agent.status === 'Stopped' ? 'Neu starten' : 'Start'}
+                                    </button>
+                                ` : ''}
+                                ${agent.status === 'Active' ? `
+                                    <button class="btn btn-warning" onclick="window.handlePauseAgent(${agent.id})">
+                                        <i class="bi bi-pause-fill me-1"></i>Pause
+                                    </button>
+                                ` : ''}
+                                ${agent.status === 'Active' || agent.status === 'Paused' ? `
+                                    <button class="btn btn-danger" onclick="window.handleStopAgent(${agent.id})">
+                                        <i class="bi bi-stop-fill me-1"></i>Stop
+                                    </button>
+                                ` : ''}
+                                <button class="btn btn-primary ms-auto"
+                                        onclick="window.showFundingModal(${agent.id}, '${agent.walletAddress}')"
+                                        title="Agent mit WLD finanzieren">
+                                    <i class="bi bi-coin me-1"></i>Funding hinzufügen
+                                </button>
+                                <button class="btn btn-outline-success"
+                                        onclick="window.showWithdrawModal(${agent.id}, ${agent.currentBalance})"
+                                        ${agent.currentBalance < 0.1 ? 'disabled title="Kein Guthaben zum Abheben"' : ''}>
+                                    <i class="bi bi-cash-coin me-1"></i>Guthaben abheben
+                                </button>
+                            </div>
+                            <div class="mt-3" style="font-size: 12px; color: var(--ink-mute); background: var(--surface-2); padding: 12px; border-radius: 8px;">
+                                <i class="bi bi-info-circle me-1"></i>
+                                <strong>Auto-Swap:</strong> Beim Funding wird automatisch 1 WLD zu ETH für Gas konvertiert (~$0.02 Kosten).
+                                Bei ETH < ${agent.autoSwapThreshold.toFixed(6)} wird automatisch ${agent.autoSwapAmount.toFixed(2)} WLD nachgeswapped.
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Strategy Info -->
+                    <div class="card mb-4" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <div class="card-body">
+                            <h5 class="mb-3">Strategie & Einstellungen</h5>
+                            <div class="row g-3">
+                                <div class="col-6 col-md-4">
+                                    <div style="font-size: 12px; color: var(--ink-mute);">Trading Strategy</div>
+                                    <div style="font-weight: 600;">${agent.strategy}</div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div style="font-size: 12px; color: var(--ink-mute);">Risk Level</div>
+                                    <div style="font-weight: 600;">${agent.riskLevel}</div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div style="font-size: 12px; color: var(--ink-mute);">Stop Loss</div>
+                                    <div style="font-weight: 600;">${agent.stopLossPercent}%</div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div style="font-size: 12px; color: var(--ink-mute);">Initial Funding</div>
+                                    <div style="font-weight: 600;">${agent.initialFunding.toFixed(2)} WLD</div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div style="font-size: 12px; color: var(--ink-mute);">Auto-Swap Threshold</div>
+                                    <div style="font-weight: 600;">${agent.autoSwapThreshold.toFixed(6)} ETH</div>
+                                </div>
+                                <div class="col-6 col-md-4">
+                                    <div style="font-size: 12px; color: var(--ink-mute);">Auto-Swap Amount</div>
+                                    <div style="font-weight: 600;">${agent.autoSwapAmount.toFixed(2)} WLD</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Trades -->
+                    <div class="card" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
+                        <div class="card-body">
+                            <h5 class="mb-3">Letzte Trades</h5>
+                            ${trades.length === 0 ? `
+                                <div class="text-center py-4" style="color: var(--ink-mute);">
+                                    <i class="bi bi-arrow-left-right fs-3"></i>
+                                    <p class="mt-2 mb-0">Noch keine Trades</p>
+                                </div>
+                            ` : `
+                                <div class="table-responsive">
+                                    <table class="table table-sm">
+                                        <thead>
+                                            <tr>
+                                                <th>Zeit</th>
+                                                <th>Typ</th>
+                                                <th>Von → Nach</th>
+                                                <th class="text-end">P/L</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            ${trades.map(trade => {
+                                                const tradeProfitColor = trade.profitLoss >= 0 ? 'success' : 'danger';
+                                                const tradeProfitSign = trade.profitLoss >= 0 ? '+' : '';
+                                                const tradeDate = new Date(trade.executedAt);
+                                                return `
+                                                    <tr>
+                                                        <td style="font-size: 11px;">${tradeDate.toLocaleDateString()} ${tradeDate.toLocaleTimeString()}</td>
+                                                        <td><span class="badge bg-secondary">${trade.type}</span></td>
+                                                        <td style="font-size: 11px;">${trade.fromAmount.toFixed(4)} → ${trade.toAmount.toFixed(4)}</td>
+                                                        <td class="text-end" style="color: var(--bs-${tradeProfitColor}); font-weight: 600;">${tradeProfitSign}${trade.profitLoss.toFixed(2)}</td>
+                                                        <td><span class="badge bg-${trade.status === 'Success' ? 'success' : trade.status === 'Pending' ? 'warning' : 'danger'}">${trade.status}</span></td>
+                                                    </tr>
+                                                `;
+                                            }).join('')}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            `}
+                        </div>
+                    </div>
+
+                    <!-- Funding Modal -->
+                    <div class="modal fade" id="fundingModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content" style="border-radius: 16px;">
+                                <div class="modal-header" style="border: none; padding: 24px 24px 0;">
+                                    <h5 class="modal-title"><i class="bi bi-coin me-2"></i>Agent Funding</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body" style="padding: 24px;">
+                                    <div class="mb-3">
+                                        <label class="form-label">Betrag (WLD)</label>
+                                        <input type="number" class="form-control" id="fundingAmount"
+                                               placeholder="Betrag eingeben"
+                                               step="1" min="1" value="30"
+                                               style="border-radius: 12px; padding: 12px; font-size: 18px;">
+                                        <div class="form-text">Empfohlen: Mindestens 30 WLD für effektives Trading</div>
+                                    </div>
+                                    <div class="d-flex gap-2 mb-3">
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fundingAmount').value = 10">10 WLD</button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fundingAmount').value = 30">30 WLD</button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fundingAmount').value = 50">50 WLD</button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="document.getElementById('fundingAmount').value = 100">100 WLD</button>
+                                    </div>
+                                    <div class="alert alert-info" style="border-radius: 12px; font-size: 14px;">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        <strong>Auto-Swap Info:</strong> Beim ersten Funding wird automatisch 1 WLD zu ETH für Gas konvertiert (~$0.02 Kosten). Bei ETH < 0.0005 wird automatisch 0.5 WLD nachgeswapped.
+                                    </div>
+                                </div>
+                                <div class="modal-footer" style="border: none; padding: 0 24px 24px;">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                                    <button type="button" class="btn btn-primary" id="confirmFundingBtn">
+                                        <i class="bi bi-check-lg me-1"></i>Zahlung senden
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Withdraw Modal -->
+                    <div class="modal fade" id="withdrawModal" tabindex="-1">
+                        <div class="modal-dialog modal-dialog-centered">
+                            <div class="modal-content" style="border-radius: 16px;">
+                                <div class="modal-header" style="border: none; padding: 24px 24px 0;">
+                                    <h5 class="modal-title"><i class="bi bi-cash-coin me-2"></i>Guthaben abheben</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                </div>
+                                <div class="modal-body" style="padding: 24px;">
+                                    <div class="mb-3">
+                                        <label class="form-label">Verfügbares Guthaben</label>
+                                        <div style="font-size: 24px; font-weight: 700; color: var(--bs-success);" id="withdrawAvailableBalance">
+                                            ${agent.currentBalance.toFixed(2)} WLD
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="form-label">Betrag (WLD)</label>
+                                        <input type="number" class="form-control" id="withdrawAmount"
+                                               placeholder="Betrag eingeben"
+                                               step="0.01" min="0.1" max="${agent.currentBalance}"
+                                               style="border-radius: 12px; padding: 12px; font-size: 18px;">
+                                        <div class="form-text">Mindestens 0.1 WLD, maximal ${agent.currentBalance.toFixed(2)} WLD</div>
+                                    </div>
+                                    <div class="d-flex gap-2 mb-3">
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="setWithdrawAmount(${(agent.currentBalance * 0.25).toFixed(2)})">25%</button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="setWithdrawAmount(${(agent.currentBalance * 0.5).toFixed(2)})">50%</button>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="setWithdrawAmount(${(agent.currentBalance * 0.75).toFixed(2)})">75%</button>
+                                        <button class="btn btn-outline-danger btn-sm" onclick="setWithdrawAmount(${agent.currentBalance.toFixed(2)})">Alles</button>
+                                    </div>
+                                    <div class="alert alert-info" style="border-radius: 12px; font-size: 14px;">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        <strong>Hinweis:</strong> Agent wird automatisch pausiert während der Auszahlung.
+                                        Gas-Fee: ~$0.02
+                                    </div>
+                                </div>
+                                <div class="modal-footer" style="border: none; padding: 0 24px 24px;">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                                    <button type="button" class="btn btn-success" onclick="confirmWithdraw(${agent.id})">
+                                        <i class="bi bi-check-lg me-1"></i>Abheben
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            // Buttons use onclick handlers now (more reliable for dynamic HTML)
+            console.log('=== Agent dashboard rendered with onclick handlers ===');
+        }
+
+        // Funding Functions
+        let currentFundingAgentId = null;
+        let currentFundingWallet = null;
+
+        function showFundingModal(agentId, walletAddress) {
+            currentFundingAgentId = agentId;
+            currentFundingWallet = walletAddress;
+
+            const modal = new bootstrap.Modal(document.getElementById('fundingModal'));
+            const confirmBtn = document.getElementById('confirmFundingBtn');
+
+            confirmBtn.onclick = () => confirmFunding();
+
+            modal.show();
+        }
+
+        async function confirmFunding() {
+            const amount = parseFloat(document.getElementById('fundingAmount').value);
+
+            if (!amount || amount <= 0) {
+                alert('❌ Bitte gültigen Betrag eingeben');
+                return;
+            }
+
+            if (amount < 1) {
+                alert('❌ Mindestbetrag: 1 WLD');
+                return;
+            }
+
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('fundingModal'));
+            modal.hide();
+
+            // Start funding
+            await handleFundAgent(currentFundingAgentId, currentFundingWallet, amount);
+        }
+
+        // Withdraw Functions
+        function showWithdrawModal(agentId, availableBalance) {
+            const modal = new bootstrap.Modal(document.getElementById('withdrawModal'));
+            modal.show();
+        }
+
+        function setWithdrawAmount(amount) {
+            document.getElementById('withdrawAmount').value = amount;
+        }
+
+        async function confirmWithdraw(agentId) {
+            const amount = parseFloat(document.getElementById('withdrawAmount').value);
+
+            if (!amount || amount <= 0) {
+                alert('❌ Bitte gültigen Betrag eingeben');
+                return;
+            }
+
+            if (amount < 0.1) {
+                alert('❌ Mindestbetrag: 0.1 WLD');
+                return;
+            }
+
+            if (!confirm(`${amount.toFixed(2)} WLD vom Agent abheben?\n\nDer Agent wird pausiert und das Guthaben wird an dein Wallet gesendet.`)) {
+                return;
+            }
+
+            const formData = new FormData();
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) {
+                formData.append('__RequestVerificationToken', tokenInput.value);
+            }
+            formData.append('agentId', agentId);
+            formData.append('amount', amount);
+
+            try {
+                const response = await fetch('@Url.Action("WithdrawFunds", "TradingAgent", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('withdrawModal')).hide();
+                    alert(`✅ ${amount.toFixed(2)} WLD erfolgreich abgehoben!\n\nDas Guthaben wurde an dein Wallet gesendet.`);
+                    agentLoaded = false;
+                    await loadAgentStatus();
+                } else {
+                    alert('❌ Fehler:\n\n' + (data.error || 'Unbekannter Fehler'));
+                }
+            } catch (error) {
+                console.error('Error withdrawing:', error);
+                alert('❌ Fehler beim Abheben:\n\n' + error.message);
+            }
+        }
+
+        async function handleStartAgent(agentId) {
+            alert('🚀 handleStartAgent AUFGERUFEN! Agent ID: ' + agentId);
+            console.log('=== handleStartAgent called ===');
+            console.log('Agent ID:', agentId);
+
+            try {
+                const formData = new FormData();
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+
+                console.log('CSRF Token found:', !!tokenInput);
+
+                if (tokenInput) {
+                    formData.append('__RequestVerificationToken', tokenInput.value);
+                } else {
+                    console.error('CSRF token not found!');
+                }
+
+                formData.append('agentId', agentId);
+
+                console.log('Sending request to StartAgent endpoint...');
+
+                const response = await fetch('@Url.Action("StartAgent", "TradingAgent", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                console.log('Response status:', response.status);
+
+                const data = await response.json();
+                console.log('Response data:', data);
+
+                if (data.success) {
+                    alert('✅ Agent gestartet!');
+                    agentLoaded = false;
+                    await loadAgentStatus();
+                } else {
+                    alert('❌ Fehler beim Starten:\n\n' + (data.error || 'Unbekannter Fehler'));
+                }
+            } catch (error) {
+                console.error('=== Error in handleStartAgent ===');
+                console.error('Error:', error);
+                console.error('Stack:', error.stack);
+                alert('❌ Fehler beim Starten:\n\n' + error.message);
+            }
+        }
+
+        // Make functions globally accessible
+        window.handleStartAgent = handleStartAgent;
+
+        async function handlePauseAgent(agentId) {
+            alert('⏸️ handlePauseAgent AUFGERUFEN! Agent ID: ' + agentId);
+            console.log('=== handlePauseAgent called ===', agentId);
+            const formData = new FormData();
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) {
+                formData.append('__RequestVerificationToken', tokenInput.value);
+            }
+            formData.append('agentId', agentId);
+
+            try {
+                const response = await fetch('@Url.Action("PauseAgent", "TradingAgent", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    await loadAgentStatus();
+                } else {
+                    alert(data.error || 'Fehler beim Pausieren');
+                }
+            } catch (error) {
+                console.error('Error pausing agent:', error);
+                alert('Fehler beim Pausieren');
+            }
+        }
+
+        async function handleStopAgent(agentId) {
+            alert('🛑 handleStopAgent AUFGERUFEN! Agent ID: ' + agentId);
+            if (!confirm('Agent wirklich stoppen? Dies kann nicht rückgängig gemacht werden.')) {
+                return;
+            }
+
+            const formData = new FormData();
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) {
+                formData.append('__RequestVerificationToken', tokenInput.value);
+            }
+            formData.append('agentId', agentId);
+
+            try {
+                const response = await fetch('@Url.Action("StopAgent", "TradingAgent", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    await loadAgentStatus();
+                } else {
+                    alert(data.error || 'Fehler beim Stoppen');
+                }
+            } catch (error) {
+                console.error('Error stopping agent:', error);
+                alert('Fehler beim Stoppen');
+            }
+        }
+
+        async function handleFundAgent(agentId, walletAddress, amount) {
+            alert('💰 handleFundAgent AUFGERUFEN! Agent ID: ' + agentId + ', Betrag: ' + amount + ' WLD');
+
+            try {
+                // Wait for startMiniKitPayment function to load (max 3 seconds)
+                let attempts = 0;
+                while (!window.startMiniKitPayment && attempts < 30) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+
+                if (!window.startMiniKitPayment) {
+                    alert('❌ MiniKit nicht verfügbar!\n\nBitte Seite neu laden oder in World App öffnen.');
+                    return;
+                }
+
+                alert('✅ MiniKit gefunden! Starte Zahlung für ' + amount + ' WLD...');
+
+                // Use the global startMiniKitPayment function from minikitt.js
+                const payResult = await window.startMiniKitPayment({
+                    to: walletAddress,
+                    tokenSymbol: 'WLD',
+                    amount: amount.toString(),
+                    reference: `agent-funding-${agentId}-${Date.now()}`,
+                    description: `Funding für Trading Agent #${agentId}: ${amount} WLD`
+                });
+
+                console.log('Payment result:', payResult);
+                alert('🔍 Payment Result:\n\n' + JSON.stringify(payResult, null, 2));
+
+                // Extract transaction ID from various possible locations
+                const txHash = payResult?.transaction_id ||
+                               payResult?.txHash ||
+                               payResult?.reference ||
+                               '';
+
+                console.log('Extracted TX Hash:', txHash);
+                alert('Transaction Hash: ' + txHash);
+
+                if (payResult?.status === 'success' || payResult?.transaction_id || payResult?.txHash) {
+                    // Bestätige Funding im Backend
+                        const formData = new FormData();
+                        const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                        if (tokenInput) {
+                            formData.append('__RequestVerificationToken', tokenInput.value);
+                        }
+                        formData.append('agentId', agentId);
+                        formData.append('amount', amount.toString());
+                        formData.append('txHash', txHash);
+
+                        const response = await fetch('@Url.Action("ConfirmFunding", "TradingAgent", new { area = "WorldMiniApp" })', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const data = await response.json();
+
+                    if (data.success) {
+                        agentLoaded = false;
+                        await loadAgentStatus();
+                        alert('✅ Funding erfolgreich! ' + amount + ' WLD wurden übertragen.');
+                    } else {
+                        alert('❌ ' + (data.error || 'Fehler beim Bestätigen'));
+                    }
+                } else {
+                    alert('❌ Zahlung abgebrochen oder fehlgeschlagen');
+                }
+            } catch (error) {
+                console.error('Error funding agent:', error);
+
+                // Show detailed error information
+                const errorInfo = {
+                    message: error.message,
+                    stack: error.stack,
+                    type: error.constructor.name,
+                    full: error.toString()
+                };
+
+                alert('❌ ERROR DETAILS:\n\n' +
+                      'Message: ' + error.message + '\n\n' +
+                      'Type: ' + error.constructor.name + '\n\n' +
+                      'Full: ' + error.toString());
+
+                // If error message contains "Zahlung fehlgeschlagen" it might have transaction info
+                if (error.message && error.message.includes('transaction')) {
+                    alert('⚠️ Die Zahlung könnte trotzdem durchgegangen sein!\n\nBitte prüfe deine Wallet Transaktionen.');
+                }
+            }
+        }
+
+        // Make all handler functions globally accessible
+        window.handlePauseAgent = handlePauseAgent;
+        window.handleStopAgent = handleStopAgent;
+        window.handleFundAgent = handleFundAgent;
+        window.showFundingModal = showFundingModal;
+        window.showWithdrawModal = showWithdrawModal;
+        window.setWithdrawAmount = setWithdrawAmount;
+        window.confirmWithdraw = confirmWithdraw;
+
+        console.log('=== Trading Agent Functions Loaded ===');
+        console.log('handleStartAgent:', typeof window.handleStartAgent);
+        console.log('handlePauseAgent:', typeof window.handlePauseAgent);
+        console.log('handleStopAgent:', typeof window.handleStopAgent);
+        console.log('handleFundAgent:', typeof window.handleFundAgent);
     </script>
 }
 

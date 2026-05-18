@@ -369,7 +369,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> ShareMealPlan(string token)
+        public async Task<IActionResult> ShareMealPlan(string token, bool? direct)
         {
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -380,6 +380,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (sharedPlan == null)
             {
                 return NotFound();
+            }
+
+            // Wenn nicht mit direct=true UND nicht in World App → Landing Page zeigen
+            var isWorldApp = IsWorldAppRequest();
+            if (direct != true && !isWorldApp)
+            {
+                ViewData["ShareType"] = "meal-plan";
+                ViewData["Token"] = token;
+                ViewData["Title"] = sharedPlan.Title ?? "Geteilter Essensplan";
+                ViewData["Description"] = $"Öffne diesen Essensplan in der World App ({sharedPlan.PersonCount} Person(en), {sharedPlan.MealPlanJson?.Count(c => c == '{') ?? 0} Rezepte).";
+                ViewData["TargetPath"] = $"/WorldMiniApp/MealPlan/ShareMealPlan?token={token}&direct=true";
+                return View("~/Areas/WorldMiniApp/Views/Home/SharedLinkLanding.cshtml");
             }
 
             var mealPlan = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(sharedPlan.MealPlanJson) ?? new();
@@ -399,6 +411,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["ShoppingListText"] = BuildShoppingListText(items);
 
             return View("~/Areas/WorldMiniApp/Views/Home/ShareMealPlan.cshtml");
+        }
+
+        private bool IsWorldAppRequest()
+        {
+            var userAgent = Request.Headers["User-Agent"].ToString();
+            return userAgent.Contains("WorldApp", StringComparison.OrdinalIgnoreCase) ||
+                   userAgent.Contains("MiniKit", StringComparison.OrdinalIgnoreCase) ||
+                   userAgent.Contains("Worldcoin", StringComparison.OrdinalIgnoreCase);
         }
 
         [HttpGet]
@@ -791,7 +811,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SaveSharedShoppingList([FromBody] SharedShoppingListRequest request)
+        public async Task<IActionResult> SaveSharedShoppingList([FromForm] SharedShoppingListRequest request)
         {
             if (request == null || string.IsNullOrWhiteSpace(request.ItemsJson))
             {
@@ -802,7 +822,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var sharedList = new WorldSharedShoppingList
             {
                 ShareToken = shareToken,
-                UserHash = request.UserHash,
+                UserHash = request.UserHash ?? "",
                 ItemsJson = request.ItemsJson,
                 CheckedJson = "[]"
             };

@@ -49,9 +49,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> CompleteSiwe([FromBody] WalletAuthRequestDto request)
         {
-            if (request?.Payload == null || request.Payload.Status != "success")
+            if (request?.Payload == null)
             {
                 return BadRequest(new { status = "error", isValid = false, message = "Payload invalid." });
+            }
+
+            if (!IsWalletAuthPayloadSuccessful(request.Payload))
+            {
+                return BadRequest(new { status = "error", isValid = false, message = "Wallet auth payload invalid." });
             }
 
             if (string.IsNullOrWhiteSpace(request.Nonce))
@@ -239,6 +244,23 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private static string GenerateSiweNonce()
         {
             return Guid.NewGuid().ToString("N").ToLowerInvariant();
+        }
+
+        private static bool IsWalletAuthPayloadSuccessful(WalletAuthPayloadDto payload)
+        {
+            if (payload == null)
+            {
+                return false;
+            }
+
+            if (string.Equals(payload.Status, "success", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            return !string.IsNullOrWhiteSpace(payload.Address)
+                && !string.IsNullOrWhiteSpace(payload.Message)
+                && !string.IsNullOrWhiteSpace(payload.Signature);
         }
 
         private WalletSiweVerifyResponseDto VerifyWalletAuthPayload(WalletAuthPayloadDto payload, string expectedNonce)

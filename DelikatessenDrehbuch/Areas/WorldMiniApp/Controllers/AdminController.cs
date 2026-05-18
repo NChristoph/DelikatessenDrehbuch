@@ -340,6 +340,86 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var hash = BitConverter.ToString(randomBytes).Replace("-", "").ToLowerInvariant();
             return $"0x{hash}";
         }
+
+        // GET: Admin/GetCreatorRecipes?creatorHash=...
+        [HttpGet]
+        public async Task<IActionResult> GetCreatorRecipes(string creatorHash)
+        {
+            if (!IsAdmin())
+            {
+                return Json(new { success = false, error = "Unauthorized" });
+            }
+
+            var recipes = await _context.WorldUserPosting
+                .Include(p => p.Recipe)
+                .Where(p => p.CreatorId == creatorHash && p.Recipe != null)
+                .OrderByDescending(p => p.CreationTime)
+                .Select(p => new
+                {
+                    recipeId = p.Recipe!.Id,
+                    title = p.Recipe.Title,
+                    thumbnail = p.ThumbnailUrl ?? p.Source,
+                    createdAt = p.CreationTime,
+                    postingId = p.Id
+                })
+                .ToListAsync();
+
+            return Json(new { success = true, recipes });
+        }
+
+        // POST: Admin/DeleteRecipe
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteRecipe(int recipeId)
+        {
+            if (!IsAdmin())
+            {
+                return Json(new { success = false, error = "Unauthorized" });
+            }
+
+            try
+            {
+                // 1. WorldUserPosting löschen (sofern vorhanden)
+                var postings = await _context.WorldUserPosting
+                    .Include(p => p.Recipe)
+                    .Where(p => p.Recipe != null && p.Recipe.Id == recipeId)
+                    .ToListAsync();
+
+                if (postings.Any())
+                {
+                    _context.WorldUserPosting.RemoveRange(postings);
+                }
+
+                // 2. RecipeBaseDataImage löschen
+                var images = await _context.RecipeBaseDataImage
+                    .Include(i => i.Recipe)
+                    .Where(i => i.Recipe != null && i.Recipe.Id == recipeId)
+                    .ToListAsync();
+
+                if (images.Any())
+                {
+                    _context.RecipeBaseDataImage.RemoveRange(images);
+                }
+
+                // 3. RecipeBaseData löschen
+                var recipe = await _context.RecipeBaseData.FindAsync(recipeId);
+                if (recipe != null)
+                {
+                    _context.RecipeBaseData.Remove(recipe);
+                }
+
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Admin deleted recipe {RecipeId}", recipeId);
+
+                return Json(new { success = true });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error deleting recipe {RecipeId}", recipeId);
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
     }
 
     public class CreatorManagerViewModel

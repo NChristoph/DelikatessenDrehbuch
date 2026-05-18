@@ -937,7 +937,7 @@
         .system-controls-trigger {
             position: absolute;
             top: 64px;
-            left: 14px;
+            left: 18px; /* Zentriert unter dem Herz (42px - 34px = 8px / 2 = 4px Offset) */
             z-index: 4;
             width: 34px;
             height: 34px;
@@ -969,7 +969,7 @@
         .system-controls-dropdown {
             position: absolute;
             top: 106px;
-            left: 14px;
+            left: 18px; /* Zentriert wie system-controls-trigger */
             z-index: 4;
             display: flex;
             flex-direction: column;
@@ -4757,7 +4757,10 @@
             const recipeId = container.dataset.id;
             const title = container.querySelector('.recipe-title')?.textContent?.trim() || 'Rezept';
             const creatorName = container.dataset.creatorName || '';
-            const url = `${window.location.origin}/WorldMiniApp/Home/ShowRecipe/${recipeId}`;
+
+            // Füge share=1 Parameter hinzu für Deep-Link Detection
+            const url = `${window.location.origin}/WorldMiniApp/Home/ShowRecipe?id=${recipeId}&share=1`;
+
             const shareData = {
                 title,
                 text: creatorName ? `${title} von ${creatorName}` : title,
@@ -6354,27 +6357,56 @@
             const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
             if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden.", "warn"); return; }
 
-            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
-            const token = tokenInput ? tokenInput.value : null;
+            try {
+                const items = parseShoppingListText(text);
 
-            const items = parseShoppingListText(text);
-            const resp = await fetch('/WorldMiniApp/MealPlan/SaveSharedShoppingList', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'RequestVerificationToken': token } : {})
-                },
-                body: JSON.stringify({ itemsJson: JSON.stringify(items), userHash: window.worldUserHash || '' })
-            });
-            if (!resp.ok) { showToast("Fehler beim Erstellen des Links.", "error"); return; }
-            const data = await resp.json();
-            document.getElementById('shoppingShareLink').value = data.shareUrl;
+                // FormData mit CSRF-Token (ASP.NET Core erwartet das so)
+                const formData = new FormData();
+                const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (tokenInput) {
+                    formData.append('__RequestVerificationToken', tokenInput.value);
+                }
+                formData.append('itemsJson', JSON.stringify(items));
+                formData.append('userHash', window.worldUserHash || '');
 
-            if (navigator.share) {
-                try { await navigator.share({ title: 'Einkaufsliste', url: data.shareUrl }); } catch (_) {}
-            } else {
-                await navigator.clipboard.writeText(data.shareUrl);
-                showToast("Link kopiert!", "success");
+                const resp = await fetch('/WorldMiniApp/MealPlan/SaveSharedShoppingList', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!resp.ok) {
+                    const errorText = await resp.text();
+                    console.error('SaveSharedShoppingList error:', errorText);
+                    showToast("Fehler beim Erstellen des Links.", "error");
+                    return;
+                }
+
+                const data = await resp.json();
+                document.getElementById('shoppingShareLink').value = data.shareUrl;
+
+                // Direkt teilen - einfacher Share-Button
+                if (navigator.share) {
+                    try {
+                        await navigator.share({
+                            title: 'Einkaufsliste',
+                            text: 'Schau dir meine Einkaufsliste an!',
+                            url: data.shareUrl
+                        });
+                        showToast("Link geteilt!", "success");
+                    } catch (e) {
+                        // User hat abgebrochen oder kein Share verfügbar
+                        if (e.name !== 'AbortError') {
+                            await navigator.clipboard.writeText(data.shareUrl);
+                            showToast("Link kopiert!", "success");
+                        }
+                    }
+                } else {
+                    await navigator.clipboard.writeText(data.shareUrl);
+                    showToast("Link kopiert!", "success");
+                }
+            } catch (error) {
+                console.error('generateShareLink error:', error);
+                showToast("Fehler: " + error.message, "error");
             }
         }
 
@@ -7594,6 +7626,26 @@
             feedWalletAddresses.WLD = address;
             feedWalletAddresses.USDT = address;
             feedWalletAddresses.USDCE = address;
+
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const saveWalletToSession = async (token) => {
+                const form = new FormData();
+                form.append('walletAddress', address);
+                form.append('token', token);
+                if (tokenInput) form.append('__RequestVerificationToken', tokenInput.value);
+
+                const resp = await fetch('/WorldMiniApp/Marketplace/SaveWalletAddress', {
+                    method: 'POST',
+                    body: form
+                });
+
+                if (!resp.ok) {
+                    throw new Error(`Wallet konnte nicht fuer ${token} in der Session gespeichert werden.`);
+                }
+            };
+
+            await saveWalletToSession('WLD');
+            await saveWalletToSession('USDT');
             return address;
         }
 
@@ -7617,7 +7669,7 @@
             if (token === 'USDCE' && !feedWldPriceUsd) { showToast('WLD/USD Kurs fehlt.', 'error'); return; }
 
             try {
-                await ensureFeedWalletConnected();
+                const buyerWallet = await ensureFeedWalletConnected();
                 if (window.startMiniKitPayment) {
                     const payResult = await window.startMiniKitPayment({
                         to: sellerWallet, tokenSymbol: token, amount: actualPrice,
@@ -7625,7 +7677,7 @@
                         description: `Essensplan: ${title}`
                     });
                     const txRef = payResult?.transaction_id || payResult?.txHash || `feed-${listingId}-${Date.now()}`;
-                    const data = await finalizeFeedPurchase(listingId, txRef, sellerWallet, token);
+                    const data = await finalizeFeedPurchase(listingId, txRef, buyerWallet, token);
                     if (data.success) { return; }
                     showToast(data.error || 'Kauf konnte nicht finalisiert werden.', 'error');
                     return;

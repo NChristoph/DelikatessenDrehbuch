@@ -140,16 +140,7 @@
         border-color: #14391f;
     }
 
-    /* Test banner */
-    .test-banner {
-        background: #fff3d4;
-        border: 1px solid #f0c87a;
-        border-radius: 12px;
-        padding: 8px 12px;
-        font-size: 11px;
-        color: #8a6418;
-        text-align: center;
-    }
+    /* Test banner CSS entfernt für Production */
 
     /* Preview Offcanvas */
     .preview-offcanvas {
@@ -239,18 +230,8 @@
                 <div class="mp-page-subtitle">Pläne kaufen &amp; verkaufen</div>
             </div>
         </div>
-        <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="mp-sell-btn">
-            <span class="plus">+</span> Verkaufen
-        </a>
     </div>
 
-    @if (testMode)
-    {
-        <div class="test-banner d-flex align-items-center justify-content-center gap-2 mb-3">
-            <i class="bi bi-flask"></i>
-            <span>Testmodus &mdash; World Testnet (Chain @worldChainId)</span>
-        </div>
-    }
 
     <!-- Wallet Bar -->
     <div class="wallet-bar mb-3">
@@ -281,13 +262,14 @@
         </div>
     </div>
 
-    @if (allowSelfPurchaseForTesting)
-    {
-        <div class="test-banner d-flex align-items-center justify-content-center gap-2 mb-3">
-            <i class="bi bi-flask"></i>
-            <span>Testmodus &mdash; eigene Listings kaufbar</span>
-        </div>
-    }
+    <!-- Verkaufen CTA -->
+    <div class="text-center mb-3">
+        <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="mp-sell-btn" style="display: inline-block;">
+            <span class="plus">+</span> Eigenen Plan verkaufen
+        </a>
+    </div>
+
+    @* Test-Banner entfernt für Production *@
 
     <!-- Filter Chips -->
     <div class="mp-filters">
@@ -406,12 +388,15 @@
 
     async function loadWalletBalances(walletAddress) {
         if (!walletAddress || !window.worldChainMarketplace?.getWalletBalances) return;
+
         const balancesEl = document.getElementById('walletBalances');
         const wldEl = document.getElementById('balanceWLD');
         const usdceEl = document.getElementById('balanceUSDCE');
+
         if (balancesEl) balancesEl.classList.remove('d-none');
         if (wldEl) wldEl.textContent = '...';
         if (usdceEl) usdceEl.textContent = '...';
+
         try {
             const balances = await window.worldChainMarketplace.getWalletBalances(walletAddress);
             if (wldEl) wldEl.textContent = balances.wld ?? '\u2013';

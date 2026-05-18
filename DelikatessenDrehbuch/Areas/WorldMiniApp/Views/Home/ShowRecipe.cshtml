@@ -126,8 +126,31 @@
     var existingPostingId = ViewData["ExistingPostingId"] as int?;
     var communityCount = ViewData["CommunityVariantCount"] as int? ?? 0;
     var isSwapVariant = ViewData["SwapsJson"] is string;
-    var categoryLabel = string.IsNullOrWhiteSpace(Model.Category) ? T("Rezept", "Recipe", "Receta", "Receita") : Model.Category;
-    var recipeModeLabel = isSwapVariant ? T("Variante", "Variant", "Variante", "Variante") : T("Original", "Original", "Original", "Original");
+
+    // Übersetze Kategorie über .resx Dateien
+    string TranslateCategory(string category)
+    {
+        if (string.IsNullOrWhiteSpace(category)) return SharedLocalizer["Category.Rezept"];
+
+        var key = category.ToLowerInvariant() switch
+        {
+            "hauptspeise" or "hauptgericht" => "Category.Hauptspeise",
+            "vorspeise" => "Category.Vorspeise",
+            "dessert" or "nachtisch" or "nachspeise" => "Category.Dessert",
+            "frühstück" or "fruehstueck" => "Category.Fruehstueck",
+            "snack" => "Category.Snack",
+            "getränk" or "getränke" or "getraenk" => "Category.Getraenk",
+            "salat" => "Category.Salat",
+            "suppe" => "Category.Suppe",
+            "beilage" => "Category.Beilage",
+            _ => null
+        };
+
+        return key != null ? SharedLocalizer[key] : category;
+    }
+
+    var categoryLabel = TranslateCategory(Model.Category);
+    var recipeModeLabel = isSwapVariant ? SharedLocalizer["Category.Variante"] : SharedLocalizer["Category.Original"];
     var creatorName = (ViewData["PostingCreatorName"] as string ?? string.Empty).Trim();
     if (string.IsNullOrWhiteSpace(creatorName))
     {
@@ -720,12 +743,6 @@
             <a href="#" class="back-btn text-decoration-none" id="backToFeedBtn" aria-label="Back">
                 <i class="bi bi-chevron-left"></i>
             </a>
-
-            <div class="hero-right-controls">
-                <button type="button" class="hero-icon-btn" id="favoriteRecipeBtn" aria-label="Favorite">
-                    <i class="bi bi-heart"></i>
-                </button>
-            </div>
         </div>
 
         <div class="author-tag">
@@ -1121,17 +1138,6 @@
     }
 
     document.addEventListener('DOMContentLoaded', function () {
-        const favoriteBtn = document.getElementById('favoriteRecipeBtn');
-        if (favoriteBtn) {
-            favoriteBtn.addEventListener('click', function () {
-                const icon = favoriteBtn.querySelector('i');
-                if (!icon) return;
-                const liked = icon.classList.contains('bi-heart-fill');
-                icon.classList.toggle('bi-heart-fill', !liked);
-                icon.classList.toggle('bi-heart', liked);
-                favoriteBtn.style.color = liked ? 'var(--ink-deep)' : 'var(--coral)';
-            });
-        }
 
         const languageBadge = document.getElementById('recipeLanguageBadge');
         if (languageBadge) {
@@ -1145,10 +1151,15 @@
 
         const sharePrimaryBtn = document.getElementById('sharePrimaryBtn');
         const runShareRecipe = async () => {
+                // Füge ?share=1 Parameter zur URL hinzu für Deep-Link Detection
+                const shareUrl = new URL(window.location.href);
+                shareUrl.searchParams.set('share', '1');
+                const shareLink = shareUrl.toString();
+
                 const shareData = {
                     title: document.getElementById('recipeDisplayTitle')?.textContent?.trim() || document.title,
                     text: document.getElementById('recipeDisplayTitle')?.textContent?.trim() || document.title,
-                    url: window.location.href
+                    url: shareLink
                 };
 
                 try {
@@ -1160,7 +1171,7 @@
                 }
 
                 try {
-                    await navigator.clipboard.writeText(window.location.href);
+                    await navigator.clipboard.writeText(shareLink);
                     if (sharePrimaryBtn) {
                         const originalText = sharePrimaryBtn.textContent;
                         sharePrimaryBtn.textContent = '✓';
@@ -1171,7 +1182,7 @@
                         }, 1800);
                     }
                 } catch {
-                    window.prompt('Link', window.location.href);
+                    window.prompt('Link', shareLink);
                 }
         };
 

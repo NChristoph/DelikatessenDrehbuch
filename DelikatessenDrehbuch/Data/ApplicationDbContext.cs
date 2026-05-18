@@ -70,6 +70,10 @@ namespace DelikatessenDrehbuch.Data
         // NEW: Simple AI Translation System (normalisiert)
         public DbSet<RecipeSteps> RecipeSteps { get; set; }
 
+        // Trading Agents
+        public DbSet<WorldTradingAgent> WorldTradingAgents { get; set; }
+        public DbSet<WorldAgentTrade> WorldAgentTrades { get; set; }
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
         {

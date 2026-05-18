@@ -94,6 +94,9 @@
                         <span class="text-warning">Nicht verbunden - Wallet wird für Auszahlung benötigt</span>
                     }
                 </div>
+                <div class="small mt-1" id="sellerWalletBalance" style="display:none;">
+                    <span class="badge bg-success">💰 <span id="wldBalance">--</span> WLD</span>
+                </div>
             </div>
             <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectSellerWalletBtn" onclick="connectSellerWallet()">
                 <i class="bi bi-wallet2 me-1"></i>@(string.IsNullOrWhiteSpace(walletWLD) ? "Verbinden" : "Verbunden")
@@ -204,8 +207,8 @@
     };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
-<script src="~/js/worldchain-marketplace.js"></script>
-<script type="module" src="~/js/minikitt.js"></script>
+<script src="~/js/worldchain-marketplace.js" asp-append-version="true"></script>
+<script type="module" src="~/js/minikitt.js" asp-append-version="true"></script>
 <script>
     let selectedPlanId = null;
     let sellerWalletAddress = '@walletWLD';
@@ -298,6 +301,22 @@
                 statusEl.innerHTML = `<span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>${shortWallet(address)}</span>`;
             }
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+
+            // Balance abrufen und anzeigen
+            if (window.worldChainMarketplace?.getWalletBalances) {
+                try {
+                    const balances = await window.worldChainMarketplace.getWalletBalances(address);
+                    const balanceDiv = document.getElementById('sellerWalletBalance');
+                    const wldBalanceSpan = document.getElementById('wldBalance');
+
+                    if (balances.wld !== null && wldBalanceSpan && balanceDiv) {
+                        wldBalanceSpan.textContent = balances.wld;
+                        balanceDiv.style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Balance-Abfrage fehlgeschlagen:', e);
+                }
+            }
 
             updateSellButtonState();
         } catch (error) {
@@ -409,13 +428,29 @@
     }
 
     // Init
-    document.addEventListener('DOMContentLoaded', () => {
+    document.addEventListener('DOMContentLoaded', async () => {
         updateSplitPreview();
 
-        // Falls Wallet schon verbunden, Button-State setzen
+        // Falls Wallet schon verbunden, Button-State setzen UND Balance abrufen
         if (sellerWalletAddress) {
             const btn = document.getElementById('connectSellerWalletBtn');
             if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+
+            // Balance abrufen
+            if (window.worldChainMarketplace?.getWalletBalances) {
+                try {
+                    const balances = await window.worldChainMarketplace.getWalletBalances(sellerWalletAddress);
+                    const balanceDiv = document.getElementById('sellerWalletBalance');
+                    const wldBalanceSpan = document.getElementById('wldBalance');
+
+                    if (balances.wld !== null && wldBalanceSpan && balanceDiv) {
+                        wldBalanceSpan.textContent = balances.wld;
+                        balanceDiv.style.display = 'block';
+                    }
+                } catch (e) {
+                    console.error('Balance-Abfrage fehlgeschlagen:', e);
+                }
+            }
         }
 
         if (sellerUsdtWalletAddress) {

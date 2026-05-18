@@ -71,7 +71,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Keywords");
+                    b.ToTable("Keywords", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MealPlanListing", b =>
@@ -132,7 +132,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("IsActive", "CreatedAt");
 
-                    b.ToTable("MealPlanListings");
+                    b.ToTable("MealPlanListings", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MealPlanPurchase", b =>
@@ -645,7 +645,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("KeywordId");
 
-                    b.ToTable("RecipeBaseKeywords");
+                    b.ToTable("RecipeBaseKeywords", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WildCoinTransaction", b =>
@@ -680,7 +680,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("UserHash", "CreatedAt");
 
-                    b.ToTable("WildCoinTransactions");
+                    b.ToTable("WildCoinTransactions", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldAdPreferenceInterest", b =>
@@ -724,7 +724,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("UserHash", "InterestType", "Score");
 
-                    b.ToTable("WorldAdPreferenceInterests");
+                    b.ToTable("WorldAdPreferenceInterests", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldAdPreferenceProfile", b =>
@@ -795,7 +795,7 @@ namespace DelikatessenDrehbuch.Migrations
                     b.HasIndex("UserHash")
                         .IsUnique();
 
-                    b.ToTable("WorldAdPreferenceProfiles");
+                    b.ToTable("WorldAdPreferenceProfiles", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldAppUser", b =>
@@ -830,7 +830,7 @@ namespace DelikatessenDrehbuch.Migrations
                         .IsUnique()
                         .HasFilter("[UserHash] IS NOT NULL");
 
-                    b.ToTable("WorldAppUser");
+                    b.ToTable("WorldAppUser", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldClipWatchSession", b =>
@@ -880,7 +880,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("CreatorUserHash", "IsQualifiedView", "CreatedAtUtc");
 
-                    b.ToTable("WorldClipWatchSessions");
+                    b.ToTable("WorldClipWatchSessions", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldSharedMealPlan", b =>
@@ -918,7 +918,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("WorldSharedMealPlan");
+                    b.ToTable("WorldSharedMealPlan", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldSharedShoppingList", b =>
@@ -951,7 +951,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("ShareToken");
 
-                    b.ToTable("WorldSharedShoppingList");
+                    b.ToTable("WorldSharedShoppingList", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserAbo", b =>
@@ -974,7 +974,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("WorldUserId");
 
-                    b.ToTable("WorldUserAbo");
+                    b.ToTable("WorldUserAbo", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserComment", b =>
@@ -1120,7 +1120,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("WorldAppUserId");
 
-                    b.ToTable("WorldUserLike");
+                    b.ToTable("WorldUserLike", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserMealPlan", b =>
@@ -1153,7 +1153,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("UserHash", "Title");
 
-                    b.ToTable("WorldUserMealPlan");
+                    b.ToTable("WorldUserMealPlan", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserNotification", b =>
@@ -1247,7 +1247,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("WorldUserPosting");
+                    b.ToTable("WorldUserPosting", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.FoodCategory", b =>
@@ -1329,7 +1329,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Group");
+                    b.ToTable("Group", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Ingredient", b =>
@@ -1360,7 +1360,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("Ingredients");
+                    b.ToTable("Ingredients", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.IngredientHandlerModel", b =>
@@ -1388,7 +1388,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("QuantityId");
 
-                    b.ToTable("IngredientHandlers");
+                    b.ToTable("IngredientHandlers", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.IngredientMeasureQuantity", b =>
@@ -1416,7 +1416,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("QuantityId");
 
-                    b.ToTable("IngredientMeasureQuantity");
+                    b.ToTable("IngredientMeasureQuantity", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.IngredientsAndNutrients", b =>
@@ -1603,7 +1603,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("GroupId");
 
-                    b.ToTable("IngredientsAndNutrients");
+                    b.ToTable("IngredientsAndNutrients", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Like", b =>
@@ -1625,7 +1625,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("Likes");
+                    b.ToTable("Likes", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.MealPlan", b =>
@@ -1650,7 +1650,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("MyMealModelId");
 
-                    b.ToTable("MealPlan");
+                    b.ToTable("MealPlan", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.MealPlanHandler", b =>
@@ -1673,7 +1673,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipesId");
 
-                    b.ToTable("MealPlanHandler");
+                    b.ToTable("MealPlanHandler", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.MealplanFilter", b =>
@@ -1690,7 +1690,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MealplanFilter");
+                    b.ToTable("MealplanFilter", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Measure", b =>
@@ -1753,7 +1753,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Metrics");
+                    b.ToTable("Metrics", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.MyMealModel", b =>
@@ -1774,7 +1774,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("MyMealModel");
+                    b.ToTable("MyMealModel", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.NutrienHandler", b =>
@@ -1807,7 +1807,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("QuantityId");
 
-                    b.ToTable("NutrienHandler");
+                    b.ToTable("NutrienHandler", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Nutrients", b =>
@@ -1824,7 +1824,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Nutrients");
+                    b.ToTable("Nutrients", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Quantity", b =>
@@ -1840,7 +1840,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Quantities");
+                    b.ToTable("Quantities", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Queries", b =>
@@ -1880,7 +1880,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("QueryHandler");
+                    b.ToTable("QueryHandler", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.Recession", b =>
@@ -1909,7 +1909,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipesId");
 
-                    b.ToTable("Recessions");
+                    b.ToTable("Recessions", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.RecipeBaseData", b =>
@@ -1949,7 +1949,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("Title");
 
-                    b.ToTable("RecipeBaseData");
+                    b.ToTable("RecipeBaseData", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.RecipeBaseDataImage", b =>
@@ -1974,7 +1974,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("RecipeBaseDataImage");
+                    b.ToTable("RecipeBaseDataImage", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.RecipeJoinIngredientMeasureQuantity", b =>
@@ -1997,7 +1997,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("RecipeJoinIngredientMeasureQuantity");
+                    b.ToTable("RecipeJoinIngredientMeasureQuantity", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.RecipeJoinPreparationSteps", b =>
@@ -2129,7 +2129,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Recipes");
+                    b.ToTable("Recipes", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.RecipesHandler", b =>
@@ -2152,7 +2152,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipeId");
 
-                    b.ToTable("RecipesHandlers");
+                    b.ToTable("RecipesHandlers", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.SavedMealPlans", b =>
@@ -2188,7 +2188,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SavedMealPlan");
+                    b.ToTable("SavedMealPlan", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.SmartRecipeStep", b =>
@@ -2250,7 +2250,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("SupportMessage");
+                    b.ToTable("SupportMessage", (string)null);
                 });
 
             modelBuilder.Entity("DelikatessenDrehbuch.Models.UserPreferencesQuery", b =>
@@ -2296,7 +2296,7 @@ namespace DelikatessenDrehbuch.Migrations
 
                     b.HasIndex("RecipesId");
 
-                    b.ToTable("UserPreferencesRecipes");
+                    b.ToTable("UserPreferencesRecipes", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

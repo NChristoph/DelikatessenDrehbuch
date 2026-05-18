@@ -1,6 +1,6 @@
-const WORLD_TESTNET_CHAIN_ID = 480;
-const DEFAULT_WORLD_CHAIN_ID = WORLD_TESTNET_CHAIN_ID;
-const WORLD_CHAIN_RPC = "https://worldchain-mainnet.g.alchemy.com/public";
+const WORLD_MAINNET_CHAIN_ID = 480;
+const DEFAULT_WORLD_CHAIN_ID = WORLD_MAINNET_CHAIN_ID;
+const WORLD_CHAIN_RPC = "https://worldchain.drpc.org";
 
 // Token-Dezimalstellen
 const TOKEN_DECIMALS = { WLD: 18, USDCE: 6 };
@@ -46,9 +46,9 @@ function requireEthers() {
     if (!window.ethers) throw new Error("Ethers ist nicht geladen.");
 }
 
-function assertWorldTestnet(chainId) {
-    if (Number(chainId) !== WORLD_TESTNET_CHAIN_ID) {
-        throw new Error(`Dieses Feature ist aktuell nur auf World Testnet (Chain ${WORLD_TESTNET_CHAIN_ID}) aktiv.`);
+function assertWorldMainnet(chainId) {
+    if (Number(chainId) !== WORLD_MAINNET_CHAIN_ID) {
+        throw new Error(`Dieses Feature ist aktuell nur auf World Mainnet (Chain ${WORLD_MAINNET_CHAIN_ID}) aktiv.`);
     }
 }
 
@@ -158,7 +158,7 @@ async function buyListingWithWorldChain({ listingId, price, buyerHash, paymentTo
     await requireWallet();
 
     const { chainId, marketplaceAddress } = cfg;
-    assertWorldTestnet(chainId);
+    assertWorldMainnet(chainId);
 
     const tokenAddress = tokenKey === "USDT" ? cfg.usdtTokenAddress : cfg.wldTokenAddress;
 
@@ -233,7 +233,7 @@ async function connectWallet() {
     }
 
     const cfg = getCfg();
-    assertWorldTestnet(cfg.chainId);
+    assertWorldMainnet(cfg.chainId);
     await ensureWorldChain(provider, cfg.chainId);
 
     const signer = await provider.getSigner();
@@ -329,5 +329,5 @@ window.worldChainMarketplace = {
     getEthereumProvider,
     getEthereumProviderCandidates,
     waitForEthereumProvider,
-    worldTestnetChainId: WORLD_TESTNET_CHAIN_ID
+    worldMainnetChainId: WORLD_MAINNET_CHAIN_ID
 };

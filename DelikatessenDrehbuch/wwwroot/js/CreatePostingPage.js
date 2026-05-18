@@ -3502,15 +3502,49 @@
                 const isVideo = file.type.startsWith('video/');
 
                 if (isVideo) {
-                    $('#videoPreview').attr('src', fileUrl).removeClass('d-none');
-                    $('#imagePreview').addClass('d-none').attr('src', '');
+                    // Validate video duration (max 90 seconds)
+                    const tempVideo = document.createElement('video');
+                    tempVideo.preload = 'metadata';
+
+                    tempVideo.onloadedmetadata = function() {
+                        window.URL.revokeObjectURL(tempVideo.src);
+                        const duration = tempVideo.duration;
+
+                        if (duration > 90) {
+                            const i18n = window.VideoUploadI18n || {};
+                            const title = i18n.tooLongTitle || 'Video ist zu lang!';
+                            const maxLength = i18n.tooLongMaxLength || 'Maximale Länge: 90 Sekunden';
+                            const yourLength = (i18n.tooLongYourLength || 'Ihre Video-Länge: {0} Sekunden').replace('{0}', Math.round(duration));
+                            const message = i18n.tooLongMessage || 'Bitte wählen Sie ein kürzeres Video.';
+
+                            alert('❌ ' + title + '\n\n' + maxLength + '\n' + yourLength + '\n\n' + message);
+                            resetVideo();
+                            input.value = '';
+                            return;
+                        }
+
+                        // Duration OK, show preview
+                        $('#videoPreview').attr('src', fileUrl).removeClass('d-none');
+                        $('#imagePreview').addClass('d-none').attr('src', '');
+                        $('#videoPreviewContainer').removeClass('d-none');
+                        $('#uploadLabel').addClass('d-none');
+                    };
+
+                    tempVideo.onerror = function() {
+                        const i18n = window.VideoUploadI18n || {};
+                        const errorMsg = i18n.loadError || 'Fehler beim Laden des Videos. Bitte versuchen Sie es erneut.';
+                        alert('❌ ' + errorMsg);
+                        resetVideo();
+                        input.value = '';
+                    };
+
+                    tempVideo.src = fileUrl;
                 } else {
                     $('#imagePreview').attr('src', fileUrl).removeClass('d-none');
                     $('#videoPreview').addClass('d-none').attr('src', '');
+                    $('#videoPreviewContainer').removeClass('d-none');
+                    $('#uploadLabel').addClass('d-none');
                 }
-
-                $('#videoPreviewContainer').removeClass('d-none');
-                $('#uploadLabel').addClass('d-none');
             }
         }
 
