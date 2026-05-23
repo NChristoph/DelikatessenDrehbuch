@@ -1,0 +1,61 @@
+@{
+    Layout = null;
+    var logs = ViewBag.Logs as List<string> ?? new List<string>();
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Debug Logs</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .log {
+            padding: 8px;
+            margin: 4px 0;
+            background: #252526;
+            border-left: 3px solid #007acc;
+            font-size: 12px;
+            word-wrap: break-word;
+        }
+        h1 {
+            color: #4ec9b0;
+            font-size: 18px;
+        }
+        .refresh {
+            padding: 10px 20px;
+            background: #0e639c;
+            color: white;
+            border: none;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Debug Logs</h1>
+    <button class="refresh" onclick="location.reload()">Refresh</button>
+    <div>
+        @if (logs.Any())
+        {
+            @foreach (var log in logs)
+            {
+                <div class="log">@log</div>
+            }
+        }
+        else
+        {
+            <div class="log">No logs yet...</div>
+        }
+    </div>
+    <script>
+        // Auto-refresh every 3 seconds
+        setTimeout(() => location.reload(), 3000);
+    </script>
+</body>
+</html>

@@ -89,14 +89,14 @@
                             </div>
 
                             <div class="card-footer bg-white border-0 p-2 d-flex gap-2">
-                                <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })"
+                                <a href="@Url.Action("ViewPlanAsync", "MealPlan", new { area = "WorldMiniApp", id = plan.Id })"
                                    class="btn border-0 rounded-4 flex-grow-1 fw-bold text-white d-flex align-items-center justify-content-center btn-hover-scale"
                                    style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 12px;">
                                     <i class="bi bi-eye-fill me-2"></i> @T("Anzeigen", "View")
                                 </a>
 
                                 <form method="post"
-                                      action="@Url.Action("DeletePlan", "Home", new { area = "WorldMiniApp" })"
+                                      action="@Url.Action("DeletePlan", "MealPlan", new { area = "WorldMiniApp" })"
                                       onsubmit="return confirm('@DeleteConfirmText(plan.Title ?? "Essensplan")');"
                                       class="d-flex">
                                     @Html.AntiForgeryToken()
@@ -148,7 +148,7 @@
                             </div>
 
                             <div class="card-footer bg-white border-0 p-2 d-flex gap-2">
-                                <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = purchase.CreatedMealPlanId })"
+                                <a href="@Url.Action("ViewPlanAsync", "MealPlan", new { area = "WorldMiniApp", id = purchase.CreatedMealPlanId })"
                                    class="btn border-0 rounded-4 flex-grow-1 fw-bold text-white d-flex align-items-center justify-content-center btn-hover-scale"
                                    style="background: linear-gradient(135deg, #1d976c 0%, #49c58b 100%); padding: 12px;">
                                     <i class="bi bi-eye-fill me-2"></i> @T("Plan öffnen", "Open plan")
@@ -264,4 +264,3 @@
         backdrop-filter: blur(8px);
     }
 </style>
-

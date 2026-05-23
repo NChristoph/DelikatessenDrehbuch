@@ -40,6 +40,11 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldUserPosting> WorldUserPosting { get; set; }
         public DbSet<WorldUserMealPlan> WorldUserMealPlan { get; set; }
         public DbSet<WorldSharedMealPlan> WorldSharedMealPlan { get; set; }
+        public DbSet<WorldSharedFeed> WorldSharedFeeds { get; set; }
+        public DbSet<WorldSharedFeedMember> WorldSharedFeedMembers { get; set; }
+        public DbSet<WorldSharedFeedItem> WorldSharedFeedItems { get; set; }
+        public DbSet<WorldSharedFeedMessage> WorldSharedFeedMessages { get; set; }
+        public DbSet<WorldSharedFeedTodo> WorldSharedFeedTodos { get; set; }
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
         public DbSet<WorldUserInteraction> WorldUserInteractions { get; set; }
@@ -48,6 +53,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldUserCommentReport> WorldUserCommentReports { get; set; }
         public DbSet<WorldUserReport> WorldUserReports { get; set; }
         public DbSet<WorldClipWatchSession> WorldClipWatchSessions { get; set; }
+        public DbSet<AgentPaymentRequest> AgentPaymentRequests { get; set; }
         public DbSet<WorldAdPreferenceProfile> WorldAdPreferenceProfiles { get; set; }
         public DbSet<WorldAdPreferenceInterest> WorldAdPreferenceInterests { get; set; }
         public DbSet<RecipeAiVariant> RecipeAiVariants { get; set; }
@@ -73,6 +79,7 @@ namespace DelikatessenDrehbuch.Data
         // Trading Agents
         public DbSet<WorldTradingAgent> WorldTradingAgents { get; set; }
         public DbSet<WorldAgentTrade> WorldAgentTrades { get; set; }
+        public DbSet<WorldTokenPrice> WorldTokenPrices { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -300,6 +307,82 @@ namespace DelikatessenDrehbuch.Data
                 .HasIndex(x => new { x.UserHash, x.CreatedAt });
 
             // WorldSharedShoppingList — Token-Lookup
+            builder.Entity<WorldSharedFeed>()
+                .HasIndex(x => x.InviteToken)
+                .IsUnique();
+
+            builder.Entity<WorldSharedFeed>()
+                .HasIndex(x => x.OwnerUserHash);
+
+            builder.Entity<WorldSharedFeed>()
+                .HasIndex(x => x.LastActivityAtUtc);
+
+            builder.Entity<WorldSharedFeed>()
+                .Property(x => x.Title)
+                .HasMaxLength(160);
+
+            builder.Entity<WorldSharedFeed>()
+                .Property(x => x.OwnerUserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldSharedFeed>()
+                .Property(x => x.InviteToken)
+                .HasMaxLength(64);
+
+            builder.Entity<WorldSharedFeedMember>()
+                .HasIndex(x => new { x.WorldSharedFeedId, x.UserHash })
+                .IsUnique();
+
+            builder.Entity<WorldSharedFeedMember>()
+                .HasIndex(x => x.UserHash);
+
+            builder.Entity<WorldSharedFeedMember>()
+                .Property(x => x.UserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldSharedFeedMember>()
+                .Property(x => x.Role)
+                .HasMaxLength(32);
+
+            builder.Entity<WorldSharedFeedMember>()
+                .Property(x => x.AddedByUserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldSharedFeedMember>()
+                .HasOne(x => x.Feed)
+                .WithMany(x => x.Members)
+                .HasForeignKey(x => x.WorldSharedFeedId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            builder.Entity<WorldSharedFeedItem>()
+                .HasIndex(x => new { x.WorldSharedFeedId, x.CreatedAtUtc });
+
+            builder.Entity<WorldSharedFeedItem>()
+                .HasIndex(x => new { x.WorldSharedFeedId, x.ContentType, x.SourceToken })
+                .IsUnique();
+
+            builder.Entity<WorldSharedFeedItem>()
+                .Property(x => x.ContentType)
+                .HasMaxLength(32);
+
+            builder.Entity<WorldSharedFeedItem>()
+                .Property(x => x.SourceToken)
+                .HasMaxLength(64);
+
+            builder.Entity<WorldSharedFeedItem>()
+                .Property(x => x.Title)
+                .HasMaxLength(200);
+
+            builder.Entity<WorldSharedFeedItem>()
+                .Property(x => x.AddedByUserHash)
+                .HasMaxLength(256);
+
+            builder.Entity<WorldSharedFeedItem>()
+                .HasOne(x => x.Feed)
+                .WithMany(x => x.Items)
+                .HasForeignKey(x => x.WorldSharedFeedId)
+                .OnDelete(DeleteBehavior.Cascade);
+
             builder.Entity<WorldUserNotification>()
                 .ToTable("WorldUserNotifications");
 

@@ -1,0 +1,58 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.SharedFeedContentCardViewModel
+
+<article class="shared-item-card shared-item-shopping">
+    <div class="shared-item-type">Shopping List</div>
+    <div class="shared-item-main">
+        <div>
+            <h3>@Model.Title</h3>
+            <div class="shared-item-meta">von @Model.AddedByName · @Model.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+        </div>
+        <div class="shared-item-actions">
+            @if (Model.IsCreator)
+            {
+                <form method="post" action="@Url.Action("DeleteSharedShoppingList", "Shared", new { area = "WorldMiniApp" })" style="display:inline;" onsubmit="return confirm('Möchten Sie diese Einkaufsliste wirklich löschen? Sie wird aus allen Feeds entfernt.');">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="token" value="@Model.SourceToken" />
+                    <input type="hidden" name="userHash" value="@ViewData["CurrentUserHash"]" />
+                    <input type="hidden" name="feedId" value="@ViewData["FeedId"]" />
+                    <button type="submit" class="shared-btn-delete" title="Einkaufsliste löschen">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </form>
+            }
+            <a class="shared-open-link" href="@Model.OpenUrl">Öffnen</a>
+        </div>
+    </div>
+    <div class="shared-item-preview">@Model.PreviewText</div>
+    <div class="shared-item-stats">
+        <span><strong>@Model.RecipeCount</strong> Einträge</span>
+    </div>
+</article>
+
+<style>
+    .shared-item-preview { margin-top:14px; color:#50604f; line-height:1.5; }
+    .shared-item-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .shared-btn-delete {
+        background: linear-gradient(135deg, #ff4444, #cc0000);
+        border: none;
+        border-radius: 12px;
+        padding: 11px 14px;
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(204, 0, 0, 0.35);
+        transition: all 0.2s;
+    }
+    .shared-btn-delete:hover {
+        background: linear-gradient(135deg, #ff6666, #ff0000);
+        transform: scale(1.05);
+    }
+</style>

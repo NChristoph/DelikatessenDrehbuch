@@ -569,4 +569,301 @@
   <data name="Video.LoadError" xml:space="preserve">
     <value>Ralat memuatkan video. Sila cuba lagi.</value>
   </data>
+
+  <!-- Create Posting -->
+  <data name="CreatePosting.CreatorStudio" xml:space="preserve">
+    <value>Creator Studio</value>
+  </data>
+  <data name="CreatePosting.BasicInfo" xml:space="preserve">
+    <value>Maklumat Asas</value>
+  </data>
+  <data name="CreatePosting.Title" xml:space="preserve">
+    <value>Tajuk</value>
+  </data>
+  <data name="CreatePosting.Preference" xml:space="preserve">
+    <value>Keutamaan</value>
+  </data>
+  <data name="CreatePosting.Minutes" xml:space="preserve">
+    <value>Minit</value>
+  </data>
+  <data name="CreatePosting.MediaScript" xml:space="preserve">
+    <value>Skrip Media</value>
+  </data>
+  <data name="CreatePosting.SelectVideoOrImage" xml:space="preserve">
+    <value>Pilih Video atau Imej</value>
+  </data>
+  <data name="CreatePosting.SelectIngredients" xml:space="preserve">
+    <value>Pilih Bahan</value>
+  </data>
+  <data name="CreatePosting.SelectKeywords" xml:space="preserve">
+    <value>Pilih Kata Kunci</value>
+  </data>
+  <data name="CreatePosting.Publish" xml:space="preserve">
+    <value>Terbitkan</value>
+  </data>
+
+  <!-- Preferences -->
+  <data name="Preference.Vegan" xml:space="preserve">
+    <value>Vegan</value>
+  </data>
+  <data name="Preference.Vegetarian" xml:space="preserve">
+    <value>Vegetarian</value>
+  </data>
+  <data name="Preference.Fish" xml:space="preserve">
+    <value>Ikan</value>
+  </data>
+  <data name="Preference.Pork" xml:space="preserve">
+    <value>Daging Babi</value>
+  </data>
+  <data name="Preference.Beef" xml:space="preserve">
+    <value>Daging Lembu</value>
+  </data>
+  <data name="Preference.OtherMeat" xml:space="preserve">
+    <value>Daging Lain</value>
+  </data>
+
+  <!-- CreatePosting Additional Keys -->
+  <data name="CreatePosting.NewPosting" xml:space="preserve">
+    <value>Catatan Baru</value>
+  </data>
+  <data name="CreatePosting.SelectCategory" xml:space="preserve">
+    <value>Pilih kategori</value>
+  </data>
+  <data name="CreatePosting.Basics" xml:space="preserve">
+    <value>Asas</value>
+  </data>
+  <data name="CreatePosting.TitleCategoryPersonsTime" xml:space="preserve">
+    <value>Tajuk, kategori, orang, masa</value>
+  </data>
+  <data name="CreatePosting.Category" xml:space="preserve">
+    <value>Kategori</value>
+  </data>
+  <data name="CreatePosting.Persons" xml:space="preserve">
+    <value>Orang</value>
+  </data>
+  <data name="CreatePosting.DurationMin" xml:space="preserve">
+    <value>Tempoh (min)</value>
+  </data>
+  <data name="CreatePosting.VideoOrImageForFeed" xml:space="preserve">
+    <value>Video atau imej untuk suapan</value>
+  </data>
+  <data name="CreatePosting.CurrentImageVideo" xml:space="preserve">
+    <value>Imej/video semasa</value>
+  </data>
+  <data name="CreatePosting.OptionalUploadNew" xml:space="preserve">
+    <value>Pilihan: muat naik imej/video baru</value>
+  </data>
+  <data name="CreatePosting.UploadStart" xml:space="preserve">
+    <value>Mula muat naik</value>
+  </data>
+  <data name="CreatePosting.ChooseVideoOrImage" xml:space="preserve">
+    <value>Pilih video atau imej (gaya suapan).</value>
+  </data>
+  <data name="CreatePosting.IngredientsSelection" xml:space="preserve">
+    <value>Pemilihan Bahan</value>
+  </data>
+  <data name="CreatePosting.SearchConfigureIngredients" xml:space="preserve">
+    <value>Cari dan konfigur bahan anda</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Ketik untuk edit</value>
+  </data>
+  <data name="CreatePosting.YourIngredientMissing" xml:space="preserve">
+    <value>Bahan anda tiada?</value>
+  </data>
+  <data name="CreatePosting.IngredientTestHint" xml:space="preserve">
+    <value>Untuk ujian: masukkan bahan, cari dahulu dalam katalog, jika tidak dapatkan cadangan AI.</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Langkah Persediaan</value>
+  </data>
+  <data name="CreatePosting.WriteStepsWillTranslate" xml:space="preserve">
+    <value>Tulis langkah anda - akan diterjemahkan ke 10 bahasa semasa menyimpan</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Arahan Memasak</value>
+  </data>
+  <data name="CreatePosting.WriteStepsAiTranslates" xml:space="preserve">
+    <value>Hanya tulis langkah anda - AI akan menterjemahkan ke semua bahasa semasa menyimpan (Jerman, Inggeris, Sepanyol, Portugis, Indonesia, Belanda, Sweden, Denmark, Norway, Melayu)</value>
+  </data>
+  <data name="CreatePosting.KeywordsHelpFeedSearch" xml:space="preserve">
+    <value>Membantu suapan dan carian</value>
+  </data>
+  <data name="CreatePosting.ReadyToPost" xml:space="preserve">
+    <value>Sedia untuk pos?</value>
+  </data>
+  <data name="CreatePosting.Save" xml:space="preserve">
+    <value>Simpan</value>
+  </data>
+  <data name="CreatePosting.Add" xml:space="preserve">
+    <value>Tambah</value>
+  </data>
+  <data name="CreatePosting.SavedSessionFound" xml:space="preserve">
+    <value>Sesi tersimpan ditemui</value>
+  </data>
+  <data name="CreatePosting.Restore" xml:space="preserve">
+    <value>Pulih</value>
+  </data>
+  <data name="CreatePosting.Discard" xml:space="preserve">
+    <value>Buang</value>
+  </data>
+  <data name="MyProfile.BackToFeed" xml:space="preserve">
+    <value>Kembali ke feed</value>
+  </data>
+  <data name="MyProfile.Following" xml:space="preserve">
+    <value>Mengikuti</value>
+  </data>
+  <data name="MyProfile.Likes" xml:space="preserve">
+    <value>Suka</value>
+  </data>
+  <data name="MyProfile.Followers" xml:space="preserve">
+    <value>Pengikut</value>
+  </data>
+  <data name="MyProfile.Settings" xml:space="preserve">
+    <value>Tetapan</value>
+  </data>
+  <data name="MyProfile.DisplayName" xml:space="preserve">
+    <value>Nama Paparan</value>
+  </data>
+  <data name="MyProfile.Save" xml:space="preserve">
+    <value>Simpan</value>
+  </data>
+  <data name="MyProfile.Marketplace" xml:space="preserve">
+    <value>Pasar</value>
+  </data>
+  <data name="MyProfile.MyListings" xml:space="preserve">
+    <value>Senarai saya</value>
+  </data>
+  <data name="MyProfile.CommentModeration" xml:space="preserve">
+    <value>Moderasi komen</value>
+  </data>
+  <data name="MyProfile.ReportedContent" xml:space="preserve">
+    <value>Kandungan yang dilaporkan</value>
+  </data>
+  <data name="MyProfile.CreatorManager" xml:space="preserve">
+    <value>Pengurus Pencipta</value>
+  </data>
+  <data name="MyProfile.CreatorDashboard" xml:space="preserve">
+    <value>Papan pemuka pencipta</value>
+  </data>
+  <data name="MyProfile.TabLikes" xml:space="preserve">
+    <value>SUKA</value>
+  </data>
+  <data name="MyProfile.TabAI" xml:space="preserve">
+    <value>AI</value>
+  </data>
+  <data name="MyProfile.TabCreators" xml:space="preserve">
+    <value>PENCIPTA</value>
+  </data>
+  <data name="MyProfile.TabCreated" xml:space="preserve">
+    <value>DICIPTA</value>
+  </data>
+  <data name="MyProfile.TabBought" xml:space="preserve">
+    <value>DIBELI</value>
+  </data>
+  <data name="MyProfile.TabVideos" xml:space="preserve">
+    <value>VIDEO</value>
+  </data>
+  <data name="MyProfile.NoLikesYet" xml:space="preserve">
+    <value>Tiada suka lagi</value>
+  </data>
+  <data name="MyProfile.NoAIVariantsYet" xml:space="preserve">
+    <value>Tiada varian AI lagi</value>
+  </data>
+  <data name="MyProfile.NoCreatedPlansYet" xml:space="preserve">
+    <value>Tiada pelan yang dicipta lagi</value>
+  </data>
+  <data name="MyProfile.Delete" xml:space="preserve">
+    <value>Padam</value>
+  </data>
+  <data name="MyProfile.NoPurchasedPlansYet" xml:space="preserve">
+    <value>Tiada pelan yang dibeli lagi</value>
+  </data>
+  <data name="MyProfile.GoToMarketplace" xml:space="preserve">
+    <value>Pergi ke pasar</value>
+  </data>
+  <data name="MyProfile.DaysLowercase" xml:space="preserve">
+    <value>hari</value>
+  </data>
+  <data name="MyProfile.Days" xml:space="preserve">
+    <value>Hari</value>
+  </data>
+  <data name="MyProfile.Recipes" xml:space="preserve">
+    <value>Resipi</value>
+  </data>
+  <data name="MyProfile.Purchased" xml:space="preserve">
+    <value>Dibeli</value>
+  </data>
+  <data name="MyProfile.PurchasedOn" xml:space="preserve">
+    <value>Dibeli pada</value>
+  </data>
+  <data name="MyProfile.Open" xml:space="preserve">
+    <value>Buka</value>
+  </data>
+  <data name="MyProfile.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="MyProfile.TakePostingOfflineConfirm" xml:space="preserve">
+    <value>Ambil posting luar talian?</value>
+  </data>
+  <data name="MyProfile.TakeOffline" xml:space="preserve">
+    <value>Ambil luar talian</value>
+  </data>
+  <data name="MyProfile.PutPostingOnlineConfirm" xml:space="preserve">
+    <value>Letakkan posting dalam talian semula?</value>
+  </data>
+  <data name="MyProfile.PutOnline" xml:space="preserve">
+    <value>Letakkan dalam talian</value>
+  </data>
+  <data name="MyProfile.DeletePostingPermanentlyConfirm" xml:space="preserve">
+    <value>Padam posting KEKAL? Semua data akan dibuang!</value>
+  </data>
+  <data name="MyProfile.DeletePermanently" xml:space="preserve">
+    <value>Padam kekal</value>
+  </data>
+  <data name="SharedFeed.Title" xml:space="preserve"><value>Kandungan Dikongsi</value></data>
+  <data name="SharedFeed.MyGroups" xml:space="preserve"><value>Kumpulan Saya</value></data>
+  <data name="SharedFeed.MemberIn" xml:space="preserve"><value>Ahli dalam</value></data>
+  <data name="SharedFeed.CreateNewFeed" xml:space="preserve"><value>Cipta Suapan Kumpulan Baharu</value></data>
+  <data name="SharedFeed.Create" xml:space="preserve"><value>Cipta</value></data>
+  <data name="SharedFeed.Members" xml:space="preserve"><value>ahli</value></data>
+  <data name="SharedFeed.Items" xml:space="preserve"><value>item</value></data>
+  <data name="SharedFeed.InviteLink" xml:space="preserve"><value>Salin pautan jemputan</value></data>
+  <data name="Todo.Title" xml:space="preserve"><value>Senarai Tugasan</value></data>
+  <data name="Todo.AddPlaceholder" xml:space="preserve"><value>Tambah tugasan baharu...</value></data>
+  <data name="Todo.Delete" xml:space="preserve"><value>Padam</value></data>
+  <data name="Chat.Title" xml:space="preserve"><value>Sembang Kumpulan</value></data>
+  <data name="Chat.MessagePlaceholder" xml:space="preserve"><value>Taip mesej...</value></data>
+  <data name="AddToFeed.Title" xml:space="preserve"><value>Tambah ke Suapan</value></data>
+  <data name="Home.SharedContent" xml:space="preserve"><value>Kandungan Dikongsi</value></data>
+  <data name="Home.SharedContentDesc" xml:space="preserve"><value>Suapan kumpulan, sembang dan tugasan</value></data>
+
+  <!-- Import Meal Plan -->
+  <data name="Import.Title" xml:space="preserve">
+    <value>Import Rancangan Makanan</value>
+  </data>
+  <data name="Import.Button" xml:space="preserve">
+    <value>Import Rancangan Makanan Saya</value>
+  </data>
+  <data name="Import.Loading" xml:space="preserve">
+    <value>Memuatkan rancangan...</value>
+  </data>
+  <data name="Import.NoPlans" xml:space="preserve">
+    <value>Anda belum mempunyai rancangan makanan tersimpan.</value>
+  </data>
+  <data name="Import.Importing" xml:space="preserve">
+    <value>Mengimport...</value>
+  </data>
+  <data name="Import.Success" xml:space="preserve">
+    <value>Berjaya diimport!</value>
+  </data>
+  <data name="Import.SuccessMessage" xml:space="preserve">
+    <value>Rancangan makanan telah diimport ke kumpulan.</value>
+  </data>
+  <data name="Import.Error" xml:space="preserve">
+    <value>Ralat mengimport rancangan.</value>
+  </data>
+  <data name="Import.AdminActions" xml:space="preserve">
+    <value>Tindakan Pentadbir</value>
+  </data>
 </root>

@@ -122,6 +122,9 @@ builder.Services.AddScoped<CaptionGenerationService>();
 builder.Services.AddScoped<WorldMiniApp.Services.IFeedAlgorithmService, WorldMiniApp.Services.FeedAlgorithmService>();
 builder.Services.AddScoped<TradingAgentService>();
 builder.Services.AddScoped<BlockchainService>();
+builder.Services.AddScoped<DexService>();
+builder.Services.AddScoped<TradingStrategyService>();
+builder.Services.AddHostedService<TradingAgentBackgroundService>();
 
 // Recipe Translation System (NEW) - OLD service removed, using RecipeTranslationService now
 

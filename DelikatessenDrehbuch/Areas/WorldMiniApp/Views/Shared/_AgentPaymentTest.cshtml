@@ -1,0 +1,161 @@
+@* Agent Payment Test UI - Zum Testen der Payment-Funktion *@
+
+<div class="agent-payment-test-ui" style="position: fixed; bottom: 80px; left: 20px; z-index: 9997; display: none;" id="agentPaymentTestUI">
+    <div style="background: white; border-radius: 16px; padding: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); width: 320px; border: 2px solid #5fa052;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h4 style="margin: 0; font-family: 'Fraunces', serif; color: #14391f;">🤖 Agent Payment Test</h4>
+            <button onclick="document.getElementById('agentPaymentTestUI').style.display='none'" style="background: none; border: none; font-size: 20px; cursor: pointer;">×</button>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            <label style="font-size: 12px; font-weight: 600; color: #6b7868; display: block; margin-bottom: 4px;">Empfänger UserHash</label>
+            <input type="text" id="testPaymentUserHash" placeholder="0x..."
+                   style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px; font-family: monospace;">
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            <label style="font-size: 12px; font-weight: 600; color: #6b7868; display: block; margin-bottom: 4px;">Token</label>
+            <select id="testPaymentToken" style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px;">
+                <option value="WLD">WLD</option>
+                <option value="USDC">USDC</option>
+                <option value="WETH">WETH</option>
+            </select>
+        </div>
+
+        <div style="margin-bottom: 12px;">
+            <label style="font-size: 12px; font-weight: 600; color: #6b7868; display: block; margin-bottom: 4px;">Betrag</label>
+            <input type="number" id="testPaymentAmount" value="1.0" step="0.1" min="0.0001" max="1000"
+                   style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px;">
+        </div>
+
+        <div style="margin-bottom: 16px;">
+            <label style="font-size: 12px; font-weight: 600; color: #6b7868; display: block; margin-bottom: 4px;">Beschreibung</label>
+            <input type="text" id="testPaymentDesc" value="🤖 Agent Test Reward"
+                   style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 13px;">
+        </div>
+
+        <button onclick="triggerTestAgentPayment()"
+                style="width: 100%; background: linear-gradient(135deg, #5fa052 0%, #3f7536 100%); color: white; border: none; border-radius: 12px; padding: 12px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(63,117,54,0.25);">
+            💸 Payment senden
+        </button>
+
+        <div id="testPaymentResult" style="margin-top: 12px; font-size: 12px; padding: 8px; border-radius: 8px; display: none;"></div>
+    </div>
+</div>
+
+<!-- Floating Test-Button -->
+<button onclick="document.getElementById('agentPaymentTestUI').style.display='block'"
+        style="position: fixed; bottom: 100px; left: 20px; z-index: 99999; background: #5fa052; color: white; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; cursor: pointer; box-shadow: 0 4px 16px rgba(63,117,54,0.4); display: block !important;"
+        id="agentPaymentTestBtn"
+        title="Agent Payment Tester">
+    🤖
+</button>
+
+<script>
+    // Agent Payment Test-Button ist immer sichtbar (kein localhost-Check nötig)
+
+    async function triggerTestAgentPayment() {
+        const userHash = document.getElementById('testPaymentUserHash').value.trim();
+        const token = document.getElementById('testPaymentToken').value;
+        const amount = parseFloat(document.getElementById('testPaymentAmount').value);
+        const description = document.getElementById('testPaymentDesc').value;
+
+        if (!userHash) {
+            alert('Bitte UserHash eingeben!');
+            return;
+        }
+
+        if (!amount || amount <= 0) {
+            alert('Bitte gültigen Betrag eingeben!');
+            return;
+        }
+
+        const resultDiv = document.getElementById('testPaymentResult');
+        resultDiv.style.display = 'block';
+        resultDiv.style.background = '#fff8e1';
+        resultDiv.style.color = '#6b7868';
+        resultDiv.innerHTML = '⏳ Sende Payment-Request...';
+
+        try {
+            const response = await fetch('/WorldMiniApp/AgentPayment/InitiatePayment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    recipientUserHash: userHash,
+                    tokenSymbol: token,
+                    amount: amount,
+                    description: description,
+                    initiatedBy: 'test-agent'
+                })
+            });
+
+            const responseText = await response.text();
+
+            // Zeige Response im UI für Mobile Debugging
+            if (!response.ok) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#ffebee';
+                resultDiv.style.color = '#c62828';
+
+                // Versuche JSON zu parsen für bessere Fehlermeldung
+                let errorMsg = responseText.substring(0, 500);
+                try {
+                    const errorData = JSON.parse(responseText);
+                    if (errorData.error) {
+                        errorMsg = errorData.error;
+                    } else if (errorData.errors) {
+                        errorMsg = JSON.stringify(errorData.errors, null, 2);
+                    } else if (errorData.title) {
+                        errorMsg = errorData.title;
+                    }
+                } catch (e) {
+                    // Nicht JSON, zeige Rohdaten
+                }
+
+                resultDiv.innerHTML = `❌ HTTP ${response.status}<br><small style="font-size:9px;word-break:break-all;white-space:pre-wrap;">${errorMsg}</small>`;
+                return;
+            }
+
+            let data;
+            try {
+                data = JSON.parse(responseText);
+            } catch (e) {
+                resultDiv.style.display = 'block';
+                resultDiv.style.background = '#ffebee';
+                resultDiv.style.color = '#c62828';
+                resultDiv.innerHTML = `❌ JSON Parse Error<br><small style="font-size:10px;word-break:break-all;">${responseText.substring(0, 300)}</small>`;
+                return;
+            }
+
+            if (data.success) {
+                resultDiv.style.background = '#e8f5e9';
+                resultDiv.style.color = '#2e7d32';
+                resultDiv.innerHTML = `✅ Payment gesendet!<br><small style="font-family: monospace;">${data.reference}</small>`;
+
+                console.log('Agent Payment initiiert:', data);
+
+                // Nach 3 Sekunden prüfen ob Payment angezeigt wird
+                setTimeout(() => {
+                    if (window.checkPendingAgentPayments) {
+                        window.checkPendingAgentPayments();
+                    }
+                }, 3000);
+            } else {
+                throw new Error(data.error || 'Unbekannter Fehler');
+            }
+        } catch (error) {
+            resultDiv.style.background = '#ffebee';
+            resultDiv.style.color = '#c62828';
+            resultDiv.innerHTML = `❌ Fehler: ${error.message}`;
+            console.error('Test Payment Fehler:', error);
+        }
+    }
+
+    // Auto-fill mit aktuellem UserHash
+    document.addEventListener('DOMContentLoaded', () => {
+        const currentUserHash = localStorage.getItem('UserToken') || sessionStorage.getItem('UserToken');
+        if (currentUserHash) {
+            document.getElementById('testPaymentUserHash').value = currentUserHash;
+        }
+    });
+</script>

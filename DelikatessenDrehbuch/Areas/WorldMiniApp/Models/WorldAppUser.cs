@@ -14,6 +14,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public bool RememberLogin { get; set; }
         public decimal WildCoinBalance { get; set; }
         public string? Bio { get; set; }
+        public string? WalletAddress { get; set; }
         public DateTime? CreatedAt { get; set; }
     }
 }

@@ -32,11 +32,7 @@
                 <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="cp-hero-back" aria-label="Zurück">
                     <i class="bi bi-chevron-left"></i>
                 </a>
-                <div class="cp-hero-label label-lang"
-                     data-de="Neues Posting"
-                     data-en="New posting"
-                     data-esp="Nueva publicación"
-                     data-prt="Nova publicação">Neues Posting</div>
+                <div class="cp-hero-label">@SharedLocalizer["CreatePosting.NewPosting"]</div>
                 <button type="button" class="cp-hero-lang" id="langToggle" aria-label="Sprache wechseln">
                     DE <i class="bi bi-chevron-down" style="font-size:9px;"></i>
                 </button>
@@ -45,7 +41,7 @@
             <div class="cp-hero-meta">
                 <span class="cp-hero-category" id="heroCategory">
                     <span id="heroCategoryEmoji">🍽️</span>
-                    <span id="heroCategoryLabel" class="label-lang" data-de="Kategorie wählen" data-en="Select category">Kategorie wählen</span>
+                    <span id="heroCategoryLabel">@SharedLocalizer["CreatePosting.SelectCategory"]</span>
                 </span>
                 <span class="cp-hero-stat" id="heroPersons">· 2 Pers.</span>
                 <span class="cp-hero-stat" id="heroDuration">· 30 Min</span>
@@ -62,20 +58,20 @@
         <!-- Sticky Tab Bar -->
         <div class="cp-tabbar" id="sectionTabBar">
             <button type="button" class="cp-tab active" data-section="card-basics">
-                <span>🧩</span> <span class="label-lang" data-de="Basis" data-en="Basics">Basis</span>
+                <span>🧩</span> <span>@SharedLocalizer["CreatePosting.Basics"]</span>
             </button>
             <button type="button" class="cp-tab" data-section="card-media">
-                <span>🎬</span> <span class="label-lang" data-de="Media" data-en="Media">Media</span>
+                <span>🎬</span> <span>@SharedLocalizer["CreatePosting.Media"]</span>
             </button>
             <button type="button" class="cp-tab" data-section="card-ingredients">
-                <span>🛒</span> <span class="label-lang" data-de="Zutaten" data-en="Ingredients">Zutaten</span>
+                <span>🛒</span> <span>@SharedLocalizer["CreatePosting.Ingredients"]</span>
             </button>
             @* OLD SYSTEM - Probability tab removed *@
             <button type="button" class="cp-tab" data-section="card-steps">
-                <span>📝</span> <span class="label-lang" data-de="Steps" data-en="Steps">Steps</span>
+                <span>📝</span> <span>@SharedLocalizer["CreatePosting.Steps"]</span>
             </button>
             <button type="button" class="cp-tab" data-section="card-keywords">
-                <span>#</span> <span class="label-lang" data-de="Keywords" data-en="Keywords">Keywords</span>
+                <span>#</span> <span>@SharedLocalizer["CreatePosting.Keywords"]</span>
             </button>
         </div>
 
@@ -95,18 +91,16 @@
                     <div class="d-flex align-items-center justify-content-between gap-3">
                         <div class="d-flex align-items-center gap-2 flex-1">
                             <i class="bi bi-clock-history" style="color:#ea580c;font-size:18px;"></i>
-                            <span style="font-weight:600;font-size:14px;color:#9a3412;" class="label-lang"
-                                  data-de="Gespeicherte Session gefunden"
-                                  data-en="Saved session found">Gespeicherte Session gefunden</span>
+                            <span style="font-weight:600;font-size:14px;color:#9a3412;">@SharedLocalizer["CreatePosting.SavedSessionFound"]</span>
                         </div>
                         <div class="d-flex gap-2">
                             <button type="button" id="restoreDraftBtn" style="padding:6px 12px;border-radius:999px;border:none;background:#14391f;color:white;font-size:12px;font-weight:700;cursor:pointer;">
                                 <i class="bi bi-arrow-counterclockwise me-1"></i>
-                                <span class="label-lang" data-de="Wiederherstellen" data-en="Restore">Wiederherstellen</span>
+                                <span>@SharedLocalizer["CreatePosting.Restore"]</span>
                             </button>
                             <button type="button" id="discardDraftBtn" style="padding:6px 12px;border-radius:999px;border:1px solid #14391f;background:transparent;color:#14391f;font-size:12px;font-weight:700;cursor:pointer;">
                                 <i class="bi bi-x-lg me-1"></i>
-                                <span class="label-lang" data-de="Verwerfen" data-en="Discard">Verwerfen</span>
+                                <span>@SharedLocalizer["CreatePosting.Discard"]</span>
                             </button>
                         </div>
                     </div>
@@ -119,14 +113,8 @@
                             <i class="bi bi-ui-checks-grid"></i>
                         </div>
                         <div class="cp-section-info">
-                            <h2 class="cp-section-title label-lang"
-                                data-de="Basis"
-                                data-en="Basics"
-                                data-esp="Básico"
-                                data-prt="Base">Basis</h2>
-                            <p class="cp-section-subtitle label-lang"
-                               data-de="Titel, Kategorie, Personen, Dauer"
-                               data-en="Title, category, persons, time">Titel, Kategorie, Personen, Dauer</p>
+                            <h2 class="cp-section-title">@SharedLocalizer["CreatePosting.Basics"]</h2>
+                            <p class="cp-section-subtitle">@SharedLocalizer["CreatePosting.TitleCategoryPersonsTime"]</p>
                         </div>
                         <div class="cp-section-counter">1/5</div>
                     </div>
@@ -134,11 +122,7 @@
                         <div class="cp-field-group">
                             <!-- Titel -->
                             <div>
-                                <label class="cp-label label-lang"
-                                       data-de="Titel"
-                                       data-en="Title"
-                                       data-esp="Título"
-                                       data-prt="Título">Titel</label>
+                                <label class="cp-label">@SharedLocalizer["CreatePosting.Title"]</label>
                                 <div class="cp-input-wrapper">
                                     <i class="bi bi-fonts cp-input-icon"></i>
                                     <input asp-for="Title"
@@ -156,9 +140,7 @@
                             <!-- Kategorie & Präferenz -->
                             <div class="cp-grid-2">
                                 <div>
-                                    <label class="cp-label label-lang"
-                                           data-de="Kategorie"
-                                           data-en="Category">Kategorie</label>
+                                    <label class="cp-label">@SharedLocalizer["CreatePosting.Category"]</label>
                                     <div class="cp-select-wrapper">
                                         <i class="bi bi-grid cp-input-icon"></i>
                                         <select asp-for="Recipe.Category" id="basisCategorySelect" class="cp-select">
@@ -177,9 +159,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="cp-label label-lang"
-                                           data-de="Präferenz"
-                                           data-en="Preference">Präferenz</label>
+                                    <label class="cp-label">@SharedLocalizer["CreatePosting.Preference"]</label>
                                     <div class="cp-select-wrapper">
                                         <i class="bi bi-heart cp-input-icon"></i>
                                         <select asp-for="Recipe.Preferences" class="cp-select">
@@ -201,9 +181,7 @@
                             <!-- Personen & Dauer -->
                             <div class="cp-grid-2">
                                 <div>
-                                    <label class="cp-label label-lang"
-                                           data-de="Personen"
-                                           data-en="Persons">Personen</label>
+                                    <label class="cp-label">@SharedLocalizer["CreatePosting.Persons"]</label>
                                     <div class="cp-input-wrapper">
                                         <i class="bi bi-people cp-input-icon"></i>
                                         <input asp-for="Recipe.PersonCount"
@@ -217,9 +195,7 @@
                                 </div>
 
                                 <div>
-                                    <label class="cp-label label-lang"
-                                           data-de="Dauer (Min)"
-                                           data-en="Time (min)">Dauer (Min)</label>
+                                    <label class="cp-label">@SharedLocalizer["CreatePosting.DurationMin"]</label>
                                     <div class="cp-input-wrapper">
                                         <i class="bi bi-clock cp-input-icon"></i>
                                         <input asp-for="Recipe.PreparationTime"
@@ -244,12 +220,8 @@
                             <i class="bi bi-camera-reels"></i>
                         </div>
                         <div class="cp-section-info">
-                            <h2 class="cp-section-title label-lang"
-                                data-de="Media"
-                                data-en="Media">Media</h2>
-                            <p class="cp-section-subtitle label-lang"
-                               data-de="Video oder Bild für den Feed"
-                               data-en="Video or image for the feed">Video oder Bild für den Feed</p>
+                            <h2 class="cp-section-title">@SharedLocalizer["CreatePosting.Media"]</h2>
+                            <p class="cp-section-subtitle">@SharedLocalizer["CreatePosting.VideoOrImageForFeed"]</p>
                         </div>
                         <div class="cp-section-counter">2/5</div>
                     </div>
@@ -268,9 +240,9 @@
                         @if (isEditMode)
                         {
                             <div id="editCurrentMediaPreview" style="margin-bottom:16px;">
-                                <div class="cp-label label-lang" data-de="Aktuelles Bild/Video" data-en="Current image/video">Aktuelles Bild/Video</div>
+                                <div class="cp-label">@SharedLocalizer["CreatePosting.CurrentImageVideo"]</div>
                                 <img id="editCurrentImage" class="w-100" style="max-height:200px;object-fit:cover;border-radius:var(--cp-radius-md);" alt="Current media" />
-                                <div style="font-size:12px;color:var(--cp-ink-mute);margin-top:8px;" class="label-lang" data-de="Optional: neues Bild/Video hochladen" data-en="Optional: upload new image/video">Optional: neues Bild/Video hochladen</div>
+                                <div style="font-size:12px;color:var(--cp-ink-mute);margin-top:8px;">@SharedLocalizer["CreatePosting.OptionalUploadNew"]</div>
                             </div>
                         }
 
@@ -279,12 +251,8 @@
                             <div class="cp-media-upload-icon">
                                 <i class="bi bi-cloud-arrow-up-fill"></i>
                             </div>
-                            <div style="font-weight:700;font-size:15px;color:var(--cp-ink-deep);margin-bottom:4px;" class="label-lang"
-                                 data-de="Upload starten"
-                                 data-en="Start upload">Upload starten</div>
-                            <div style="font-size:13px;color:var(--cp-ink-mute);" class="label-lang"
-                                 data-de="Wähle ein Video oder Bild (Feed-Style)."
-                                 data-en="Choose a video or image (feed style).">Wähle ein Video oder Bild (Feed-Style).</div>
+                            <div style="font-weight:700;font-size:15px;color:var(--cp-ink-deep);margin-bottom:4px;">@SharedLocalizer["CreatePosting.UploadStart"]</div>
+                            <div style="font-size:13px;color:var(--cp-ink-mute);">@SharedLocalizer["CreatePosting.ChooseVideoOrImage"]</div>
                             <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
                         </label>
                     </div>
@@ -297,12 +265,8 @@
                             <i class="bi bi-basket"></i>
                         </div>
                         <div class="cp-section-info">
-                            <h2 class="cp-section-title label-lang"
-                                data-de="Zutaten Auswahl"
-                                data-en="Ingredients Selection">Zutaten Auswahl</h2>
-                            <p class="cp-section-subtitle label-lang"
-                               data-de="Suche & konfiguriere deine Zutaten"
-                               data-en="Search & configure your ingredients">Suche & konfiguriere deine Zutaten</p>
+                            <h2 class="cp-section-title">@SharedLocalizer["CreatePosting.IngredientsSelection"]</h2>
+                            <p class="cp-section-subtitle">@SharedLocalizer["CreatePosting.SearchConfigureIngredients"]</p>
                         </div>
                         <div class="cp-section-counter">3/5</div>
                     </div>
@@ -318,22 +282,18 @@
                                     <i class="bi bi-x-lg"></i>
                                 </button>
                             </div>
-                            <div style="font-size:12px;color:var(--cp-ink-mute);text-align:center;margin-top:8px;" class="label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit">Zum Bearbeiten antippen</div>
+                            <div style="font-size:12px;color:var(--cp-ink-mute);text-align:center;margin-top:8px;">@SharedLocalizer["CreatePosting.TapToEdit"]</div>
                         </div>
 
                         <!-- AI Assist Panel -->
                         <div style="border:1px solid var(--cp-ink-line);border-radius:18px;background:var(--cp-cream);padding:14px;margin-bottom:20px;">
                             <button type="button" id="btnToggleMissingIngredientPanel" style="border:1px solid var(--cp-ink-line);background:transparent;color:var(--cp-ink-deep);border-radius:999px;padding:8px 14px;font-size:13px;font-weight:600;cursor:pointer;width:100%;">
                                 <i class="bi bi-stars me-1"></i>
-                                <span class="label-lang"
-                                      data-de="Deine Zutat ist nicht dabei?"
-                                      data-en="Your ingredient is missing?">Deine Zutat ist nicht dabei?</span>
+                                <span>@SharedLocalizer["CreatePosting.YourIngredientMissing"]</span>
                             </button>
                             <div id="missingIngredientPanel" class="d-none" style="border-top:1px solid var(--cp-ink-line);padding-top:14px;margin-top:14px;">
-                                <div style="font-size:12px;color:var(--cp-ink-mute);margin-bottom:10px;" class="label-lang"
-                                     data-de="Zum Testen: Zutat eingeben, erst im Katalog suchen, sonst KI-Vorschlag holen."
-                                     data-en="For testing: enter an ingredient, search the catalog first, otherwise get an AI suggestion.">
-                                    Zum Testen: Zutat eingeben, erst im Katalog suchen, sonst KI-Vorschlag holen.
+                                <div style="font-size:12px;color:var(--cp-ink-mute);margin-bottom:10px;">
+                                    @SharedLocalizer["CreatePosting.IngredientTestHint"]
                                 </div>
                                 <div style="display:flex;gap:8px;align-items:stretch;">
                                     <input type="text" id="missingIngredientInput" placeholder="z.B. Kochbanane grün"
@@ -413,7 +373,7 @@
                         <!-- Selected Ingredients -->
                         <div style="margin-top:24px;">
                             <div style="font-family:var(--cp-font-serif);font-size:18px;font-weight:600;color:var(--cp-ink-deep);margin-bottom:4px;">Ausgewählte Zutaten</div>
-                            <div style="font-size:12px;color:var(--cp-ink-mute);margin-bottom:12px;" class="label-lang" data-de="Zum Bearbeiten antippen" data-en="Tap to edit">Zum Bearbeiten antippen</div>
+                            <div style="font-size:12px;color:var(--cp-ink-mute);margin-bottom:12px;">@SharedLocalizer["CreatePosting.TapToEdit"]</div>
                             <div id="selectedIngredients" style="display:flex;flex-direction:column;gap:10px;"></div>
                             <div id="selectedIngredientsSuggestions" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;"></div>
                         </div>
@@ -430,13 +390,9 @@
                             <i class="bi bi-list-check"></i>
                         </div>
                         <div class="cp-section-info">
-                            <h2 class="cp-section-title label-lang"
-                                data-de="Zubereitungsschritte"
-                                data-en="Preparation Steps">Zubereitungsschritte</h2>
-                            <p class="cp-section-subtitle label-lang"
-                               data-de="Schreib deine Schritte - wird beim Speichern in 10 Sprachen übersetzt"
-                               data-en="Write your steps - will be translated to 10 languages on save">
-                               Schreib deine Schritte - wird beim Speichern in 10 Sprachen übersetzt 🌍
+                            <h2 class="cp-section-title">@SharedLocalizer["CreatePosting.PreparationSteps"]</h2>
+                            <p class="cp-section-subtitle">
+                               @SharedLocalizer["CreatePosting.WriteStepsWillTranslate"]
                             </p>
                         </div>
                         <div class="cp-section-counter">4/5</div>
@@ -445,8 +401,8 @@
                         <!-- Einfaches Textarea für Steps -->
                         <div class="mb-3">
                             <label class="form-label" style="font-weight: 600; font-size: 14px; margin-bottom: 8px;">
-                                <span class="label-lang" data-de="Zubereitungsschritte" data-en="Cooking Instructions">
-                                    Zubereitungsschritte
+                                <span>
+                                    @SharedLocalizer["CreatePosting.CookingInstructions"]
                                 </span>
                                 <span style="color: #888; font-weight: 400; font-size: 13px;">
                                     (wird automatisch übersetzt)
@@ -472,10 +428,8 @@ Beispiel:
 
                             <div class="form-text" style="margin-top: 8px; font-size: 12px; color: #6c757d;">
                                 <i class="bi bi-info-circle"></i>
-                                <span class="label-lang"
-                                      data-de="Schreib einfach deine Steps auf - beim Speichern übersetzt KI in alle Sprachen (Deutsch, Englisch, Spanisch, Portugiesisch, Indonesisch, Niederländisch, Schwedisch, Dänisch, Norwegisch, Malaiisch)"
-                                      data-en="Just write your steps - AI will translate to all languages on save (German, English, Spanish, Portuguese, Indonesian, Dutch, Swedish, Danish, Norwegian, Malay)">
-                                    Schreib einfach deine Steps auf - beim Speichern übersetzt KI in alle Sprachen 🤖
+                                <span>
+                                    @SharedLocalizer["CreatePosting.WriteStepsAiTranslates"]
                                 </span>
                             </div>
                         </div>
@@ -489,12 +443,8 @@ Beispiel:
                             <i class="bi bi-hash"></i>
                         </div>
                         <div class="cp-section-info">
-                            <h2 class="cp-section-title label-lang"
-                                data-de="Keywords"
-                                data-en="Keywords">Keywords</h2>
-                            <p class="cp-section-subtitle label-lang"
-                               data-de="Hilft beim Feed & bei Suche"
-                               data-en="Helps feed & search">Hilft beim Feed & bei Suche</p>
+                            <h2 class="cp-section-title">@SharedLocalizer["CreatePosting.Keywords"]</h2>
+                            <p class="cp-section-subtitle">@SharedLocalizer["CreatePosting.KeywordsHelpFeedSearch"]</p>
                         </div>
                         <div class="cp-section-counter">5/5</div>
                     </div>
@@ -526,9 +476,7 @@ Beispiel:
         <div class="cp-publishbar">
             <div class="cp-publishbar-inner">
                 <div class="cp-publishbar-info">
-                    <div class="cp-publishbar-label label-lang"
-                         data-de="Bereit zum Posten?"
-                         data-en="Ready to post?">Bereit zum Posten?</div>
+                    <div class="cp-publishbar-label">@SharedLocalizer["CreatePosting.ReadyToPost"]</div>
                     <div class="cp-publishbar-progress">
                         <div class="cp-publishbar-progress-bar" id="publishProgressBar" style="width:0%;"></div>
                     </div>
@@ -536,12 +484,12 @@ Beispiel:
                 <button type="submit" form="recipeForm" class="cp-publishbar-btn" id="publishBtn" style="opacity:1">
                     @if (isEditMode)
                     {
-                        <span class="label-lang" data-de="Speichern" data-en="Save">Speichern</span>
+                        <span>@SharedLocalizer["CreatePosting.Save"]</span>
                         <i class="bi bi-check-lg"></i>
                     }
                     else
                     {
-                        <span class="label-lang" data-de="Veröffentlichen" data-en="Publish">Veröffentlichen</span>
+                        <span>@SharedLocalizer["CreatePosting.Publish"]</span>
                         <i class="bi bi-send-fill"></i>
                     }
                 </button>
@@ -589,7 +537,7 @@ Beispiel:
             id="btnAddIngredientFromDropdown"
             style="width:100%;background:var(--cp-gradient-coral);color:white;border:none;border-radius:12px;padding:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
         <i class="bi bi-plus-lg"></i>
-        <span class="label-lang" data-de="Hinzufügen" data-en="Add">Hinzufügen</span>
+        <span>@SharedLocalizer["CreatePosting.Add"]</span>
     </button>
 </div>
 

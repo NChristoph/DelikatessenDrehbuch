@@ -1,22 +1,15 @@
 ﻿@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 @model UserProfileViewModel
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 @inject IConfiguration Configuration
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
     ViewData["Title"] = "Mein Profil";
     Layout = "_MiniAppLayout";
 
     bool isAdmin = ViewData["IsWorldMiniAppAdmin"] is bool adminFlag && adminFlag;
     bool isOrb = Model.User.IsVerified == "orb" || isAdmin;
-
-    var language = (Context.Request.Cookies["deli-lang"] ?? "de").ToLowerInvariant();
-    string T(string de, string en, string es, string pt) => language switch
-    {
-        "en" => en,
-        "es" => es,
-        "pt" => pt,
-        _ => de
-    };
 
     string ShortHash(string h)
     {
@@ -42,9 +35,9 @@
 
     string DeleteConfirmText(string title)
     {
-        var text = T($"MÃ¶chtest du den Plan \"{title}\" wirklich lÃ¶schen?",
+        var text = T($"Möchtest du den Plan \"{title}\" wirklich löschen?",
                      $"Do you really want to delete the plan \"{title}\"?",
-                     "Â¿Quieres eliminar el plan?",
+                     "¿Quieres eliminar el plan?",
                      "Quer mesmo apagar o plano?");
         return text.Replace("'", "\\'");
     }
@@ -587,12 +580,9 @@
         <a class="topbar-pill"
            href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
             <i class="bi bi-arrow-left"></i>
-            @Html.Raw(T("Zur&uuml;ck zum Feed", "Back to feed", "Volver al feed", "Voltar ao feed"))
+            @SharedLocalizer["MyProfile.BackToFeed"]
         </a>
-        <button type="button" class="topbar-pill topbar-lang" id="profileLanguageProxy">
-            @language.ToUpperInvariant()
-            <i class="bi bi-chevron-down"></i>
-        </button>
+        @* Alter Sprach-Button entfernt - Cookie-basierter Switcher wird verwendet *@
     </div>
 
     <div class="profile-card">
@@ -619,17 +609,17 @@
                 <div class="stats-container">
                     <div class="stat-item">
                         <span class="stat-val counter" data-target="@Model.Following.Count">0</span>
-                        <span class="stat-lbl">@T("Abos", "Following", "Siguiendo", "Seguindo")</span>
+                        <span class="stat-lbl">@SharedLocalizer["MyProfile.Following"]</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-val counter" data-target="@Model.LikedRecipes.Count">0</span>
-                        <span class="stat-lbl">@T("Likes", "Likes", "Me gusta", "Curtidas")</span>
+                        <span class="stat-lbl">@SharedLocalizer["MyProfile.Likes"]</span>
                     </div>
                     @if (isOrb)
                     {
                         <div class="stat-item">
                             <span class="stat-val counter" data-target="@Model.FollowerCount">0</span>
-                            <span class="stat-lbl">@T("Follower", "Followers", "Seguidores", "Seguidores")</span>
+                            <span class="stat-lbl">@SharedLocalizer["MyProfile.Followers"]</span>
                         </div>
                     }
                 </div>
@@ -637,7 +627,7 @@
         </div>
 
         <button class="btn-action mt-3" data-bs-toggle="collapse" data-bs-target="#settingsCollapse">
-            <i class="bi bi-gear-fill me-2"></i> @T("Einstellungen", "Settings", "Ajustes", "Ajustes")
+            <i class="bi bi-gear-fill me-2"></i> @SharedLocalizer["MyProfile.Settings"]
         </button>
 
         <div class="collapse mt-2" id="settingsCollapse">
@@ -646,32 +636,35 @@
                     @Html.AntiForgeryToken()
                     <input type="hidden" name="userHash" value="@Model.User.UserHash" />
 
-                    <label class="form-label small fw-bold">@T("Anzeigename", "Display Name", "Nombre", "Nome")</label>
+                    <label class="form-label small fw-bold">@SharedLocalizer["MyProfile.DisplayName"]</label>
                     <div class="input-group">
                         <input class="form-control rounded-3" name="userName" maxlength="80" value="@Model.User.UserName" />
-                        <button class="btn btn-dark" type="submit">@T("Speichern", "Save", "Guardar", "Salvar")</button>
+                        <button class="btn btn-dark" type="submit">@SharedLocalizer["MyProfile.Save"]</button>
                     </div>
                 </form>
             </div>
         </div>
 
         <div class="quick-links">
+            <a class="quick-link" href="@Url.Action("FeedLight", "Shared", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
+                <i class="bi bi-send-check"></i> Geteilte Inhalte
+            </a>
             <a class="quick-link" href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
-                <i class="bi bi-shop"></i> @T("Marktplatz", "Marketplace", "Mercado", "Mercado")
+                <i class="bi bi-shop"></i> @SharedLocalizer["MyProfile.Marketplace"]
             </a>
             <a class="quick-link" href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
-                <i class="bi bi-bag-check"></i> @T("Meine Angebote", "My listings", "Mis ofertas", "Minhas ofertas")
+                <i class="bi bi-bag-check"></i> @SharedLocalizer["MyProfile.MyListings"]
             </a>
             @if (isAdmin)
             {
                 <a class="quick-link" href="@Url.Action("CommentModeration", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
-                    <i class="bi bi-flag-fill"></i> @T("Kommentar-Moderation", "Comment moderation", "Moderacion", "Moderacao")
+                    <i class="bi bi-flag-fill"></i> @SharedLocalizer["MyProfile.CommentModeration"]
                 </a>
                 <a class="quick-link" href="@Url.Action("ReportedContent", "Admin", new { area = "WorldMiniApp" })">
-                    <i class="bi bi-shield-exclamation"></i> @T("Gemeldete Inhalte", "Reported Content", "Contenido Reportado", "Conteúdo Denunciado")
+                    <i class="bi bi-shield-exclamation"></i> @SharedLocalizer["MyProfile.ReportedContent"]
                 </a>
                 <a class="quick-link" href="@Url.Action("CreatorManager", "Admin", new { area = "WorldMiniApp" })">
-                    <i class="bi bi-people-fill"></i> @T("Creator Manager", "Creator Manager", "Gestor de Creadores", "Gerenciador de Criadores")
+                    <i class="bi bi-people-fill"></i> @SharedLocalizer["MyProfile.CreatorManager"]
                 </a>
             }
             else
@@ -701,7 +694,7 @@
             <div class="dashboard-embed-shell">
                 <div class="dashboard-embed-header">
                     <div class="dashboard-eyebrow">Premium Creator Area</div>
-                    <h2 class="dashboard-title">@T("Creator Dashboard", "Creator dashboard", "Panel creator", "Painel creator")</h2>
+                    <h2 class="dashboard-title">@SharedLocalizer["MyProfile.CreatorDashboard"]</h2>
                     <div class="dashboard-hash">@Model.User.UserHash</div>
                 </div>
                 <iframe class="dashboard-embed-frame"
@@ -733,6 +726,9 @@
                     </div>
                 </div>
             </div>
+
+            @* Agent Payment Test UI - nur im Trading Agent Dashboard *@
+            @Html.Partial("_AgentPaymentTest")
         </div>
     </div>
 
@@ -740,34 +736,34 @@
     <ul class="nav nav-custom" role="tablist">
         <li class="nav-item">
             <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-likes">
-                <i class="bi bi-heart-fill fs-5"></i><span>@T("LIKES", "LIKES", "ME GUSTA", "CURTIDAS")</span>
+                <i class="bi bi-heart-fill fs-5"></i><span>@SharedLocalizer["MyProfile.TabLikes"]</span>
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-ai">
-                <i class="bi bi-stars fs-5"></i><span>@T("AI", "AI", "AI", "AI")</span>
+                <i class="bi bi-stars fs-5"></i><span>@SharedLocalizer["MyProfile.TabAI"]</span>
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-abos">
-                <i class="bi bi-people-fill fs-5"></i><span>@T("ABOS", "CREATORS", "SIGUIENDO", "SEGUINDO")</span>
+                <i class="bi bi-people-fill fs-5"></i><span>@SharedLocalizer["MyProfile.TabCreators"]</span>
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-plans">
-                <i class="bi bi-calendar2-week-fill fs-5"></i><span>@T("ERSTELLT", "CREATED", "CREADOS", "CRIADOS")</span>
+                <i class="bi bi-calendar2-week-fill fs-5"></i><span>@SharedLocalizer["MyProfile.TabCreated"]</span>
             </button>
         </li>
         <li class="nav-item">
             <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-purchases">
-                <i class="bi bi-bag-check-fill fs-5"></i><span>@T("GEKAUFT", "BOUGHT", "COMPRADOS", "COMPRADOS")</span>
+                <i class="bi bi-bag-check-fill fs-5"></i><span>@SharedLocalizer["MyProfile.TabBought"]</span>
             </button>
         </li>
         @if (isOrb)
         {
             <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-videos">
-                    <i class="bi bi-play-circle-fill fs-5"></i><span>@T("VIDEOS", "VIDEOS", "VIDEOS", "VÃDEOS")</span>
+                    <i class="bi bi-play-circle-fill fs-5"></i><span>@SharedLocalizer["MyProfile.TabVideos"]</span>
                 </button>
             </li>
         }
@@ -781,7 +777,7 @@
                 {
                     <div class="empty-grid-state">
                         <i class="bi bi-heart fs-1"></i>
-                        <p class="mt-3 mb-0 fw-bold">@T("Noch keine Likes", "No likes yet", "AÃºn no hay likes", "Ainda sem curtidas")</p>
+                        <p class="mt-3 mb-0 fw-bold">@SharedLocalizer["MyProfile.NoLikesYet"]</p>
                     </div>
                 }
                 else
@@ -818,7 +814,7 @@
             {
                 <div class="empty-grid-state">
                     <i class="bi bi-stars fs-1"></i>
-                    <p class="mt-3 fw-bold">@T("Noch keine AI-Varianten", "No AI variants yet", "AÃºn no hay variantes AI", "Ainda nÃ£o hÃ¡ variantes AI")</p>
+                    <p class="mt-3 fw-bold">@SharedLocalizer["MyProfile.NoAIVariantsYet"]</p>
                 </div>
             }
             else
@@ -867,7 +863,7 @@
             {
                 <div class="text-center py-5 opacity-50">
                     <i class="bi bi-calendar2-x fs-1"></i>
-                    <p class="mt-3 fw-bold">@T("Noch keine erstellten Pläne", "No created plans yet", "Än no hay planes creados", "Ainda nÃ£o hÃ¡ planos criados")</p>
+                    <p class="mt-3 fw-bold">@SharedLocalizer["MyProfile.NoCreatedPlansYet"]</p>
                 </div>
             }
             else
@@ -880,17 +876,17 @@
                             <div class="small opacity-50">@plan.CreationTime.ToShortDateString()</div>
                         </div>
                         <div class="d-flex gap-2">
-                            <a href="@Url.Action("ViewPlan", "Home", new { area = "WorldMiniApp", id = plan.Id })"
+                            <a href="@Url.Action("ViewPlanAsync", "MealPlan", new { area = "WorldMiniApp", id = plan.Id })"
                                class="open-pill">OPEN</a>
 
                             <form method="post"
-                                  action="@Url.Action("DeletePlan", "Home", new { area = "WorldMiniApp" })"
+                                  action="@Url.Action("DeletePlan", "MealPlan", new { area = "WorldMiniApp" })"
                                   onsubmit="return confirm('@DeleteConfirmText(plan.Title)');">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="id" value="@plan.Id" />
                                 <input type="hidden" name="userHash" value="@Model.User.UserHash" />
                                 <button type="submit" class="trash-pill"
-                                        title="@T("LÃ¶schen", "Delete", "Eliminar", "Apagar")">
+                                        title="@SharedLocalizer["MyProfile.Delete"]">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>
@@ -905,10 +901,10 @@
             {
                 <div class="empty-grid-state">
                     <i class="bi bi-bag-x fs-1"></i>
-                    <p class="mt-3 mb-0 fw-bold">@T("Noch keine gekauften Pläne", "No purchased plans yet", "AÃºn no hay planes comprados", "Ainda nÃ£o hÃ¡ planos comprados")</p>
+                    <p class="mt-3 mb-0 fw-bold">@SharedLocalizer["MyProfile.NoPurchasedPlansYet"]</p>
                     <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })"
                        class="btn btn-dark rounded-pill px-4 mt-3">
-                        @T("Zum Marktplatz", "Go to Marketplace", "Ir al mercado", "Ir ao mercado")
+                        @SharedLocalizer["MyProfile.GoToMarketplace"]
                     </a>
                 </div>
             }
@@ -938,8 +934,8 @@
                                 <div class="cs-creator-row">
                                     <div class="cs-creator-avatar">@listing.SellerName.Substring(0, Math.Min(2, listing.SellerName.Length)).ToUpper()</div>
                                     <span class="cs-creator-name">@listing.SellerName</span>
-                                    <span class="cs-creator-sep">·</span>
-                                    <span class="cs-creator-duration">@listing.DayCount @T("Tage", "days", "días", "dias")</span>
+                                    <span class="cs-creator-sep">•</span>
+                                    <span class="cs-creator-duration">@listing.DayCount @SharedLocalizer["MyProfile.DaysLowercase"]</span>
                                 </div>
                             </div>
                         </div>
@@ -948,17 +944,17 @@
                         <div class="cs-stats-strip">
                             <div class="cs-stat-cell">
                                 <div class="cs-stat-value">@listing.DayCount</div>
-                                <div class="cs-stat-label">@T("Tage", "Days", "Días", "Dias")</div>
+                                <div class="cs-stat-label">@SharedLocalizer["MyProfile.DaysLowercase"]</div>
                             </div>
                             <div class="cs-stat-cell">
                                 <div class="cs-stat-value">@listing.RecipeCount</div>
-                                <div class="cs-stat-label">@T("Rezepte", "Recipes", "Recetas", "Receitas")</div>
+                                <div class="cs-stat-label">@SharedLocalizer["MyProfile.Recipes"]</div>
                             </div>
                             <div class="cs-stat-cell">
                                 <div class="cs-stat-value">
                                     <i class="bi bi-check-circle-fill text-success" style="font-size: 18px;"></i>
                                 </div>
-                                <div class="cs-stat-label">@T("Gekauft", "Purchased", "Comprado", "Comprado")</div>
+                                <div class="cs-stat-label">@SharedLocalizer["MyProfile.Purchased"]</div>
                             </div>
                         </div>
 
@@ -966,16 +962,16 @@
                         <div class="cs-card-footer">
                             <div style="flex: 1;">
                                 <div style="font-size: 10px; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.04em;">
-                                    @T("Gekauft am", "Purchased on", "Comprado", "Comprado em")
+                                    @SharedLocalizer["MyProfile.PurchasedOn"]
                                 </div>
                                 <div style="font-size: 12px; color: var(--ink-deep); font-weight: 600; margin-top: 2px;">
                                     @purchase.PurchasedAt.ToString("dd.MM.yyyy HH:mm")
                                 </div>
                             </div>
                             <div class="cs-footer-actions">
-                                <a href="@Url.Action("ViewPlanAsync", "Home", new { area = "WorldMiniApp", id = purchase.CreatedMealPlanId })"
+                                <a href="@Url.Action("ViewPlanAsync", "MealPlan", new { area = "WorldMiniApp", id = purchase.CreatedMealPlanId })"
                                    class="cs-btn-preview" style="background: linear-gradient(135deg, var(--ink-deep), var(--ink-deep-2)); color: white; border: none;">
-                                    <i class="bi bi-calendar2-week me-1"></i>@T("Öffnen", "Open", "Abrir", "Abrir")
+                                    <i class="bi bi-calendar2-week me-1"></i>@SharedLocalizer["MyProfile.Open"]
                                 </a>
                             </div>
                         </div>
@@ -994,18 +990,18 @@
                             <div class="grid-action-bar" onclick="event.stopPropagation();">
                                 <a class="grid-action-btn edit"
                                    href="@Url.Action("EditRecipe", "Home", new { area = "WorldMiniApp", postingId = posting.Id })"
-                                   title="@T("Bearbeiten", "Edit", "Editar", "Editar")">
+                                   title="@SharedLocalizer["MyProfile.Edit"]">
                                     <i class="bi bi-pencil-fill"></i>
                                 </a>
                                 @if (!posting.IsOffline)
                                 {
                                     <form method="post" action="@Url.Action("SetPostingOffline", "Feed", new { area = "WorldMiniApp" })"
-                                          onsubmit="return confirm('@T("Posting offline nehmen?", "Take posting offline?", "Â¿Desconectar publicaciÃ³n?", "Colocar publicaÃ§Ã£o offline?").Replace("'", "\\'")') ;">
+                                          onsubmit="return confirm('@SharedLocalizer["MyProfile.TakePostingOfflineConfirm"].Value.Replace("'", "\\'")') ;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="postingId" value="@posting.Id" />
                                         <input type="hidden" name="userHash" value="@Model.User.UserHash" />
                                         <button type="submit" class="grid-action-btn offline"
-                                                title="@T("Offline nehmen", "Take offline", "Desconectar", "Colocar offline")">
+                                                title="@SharedLocalizer["MyProfile.TakeOffline"]">
                                             <i class="bi bi-eye-slash-fill"></i>
                                         </button>
                                     </form>
@@ -1013,12 +1009,12 @@
                                 else
                                 {
                                     <form method="post" action="@Url.Action("SetPostingOnline", "Feed", new { area = "WorldMiniApp" })"
-                                          onsubmit="return confirm('@T("Posting wieder online nehmen?", "Put posting back online?", "Â¿Poner publicaciÃ³n en lÃ­nea?", "Colocar publicaÃ§Ã£o online?").Replace("'", "\\'")') ;">
+                                          onsubmit="return confirm('@SharedLocalizer["MyProfile.PutPostingOnlineConfirm"].Value.Replace("'", "\\'")') ;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="postingId" value="@posting.Id" />
                                         <input type="hidden" name="userHash" value="@Model.User.UserHash" />
                                         <button type="submit" class="grid-action-btn online"
-                                                title="@T("Online nehmen", "Put online", "Poner en lÃ­nea", "Colocar online")">
+                                                title="@SharedLocalizer["MyProfile.PutOnline"]">
                                             <i class="bi bi-eye-fill"></i>
                                         </button>
                                     </form>
@@ -1026,12 +1022,12 @@
                                 @if (isAdmin)
                                 {
                                     <form method="post" action="@Url.Action("DeletePosting", "Home", new { area = "WorldMiniApp" })"
-                                          onsubmit="return confirm('@T("Posting ENDGÃœLTIG lÃ¶schen? Alle Daten werden entfernt!", "Permanently DELETE this posting? All data will be removed!", "Â¿Eliminar publicaciÃ³n PERMANENTEMENTE?", "Apagar publicaÃ§Ã£o PERMANENTEMENTE?").Replace("'", "\\'")') ;">
+                                          onsubmit="return confirm('@SharedLocalizer["MyProfile.DeletePostingPermanentlyConfirm"]') ;">
                                         @Html.AntiForgeryToken()
                                         <input type="hidden" name="postingId" value="@posting.Id" />
                                         <input type="hidden" name="userHash" value="@Model.User.UserHash" />
                                         <button type="submit" class="grid-action-btn delete"
-                                                title="@T("EndgÃ¼ltig lÃ¶schen", "Delete permanently", "Eliminar", "Apagar")">
+                                                title="@SharedLocalizer["MyProfile.DeletePermanently"]">
                                             <i class="bi bi-trash-fill"></i>
                                         </button>
                                     </form>
@@ -1137,15 +1133,7 @@
             initLikesSwitcher();
             initGridVideoFallback();
 
-            const languageProxy = document.getElementById('profileLanguageProxy');
-            if (languageProxy) {
-                languageProxy.addEventListener('click', () => {
-                    const layoutLangTrigger = document.querySelector('.dropdown .dropdown-toggle');
-                    if (layoutLangTrigger) {
-                        layoutLangTrigger.click();
-                    }
-                });
-            }
+            // Alter profileLanguageProxy Code entfernt - Button existiert nicht mehr
 
             const dashboardToggleBtn = document.getElementById('dashboardToggleBtn');
             const dashboardCaret = document.getElementById('dashboardToggleCaret');
@@ -1244,18 +1232,18 @@
         function renderCreateAgentForm(container) {
             container.innerHTML = `
                 <div style="max-width: 500px; margin: 0 auto; text-align: center;">
-                    <div style="font-size: 60px; margin-bottom: 20px;">🤖</div>
+                    <div style="font-size: 60px; margin-bottom: 20px;">📊</div>
                     <h3 style="margin-bottom: 16px;">Trading Agent erstellen</h3>
                     <p style="color: var(--ink-mute); margin-bottom: 20px;">
                         Erstelle einen autonomen Trading Agent mit eigenem Wallet.<br>
                         Der Agent handelt automatisch mit deinem Funding (30 WLD empfohlen).
                     </p>
                     <div style="background: var(--surface-2); padding: 16px; border-radius: 12px; margin-bottom: 30px; text-align: left; font-size: 14px;">
-                        <div style="font-weight: 600; margin-bottom: 8px;"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>Auto-Swap Feature:</div>
+                        <div style="font-weight: 600; margin-bottom: 8px;"><i class="bi bi-lightning-charge-fill text-warning me-1"></i>AgentKit / World Flow:</div>
                         <ul style="margin: 0; padding-left: 20px; color: var(--ink-mute);">
-                            <li>Beim Funding wird automatisch 1 WLD → ETH für Gas (~$0.02)</li>
-                            <li>Bei niedrigem ETH swapped Agent automatisch nach</li>
-                            <li>Keine manuellen Gas-Überweisungen nötig! 🎉</li>
+                            <li>Trades laufen primär über AgentKit statt über einen separaten ETH-Gas-Puffer</li>
+                            <li>Dein World-Hash wird an den AgentKit-Init weitergereicht</li>
+                            <li>Kein initialer Auto-Swap von WLD zu ETH mehr beim Funding</li>
                         </ul>
                     </div>
                     <form id="createAgentForm" onsubmit="handleCreateAgent(event)">
@@ -1335,9 +1323,9 @@
                         <div class="col-6 col-md-3">
                             <div class="card" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
                                 <div class="card-body text-center">
-                                    <div style="font-size: 12px; color: var(--ink-mute); margin-bottom: 4px;">ETH Balance</div>
-                                    <div style="font-size: 20px; font-weight: 700; color: ${agent.currentBalanceETH < agent.autoSwapThreshold ? 'var(--bs-warning)' : 'var(--bs-success)'};">${agent.currentBalanceETH.toFixed(6)}</div>
-                                    <div style="font-size: 11px; color: var(--ink-mute);">Gas Fees ${agent.currentBalanceETH < agent.autoSwapThreshold ? '⚠️' : '✓'}</div>
+                                    <div style="font-size: 12px; color: var(--ink-mute); margin-bottom: 4px;">ETH / WETH Reserve</div>
+                                    <div style="font-size: 20px; font-weight: 700; color: ${agent.currentBalanceETH > 0 ? 'var(--bs-success)' : 'var(--ink-mute)'};">${agent.currentBalanceETH.toFixed(6)}</div>
+                                    <div style="font-size: 11px; color: var(--ink-mute);">Optionaler Direkt-Swap-Puffer</div>
                                 </div>
                             </div>
                         </div>
@@ -1360,6 +1348,69 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Live Activity -->
+                    ${agent.lastSignalAction ? `
+                        <div class="card mb-4" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08); background: linear-gradient(135deg, var(--surface-2) 0%, var(--surface-1) 100%);">
+                            <div class="card-body">
+                                <h5 class="mb-3">
+                                    <i class="bi bi-activity me-2"></i>Live Aktivität
+                                    <span class="badge bg-success ms-2" style="font-size: 11px;">LIVE</span>
+                                </h5>
+                                <div class="row g-3">
+                                    <div class="col-12 col-md-6">
+                                        <div style="background: var(--surface-1); padding: 16px; border-radius: 12px;">
+                                            <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                                                <div style="font-size: 32px;">
+                                                    ${agent.lastSignalAction === 'BUY' ? '📈' : agent.lastSignalAction === 'SELL' ? '📉' : '➡️'}
+                                                </div>
+                                                <div>
+                                                    <div style="font-size: 12px; color: var(--ink-mute);">Letztes Signal</div>
+                                                    <div style="font-size: 24px; font-weight: 700; color: ${agent.lastSignalAction === 'BUY' ? 'var(--bs-success)' : agent.lastSignalAction === 'SELL' ? 'var(--bs-danger)' : 'var(--bs-warning)'};">
+                                                        ${agent.lastSignalAction}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <div>
+                                                    <div style="font-size: 11px; color: var(--ink-mute);">Konfidenz</div>
+                                                    <div style="font-weight: 600;">${agent.lastSignalConfidence}%</div>
+                                                </div>
+                                                <div>
+                                                    <div style="font-size: 11px; color: var(--ink-mute);">Status</div>
+                                                    <div style="font-weight: 600;">
+                                                        ${agent.lastSignalConfidence >= 60 && agent.lastSignalAction !== 'HOLD'
+                                                            ? '<span style="color: var(--bs-success);">✓ Ausgeführt</span>'
+                                                            : '<span style="color: var(--bs-warning);">⏭️ Übersprungen</span>'}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-12 col-md-6">
+                                        <div style="background: var(--surface-1); padding: 16px; border-radius: 12px; height: 100%;">
+                                            <div style="font-size: 12px; color: var(--ink-mute); margin-bottom: 8px;">
+                                                <i class="bi bi-clock me-1"></i>Letzte Analyse
+                                            </div>
+                                            <div style="font-weight: 600; margin-bottom: 12px;">
+                                                ${new Date(agent.lastSignalAt).toLocaleString('de-DE')}
+                                            </div>
+                                            ${agent.lastSignalReason ? `
+                                                <div style="font-size: 12px; color: var(--ink-mute); margin-bottom: 4px;">Grund:</div>
+                                                <div style="font-size: 13px; line-height: 1.4;">${agent.lastSignalReason}</div>
+                                            ` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                ${agent.lastSignalConfidence < 60 || agent.lastSignalAction === 'HOLD' ? `
+                                    <div class="mt-3" style="font-size: 12px; color: var(--ink-mute); background: var(--surface-1); padding: 12px; border-radius: 8px;">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        <strong>Hinweis:</strong> Der Agent führt nur Trades mit ≥60% Konfidenz aus. HOLD-Signale bedeuten, dass aktuell keine gute Trading-Gelegenheit erkannt wurde.
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    ` : ''}
 
                     <!-- Controls -->
                     <div class="card mb-4" style="border-radius: 16px; border: none; box-shadow: 0 2px 8px rgba(0,0,0,0.08);">
@@ -1386,18 +1437,43 @@
                                 <button class="btn btn-primary ms-auto"
                                         onclick="window.showFundingModal(${agent.id}, '${agent.walletAddress}')"
                                         title="Agent mit WLD finanzieren">
-                                    <i class="bi bi-coin me-1"></i>Funding hinzufügen
+                                    <i class="bi bi-coin me-1"></i>WLD Funding
+                                </button>
+                                <button class="btn btn-outline-info"
+                                        onclick="window.showWETHInstructions('${agent.walletAddress}')"
+                                        title="WETH manuell senden - Adresse kopieren">
+                                    <i class="bi bi-lightning-charge me-1"></i>WETH senden (Anleitung)
+                                </button>
+                                <button class="btn btn-outline-warning btn-sm"
+                                        onclick="window.testWETHPayment(${agent.id}, '${agent.walletAddress}')"
+                                        title="DEBUG: Test WETH Payment mit MiniKit">
+                                    ?? DEBUG: WETH Payment Test
                                 </button>
                                 <button class="btn btn-outline-success"
                                         onclick="window.showWithdrawModal(${agent.id}, ${agent.currentBalance})"
                                         ${agent.currentBalance < 0.1 ? 'disabled title="Kein Guthaben zum Abheben"' : ''}>
                                     <i class="bi bi-cash-coin me-1"></i>Guthaben abheben
                                 </button>
+                                <button class="btn btn-outline-secondary"
+                                        onclick="window.handleWithdrawEthReserve(${agent.id}, ${agent.currentBalanceETH.toFixed(6)})"
+                                        ${agent.currentBalanceETH <= 0 ? 'disabled title="Keine ETH/WETH-Reserve vorhanden"' : ''}>
+                                    <i class="bi bi-lightning-charge me-1"></i>ETH/WETH abheben
+                                </button>
+                                <button class="btn btn-outline-primary"
+                                        onclick="window.handleRefreshBalances(${agent.id})"
+                                        title="Echte Balances von der Blockchain abrufen">
+                                    <i class="bi bi-arrow-clockwise me-1"></i>Balance aktualisieren
+                                </button>
+                                <button class="btn btn-outline-warning"
+                                        onclick="window.handleManualSwapGas(${agent.id})"
+                                        title="1 WLD zu ETH für Gas-Gebühren tauschen">
+                                    <i class="bi bi-fuel-pump me-1"></i>Gas auftanken (1 WLD → ETH)
+                                </button>
                             </div>
                             <div class="mt-3" style="font-size: 12px; color: var(--ink-mute); background: var(--surface-2); padding: 12px; border-radius: 8px;">
                                 <i class="bi bi-info-circle me-1"></i>
-                                <strong>Auto-Swap:</strong> Beim Funding wird automatisch 1 WLD zu ETH für Gas konvertiert (~$0.02 Kosten).
-                                Bei ETH < ${agent.autoSwapThreshold.toFixed(6)} wird automatisch ${agent.autoSwapAmount.toFixed(2)} WLD nachgeswapped.
+                                <strong>AgentKit-Flow:</strong> Der Haupt-Trade-Pfad nutzt AgentKit.
+                                Die ETH/WETH-Reserve ist nur fuer direkte On-Chain-Swaps oder manuelle Transfers relevant.
                             </div>
                         </div>
                     </div>
@@ -1461,13 +1537,17 @@
                                                 const tradeProfitColor = trade.profitLoss >= 0 ? 'success' : 'danger';
                                                 const tradeProfitSign = trade.profitLoss >= 0 ? '+' : '';
                                                 const tradeDate = new Date(trade.executedAt);
+                                                const statusBadgeColor = trade.status === 'Success' ? 'success' : trade.status === 'Pending' ? 'warning' : 'danger';
                                                 return `
                                                     <tr>
                                                         <td style="font-size: 11px;">${tradeDate.toLocaleDateString()} ${tradeDate.toLocaleTimeString()}</td>
                                                         <td><span class="badge bg-secondary">${trade.type}</span></td>
                                                         <td style="font-size: 11px;">${trade.fromAmount.toFixed(4)} → ${trade.toAmount.toFixed(4)}</td>
                                                         <td class="text-end" style="color: var(--bs-${tradeProfitColor}); font-weight: 600;">${tradeProfitSign}${trade.profitLoss.toFixed(2)}</td>
-                                                        <td><span class="badge bg-${trade.status === 'Success' ? 'success' : trade.status === 'Pending' ? 'warning' : 'danger'}">${trade.status}</span></td>
+                                                        <td>
+                                                            <span class="badge bg-${statusBadgeColor}">${trade.status}</span>
+                                                            ${trade.status === 'Failed' && trade.errorMessage ? `<div style="font-size: 10px; color: var(--bs-danger); margin-top: 4px; max-width: 300px;">? ${trade.errorMessage}</div>` : ''}
+                                                        </td>
                                                     </tr>
                                                 `;
                                             }).join('')}
@@ -1583,16 +1663,184 @@
             modal.show();
         }
 
+        function showWETHInstructions(walletAddress) {
+            // Kopiere Adresse in Zwischenablage
+            if (navigator.clipboard) {
+                navigator.clipboard.writeText(walletAddress).then(() => {
+                    console.log('Wallet address copied!');
+                }).catch(err => {
+                    console.error('Copy failed:', err);
+                });
+            }
+
+            // Zeige Anleitung
+            alert(`⚠️ WETH für Gas-Gebühren senden
+
+💡 Agent-Wallet-Adresse (KOPIERT!):
+${walletAddress}
+
+💡 So geht's:
+
+1▶️ Öffne die World App
+2▶️ Gehe zu Wallet → WETH
+3▶️ Klicke "Senden"
+4▶️ Füge die Adresse ein (schon kopiert!)
+5▶️ Betrag: 0.001 WETH
+   (≈ $3, reicht für 50-100 Transaktionen!)
+6▶️ Bestätige die Transaktion
+
+▶️ Danach hier in der App:
+   ▶️ "Balance aktualisieren" klicken!
+
+💡 Tipp: 0.001 WETH reichen völlig aus!`);
+        }
+
+        function testWETHPayment(agentId, walletAddress) {
+            const amount = prompt('💡 DEBUG TEST: WETH Payment\n\nWie viel WETH? (Test-Betrag)', '0.001');
+
+            if (!amount || parseFloat(amount) <= 0) {
+                alert('⚠️ Abgebrochen oder ungültiger Betrag');
+                return;
+            }
+
+            alert('💡 Starte DEBUG Test mit:\n\nAgent: ' + agentId + '\nWallet: ' + walletAddress + '\nBetrag: ' + amount + ' WETH\n\nAlle Debug-Alerts werden angezeigt!');
+
+            // Rufe die Debug-Version auf
+            handleWETHFunding(agentId, walletAddress, parseFloat(amount));
+        }
+
+        async function handleWETHFunding(agentId, walletAddress, amount) {
+            alert('?? DEBUG #1: handleWETHFunding GESTARTET\n\nAgent ID: ' + agentId + '\nWallet: ' + walletAddress + '\nBetrag: ' + amount + ' WETH');
+            console.log('=== WETH Funding Debug Start ===');
+            console.log('AgentId:', agentId);
+            console.log('WalletAddress:', walletAddress);
+            console.log('Amount:', amount);
+
+            try {
+                // Wait for MiniKit
+                alert('?? DEBUG #2: Warte auf MiniKit...');
+                let attempts = 0;
+                while (!window.startMiniKitPayment && attempts < 30) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                    attempts++;
+                }
+
+                if (!window.startMiniKitPayment) {
+                    alert('? DEBUG #3: MiniKit NICHT gefunden!\n\nstartMiniKitPayment ist undefined.');
+                    console.error('MiniKit not found!');
+                    return;
+                }
+
+                alert('? DEBUG #4: MiniKit gefunden!\n\nVersuche jetzt Payment mit WETH...');
+                console.log('MiniKit found, attempting payment...');
+
+                // Use MiniKit Payment for WETH
+                // Versuche verschiedene Token-Namen
+                let payResult;
+                let usedToken = '';
+
+                try {
+                    // Versuch 1: WETH
+                    alert('?? DEBUG #5: Versuch 1 - Token: WETH\n\nStarte Payment...');
+                    console.log('Attempting WETH payment...');
+
+                    payResult = await window.startMiniKitPayment({
+                        to: walletAddress,
+                        tokenSymbol: 'WETH',
+                        amount: amount.toString(),
+                        reference: `agent-weth-funding-${agentId}-${Date.now()}`,
+                        description: `WETH Funding für Trading Agent #${agentId}: ${amount} WETH`
+                    });
+
+                    usedToken = 'WETH';
+                    alert('? DEBUG #6: WETH Payment erfolgreich!\n\nResult: ' + JSON.stringify(payResult, null, 2));
+                    console.log('WETH payment success:', payResult);
+
+                } catch (e1) {
+                    alert('? DEBUG #7: WETH fehlgeschlagen!\n\nFehler: ' + e1.message + '\n\nVersuche jetzt ETH...');
+                    console.error('WETH payment failed:', e1);
+
+                    try {
+                        // Versuch 2: ETH
+                        alert('?? DEBUG #8: Versuch 2 - Token: ETH\n\nStarte Payment...');
+                        console.log('Attempting ETH payment...');
+
+                        payResult = await window.startMiniKitPayment({
+                            to: walletAddress,
+                            tokenSymbol: 'ETH',
+                            amount: amount.toString(),
+                            reference: `agent-eth-funding-${agentId}-${Date.now()}`,
+                            description: `ETH Funding für Trading Agent #${agentId}: ${amount} ETH`
+                        });
+
+                        usedToken = 'ETH';
+                        alert('? DEBUG #9: ETH Payment erfolgreich!\n\nResult: ' + JSON.stringify(payResult, null, 2));
+                        console.log('ETH payment success:', payResult);
+
+                    } catch (e2) {
+                        alert('⚠️ DEBUG #10: BEIDE FEHLGESCHLAGEN!\n\nWETH Error: ' + e1.message + '\n\nETH Error: ' + e2.message + '\n\nGrund: MiniKit unterstützt vermutlich nur WLD!');
+                        console.error('Both WETH and ETH failed:', { wethError: e1, ethError: e2 });
+
+                        alert('💡 Verwende stattdessen "WETH senden (Anleitung)" Button für manuelles Senden!');
+                        return;
+                    }
+                }
+
+                alert('?? DEBUG #11: Payment abgeschlossen mit ' + usedToken + '\n\nPayload:\n' + JSON.stringify(payResult, null, 2));
+                console.log('Final payment result:', payResult);
+
+                const txHash = payResult?.transaction_id || payResult?.txHash || payResult?.reference || '';
+                alert('?? DEBUG #12: Transaction Hash extrahiert:\n' + txHash);
+
+                if (payResult?.status === 'success' || payResult?.transaction_id || payResult?.txHash) {
+                    alert('⚠️ DEBUG #13: Payment Status OK!\n\nBestätige jetzt im Backend...');
+
+                    // Bestätige WETH Funding im Backend
+                    const formData = new FormData();
+                    const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+                    if (tokenInput) {
+                        formData.append('__RequestVerificationToken', tokenInput.value);
+                    }
+                    formData.append('agentId', agentId);
+                    formData.append('amount', amount.toString());
+                    formData.append('txHash', txHash);
+
+                    const response = await fetch('@Url.Action("ConfirmWETHFunding", "TradingAgent", new { area = "WorldMiniApp" })', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await response.json();
+
+                    alert('?? DEBUG #14: Backend Response:\n' + JSON.stringify(data, null, 2));
+
+                    if (data.success) {
+                        agentLoaded = false;
+                        await loadAgentStatus();
+                        alert(`⚠️ WETH Funding erfolgreich!\n\n${amount} WETH wurden übertragen.\n\nNeuer ETH Balance: ${data.newBalance.toFixed(6)} ETH`);
+                    } else {
+                        alert('? DEBUG #15: Backend-Fehler:\n\n' + (data.error || 'Unbekannter Fehler'));
+                    }
+                } else {
+                    alert('⚠️ DEBUG #16: Payment Status ungültig!\n\nStatus: ' + (payResult?.status || 'undefined') + '\n\nZahlung wurde abgebrochen.');
+                }
+            } catch (error) {
+                alert('? DEBUG #17: FATAL ERROR!\n\nType: ' + error.constructor.name + '\nMessage: ' + error.message + '\n\nStack:\n' + error.stack);
+                console.error('Fatal error in WETH funding:', error);
+            }
+
+            console.log('=== WETH Funding Debug End ===');
+        }
+
         async function confirmFunding() {
             const amount = parseFloat(document.getElementById('fundingAmount').value);
 
             if (!amount || amount <= 0) {
-                alert('❌ Bitte gültigen Betrag eingeben');
+                alert('⚠️ Bitte gültigen Betrag eingeben');
                 return;
             }
 
             if (amount < 1) {
-                alert('❌ Mindestbetrag: 1 WLD');
+                alert('? Mindestbetrag: 1 WLD');
                 return;
             }
 
@@ -1618,16 +1866,16 @@
             const amount = parseFloat(document.getElementById('withdrawAmount').value);
 
             if (!amount || amount <= 0) {
-                alert('❌ Bitte gültigen Betrag eingeben');
+                alert('⚠️ Bitte gültigen Betrag eingeben');
                 return;
             }
 
             if (amount < 0.1) {
-                alert('❌ Mindestbetrag: 0.1 WLD');
+                alert('? Mindestbetrag: 0.1 WLD');
                 return;
             }
 
-            if (!confirm(`${amount.toFixed(2)} WLD vom Agent abheben?\n\nDer Agent wird pausiert und das Guthaben wird an dein Wallet gesendet.`)) {
+            if (!confirm(`${amount.toFixed(2)} WLD vom Agent abheben?\n\nDer Agent bleibt aktiv. Das Guthaben wird zur Auszahlung vorgemerkt.`)) {
                 return;
             }
 
@@ -1648,20 +1896,20 @@
 
                 if (data.success) {
                     bootstrap.Modal.getInstance(document.getElementById('withdrawModal')).hide();
-                    alert(`✅ ${amount.toFixed(2)} WLD erfolgreich abgehoben!\n\nDas Guthaben wurde an dein Wallet gesendet.`);
+                    alert(`? ${amount.toFixed(2)} WLD erfolgreich abgehoben!\n\nDas Guthaben wurde an dein Wallet gesendet.`);
                     agentLoaded = false;
                     await loadAgentStatus();
                 } else {
-                    alert('❌ Fehler:\n\n' + (data.error || 'Unbekannter Fehler'));
+                    alert('? Fehler:\n\n' + (data.error || 'Unbekannter Fehler'));
                 }
             } catch (error) {
                 console.error('Error withdrawing:', error);
-                alert('❌ Fehler beim Abheben:\n\n' + error.message);
+                alert('? Fehler beim Abheben:\n\n' + error.message);
             }
         }
 
         async function handleStartAgent(agentId) {
-            alert('🚀 handleStartAgent AUFGERUFEN! Agent ID: ' + agentId);
+            alert('?? handleStartAgent AUFGERUFEN! Agent ID: ' + agentId);
             console.log('=== handleStartAgent called ===');
             console.log('Agent ID:', agentId);
 
@@ -1692,17 +1940,17 @@
                 console.log('Response data:', data);
 
                 if (data.success) {
-                    alert('✅ Agent gestartet!');
+                    alert('? Agent gestartet!');
                     agentLoaded = false;
                     await loadAgentStatus();
                 } else {
-                    alert('❌ Fehler beim Starten:\n\n' + (data.error || 'Unbekannter Fehler'));
+                    alert('? Fehler beim Starten:\n\n' + (data.error || 'Unbekannter Fehler'));
                 }
             } catch (error) {
                 console.error('=== Error in handleStartAgent ===');
                 console.error('Error:', error);
                 console.error('Stack:', error.stack);
-                alert('❌ Fehler beim Starten:\n\n' + error.message);
+                alert('? Fehler beim Starten:\n\n' + error.message);
             }
         }
 
@@ -1710,7 +1958,7 @@
         window.handleStartAgent = handleStartAgent;
 
         async function handlePauseAgent(agentId) {
-            alert('⏸️ handlePauseAgent AUFGERUFEN! Agent ID: ' + agentId);
+            alert('?? handlePauseAgent AUFGERUFEN! Agent ID: ' + agentId);
             console.log('=== handlePauseAgent called ===', agentId);
             const formData = new FormData();
             const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
@@ -1738,7 +1986,7 @@
         }
 
         async function handleStopAgent(agentId) {
-            alert('🛑 handleStopAgent AUFGERUFEN! Agent ID: ' + agentId);
+            alert('?? handleStopAgent AUFGERUFEN! Agent ID: ' + agentId);
             if (!confirm('Agent wirklich stoppen? Dies kann nicht rückgängig gemacht werden.')) {
                 return;
             }
@@ -1769,7 +2017,7 @@
         }
 
         async function handleFundAgent(agentId, walletAddress, amount) {
-            alert('💰 handleFundAgent AUFGERUFEN! Agent ID: ' + agentId + ', Betrag: ' + amount + ' WLD');
+            alert('?? handleFundAgent AUFGERUFEN! Agent ID: ' + agentId + ', Betrag: ' + amount + ' WLD');
 
             try {
                 // Wait for startMiniKitPayment function to load (max 3 seconds)
@@ -1780,11 +2028,11 @@
                 }
 
                 if (!window.startMiniKitPayment) {
-                    alert('❌ MiniKit nicht verfügbar!\n\nBitte Seite neu laden oder in World App öffnen.');
+                    alert('⚠️ MiniKit nicht verfügbar!\n\nBitte Seite neu laden oder in World App öffnen.');
                     return;
                 }
 
-                alert('✅ MiniKit gefunden! Starte Zahlung für ' + amount + ' WLD...');
+                alert('⚠️ MiniKit gefunden! Starte Zahlung für ' + amount + ' WLD...');
 
                 // Use the global startMiniKitPayment function from minikitt.js
                 const payResult = await window.startMiniKitPayment({
@@ -1796,7 +2044,7 @@
                 });
 
                 console.log('Payment result:', payResult);
-                alert('🔍 Payment Result:\n\n' + JSON.stringify(payResult, null, 2));
+                alert('💡 Payment Result:\n\n' + JSON.stringify(payResult, null, 2));
 
                 // Extract transaction ID from various possible locations
                 const txHash = payResult?.transaction_id ||
@@ -1827,12 +2075,12 @@
                     if (data.success) {
                         agentLoaded = false;
                         await loadAgentStatus();
-                        alert('✅ Funding erfolgreich! ' + amount + ' WLD wurden übertragen.');
+                        alert('⚠️ Funding erfolgreich! ' + amount + ' WLD wurden übertragen.');
                     } else {
-                        alert('❌ ' + (data.error || 'Fehler beim Bestätigen'));
+                        alert('⚠️ ' + (data.error || 'Fehler beim Bestätigen'));
                     }
                 } else {
-                    alert('❌ Zahlung abgebrochen oder fehlgeschlagen');
+                    alert('⚠️ Zahlung abgebrochen oder fehlgeschlagen');
                 }
             } catch (error) {
                 console.error('Error funding agent:', error);
@@ -1845,15 +2093,154 @@
                     full: error.toString()
                 };
 
-                alert('❌ ERROR DETAILS:\n\n' +
+                alert('? ERROR DETAILS:\n\n' +
                       'Message: ' + error.message + '\n\n' +
                       'Type: ' + error.constructor.name + '\n\n' +
                       'Full: ' + error.toString());
 
                 // If error message contains "Zahlung fehlgeschlagen" it might have transaction info
                 if (error.message && error.message.includes('transaction')) {
-                    alert('⚠️ Die Zahlung könnte trotzdem durchgegangen sein!\n\nBitte prüfe deine Wallet Transaktionen.');
+                    alert('💡 Die Zahlung könnte trotzdem durchgegangen sein!\n\nBitte prüfe deine Wallet Transaktionen.');
                 }
+            }
+        }
+
+        async function handleRefreshBalances(agentId) {
+            if (!confirm('💡 Echte Balances von der Blockchain abrufen?\n\nDies kann einige Sekunden dauern.')) {
+                return;
+            }
+
+            const formData = new FormData();
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) {
+                formData.append('__RequestVerificationToken', tokenInput.value);
+            }
+            formData.append('agentId', agentId);
+
+            try {
+                // Show loading indicator
+                alert('? Lade Balances von der Blockchain...');
+
+                const response = await fetch('@Url.Action("RefreshBalances", "TradingAgent", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`? Balances erfolgreich aktualisiert!\n\nETH: ${data.ethBalance.toFixed(6)}\nWLD: ${data.wldBalance.toFixed(2)}`);
+                    agentLoaded = false;
+                    await loadAgentStatus();
+                } else {
+                    alert('? Fehler beim Abrufen:\n\n' + (data.error || 'Unbekannter Fehler'));
+                }
+            } catch (error) {
+                console.error('Error refreshing balances:', error);
+                alert('? Fehler beim Abrufen der Balances:\n\n' + error.message);
+            }
+        }
+
+        async function handleManualSwapGas(agentId) {
+            if (!confirm('⚠️ 1 WLD zu ETH für Gas-Gebühren tauschen?\n\nDies führt eine echte Blockchain-Transaktion durch!')) {
+                return;
+            }
+
+            const formData = new FormData();
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) {
+                formData.append('__RequestVerificationToken', tokenInput.value);
+            }
+            formData.append('agentId', agentId);
+            formData.append('amountWLD', '1');
+
+            try {
+                alert('⚠️ Führe Swap durch (1 WLD → ETH)...\n\nDies kann 10-30 Sekunden dauern.');
+
+                const response = await fetch('@Url.Action("SwapWLDtoETH", "TradingAgent", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert('? Gas-Swap erfolgreich!\n\n1 WLD wurde zu ETH getauscht.');
+                    agentLoaded = false;
+                    await loadAgentStatus();
+                } else {
+                    alert('? Swap fehlgeschlagen:\n\n' + (data.error || 'Unbekannter Fehler'));
+                }
+            } catch (error) {
+                console.error('Error swapping gas:', error);
+                alert('? Fehler beim Gas-Swap:\n\n' + error.message);
+            }
+        }
+
+        async function handleWithdrawEthReserve(agentId, availableAmount) {
+            const defaultTarget = '@(Model.User?.UserHash ?? string.Empty)';
+            const normalizedDefaultTarget = defaultTarget && defaultTarget.startsWith('0x') && defaultTarget.length === 42
+                ? defaultTarget
+                : '';
+
+            const targetWalletAddress = prompt(
+                'ETH/WETH Zieladresse eingeben',
+                normalizedDefaultTarget
+            );
+
+            if (!targetWalletAddress) {
+                return;
+            }
+
+            const amountInput = prompt(
+                `Wie viel ETH/WETH Reserve willst du abheben?\n\nVerfuegbar: ${Number(availableAmount).toFixed(6)}`,
+                Number(availableAmount).toFixed(6)
+            );
+
+            if (!amountInput) {
+                return;
+            }
+
+            const amount = parseFloat(amountInput);
+            if (!amount || amount <= 0) {
+                alert('? Bitte einen gueltigen Betrag eingeben.');
+                return;
+            }
+
+            if (amount > Number(availableAmount)) {
+                alert('? Betrag ist hoeher als die verfuegbare ETH/WETH-Reserve.');
+                return;
+            }
+
+            if (!confirm(`${amount.toFixed(6)} ETH/WETH an\n${targetWalletAddress}\n\nauszahlen?`)) {
+                return;
+            }
+
+            const formData = new FormData();
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            if (tokenInput) {
+                formData.append('__RequestVerificationToken', tokenInput.value);
+            }
+
+            formData.append('agentId', agentId);
+            formData.append('amount', amount.toString());
+            formData.append('targetWalletAddress', targetWalletAddress.trim());
+
+            try {
+                const response = await fetch('@Url.Action("WithdrawEthReserve", "TradingAgent", new { area = "WorldMiniApp" })', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    alert(`? ETH/WETH-Reserve ausgezahlt.\n\nTX: ${data.txHash || 'gesendet'}`);
+                    agentLoaded = false;
+                    await loadAgentStatus();
+                } else {
+                    alert('? Fehler:\n\n' + (data.error || 'Unbekannter Fehler'));
+                }
+            } catch (error) {
+                console.error('Error withdrawing ETH/WETH reserve:', error);
+                alert('? Fehler beim ETH/WETH-Abheben:\n\n' + error.message);
             }
         }
 
@@ -1861,7 +2248,13 @@
         window.handlePauseAgent = handlePauseAgent;
         window.handleStopAgent = handleStopAgent;
         window.handleFundAgent = handleFundAgent;
+        window.handleRefreshBalances = handleRefreshBalances;
+        window.handleManualSwapGas = handleManualSwapGas;
+        window.handleWithdrawEthReserve = handleWithdrawEthReserve;
         window.showFundingModal = showFundingModal;
+        window.showWETHInstructions = showWETHInstructions;
+        window.testWETHPayment = testWETHPayment;
+        window.handleWETHFunding = handleWETHFunding;
         window.showWithdrawModal = showWithdrawModal;
         window.setWithdrawAmount = setWithdrawAmount;
         window.confirmWithdraw = confirmWithdraw;
@@ -1871,10 +2264,6 @@
         console.log('handlePauseAgent:', typeof window.handlePauseAgent);
         console.log('handleStopAgent:', typeof window.handleStopAgent);
         console.log('handleFundAgent:', typeof window.handleFundAgent);
+        console.log('handleRefreshBalances:', typeof window.handleRefreshBalances);
     </script>
 }
-
-
-
-
-

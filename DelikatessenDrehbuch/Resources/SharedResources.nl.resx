@@ -569,4 +569,301 @@
   <data name="Video.LoadError" xml:space="preserve">
     <value>Fout bij het laden van de video. Probeer het opnieuw.</value>
   </data>
+
+  <!-- Create Posting -->
+  <data name="CreatePosting.CreatorStudio" xml:space="preserve">
+    <value>Creator Studio</value>
+  </data>
+  <data name="CreatePosting.BasicInfo" xml:space="preserve">
+    <value>Basisinformatie</value>
+  </data>
+  <data name="CreatePosting.Title" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="CreatePosting.Preference" xml:space="preserve">
+    <value>Voorkeur</value>
+  </data>
+  <data name="CreatePosting.Minutes" xml:space="preserve">
+    <value>Minuten</value>
+  </data>
+  <data name="CreatePosting.MediaScript" xml:space="preserve">
+    <value>Mediascript</value>
+  </data>
+  <data name="CreatePosting.SelectVideoOrImage" xml:space="preserve">
+    <value>Selecteer video of afbeelding</value>
+  </data>
+  <data name="CreatePosting.SelectIngredients" xml:space="preserve">
+    <value>Selecteer ingrediënten</value>
+  </data>
+  <data name="CreatePosting.SelectKeywords" xml:space="preserve">
+    <value>Selecteer trefwoorden</value>
+  </data>
+  <data name="CreatePosting.Publish" xml:space="preserve">
+    <value>Publiceren</value>
+  </data>
+
+  <!-- Preferences -->
+  <data name="Preference.Vegan" xml:space="preserve">
+    <value>Veganistisch</value>
+  </data>
+  <data name="Preference.Vegetarian" xml:space="preserve">
+    <value>Vegetarisch</value>
+  </data>
+  <data name="Preference.Fish" xml:space="preserve">
+    <value>Vis</value>
+  </data>
+  <data name="Preference.Pork" xml:space="preserve">
+    <value>Varkensvlees</value>
+  </data>
+  <data name="Preference.Beef" xml:space="preserve">
+    <value>Rundvlees</value>
+  </data>
+  <data name="Preference.OtherMeat" xml:space="preserve">
+    <value>Ander vlees</value>
+  </data>
+
+  <!-- CreatePosting Additional Keys -->
+  <data name="CreatePosting.NewPosting" xml:space="preserve">
+    <value>Nieuwe post</value>
+  </data>
+  <data name="CreatePosting.SelectCategory" xml:space="preserve">
+    <value>Selecteer categorie</value>
+  </data>
+  <data name="CreatePosting.Basics" xml:space="preserve">
+    <value>Basis</value>
+  </data>
+  <data name="CreatePosting.TitleCategoryPersonsTime" xml:space="preserve">
+    <value>Titel, categorie, personen, tijd</value>
+  </data>
+  <data name="CreatePosting.Category" xml:space="preserve">
+    <value>Categorie</value>
+  </data>
+  <data name="CreatePosting.Persons" xml:space="preserve">
+    <value>Personen</value>
+  </data>
+  <data name="CreatePosting.DurationMin" xml:space="preserve">
+    <value>Duur (min)</value>
+  </data>
+  <data name="CreatePosting.VideoOrImageForFeed" xml:space="preserve">
+    <value>Video of afbeelding voor de feed</value>
+  </data>
+  <data name="CreatePosting.CurrentImageVideo" xml:space="preserve">
+    <value>Huidige afbeelding/video</value>
+  </data>
+  <data name="CreatePosting.OptionalUploadNew" xml:space="preserve">
+    <value>Optioneel: nieuwe afbeelding/video uploaden</value>
+  </data>
+  <data name="CreatePosting.UploadStart" xml:space="preserve">
+    <value>Start upload</value>
+  </data>
+  <data name="CreatePosting.ChooseVideoOrImage" xml:space="preserve">
+    <value>Kies een video of afbeelding (feedstijl).</value>
+  </data>
+  <data name="CreatePosting.IngredientsSelection" xml:space="preserve">
+    <value>Selectie van ingrediënten</value>
+  </data>
+  <data name="CreatePosting.SearchConfigureIngredients" xml:space="preserve">
+    <value>Zoek en configureer je ingrediënten</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Tik om te bewerken</value>
+  </data>
+  <data name="CreatePosting.YourIngredientMissing" xml:space="preserve">
+    <value>Ontbreekt jouw ingrediënt?</value>
+  </data>
+  <data name="CreatePosting.IngredientTestHint" xml:space="preserve">
+    <value>Voor testen: voer een ingrediënt in, zoek eerst in de catalogus, anders krijg je een AI-suggestie.</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Bereidingsstappen</value>
+  </data>
+  <data name="CreatePosting.WriteStepsWillTranslate" xml:space="preserve">
+    <value>Schrijf je stappen - wordt bij opslaan vertaald naar 10 talen</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Bereidingsinstructies</value>
+  </data>
+  <data name="CreatePosting.WriteStepsAiTranslates" xml:space="preserve">
+    <value>Schrijf gewoon je stappen - AI vertaalt naar alle talen bij opslaan (Duits, Engels, Spaans, Portugees, Indonesisch, Nederlands, Zweeds, Deens, Noors, Maleis)</value>
+  </data>
+  <data name="CreatePosting.KeywordsHelpFeedSearch" xml:space="preserve">
+    <value>Helpt feed en zoeken</value>
+  </data>
+  <data name="CreatePosting.ReadyToPost" xml:space="preserve">
+    <value>Klaar om te posten?</value>
+  </data>
+  <data name="CreatePosting.Save" xml:space="preserve">
+    <value>Opslaan</value>
+  </data>
+  <data name="CreatePosting.Add" xml:space="preserve">
+    <value>Toevoegen</value>
+  </data>
+  <data name="CreatePosting.SavedSessionFound" xml:space="preserve">
+    <value>Opgeslagen sessie gevonden</value>
+  </data>
+  <data name="CreatePosting.Restore" xml:space="preserve">
+    <value>Herstellen</value>
+  </data>
+  <data name="CreatePosting.Discard" xml:space="preserve">
+    <value>Weggooien</value>
+  </data>
+  <data name="MyProfile.BackToFeed" xml:space="preserve">
+    <value>Terug naar feed</value>
+  </data>
+  <data name="MyProfile.Following" xml:space="preserve">
+    <value>Volgen</value>
+  </data>
+  <data name="MyProfile.Likes" xml:space="preserve">
+    <value>Likes</value>
+  </data>
+  <data name="MyProfile.Followers" xml:space="preserve">
+    <value>Volgers</value>
+  </data>
+  <data name="MyProfile.Settings" xml:space="preserve">
+    <value>Instellingen</value>
+  </data>
+  <data name="MyProfile.DisplayName" xml:space="preserve">
+    <value>Weergavenaam</value>
+  </data>
+  <data name="MyProfile.Save" xml:space="preserve">
+    <value>Opslaan</value>
+  </data>
+  <data name="MyProfile.Marketplace" xml:space="preserve">
+    <value>Marktplaats</value>
+  </data>
+  <data name="MyProfile.MyListings" xml:space="preserve">
+    <value>Mijn aanbiedingen</value>
+  </data>
+  <data name="MyProfile.CommentModeration" xml:space="preserve">
+    <value>Commentaarmoderatie</value>
+  </data>
+  <data name="MyProfile.ReportedContent" xml:space="preserve">
+    <value>Gerapporteerde inhoud</value>
+  </data>
+  <data name="MyProfile.CreatorManager" xml:space="preserve">
+    <value>Creator Manager</value>
+  </data>
+  <data name="MyProfile.CreatorDashboard" xml:space="preserve">
+    <value>Creator dashboard</value>
+  </data>
+  <data name="MyProfile.TabLikes" xml:space="preserve">
+    <value>LIKES</value>
+  </data>
+  <data name="MyProfile.TabAI" xml:space="preserve">
+    <value>AI</value>
+  </data>
+  <data name="MyProfile.TabCreators" xml:space="preserve">
+    <value>MAKERS</value>
+  </data>
+  <data name="MyProfile.TabCreated" xml:space="preserve">
+    <value>GEMAAKT</value>
+  </data>
+  <data name="MyProfile.TabBought" xml:space="preserve">
+    <value>GEKOCHT</value>
+  </data>
+  <data name="MyProfile.TabVideos" xml:space="preserve">
+    <value>VIDEO'S</value>
+  </data>
+  <data name="MyProfile.NoLikesYet" xml:space="preserve">
+    <value>Nog geen likes</value>
+  </data>
+  <data name="MyProfile.NoAIVariantsYet" xml:space="preserve">
+    <value>Nog geen AI-varianten</value>
+  </data>
+  <data name="MyProfile.NoCreatedPlansYet" xml:space="preserve">
+    <value>Nog geen gemaakte plannen</value>
+  </data>
+  <data name="MyProfile.Delete" xml:space="preserve">
+    <value>Verwijderen</value>
+  </data>
+  <data name="MyProfile.NoPurchasedPlansYet" xml:space="preserve">
+    <value>Nog geen gekochte plannen</value>
+  </data>
+  <data name="MyProfile.GoToMarketplace" xml:space="preserve">
+    <value>Ga naar marktplaats</value>
+  </data>
+  <data name="MyProfile.DaysLowercase" xml:space="preserve">
+    <value>dagen</value>
+  </data>
+  <data name="MyProfile.Days" xml:space="preserve">
+    <value>Dagen</value>
+  </data>
+  <data name="MyProfile.Recipes" xml:space="preserve">
+    <value>Recepten</value>
+  </data>
+  <data name="MyProfile.Purchased" xml:space="preserve">
+    <value>Gekocht</value>
+  </data>
+  <data name="MyProfile.PurchasedOn" xml:space="preserve">
+    <value>Gekocht op</value>
+  </data>
+  <data name="MyProfile.Open" xml:space="preserve">
+    <value>Openen</value>
+  </data>
+  <data name="MyProfile.Edit" xml:space="preserve">
+    <value>Bewerken</value>
+  </data>
+  <data name="MyProfile.TakePostingOfflineConfirm" xml:space="preserve">
+    <value>Bericht offline halen?</value>
+  </data>
+  <data name="MyProfile.TakeOffline" xml:space="preserve">
+    <value>Offline halen</value>
+  </data>
+  <data name="MyProfile.PutPostingOnlineConfirm" xml:space="preserve">
+    <value>Bericht weer online zetten?</value>
+  </data>
+  <data name="MyProfile.PutOnline" xml:space="preserve">
+    <value>Online zetten</value>
+  </data>
+  <data name="MyProfile.DeletePostingPermanentlyConfirm" xml:space="preserve">
+    <value>Bericht PERMANENT verwijderen? Alle gegevens worden verwijderd!</value>
+  </data>
+  <data name="MyProfile.DeletePermanently" xml:space="preserve">
+    <value>Permanent verwijderen</value>
+  </data>
+  <data name="SharedFeed.Title" xml:space="preserve"><value>Gedeelde Inhoud</value></data>
+  <data name="SharedFeed.MyGroups" xml:space="preserve"><value>Mijn Groepen</value></data>
+  <data name="SharedFeed.MemberIn" xml:space="preserve"><value>Lid van</value></data>
+  <data name="SharedFeed.CreateNewFeed" xml:space="preserve"><value>Nieuwe Groepsfeed Maken</value></data>
+  <data name="SharedFeed.Create" xml:space="preserve"><value>Maken</value></data>
+  <data name="SharedFeed.Members" xml:space="preserve"><value>leden</value></data>
+  <data name="SharedFeed.Items" xml:space="preserve"><value>items</value></data>
+  <data name="SharedFeed.InviteLink" xml:space="preserve"><value>Uitnodigingslink kopiëren</value></data>
+  <data name="Todo.Title" xml:space="preserve"><value>Takenlijst</value></data>
+  <data name="Todo.AddPlaceholder" xml:space="preserve"><value>Nieuwe taak toevoegen...</value></data>
+  <data name="Todo.Delete" xml:space="preserve"><value>Verwijderen</value></data>
+  <data name="Chat.Title" xml:space="preserve"><value>Groepschat</value></data>
+  <data name="Chat.MessagePlaceholder" xml:space="preserve"><value>Typ een bericht...</value></data>
+  <data name="AddToFeed.Title" xml:space="preserve"><value>Toevoegen aan Feed</value></data>
+  <data name="Home.SharedContent" xml:space="preserve"><value>Gedeelde Inhoud</value></data>
+  <data name="Home.SharedContentDesc" xml:space="preserve"><value>Groepsfeeds, chat en taken</value></data>
+
+  <!-- Import Meal Plan -->
+  <data name="Import.Title" xml:space="preserve">
+    <value>Maaltijdplan Importeren</value>
+  </data>
+  <data name="Import.Button" xml:space="preserve">
+    <value>Mijn Maaltijdplan Importeren</value>
+  </data>
+  <data name="Import.Loading" xml:space="preserve">
+    <value>Plannen laden...</value>
+  </data>
+  <data name="Import.NoPlans" xml:space="preserve">
+    <value>Je hebt nog geen opgeslagen maaltijdplannen.</value>
+  </data>
+  <data name="Import.Importing" xml:space="preserve">
+    <value>Importeren...</value>
+  </data>
+  <data name="Import.Success" xml:space="preserve">
+    <value>Geïmporteerd!</value>
+  </data>
+  <data name="Import.SuccessMessage" xml:space="preserve">
+    <value>Het maaltijdplan is geïmporteerd naar de groep.</value>
+  </data>
+  <data name="Import.Error" xml:space="preserve">
+    <value>Fout bij importeren van plan.</value>
+  </data>
+  <data name="Import.AdminActions" xml:space="preserve">
+    <value>Beheerdersacties</value>
+  </data>
 </root>

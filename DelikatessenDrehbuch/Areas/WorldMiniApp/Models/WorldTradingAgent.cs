@@ -138,5 +138,27 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         /// </summary>
         [MaxLength(100)]
         public string? AgentName { get; set; }
+
+        /// <summary>
+        /// Letztes Trading-Signal (BUY, SELL, HOLD)
+        /// </summary>
+        [MaxLength(10)]
+        public string? LastSignalAction { get; set; }
+
+        /// <summary>
+        /// Konfidenz des letzten Signals (0-100%)
+        /// </summary>
+        public int? LastSignalConfidence { get; set; }
+
+        /// <summary>
+        /// Zeitpunkt des letzten Signals
+        /// </summary>
+        public DateTime? LastSignalAt { get; set; }
+
+        /// <summary>
+        /// Grund/Erklärung für das letzte Signal
+        /// </summary>
+        [MaxLength(500)]
+        public string? LastSignalReason { get; set; }
     }
 }

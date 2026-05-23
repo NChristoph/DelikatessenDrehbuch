@@ -171,7 +171,7 @@
 
 
 @section Scripts {
-    <script>
+<script>
             // Globaler Cache für die Bootstrap Offcanvas Instanz
             let searchOffcanvasInstance = null;
 
@@ -270,7 +270,7 @@
                     </div>`;
 
                 // Controller aufrufen
-                const url = `/WorldMiniApp/Home/GetRandomRecipeCard?category=${category}&dayIndex=${dayIndex}&namePrefix=${namePrefix}`;
+                const url = `/WorldMiniApp/MealPlan/GetRandomRecipeCard?category=${category}&dayIndex=${dayIndex}&namePrefix=${namePrefix}`;
 
                 fetch(url)
                     .then(response => {
@@ -306,7 +306,7 @@
 
                 if (searchOffcanvasInstance) searchOffcanvasInstance.show();
 
-                const url = `/WorldMiniApp/Home/GetSearchList?category=${category}&dayIndex=${dayIndex}&namePrefix=${namePrefix}`;
+                const url = `/WorldMiniApp/MealPlan/GetSearchList?category=${category}&dayIndex=${dayIndex}&namePrefix=${namePrefix}`;
 
                 fetch(url)
                     .then(response => response.text())
@@ -333,7 +333,7 @@
                     </div>`;
 
                 // Controller aufrufen (Spezifisches Rezept holen)
-                const url = `/WorldMiniApp/Home/GetRecipeById?recipeId=${recipeId}&dayIndex=${dayIndex}&namePrefix=${namePrefix}&category=${category}`;
+                const url = `/WorldMiniApp/MealPlan/GetRecipeById?recipeId=${recipeId}&dayIndex=${dayIndex}&namePrefix=${namePrefix}&category=${category}`;
 
                 fetch(url)
                     .then(response => response.text())
@@ -362,18 +362,53 @@
                 btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Speichere...';
                 btn.disabled = true;
 
-            const jsonString = JSON.stringify(selectedRecipes);
-            const encodedData = encodeURIComponent(jsonString);
-            const personCount = @personCount;
-            const hash = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
-            const title = encodeURIComponent("@title");
-       
-        window.location.href = `/WorldMiniApp/Home/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${hash}&title=${title}`;
+                const jsonString = JSON.stringify(selectedRecipes);
+                const personCount = @personCount;
+                const hash = sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
+                const title = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(title ?? "Mein Wochenplan"));
+                const tokenInput = document.querySelector('#generatedMealPlanAntiForgery input[name="__RequestVerificationToken"]');
+                const token = tokenInput ? tokenInput.value : null;
+
+                fetch('/WorldMiniApp/MealPlan/SaveMealPlanFromLayout', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        ...(token ? { 'RequestVerificationToken': token } : {})
+                    },
+                    body: JSON.stringify({
+                        mealPlanJson: jsonString,
+                        personCount: personCount,
+                        userHash: hash,
+                        title: title
+                    })
+                })
+                    .then(async response => {
+                        if (!response.ok) {
+                            const errorText = await response.text();
+                            throw new Error(errorText || 'Plan konnte nicht gespeichert werden.');
+                        }
+
+                        return response.json();
+                    })
+                    .then(data => {
+                        const redirectUrl = data?.redirectUrl || '/WorldMiniApp/Feed/MyProfile?tab=mealplans';
+                        window.location.href = redirectUrl;
+                    })
+                    .catch(error => {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        console.error('Meal plan save failed', error);
+                        alert(`Plan konnte nicht gespeichert werden. ${error.message || ''}`.trim());
+                    });
 
 
             }
     </script>
 }
+
+<form id="generatedMealPlanAntiForgery" style="display:none;">
+    @Html.AntiForgeryToken()
+</form>
 
 <style>
     /* DESIGN ANPASSUNGEN */

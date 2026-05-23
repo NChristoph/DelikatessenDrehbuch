@@ -25,6 +25,8 @@
     var likeCounts = ViewData["LikeCounts"] as Dictionary<int, int> ?? new Dictionary<int, int>();
     var commentCounts = ViewData["CommentCounts"] as Dictionary<int, int> ?? new Dictionary<int, int>();
     var canWriteComments = (bool?)ViewData["CanWriteComments"] ?? false;
+    var isOrbVerified = (bool?)ViewData["IsOrbVerified"] ?? false;
+    var userVerificationLevel = ViewData["UserVerificationLevel"]?.ToString() ?? "device";
     var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
     var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
     var worldChainId = ViewData["WorldChainId"]?.ToString() ?? "480";
@@ -1174,6 +1176,30 @@
             font-size: 2.2rem;
             box-shadow: 0 8px 25px rgba(255, 94, 98, 0.5);
             border: 5px solid white;
+        }
+
+        .add-btn-disabled {
+            background: linear-gradient(135deg, #9e9e9e 0%, #757575 100%) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+            cursor: not-allowed !important;
+            opacity: 0.6;
+            position: relative;
+        }
+
+        .add-btn-disabled::after {
+            content: '🔒';
+            position: absolute;
+            bottom: -2px;
+            right: -2px;
+            font-size: 1.2rem;
+            background: white;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
 
         .double-tap-heart {
@@ -3384,9 +3410,21 @@
             </span>
         </div>
         <div class="add-btn-wrapper">
-            <a href="@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })" class="add-btn text-decoration-none" aria-label="Rezept hochladen">
-                <i class="bi bi-plus"></i>
-            </a>
+            @if (isOrbVerified)
+            {
+                <a href="@Url.Action("CreatePosting", "Recipe", new { area = "WorldMiniApp" })" class="add-btn text-decoration-none" aria-label="Rezept hochladen">
+                    <i class="bi bi-plus"></i>
+                </a>
+            }
+            else
+            {
+                <button type="button" class="add-btn add-btn-disabled text-decoration-none" aria-label="Nur für Orb-verifizierte User"
+                        data-bs-toggle="tooltip" data-bs-placement="top"
+                        title="Upload nur für Orb-verifizierte User verfügbar 🔒"
+                        onclick="showOrbRequiredMessage()">
+                    <i class="bi bi-plus"></i>
+                </button>
+            }
         </div>
         <div class="nav-item" role="button" aria-label="Suche" onclick="openSearchModal()">
             <i class="bi bi-search"></i>
@@ -3795,6 +3833,7 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.15/dist/hls.min.js"></script>
     <script src="~/js/worldchain-marketplace.js"></script>
     <script type="module" src="~/js/minikitt.js"></script>
+    <script type="module" src="~/js/agent-payment.js"></script>
 
     <script>
         const DEBUG = false; // Set to true for TTS and system debug logging
@@ -4596,15 +4635,27 @@
         function tryRestoreFeedScrollFromUrl() {
             const params = new URLSearchParams(window.location.search);
             const scrollToId = Number(params.get('scrollToId') || 0) || 0;
-            if (!scrollToId) return false;
+            const postingId = Number(params.get('postingId') || 0) || 0;
+            const shouldOpenComments = params.get('openComments') === '1';
 
-            const target = document.querySelector(`#feedSection .feed-item[data-id="${scrollToId}"]`);
+            let target = null;
+            if (postingId) {
+                target = document.querySelector(`#feedSection .feed-item[data-posting-id="${postingId}"]`);
+            }
+
+            if (!target && scrollToId) {
+                target = document.querySelector(`#feedSection .feed-item[data-id="${scrollToId}"]`);
+            }
+
             if (!target) return false;
 
             target.scrollIntoView({ block: 'start' });
 
             // Clean URL so refresh doesn't keep jumping.
             params.delete('scrollToId');
+            if (!shouldOpenComments) {
+                params.delete('postingId');
+            }
             const cleaned = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
             history.replaceState(history.state, '', cleaned);
             return true;
@@ -4755,11 +4806,17 @@
             if (!container) return;
 
             const recipeId = container.dataset.id;
+            const postingId = container.dataset.postingId;
             const title = container.querySelector('.recipe-title')?.textContent?.trim() || 'Rezept';
             const creatorName = container.dataset.creatorName || '';
 
-            // Füge share=1 Parameter hinzu für Deep-Link Detection
-            const url = `${window.location.origin}/WorldMiniApp/Home/ShowRecipe?id=${recipeId}&share=1`;
+            const worldAppId = 'app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa';
+            const feedTarget = new URL('/WorldMiniApp/Feed/Index', window.location.origin);
+            if (recipeId) feedTarget.searchParams.set('scrollToId', recipeId);
+            if (postingId) feedTarget.searchParams.set('postingId', postingId);
+
+            const appEntry = `/WorldMiniApp/Home/Index?returnTo=${encodeURIComponent(feedTarget.pathname + feedTarget.search)}`;
+            const url = `https://world.org/mini-app?app_id=${worldAppId}&path=${encodeURIComponent(appEntry)}`;
 
             const shareData = {
                 title,
@@ -5636,12 +5693,49 @@
             const title = (document.getElementById('planTitleInput')?.value || '').trim() || "Mein Wochenplan";
             const personCount = parseInt(document.getElementById('planPersonCount')?.value || "1", 10) || 1;
 
-            const encodedData = encodeURIComponent(JSON.stringify(payload));
-            clearWeeklyPlanState();
-            showToast("Plan gespeichert!", "success");
-            setTimeout(() => {
-                window.location.href = `/WorldMiniApp/MealPlan/SaveMealPlan?mealPlanJson=${encodedData}&personCount=${personCount}&userHash=${encodeURIComponent(userHash)}&title=${encodeURIComponent(title)}`;
-            }, 600);
+            const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
+            const token = tokenInput ? tokenInput.value : null;
+
+            fetch('/WorldMiniApp/MealPlan/SaveMealPlanFromLayout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'RequestVerificationToken': token } : {})
+                },
+                body: JSON.stringify({
+                    mealPlanJson: JSON.stringify(payload),
+                    personCount: personCount,
+                    title: title,
+                    userHash: userHash
+                })
+            })
+                .then(async response => {
+                    if (!response.ok) {
+                        const errorText = await response.text();
+                        throw new Error(errorText || 'Plan konnte nicht gespeichert werden.');
+                    }
+
+                    return response.json();
+                })
+                .then(data => {
+                    clearWeeklyPlanState();
+                    showToast("Plan gespeichert!", "success");
+
+                    const redirectUrl = data?.redirectUrl || '/WorldMiniApp/Feed/MyProfile?tab=mealplans';
+                    setTimeout(() => {
+                        window.location.href = redirectUrl;
+                    }, 500);
+                })
+                .catch(error => {
+                    console.error('Meal plan save failed', error);
+                    showToast(`Plan konnte nicht gespeichert werden. ${error.message || ''}`.trim(), "error");
+                });
+        }
+
+        function getActiveSharedFeedId() {
+            const rawValue = localStorage.getItem('wmActiveSharedFeedId');
+            const parsed = parseInt(rawValue || '', 10);
+            return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
         }
 
         async function shareWeeklyPlan() {
@@ -5655,7 +5749,7 @@
                 const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
                 const token = tokenInput ? tokenInput.value : null;
 
-                const response = await fetch('/WorldMiniApp/Home/SaveSharedMealPlan', {
+                const response = await fetch('/WorldMiniApp/MealPlan/SaveSharedMealPlan', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -5665,7 +5759,8 @@
                         mealPlanJson: JSON.stringify(payload),
                         personCount: personCount,
                         title: title,
-                        userHash: getUserHash()
+                        userHash: getUserHash(),
+                        sharedFeedId: getActiveSharedFeedId()
                     })
                 });
 
@@ -5722,7 +5817,7 @@
                 const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
                 const token = tokenInput ? tokenInput.value : null;
 
-                await fetch('/WorldMiniApp/Home/SaveFeedMealPlanDraft', {
+                await fetch('/WorldMiniApp/MealPlan/SaveFeedMealPlanDraft', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -5801,7 +5896,7 @@
             recipeIds.forEach(id => params.append('recipeIds', id));
             params.append('personCount', personCount);
 
-            const response = await fetch(`/WorldMiniApp/Home/GetShoppingListText?${params.toString()}`);
+            const response = await fetch(`/WorldMiniApp/MealPlan/GetShoppingListText?${params.toString()}`);
             if (!response.ok) { showToast("Einkaufsliste konnte nicht geladen werden.", "error"); return; }
 
             const data = await response.json();
@@ -6283,7 +6378,7 @@
                 recipeIds.forEach(id => params.append('recipeIds', id));
 
                 try {
-                    const response = await fetch(`/WorldMiniApp/Home/GetMealPlanNutritionTotals?${params.toString()}`);
+                    const response = await fetch(`/WorldMiniApp/MealPlan/GetMealPlanNutritionTotals?${params.toString()}`);
                     if (!response.ok) throw new Error('Day nutrition fetch failed');
                     const data = await response.json();
                     setDayNutritionTotals(dayIndex, data);
@@ -6319,7 +6414,7 @@
             params.append('personCount', personCount);
 
             try {
-                const response = await fetch(`/WorldMiniApp/Home/GetMealPlanNutritionTotals?${params.toString()}`);
+                const response = await fetch(`/WorldMiniApp/MealPlan/GetMealPlanNutritionTotals?${params.toString()}`);
                 if (!response.ok) throw new Error('Nutrition fetch failed');
                 const data = await response.json();
                 setNutritionTotals(data);
@@ -6368,6 +6463,10 @@
                 }
                 formData.append('itemsJson', JSON.stringify(items));
                 formData.append('userHash', window.worldUserHash || '');
+                const activeSharedFeedId = getActiveSharedFeedId();
+                if (activeSharedFeedId) {
+                    formData.append('sharedFeedId', activeSharedFeedId.toString());
+                }
 
                 const resp = await fetch('/WorldMiniApp/MealPlan/SaveSharedShoppingList', {
                     method: 'POST',
@@ -7821,13 +7920,16 @@
                             <span class="action-label">@SharedLocalizer["Feed.Share"]</span>
                         </div>
                         <div class="action-btn" role="button" aria-label="Zum Plan hinzufügen" onclick="openPlanModal('${safeTitle}', '${thumbOrSource}', '${item.recipeId}')">
-                            <div class="icon-circle"><i class="bi bi-plus-lg"></i></div>
-                            <span class="action-label">Plan</span>
+                            <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
+                            <span class="action-label">@SharedLocalizer["Feed.AddToPlan"]</span>
                         </div>
-                        <div class="action-btn">
-                            <a href="/WorldMiniApp/Home/ShowRecipe/${item.recipeId}" class="add-btn text-decoration-none" aria-label="Rezept anzeigen">
-                                <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
-                            </a>
+                        <div class="action-btn" role="button" aria-label="Rezept anzeigen" onclick="window.location.href='/WorldMiniApp/Home/ShowRecipe/${item.recipeId}'">
+                            <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
+                            <span class="action-label">@SharedLocalizer["Feed.Recipe"]</span>
+                        </div>
+                        <div class="action-btn report-btn" role="button" aria-label="Inhalt melden" data-posting-id="${item.postingId}" onclick="event.stopPropagation(); openReportModal(${item.postingId}, '${safeTitle}')">
+                            <div class="icon-circle"><i class="bi bi-flag-fill"></i></div>
+                            <span class="action-label">Melden</span>
                         </div>
                     </div>
                 </div>`;
@@ -7965,8 +8067,34 @@
             syncMarketplaceToCurrentFeedItem();
             setFeedToken('WLD');
             loadFeedWldPrice();
+
+            // Bootstrap Tooltips initialisieren
+            const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+            const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
         });
+
+        // Funktion für Orb-Required Nachricht
+        function showOrbRequiredMessage() {
+            const toast = document.createElement('div');
+            toast.className = 'position-fixed top-50 start-50 translate-middle';
+            toast.style.zIndex = '9999';
+            toast.innerHTML = `
+                <div class="alert alert-warning shadow-lg rounded-4 p-4 text-center" style="max-width: 320px; border: 2px solid #ff9800;">
+                    <div class="fs-1 mb-2">🔒</div>
+                    <h5 class="fw-bold mb-2">Orb-Verifizierung erforderlich</h5>
+                    <p class="mb-0 small">Video-Uploads sind nur für Orb-verifizierte User verfügbar.</p>
+                </div>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
     </script>
+
+    @* Agent Payment Test UI entfernt - nur im MyProfile Trading Agent Dashboard *@
 
 </body>
 </html>

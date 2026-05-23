@@ -1,0 +1,414 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.SharedFeedContentCardViewModel
+
+<article class="marketplace-card" data-carousel-idx="0">
+    @* Hero Section *@
+    <div class="mp-hero" style="background-image: url('@(Model.Dishes.FirstOrDefault()?.ImageUrl ?? "/images/placeholder-recipe.jpg")');">
+        <div class="mp-hero-overlay"></div>
+
+        <div class="mp-hero-content">
+            <div class="mp-tags">
+                @if (Model.DurationDays > 0)
+                {
+                    <span class="mp-tag">@Model.DurationDays Tage</span>
+                }
+                <span class="mp-tag">@Model.RecipeCount Rezepte</span>
+            </div>
+            <h3 class="mp-title">@Model.Title</h3>
+            <div class="mp-creator">
+                <span class="mp-creator-avatar">🥑</span>
+                <span class="mp-creator-name">@Model.AddedByName</span>
+                <span class="mp-separator">·</span>
+                <span class="mp-duration">@(Model.DurationDays > 0 ? Model.DurationDays + " Tage" : Model.MealCount + " Meals")</span>
+            </div>
+        </div>
+    </div>
+
+    @* Stats Strip *@
+    <div class="mp-stats">
+        <div class="mp-stat">
+            <div class="mp-stat-value">@Model.RecipeCount</div>
+            <div class="mp-stat-label">Rezepte</div>
+        </div>
+        <div class="mp-stat">
+            <div class="mp-stat-value">@Model.MealCount</div>
+            <div class="mp-stat-label">Meals</div>
+        </div>
+        <div class="mp-stat">
+            <div class="mp-stat-value">@Model.PersonCount</div>
+            <div class="mp-stat-label">Personen</div>
+        </div>
+    </div>
+
+    @* Carousel *@
+    @if (Model.Dishes.Any())
+    {
+        <div class="mp-carousel-section">
+            <div class="mp-carousel-header">
+                <span class="mp-carousel-title">Gerichte im Plan</span>
+                <span class="mp-carousel-counter"><span class="mp-carousel-current">1</span> / @Model.Dishes.Count</span>
+            </div>
+            <div class="mp-carousel-track">
+                @for (int i = 0; i < Model.Dishes.Count; i++)
+                {
+                    var dish = Model.Dishes[i];
+                    <div class="mp-carousel-item @(i == 0 ? "active" : "")" data-idx="@i" onclick="selectDish(this, '@dish.ImageUrl')">
+                        <div class="mp-dish-img" style="background-image: url('@dish.ImageUrl');"></div>
+                        <div class="mp-dish-name">@dish.Name</div>
+                        <div class="mp-dish-info">@(dish.PreparationTime > 0 ? dish.PreparationTime + " Min" : dish.Category)</div>
+                    </div>
+                }
+            </div>
+            <div class="mp-dots">
+                @for (int i = 0; i < Model.Dishes.Count; i++)
+                {
+                    <span class="mp-dot @(i == 0 ? "active" : "")" data-idx="@i"></span>
+                }
+            </div>
+        </div>
+    }
+
+    @* Footer *@
+    <div class="mp-footer">
+        @if (Model.IsCreator)
+        {
+            <form method="post" action="@Url.Action("DeleteSharedMealPlan", "Shared", new { area = "WorldMiniApp" })" style="display:inline;" onsubmit="return confirm('Möchten Sie diesen Essensplan wirklich löschen? Er wird aus allen Feeds entfernt.');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="token" value="@Model.SourceToken" />
+                <input type="hidden" name="userHash" value="@ViewData["CurrentUserHash"]" />
+                <input type="hidden" name="feedId" value="@ViewData["FeedId"]" />
+                <button type="submit" class="mp-btn-delete" title="Essensplan löschen">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        }
+        <a class="mp-btn-open" href="@Model.OpenUrl">Öffnen</a>
+    </div>
+</article>
+
+<style>
+    .marketplace-card {
+        background: #fff;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(20, 57, 31, 0.08);
+        margin-bottom: 20px;
+        font-family: 'Inter', system-ui, sans-serif;
+    }
+
+    /* Hero */
+    .mp-hero {
+        position: relative;
+        aspect-ratio: 4/3;
+        background-size: cover;
+        background-position: center;
+        overflow: hidden;
+    }
+
+    .mp-hero-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0,0,0,0.45) 0%, transparent 35%, transparent 50%, rgba(0,0,0,0.7) 100%);
+    }
+
+    .mp-hero-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 16px;
+        color: white;
+    }
+
+    .mp-tags {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 8px;
+    }
+
+    .mp-tag {
+        background: rgba(255,255,255,0.16);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 500;
+        border: 1px solid rgba(255,255,255,0.22);
+    }
+
+    .mp-title {
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-size: 22px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0;
+        line-height: 1.1;
+        text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+
+    .mp-creator {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+        font-size: 12px;
+    }
+
+    .mp-creator-avatar {
+        font-size: 14px;
+    }
+
+    .mp-creator-name {
+        font-weight: 600;
+        opacity: 0.95;
+    }
+
+    .mp-separator {
+        opacity: 0.5;
+    }
+
+    .mp-duration {
+        opacity: 0.85;
+    }
+
+    /* Stats */
+    .mp-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        background: #faf6ec;
+        border-bottom: 1px solid rgba(20,57,31,0.08);
+    }
+
+    .mp-stat {
+        padding: 12px 8px;
+        text-align: center;
+        border-right: 1px solid rgba(20,57,31,0.08);
+    }
+
+    .mp-stat:last-child {
+        border-right: none;
+    }
+
+    .mp-stat-value {
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: #14391f;
+        line-height: 1;
+    }
+
+    .mp-stat-label {
+        font-size: 10px;
+        color: #6b7868;
+        margin-top: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    /* Carousel */
+    .mp-carousel-section {
+        padding: 14px 0 4px;
+    }
+
+    .mp-carousel-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0 16px 10px;
+    }
+
+    .mp-carousel-title {
+        font-size: 11px;
+        font-weight: 600;
+        color: #14391f;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+    }
+
+    .mp-carousel-counter {
+        font-size: 10px;
+        color: #6b7868;
+    }
+
+    .mp-carousel-current {
+        font-weight: 600;
+    }
+
+    .mp-carousel-track {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        padding: 0 16px;
+        scroll-padding-left: 16px;
+    }
+
+    .mp-carousel-track::-webkit-scrollbar {
+        display: none;
+    }
+
+    .mp-carousel-item {
+        flex-shrink: 0;
+        width: 84px;
+        scroll-snap-align: start;
+        cursor: pointer;
+        opacity: 0.7;
+        transition: opacity .25s, transform .25s;
+        transform: scale(0.95);
+    }
+
+    .mp-carousel-item.active {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    .mp-dish-img {
+        width: 84px;
+        height: 84px;
+        border-radius: 12px;
+        background-size: cover;
+        background-position: center;
+        border: 2px solid transparent;
+        box-sizing: border-box;
+        transition: border .25s;
+    }
+
+    .mp-carousel-item.active .mp-dish-img {
+        border-color: #14391f;
+    }
+
+    .mp-dish-name {
+        font-size: 10px;
+        color: #1a2e20;
+        margin-top: 5px;
+        font-weight: 500;
+        line-height: 1.2;
+        height: 24px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    .mp-dish-info {
+        font-size: 9px;
+        color: #6b7868;
+        margin-top: 1px;
+    }
+
+    .mp-dots {
+        display: flex;
+        justify-content: center;
+        gap: 4px;
+        padding-top: 8px;
+    }
+
+    .mp-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(20,57,31,0.2);
+        transition: all .25s;
+    }
+
+    .mp-dot.active {
+        width: 16px;
+        background: #14391f;
+    }
+
+    /* Footer */
+    .mp-footer {
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .mp-btn-delete {
+        background: linear-gradient(135deg, #ff4444, #cc0000);
+        border: none;
+        border-radius: 12px;
+        padding: 11px 14px;
+        font-size: 16px;
+        font-weight: 700;
+        color: white;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(204, 0, 0, 0.35);
+        transition: all 0.2s;
+    }
+
+    .mp-btn-delete:hover {
+        background: linear-gradient(135deg, #ff6666, #ff0000);
+        transform: scale(1.05);
+    }
+
+    .mp-btn-open {
+        background: linear-gradient(135deg, #ff9a3c, #ff7849);
+        border: none;
+        border-radius: 12px;
+        padding: 11px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 14px rgba(255, 120, 73, 0.35);
+        margin-left: auto;
+    }
+
+    .mp-btn-open:after {
+        content: '→';
+        font-size: 16px;
+    }
+</style>
+
+<script>
+    function selectDish(element, imageUrl) {
+        const card = element.closest('.marketplace-card');
+        const idx = parseInt(element.dataset.idx);
+
+        // Update active item
+        card.querySelectorAll('.mp-carousel-item').forEach((item, i) => {
+            item.classList.toggle('active', i === idx);
+        });
+
+        // Update dots
+        card.querySelectorAll('.mp-dot').forEach((dot, i) => {
+            dot.classList.toggle('active', i === idx);
+        });
+
+        // Update counter
+        const counter = card.querySelector('.mp-carousel-current');
+        if (counter) counter.textContent = idx + 1;
+
+        // Update hero background
+        const hero = card.querySelector('.mp-hero');
+        if (hero) hero.style.backgroundImage = `url('${imageUrl}')`;
+
+        // Scroll item into view
+        element.scrollIntoView({ behavior: 'smooth', inline: 'start', block: 'nearest' });
+    }
+
+    // Auto-detect scroll
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.mp-carousel-track').forEach(track => {
+            track.addEventListener('scroll', () => {
+                const scrollLeft = track.scrollLeft;
+                const itemWidth = 92; // 84px + 8px gap
+                const idx = Math.round(scrollLeft / itemWidth);
+                const items = track.querySelectorAll('.mp-carousel-item');
+                if (items[idx]) {
+                    const imageUrl = items[idx].querySelector('.mp-dish-img').style.backgroundImage.slice(5, -2);
+                    selectDish(items[idx], imageUrl);
+                }
+            });
+        });
+    });
+</script>

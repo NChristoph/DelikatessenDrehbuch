@@ -569,4 +569,400 @@
   <data name="Video.LoadError" xml:space="preserve">
     <value>Error loading video. Please try again.</value>
   </data>
+
+  <!-- Create Posting -->
+  <data name="CreatePosting.CreatorStudio" xml:space="preserve">
+    <value>Creator Studio</value>
+  </data>
+  <data name="CreatePosting.BasicInfo" xml:space="preserve">
+    <value>Basic Info</value>
+  </data>
+  <data name="CreatePosting.Title" xml:space="preserve">
+    <value>Title</value>
+  </data>
+  <data name="CreatePosting.Preference" xml:space="preserve">
+    <value>Preference</value>
+  </data>
+  <data name="CreatePosting.Minutes" xml:space="preserve">
+    <value>Minutes</value>
+  </data>
+  <data name="CreatePosting.MediaScript" xml:space="preserve">
+    <value>Media Script</value>
+  </data>
+  <data name="CreatePosting.SelectVideoOrImage" xml:space="preserve">
+    <value>Select Video or Image</value>
+  </data>
+  <data name="CreatePosting.SelectIngredients" xml:space="preserve">
+    <value>Select Ingredients</value>
+  </data>
+  <data name="CreatePosting.SelectKeywords" xml:space="preserve">
+    <value>Select Keywords</value>
+  </data>
+  <data name="CreatePosting.Publish" xml:space="preserve">
+    <value>Publish</value>
+  </data>
+
+  <!-- Preferences -->
+  <data name="Preference.Vegan" xml:space="preserve">
+    <value>Vegan</value>
+  </data>
+  <data name="Preference.Vegetarian" xml:space="preserve">
+    <value>Vegetarian</value>
+  </data>
+  <data name="Preference.Fish" xml:space="preserve">
+    <value>Fish</value>
+  </data>
+  <data name="Preference.Pork" xml:space="preserve">
+    <value>Pork</value>
+  </data>
+  <data name="Preference.Beef" xml:space="preserve">
+    <value>Beef</value>
+  </data>
+  <data name="Preference.OtherMeat" xml:space="preserve">
+    <value>Other Meat</value>
+  </data>
+
+  <!-- CreatePosting Additional Keys -->
+  <data name="CreatePosting.NewPosting" xml:space="preserve">
+    <value>New Posting</value>
+  </data>
+  <data name="CreatePosting.SelectCategory" xml:space="preserve">
+    <value>Select category</value>
+  </data>
+  <data name="CreatePosting.Basics" xml:space="preserve">
+    <value>Basics</value>
+  </data>
+  <data name="CreatePosting.TitleCategoryPersonsTime" xml:space="preserve">
+    <value>Title, category, persons, time</value>
+  </data>
+  <data name="CreatePosting.Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="CreatePosting.Persons" xml:space="preserve">
+    <value>Persons</value>
+  </data>
+  <data name="CreatePosting.DurationMin" xml:space="preserve">
+    <value>Time (min)</value>
+  </data>
+  <data name="CreatePosting.VideoOrImageForFeed" xml:space="preserve">
+    <value>Video or image for the feed</value>
+  </data>
+  <data name="CreatePosting.CurrentImageVideo" xml:space="preserve">
+    <value>Current image/video</value>
+  </data>
+  <data name="CreatePosting.OptionalUploadNew" xml:space="preserve">
+    <value>Optional: upload new image/video</value>
+  </data>
+  <data name="CreatePosting.UploadStart" xml:space="preserve">
+    <value>Start upload</value>
+  </data>
+  <data name="CreatePosting.ChooseVideoOrImage" xml:space="preserve">
+    <value>Choose a video or image (feed style).</value>
+  </data>
+  <data name="CreatePosting.IngredientsSelection" xml:space="preserve">
+    <value>Ingredients Selection</value>
+  </data>
+  <data name="CreatePosting.SearchConfigureIngredients" xml:space="preserve">
+    <value>Search &amp; configure your ingredients</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Tap to edit</value>
+  </data>
+  <data name="CreatePosting.YourIngredientMissing" xml:space="preserve">
+    <value>Your ingredient is missing?</value>
+  </data>
+  <data name="CreatePosting.IngredientTestHint" xml:space="preserve">
+    <value>For testing: enter an ingredient, search the catalog first, otherwise get an AI suggestion.</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Preparation Steps</value>
+  </data>
+  <data name="CreatePosting.WriteStepsWillTranslate" xml:space="preserve">
+    <value>Write your steps - will be translated to 10 languages on save</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Cooking Instructions</value>
+  </data>
+  <data name="CreatePosting.WriteStepsAiTranslates" xml:space="preserve">
+    <value>Just write your steps - AI will translate to all languages on save (German, English, Spanish, Portuguese, Indonesian, Dutch, Swedish, Danish, Norwegian, Malay)</value>
+  </data>
+  <data name="CreatePosting.KeywordsHelpFeedSearch" xml:space="preserve">
+    <value>Helps feed &amp; search</value>
+  </data>
+  <data name="CreatePosting.ReadyToPost" xml:space="preserve">
+    <value>Ready to post?</value>
+  </data>
+  <data name="CreatePosting.Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="CreatePosting.Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="CreatePosting.SavedSessionFound" xml:space="preserve">
+    <value>Saved session found</value>
+  </data>
+  <data name="CreatePosting.Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="CreatePosting.Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="MyProfile.BackToFeed" xml:space="preserve">
+    <value>Back to feed</value>
+  </data>
+  <data name="MyProfile.Following" xml:space="preserve">
+    <value>Following</value>
+  </data>
+  <data name="MyProfile.Likes" xml:space="preserve">
+    <value>Likes</value>
+  </data>
+  <data name="MyProfile.Followers" xml:space="preserve">
+    <value>Followers</value>
+  </data>
+  <data name="MyProfile.Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="MyProfile.DisplayName" xml:space="preserve">
+    <value>Display Name</value>
+  </data>
+  <data name="MyProfile.Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="MyProfile.Marketplace" xml:space="preserve">
+    <value>Marketplace</value>
+  </data>
+  <data name="MyProfile.MyListings" xml:space="preserve">
+    <value>My listings</value>
+  </data>
+  <data name="MyProfile.CommentModeration" xml:space="preserve">
+    <value>Comment moderation</value>
+  </data>
+  <data name="MyProfile.ReportedContent" xml:space="preserve">
+    <value>Reported Content</value>
+  </data>
+  <data name="MyProfile.CreatorManager" xml:space="preserve">
+    <value>Creator Manager</value>
+  </data>
+  <data name="MyProfile.CreatorDashboard" xml:space="preserve">
+    <value>Creator dashboard</value>
+  </data>
+  <data name="MyProfile.TabLikes" xml:space="preserve">
+    <value>LIKES</value>
+  </data>
+  <data name="MyProfile.TabAI" xml:space="preserve">
+    <value>AI</value>
+  </data>
+  <data name="MyProfile.TabCreators" xml:space="preserve">
+    <value>CREATORS</value>
+  </data>
+  <data name="MyProfile.TabCreated" xml:space="preserve">
+    <value>CREATED</value>
+  </data>
+  <data name="MyProfile.TabBought" xml:space="preserve">
+    <value>BOUGHT</value>
+  </data>
+  <data name="MyProfile.TabVideos" xml:space="preserve">
+    <value>VIDEOS</value>
+  </data>
+  <data name="MyProfile.NoLikesYet" xml:space="preserve">
+    <value>No likes yet</value>
+  </data>
+  <data name="MyProfile.NoAIVariantsYet" xml:space="preserve">
+    <value>No AI variants yet</value>
+  </data>
+  <data name="MyProfile.NoCreatedPlansYet" xml:space="preserve">
+    <value>No created plans yet</value>
+  </data>
+  <data name="MyProfile.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="MyProfile.NoPurchasedPlansYet" xml:space="preserve">
+    <value>No purchased plans yet</value>
+  </data>
+  <data name="MyProfile.GoToMarketplace" xml:space="preserve">
+    <value>Go to Marketplace</value>
+  </data>
+  <data name="MyProfile.DaysLowercase" xml:space="preserve">
+    <value>days</value>
+  </data>
+  <data name="MyProfile.Days" xml:space="preserve">
+    <value>Days</value>
+  </data>
+  <data name="MyProfile.Recipes" xml:space="preserve">
+    <value>Recipes</value>
+  </data>
+  <data name="MyProfile.Purchased" xml:space="preserve">
+    <value>Purchased</value>
+  </data>
+  <data name="MyProfile.PurchasedOn" xml:space="preserve">
+    <value>Purchased on</value>
+  </data>
+  <data name="MyProfile.Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="MyProfile.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="MyProfile.TakePostingOfflineConfirm" xml:space="preserve">
+    <value>Take posting offline?</value>
+  </data>
+  <data name="MyProfile.TakeOffline" xml:space="preserve">
+    <value>Take offline</value>
+  </data>
+  <data name="MyProfile.PutPostingOnlineConfirm" xml:space="preserve">
+    <value>Put posting back online?</value>
+  </data>
+  <data name="MyProfile.PutOnline" xml:space="preserve">
+    <value>Put online</value>
+  </data>
+  <data name="MyProfile.DeletePostingPermanentlyConfirm" xml:space="preserve">
+    <value>Permanently DELETE this posting? All data will be removed!</value>
+  </data>
+  <data name="MyProfile.DeletePermanently" xml:space="preserve">
+    <value>Delete permanently</value>
+  </data>
+
+  <!-- Shared Feeds -->
+  <data name="SharedFeed.Title" xml:space="preserve">
+    <value>Shared Content</value>
+  </data>
+  <data name="SharedFeed.MyGroups" xml:space="preserve">
+    <value>My Groups</value>
+  </data>
+  <data name="SharedFeed.MemberIn" xml:space="preserve">
+    <value>Member in</value>
+  </data>
+  <data name="SharedFeed.CreateNewFeed" xml:space="preserve">
+    <value>Create New Group Feed</value>
+  </data>
+  <data name="SharedFeed.FeedTitlePlaceholder" xml:space="preserve">
+    <value>e.g. Family Plan or Shared Kitchen</value>
+  </data>
+  <data name="SharedFeed.Create" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="SharedFeed.Members" xml:space="preserve">
+    <value>members</value>
+  </data>
+  <data name="SharedFeed.Items" xml:space="preserve">
+    <value>items</value>
+  </data>
+  <data name="SharedFeed.InviteLink" xml:space="preserve">
+    <value>Copy invite link</value>
+  </data>
+  <data name="SharedFeed.NoFeeds" xml:space="preserve">
+    <value>No shared feeds yet.</value>
+  </data>
+  <data name="SharedFeed.NoItems" xml:space="preserve">
+    <value>No content in this group yet. Share a meal plan or shopping list from the planner.</value>
+  </data>
+
+  <!-- Todo List -->
+  <data name="Todo.Title" xml:space="preserve">
+    <value>Todo List</value>
+  </data>
+  <data name="Todo.AddPlaceholder" xml:space="preserve">
+    <value>Add new task...</value>
+  </data>
+  <data name="Todo.NoTodos" xml:space="preserve">
+    <value>No tasks. Add the first one!</value>
+  </data>
+  <data name="Todo.CompletedBy" xml:space="preserve">
+    <value>✓ by {0}</value>
+  </data>
+  <data name="Todo.CreatedBy" xml:space="preserve">
+    <value>by {0}</value>
+  </data>
+  <data name="Todo.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="Todo.DeleteConfirm" xml:space="preserve">
+    <value>Really delete this todo?</value>
+  </data>
+  <data name="Todo.AddError" xml:space="preserve">
+    <value>Error adding task.</value>
+  </data>
+
+  <!-- Group Chat -->
+  <data name="Chat.Title" xml:space="preserve">
+    <value>Group Chat</value>
+  </data>
+  <data name="Chat.MessagePlaceholder" xml:space="preserve">
+    <value>Type a message...</value>
+  </data>
+  <data name="Chat.NoMessages" xml:space="preserve">
+    <value>No messages yet. Start the conversation!</value>
+  </data>
+  <data name="Chat.Loading" xml:space="preserve">
+    <value>Loading messages...</value>
+  </data>
+  <data name="Chat.SendError" xml:space="preserve">
+    <value>Error sending message.</value>
+  </data>
+  <data name="Chat.LoadError" xml:space="preserve">
+    <value>Error loading messages.</value>
+  </data>
+
+  <!-- Add to Feed -->
+  <data name="AddToFeed.Title" xml:space="preserve">
+    <value>Add to Feed</value>
+  </data>
+  <data name="AddToFeed.Loading" xml:space="preserve">
+    <value>Loading feeds...</value>
+  </data>
+  <data name="AddToFeed.NoFeeds" xml:space="preserve">
+    <value>You don't have any feeds yet. Create a feed first.</value>
+  </data>
+  <data name="AddToFeed.Adding" xml:space="preserve">
+    <value>Adding...</value>
+  </data>
+  <data name="AddToFeed.Success" xml:space="preserve">
+    <value>Successfully added!</value>
+  </data>
+  <data name="AddToFeed.SuccessMessage" xml:space="preserve">
+    <value>The meal plan was added to "{0}"</value>
+  </data>
+  <data name="AddToFeed.Error" xml:space="preserve">
+    <value>Error adding. The plan may already be in the feed.</value>
+  </data>
+  <data name="AddToFeed.Retry" xml:space="preserve">
+    <value>Try again</value>
+  </data>
+
+  <!-- Home Navigation -->
+  <data name="Home.SharedContent" xml:space="preserve">
+    <value>Shared Content</value>
+  </data>
+  <data name="Home.SharedContentDesc" xml:space="preserve">
+    <value>Group feeds, chat &amp; todos</value>
+  </data>
+
+  <!-- Import Meal Plan -->
+  <data name="Import.Title" xml:space="preserve">
+    <value>Import Meal Plan</value>
+  </data>
+  <data name="Import.Button" xml:space="preserve">
+    <value>Import My Meal Plan</value>
+  </data>
+  <data name="Import.Loading" xml:space="preserve">
+    <value>Loading plans...</value>
+  </data>
+  <data name="Import.NoPlans" xml:space="preserve">
+    <value>You have no saved meal plans yet.</value>
+  </data>
+  <data name="Import.Importing" xml:space="preserve">
+    <value>Importing...</value>
+  </data>
+  <data name="Import.Success" xml:space="preserve">
+    <value>Successfully imported!</value>
+  </data>
+  <data name="Import.SuccessMessage" xml:space="preserve">
+    <value>The meal plan was imported to the group.</value>
+  </data>
+  <data name="Import.Error" xml:space="preserve">
+    <value>Error importing plan.</value>
+  </data>
+  <data name="Import.AdminActions" xml:space="preserve">
+    <value>Admin Actions</value>
+  </data>
 </root>

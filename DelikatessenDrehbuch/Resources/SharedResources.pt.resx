@@ -569,4 +569,400 @@
   <data name="Video.LoadError" xml:space="preserve">
     <value>Erro ao carregar o vídeo. Por favor, tente novamente.</value>
   </data>
+
+  <!-- Create Posting -->
+  <data name="CreatePosting.CreatorStudio" xml:space="preserve">
+    <value>Creator Studio</value>
+  </data>
+  <data name="CreatePosting.BasicInfo" xml:space="preserve">
+    <value>Informação básica</value>
+  </data>
+  <data name="CreatePosting.Title" xml:space="preserve">
+    <value>Título</value>
+  </data>
+  <data name="CreatePosting.Preference" xml:space="preserve">
+    <value>Preferência</value>
+  </data>
+  <data name="CreatePosting.Minutes" xml:space="preserve">
+    <value>Minutos</value>
+  </data>
+  <data name="CreatePosting.MediaScript" xml:space="preserve">
+    <value>Roteiro de mídia</value>
+  </data>
+  <data name="CreatePosting.SelectVideoOrImage" xml:space="preserve">
+    <value>Selecionar vídeo ou imagem</value>
+  </data>
+  <data name="CreatePosting.SelectIngredients" xml:space="preserve">
+    <value>Selecionar ingredientes</value>
+  </data>
+  <data name="CreatePosting.SelectKeywords" xml:space="preserve">
+    <value>Selecionar palavras-chave</value>
+  </data>
+  <data name="CreatePosting.Publish" xml:space="preserve">
+    <value>Publicar</value>
+  </data>
+
+  <!-- Preferences -->
+  <data name="Preference.Vegan" xml:space="preserve">
+    <value>Vegano</value>
+  </data>
+  <data name="Preference.Vegetarian" xml:space="preserve">
+    <value>Vegetariano</value>
+  </data>
+  <data name="Preference.Fish" xml:space="preserve">
+    <value>Peixe</value>
+  </data>
+  <data name="Preference.Pork" xml:space="preserve">
+    <value>Porco</value>
+  </data>
+  <data name="Preference.Beef" xml:space="preserve">
+    <value>Carne</value>
+  </data>
+  <data name="Preference.OtherMeat" xml:space="preserve">
+    <value>Outra carne</value>
+  </data>
+
+  <!-- CreatePosting Additional Keys -->
+  <data name="CreatePosting.NewPosting" xml:space="preserve">
+    <value>Nova publicação</value>
+  </data>
+  <data name="CreatePosting.SelectCategory" xml:space="preserve">
+    <value>Selecionar categoria</value>
+  </data>
+  <data name="CreatePosting.Basics" xml:space="preserve">
+    <value>Base</value>
+  </data>
+  <data name="CreatePosting.TitleCategoryPersonsTime" xml:space="preserve">
+    <value>Título, categoria, pessoas, tempo</value>
+  </data>
+  <data name="CreatePosting.Category" xml:space="preserve">
+    <value>Categoria</value>
+  </data>
+  <data name="CreatePosting.Persons" xml:space="preserve">
+    <value>Pessoas</value>
+  </data>
+  <data name="CreatePosting.DurationMin" xml:space="preserve">
+    <value>Duração (min)</value>
+  </data>
+  <data name="CreatePosting.VideoOrImageForFeed" xml:space="preserve">
+    <value>Vídeo ou imagem para o feed</value>
+  </data>
+  <data name="CreatePosting.CurrentImageVideo" xml:space="preserve">
+    <value>Imagem/vídeo atual</value>
+  </data>
+  <data name="CreatePosting.OptionalUploadNew" xml:space="preserve">
+    <value>Opcional: fazer upload de nova imagem/vídeo</value>
+  </data>
+  <data name="CreatePosting.UploadStart" xml:space="preserve">
+    <value>Iniciar upload</value>
+  </data>
+  <data name="CreatePosting.ChooseVideoOrImage" xml:space="preserve">
+    <value>Escolha um vídeo ou imagem (estilo feed).</value>
+  </data>
+  <data name="CreatePosting.IngredientsSelection" xml:space="preserve">
+    <value>Seleção de ingredientes</value>
+  </data>
+  <data name="CreatePosting.SearchConfigureIngredients" xml:space="preserve">
+    <value>Pesquise e configure seus ingredientes</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Toque para editar</value>
+  </data>
+  <data name="CreatePosting.YourIngredientMissing" xml:space="preserve">
+    <value>Seu ingrediente está faltando?</value>
+  </data>
+  <data name="CreatePosting.IngredientTestHint" xml:space="preserve">
+    <value>Para testar: insira um ingrediente, pesquise primeiro no catálogo, caso contrário obtenha uma sugestão de IA.</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Passos de preparação</value>
+  </data>
+  <data name="CreatePosting.WriteStepsWillTranslate" xml:space="preserve">
+    <value>Escreva seus passos - será traduzido para 10 idiomas ao salvar</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Instruções de cozinha</value>
+  </data>
+  <data name="CreatePosting.WriteStepsAiTranslates" xml:space="preserve">
+    <value>Apenas escreva seus passos - a IA traduzirá para todos os idiomas ao salvar (alemão, inglês, espanhol, português, indonésio, holandês, sueco, dinamarquês, norueguês, malaio)</value>
+  </data>
+  <data name="CreatePosting.KeywordsHelpFeedSearch" xml:space="preserve">
+    <value>Ajuda no feed e pesquisa</value>
+  </data>
+  <data name="CreatePosting.ReadyToPost" xml:space="preserve">
+    <value>Pronto para postar?</value>
+  </data>
+  <data name="CreatePosting.Save" xml:space="preserve">
+    <value>Salvar</value>
+  </data>
+  <data name="CreatePosting.Add" xml:space="preserve">
+    <value>Adicionar</value>
+  </data>
+  <data name="CreatePosting.SavedSessionFound" xml:space="preserve">
+    <value>Sessão salva encontrada</value>
+  </data>
+  <data name="CreatePosting.Restore" xml:space="preserve">
+    <value>Restaurar</value>
+  </data>
+  <data name="CreatePosting.Discard" xml:space="preserve">
+    <value>Descartar</value>
+  </data>
+  <data name="MyProfile.BackToFeed" xml:space="preserve">
+    <value>Voltar ao feed</value>
+  </data>
+  <data name="MyProfile.Following" xml:space="preserve">
+    <value>Seguindo</value>
+  </data>
+  <data name="MyProfile.Likes" xml:space="preserve">
+    <value>Curtidas</value>
+  </data>
+  <data name="MyProfile.Followers" xml:space="preserve">
+    <value>Seguidores</value>
+  </data>
+  <data name="MyProfile.Settings" xml:space="preserve">
+    <value>Ajustes</value>
+  </data>
+  <data name="MyProfile.DisplayName" xml:space="preserve">
+    <value>Nome</value>
+  </data>
+  <data name="MyProfile.Save" xml:space="preserve">
+    <value>Salvar</value>
+  </data>
+  <data name="MyProfile.Marketplace" xml:space="preserve">
+    <value>Mercado</value>
+  </data>
+  <data name="MyProfile.MyListings" xml:space="preserve">
+    <value>Minhas ofertas</value>
+  </data>
+  <data name="MyProfile.CommentModeration" xml:space="preserve">
+    <value>Moderacao</value>
+  </data>
+  <data name="MyProfile.ReportedContent" xml:space="preserve">
+    <value>Conteúdo Denunciado</value>
+  </data>
+  <data name="MyProfile.CreatorManager" xml:space="preserve">
+    <value>Gerenciador de Criadores</value>
+  </data>
+  <data name="MyProfile.CreatorDashboard" xml:space="preserve">
+    <value>Painel creator</value>
+  </data>
+  <data name="MyProfile.TabLikes" xml:space="preserve">
+    <value>CURTIDAS</value>
+  </data>
+  <data name="MyProfile.TabAI" xml:space="preserve">
+    <value>AI</value>
+  </data>
+  <data name="MyProfile.TabCreators" xml:space="preserve">
+    <value>SEGUINDO</value>
+  </data>
+  <data name="MyProfile.TabCreated" xml:space="preserve">
+    <value>CRIADOS</value>
+  </data>
+  <data name="MyProfile.TabBought" xml:space="preserve">
+    <value>COMPRADOS</value>
+  </data>
+  <data name="MyProfile.TabVideos" xml:space="preserve">
+    <value>VÍDEOS</value>
+  </data>
+  <data name="MyProfile.NoLikesYet" xml:space="preserve">
+    <value>Ainda sem curtidas</value>
+  </data>
+  <data name="MyProfile.NoAIVariantsYet" xml:space="preserve">
+    <value>Ainda não há variantes AI</value>
+  </data>
+  <data name="MyProfile.NoCreatedPlansYet" xml:space="preserve">
+    <value>Ainda não há planos criados</value>
+  </data>
+  <data name="MyProfile.Delete" xml:space="preserve">
+    <value>Apagar</value>
+  </data>
+  <data name="MyProfile.NoPurchasedPlansYet" xml:space="preserve">
+    <value>Ainda não há planos comprados</value>
+  </data>
+  <data name="MyProfile.GoToMarketplace" xml:space="preserve">
+    <value>Ir ao mercado</value>
+  </data>
+  <data name="MyProfile.DaysLowercase" xml:space="preserve">
+    <value>dias</value>
+  </data>
+  <data name="MyProfile.Days" xml:space="preserve">
+    <value>Dias</value>
+  </data>
+  <data name="MyProfile.Recipes" xml:space="preserve">
+    <value>Receitas</value>
+  </data>
+  <data name="MyProfile.Purchased" xml:space="preserve">
+    <value>Comprado</value>
+  </data>
+  <data name="MyProfile.PurchasedOn" xml:space="preserve">
+    <value>Comprado em</value>
+  </data>
+  <data name="MyProfile.Open" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="MyProfile.Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="MyProfile.TakePostingOfflineConfirm" xml:space="preserve">
+    <value>Colocar publicação offline?</value>
+  </data>
+  <data name="MyProfile.TakeOffline" xml:space="preserve">
+    <value>Colocar offline</value>
+  </data>
+  <data name="MyProfile.PutPostingOnlineConfirm" xml:space="preserve">
+    <value>Colocar publicação online?</value>
+  </data>
+  <data name="MyProfile.PutOnline" xml:space="preserve">
+    <value>Colocar online</value>
+  </data>
+  <data name="MyProfile.DeletePostingPermanentlyConfirm" xml:space="preserve">
+    <value>Apagar publicação PERMANENTEMENTE?</value>
+  </data>
+  <data name="MyProfile.DeletePermanently" xml:space="preserve">
+    <value>Apagar</value>
+  </data>
+
+  <!-- Shared Feeds -->
+  <data name="SharedFeed.Title" xml:space="preserve">
+    <value>Conteúdo Partilhado</value>
+  </data>
+  <data name="SharedFeed.MyGroups" xml:space="preserve">
+    <value>Meus Grupos</value>
+  </data>
+  <data name="SharedFeed.MemberIn" xml:space="preserve">
+    <value>Membro em</value>
+  </data>
+  <data name="SharedFeed.CreateNewFeed" xml:space="preserve">
+    <value>Criar Novo Feed de Grupo</value>
+  </data>
+  <data name="SharedFeed.FeedTitlePlaceholder" xml:space="preserve">
+    <value>p. ex. Plano Familiar ou Cozinha Partilhada</value>
+  </data>
+  <data name="SharedFeed.Create" xml:space="preserve">
+    <value>Criar</value>
+  </data>
+  <data name="SharedFeed.Members" xml:space="preserve">
+    <value>membros</value>
+  </data>
+  <data name="SharedFeed.Items" xml:space="preserve">
+    <value>itens</value>
+  </data>
+  <data name="SharedFeed.InviteLink" xml:space="preserve">
+    <value>Copiar link de convite</value>
+  </data>
+  <data name="SharedFeed.NoFeeds" xml:space="preserve">
+    <value>Ainda não há feeds partilhados.</value>
+  </data>
+  <data name="SharedFeed.NoItems" xml:space="preserve">
+    <value>Ainda não há conteúdo neste grupo. Partilhe um plano de refeições ou lista de compras.</value>
+  </data>
+
+  <!-- Todo List -->
+  <data name="Todo.Title" xml:space="preserve">
+    <value>Lista de Tarefas</value>
+  </data>
+  <data name="Todo.AddPlaceholder" xml:space="preserve">
+    <value>Adicionar nova tarefa...</value>
+  </data>
+  <data name="Todo.NoTodos" xml:space="preserve">
+    <value>Sem tarefas. Adicione a primeira!</value>
+  </data>
+  <data name="Todo.CompletedBy" xml:space="preserve">
+    <value>✓ por {0}</value>
+  </data>
+  <data name="Todo.CreatedBy" xml:space="preserve">
+    <value>por {0}</value>
+  </data>
+  <data name="Todo.Delete" xml:space="preserve">
+    <value>Apagar</value>
+  </data>
+  <data name="Todo.DeleteConfirm" xml:space="preserve">
+    <value>Apagar esta tarefa?</value>
+  </data>
+  <data name="Todo.AddError" xml:space="preserve">
+    <value>Erro ao adicionar tarefa.</value>
+  </data>
+
+  <!-- Group Chat -->
+  <data name="Chat.Title" xml:space="preserve">
+    <value>Chat de Grupo</value>
+  </data>
+  <data name="Chat.MessagePlaceholder" xml:space="preserve">
+    <value>Digite uma mensagem...</value>
+  </data>
+  <data name="Chat.NoMessages" xml:space="preserve">
+    <value>Ainda não há mensagens. Inicie a conversa!</value>
+  </data>
+  <data name="Chat.Loading" xml:space="preserve">
+    <value>Carregando mensagens...</value>
+  </data>
+  <data name="Chat.SendError" xml:space="preserve">
+    <value>Erro ao enviar mensagem.</value>
+  </data>
+  <data name="Chat.LoadError" xml:space="preserve">
+    <value>Erro ao carregar mensagens.</value>
+  </data>
+
+  <!-- Add to Feed -->
+  <data name="AddToFeed.Title" xml:space="preserve">
+    <value>Adicionar ao Feed</value>
+  </data>
+  <data name="AddToFeed.Loading" xml:space="preserve">
+    <value>Carregando feeds...</value>
+  </data>
+  <data name="AddToFeed.NoFeeds" xml:space="preserve">
+    <value>Você ainda não tem feeds. Crie um feed primeiro.</value>
+  </data>
+  <data name="AddToFeed.Adding" xml:space="preserve">
+    <value>Adicionando...</value>
+  </data>
+  <data name="AddToFeed.Success" xml:space="preserve">
+    <value>Adicionado com sucesso!</value>
+  </data>
+  <data name="AddToFeed.SuccessMessage" xml:space="preserve">
+    <value>O plano de refeições foi adicionado a "{0}"</value>
+  </data>
+  <data name="AddToFeed.Error" xml:space="preserve">
+    <value>Erro ao adicionar. O plano pode já estar no feed.</value>
+  </data>
+  <data name="AddToFeed.Retry" xml:space="preserve">
+    <value>Tentar novamente</value>
+  </data>
+
+  <!-- Home Navigation -->
+  <data name="Home.SharedContent" xml:space="preserve">
+    <value>Conteúdo Partilhado</value>
+  </data>
+  <data name="Home.SharedContentDesc" xml:space="preserve">
+    <value>Feeds de grupo, chat e tarefas</value>
+  </data>
+
+  <!-- Import Meal Plan -->
+  <data name="Import.Title" xml:space="preserve">
+    <value>Importar Plano de Refeições</value>
+  </data>
+  <data name="Import.Button" xml:space="preserve">
+    <value>Importar Meu Plano de Refeições</value>
+  </data>
+  <data name="Import.Loading" xml:space="preserve">
+    <value>Carregando planos...</value>
+  </data>
+  <data name="Import.NoPlans" xml:space="preserve">
+    <value>Você ainda não tem planos de refeições guardados.</value>
+  </data>
+  <data name="Import.Importing" xml:space="preserve">
+    <value>Importando...</value>
+  </data>
+  <data name="Import.Success" xml:space="preserve">
+    <value>Importado com sucesso!</value>
+  </data>
+  <data name="Import.SuccessMessage" xml:space="preserve">
+    <value>O plano de refeições foi importado para o grupo.</value>
+  </data>
+  <data name="Import.Error" xml:space="preserve">
+    <value>Erro ao importar plano.</value>
+  </data>
+  <data name="Import.AdminActions" xml:space="preserve">
+    <value>Ações de Administrador</value>
+  </data>
 </root>

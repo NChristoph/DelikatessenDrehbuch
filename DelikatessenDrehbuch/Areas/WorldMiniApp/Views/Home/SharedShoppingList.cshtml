@@ -198,7 +198,7 @@
                 const tokenInput = document.querySelector('input[name="__RequestVerificationToken"]');
                 const csrfToken = tokenInput ? tokenInput.value : null;
 
-                await fetch('/WorldMiniApp/Home/UpdateSharedListChecked', {
+                await fetch('/WorldMiniApp/MealPlan/UpdateSharedListChecked', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -209,7 +209,7 @@
                 dirty = false;
             }
 
-            var resp = await fetch('/WorldMiniApp/Home/GetSharedListState?token=' + encodeURIComponent(token));
+            var resp = await fetch('/WorldMiniApp/MealPlan/GetSharedListState?token=' + encodeURIComponent(token));
             if (resp.ok) {
                 var data = await resp.json();
                 var serverChecked = JSON.parse(data.checked || '[]');

@@ -1,0 +1,1481 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.SharedFeedIndexViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IViewLocalizer Localizer
+@{
+    Layout = "_MiniAppLayout";
+    ViewData["Title"] = Localizer["SharedFeed.Title"];
+    var active = Model.ActiveFeed;
+    var allFeeds = Model.Feeds.ToList();
+}
+
+<div class="s-screen">
+    <!-- TopBar -->
+    <div class="s-topbar">
+        <a class="s-back-pill" href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+            <span>Home</span>
+        </a>
+        <div class="s-title-block">
+            <div class="s-eyebrow">GRUPPEN</div>
+            <h1>@Localizer["SharedFeed.Title"]</h1>
+        </div>
+        <div class="s-lang-pill">
+            <span>DE</span>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>
+        </div>
+    </div>
+
+    <!-- Stories Row (Gruppen-Carousel) -->
+    <div class="s-stories-row">
+        <!-- Create Tile -->
+        <div class="s-story-tile" onclick="showCreateGroupModal()">
+            <div class="s-story-create">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+            </div>
+            <div class="s-story-label">Neu</div>
+        </div>
+
+        <!-- Group Tiles -->
+        @foreach (var feed in allFeeds)
+        {
+            var isActive = active?.Id == feed.Id;
+            var initials = GetInitials(feed.Title);
+            var gradientIndex = GetGradientIndex(feed.Title);
+
+            <div class="s-story-tile @(isActive ? "is-active" : "")" onclick="switchGroup(@feed.Id)">
+                <div class="s-story-avatar" data-gradient="@gradientIndex">
+                    <span>@initials</span>
+                </div>
+                <div class="s-story-label">@(feed.Title.Length > 10 ? feed.Title.Substring(0, 10) : feed.Title)</div>
+                @if (feed.UnreadCount > 0)
+                {
+                    <div class="s-story-badge">@feed.UnreadCount</div>
+                }
+            </div>
+        }
+    </div>
+
+    @if (active != null)
+    {
+        <!-- Hero Banner -->
+        <div class="s-hero">
+            <div class="s-hero-glow"></div>
+            <div class="s-hero-content">
+                <div class="s-hero-pill">
+                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    <span>AKTIVE GRUPPE</span>
+                </div>
+                <h2 class="s-hero-title">@active.Title</h2>
+                <div class="s-hero-members">
+                    @{
+                        var maxAvatars = Math.Min(4, active.Members.Count);
+                        for (int i = 0; i < maxAvatars; i++)
+                        {
+                            var member = active.Members[i];
+                            var memberInitials = GetInitials(member.DisplayName);
+                            var memberGradient = GetGradientIndex(member.DisplayName);
+                            <div class="s-hero-member-avatar" data-gradient="@memberGradient">
+                                <span>@memberInitials</span>
+                            </div>
+                        }
+                    }
+                    <span class="s-hero-meta">@active.MemberCount Mitglieder · @active.ItemCount Beiträge</span>
+                </div>
+                <button type="button" class="s-hero-invite" onclick="copyInviteUrl('@active.InviteUrl')">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    <span>Einladen</span>
+                </button>
+                <div class="s-hero-stats">
+                    <div class="s-hero-stat">
+                        <div class="s-hero-stat-val">@active.MemberCount</div>
+                        <div class="s-hero-stat-label">MITGLIEDER</div>
+                    </div>
+                    <div class="s-hero-stat">
+                        <div class="s-hero-stat-val">@active.ItemCount</div>
+                        <div class="s-hero-stat-label">BEITRÄGE</div>
+                    </div>
+                    <div class="s-hero-stat">
+                        <div class="s-hero-stat-val">@active.Todos.Count(t => !t.IsCompleted)</div>
+                        <div class="s-hero-stat-label">AUFGABEN</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab Bar -->
+        <div class="s-tab-bar">
+            <button type="button" class="s-tab active" data-tab="feed" onclick="switchTab('feed')">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+                <span>Feed</span>
+            </button>
+            <button type="button" class="s-tab" data-tab="chat" onclick="switchTab('chat')">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Chat</span>
+                @if (active.UnreadCount > 0)
+                {
+                    <div class="s-tab-badge">@active.UnreadCount</div>
+                }
+            </button>
+            <button type="button" class="s-tab" data-tab="tasks" onclick="switchTab('tasks')">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                <span>Aufgaben</span>
+            </button>
+            <button type="button" class="s-tab" data-tab="members" onclick="switchTab('members')">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                <span>Mitglieder</span>
+            </button>
+        </div>
+
+        <!-- Tab Bodies -->
+        <div class="s-tab-content">
+            <!-- Feed Tab -->
+            <div class="s-tab-body active" data-tab-body="feed">
+                @if (active.IsOwner)
+                {
+                    <!-- Admin Import Button -->
+                    <button type="button" class="s-composer-trigger" onclick="showImportMealPlanModal()">
+                        <div class="s-composer-avatar" data-gradient="0">
+                            <span>@GetInitials(Model.CurrentUserHash)</span>
+                        </div>
+                        <span class="s-composer-text">Essensplan teilen...</span>
+                        <div class="s-composer-pill">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                            <span>Plan</span>
+                        </div>
+                    </button>
+                }
+
+                <!-- Feed Items -->
+                @if (!active.Items.Any())
+                {
+                    <div class="s-empty">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        <p>Noch keine Inhalte in dieser Gruppe. Teile einen Mealplan.</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var item in active.Items)
+                    {
+                        ViewData["FeedId"] = active.Id;
+                        ViewData["CurrentUserHash"] = active.CurrentUserHash;
+                        if (item.ContentType == "mealplan")
+                        {
+                            @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/MealPlanSharedFeed.cshtml", item)
+                        }
+                        else
+                        {
+                            @await Html.PartialAsync("~/Areas/WorldMiniApp/Views/Shared/ShoppingListSharedFeed.cshtml", item)
+                        }
+                    }
+                }
+            </div>
+
+            <!-- Chat Tab -->
+            <div class="s-tab-body" data-tab-body="chat">
+                <div class="s-chat-messages" id="chatMessages" data-feed-id="@active.Id" data-user-hash="@Model.CurrentUserHash">
+                    <div class="s-chat-loading">Nachrichten werden geladen...</div>
+                </div>
+                <div class="s-chat-composer">
+                    <input type="file" id="chatFileInput" accept="image/*,application/pdf,.doc,.docx" style="display: none;" />
+                    <button type="button" class="s-chat-attach" onclick="document.getElementById('chatFileInput').click()">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.44 11.05-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"/></svg>
+                    </button>
+                    <div class="s-chat-input-pill">
+                        <div id="chatFilePreview" class="s-chat-file-preview" style="display: none;"></div>
+                        <input type="text" id="chatInput" placeholder="Nachricht eingeben..." maxlength="1000" />
+                        <button type="button" class="s-chat-emoji">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+                        </button>
+                    </div>
+                    <button type="button" class="s-chat-send" id="chatSendBtn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Tasks Tab -->
+            <div class="s-tab-body" data-tab-body="tasks">
+                <div class="s-task-add">
+                    <input type="text" id="todoInput" class="s-task-input" placeholder="Neue Aufgabe hinzufügen..." maxlength="200" />
+                    <button type="button" id="todoAddBtn" class="s-task-add-btn">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                    </button>
+                </div>
+
+                @if (active.Todos.Any())
+                {
+                    var completedCount = active.Todos.Count(t => t.IsCompleted);
+                    var totalCount = active.Todos.Count;
+                    var percentage = totalCount > 0 ? (completedCount * 100 / totalCount) : 0;
+
+                    <div class="s-progress-card">
+                        <div class="s-progress-row">
+                            <div class="s-progress-left">
+                                <div class="s-progress-eyebrow">DIESE WOCHE</div>
+                                <div class="s-progress-num">@completedCount<span class="s-progress-total">/@totalCount erledigt</span></div>
+                            </div>
+                            <div class="s-progress-percent">@percentage%</div>
+                        </div>
+                        <div class="s-progress-bar">
+                            <div class="s-progress-fill" style="width: @percentage%"></div>
+                        </div>
+                    </div>
+                }
+
+                <div class="s-task-list" id="todoList" data-feed-id="@active.Id" data-user-hash="@Model.CurrentUserHash" data-is-owner="@active.IsOwner">
+                    @if (!active.Todos.Any())
+                    {
+                        <div class="s-empty">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                            <p>Keine Aufgaben. Füge die erste hinzu!</p>
+                        </div>
+                    }
+                    else
+                    {
+                        @foreach (var todo in active.Todos)
+                        {
+                            <div class="s-task-row @(todo.IsCompleted ? "is-done" : "")" data-todo-id="@todo.Id">
+                                <div class="s-task-checkbox" onclick="toggleTodo(@todo.Id)">
+                                    @if (todo.IsCompleted)
+                                    {
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    }
+                                    else
+                                    {
+                                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+                                    }
+                                </div>
+                                <div class="s-task-content">
+                                    <div class="s-task-text">@todo.Title</div>
+                                    <div class="s-task-meta">
+                                        @if (todo.IsCompleted && !string.IsNullOrEmpty(todo.CompletedByName))
+                                        {
+                                            <span>@todo.CompletedByName · Erledigt</span>
+                                        }
+                                        else
+                                        {
+                                            <span>@todo.CreatedByName</span>
+                                        }
+                                    </div>
+                                </div>
+                                @if (active.IsOwner)
+                                {
+                                    <form method="post" action="@Url.Action("DeleteTodo", "Shared", new { area = "WorldMiniApp" })" style="display:inline;" onsubmit="return confirm('Todo wirklich löschen?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="todoId" value="@todo.Id" />
+                                        <input type="hidden" name="userHash" value="@Model.CurrentUserHash" />
+                                        <input type="hidden" name="feedId" value="@active.Id" />
+                                        <button type="submit" class="s-task-delete">
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                                        </button>
+                                    </form>
+                                }
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+
+            <!-- Members Tab -->
+            <div class="s-tab-body" data-tab-body="members">
+                <div class="s-invite-card">
+                    <div class="s-invite-icon">
+                        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+                    </div>
+                    <div class="s-invite-text">
+                        <div class="s-invite-title">Einladungslink</div>
+                        <div class="s-invite-url">@active.InviteUrl.Substring(0, Math.Min(40, active.InviteUrl.Length))...</div>
+                    </div>
+                    <button type="button" class="s-invite-copy" onclick="copyInviteUrl('@active.InviteUrl')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                        <span>Kopieren</span>
+                    </button>
+                </div>
+
+                @foreach (var member in active.Members)
+                {
+                    var memberInitials = GetInitials(member.DisplayName);
+                    var memberGradient = GetGradientIndex(member.DisplayName);
+                    var isOnline = false; // TODO: implement online status
+
+                    <div class="s-member-row">
+                        <div class="s-member-avatar" data-gradient="@memberGradient">
+                            <span>@memberInitials</span>
+                        </div>
+                        <div class="s-member-text">
+                            <div class="s-member-name">
+                                @member.DisplayName
+                                @if (member.Role == "OWNER" || member.Role == "owner")
+                                {
+                                    <span class="s-member-role">ADMIN</span>
+                                }
+                                @if (isOnline)
+                                {
+                                    <span class="s-member-dot"></span>
+                                }
+                            </div>
+                            <div class="s-member-activity">Mitglied · @member.JoinedAtUtc.ToLocalTime().ToString("dd.MM.yyyy")</div>
+                        </div>
+                        <button type="button" class="s-member-more">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/><circle cx="5" cy="12" r="1"/></svg>
+                        </button>
+                    </div>
+                }
+
+                @if (!active.IsOwner)
+                {
+                    <!-- Leave Group Button -->
+                    <div style="margin-top: 24px; padding: 16px 0;">
+                        <form method="post" action="@Url.Action("LeaveFeed", "Shared", new { area = "WorldMiniApp" })" onsubmit="return confirm('Möchtest du diese Gruppe wirklich verlassen?');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="feedId" value="@active.Id" />
+                            <input type="hidden" name="userHash" value="@Model.CurrentUserHash" />
+                            <button type="submit" class="s-leave-group-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                                    <polyline points="16 17 21 12 16 7"/>
+                                    <line x1="21" y1="12" x2="9" y2="12"/>
+                                </svg>
+                                Gruppe verlassen
+                            </button>
+                        </form>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <!-- Empty State -->
+        <div class="s-empty-main">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+            <h2>Erstelle deine erste Gruppe</h2>
+            <p>Hier sammeln mehrere Nutzer Mealplans und Einkaufslisten an einem Ort.</p>
+        </div>
+    }
+</div>
+
+<!-- Create Group Modal -->
+<div id="createGroupModal" class="s-modal" style="display: none;">
+    <div class="s-modal-content">
+        <div class="s-modal-header">
+            <h3>Neue Gruppe erstellen</h3>
+            <button type="button" class="s-modal-close" onclick="closeCreateGroupModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <form method="post" action="@Url.Action("CreateFeed", "Shared", new { area = "WorldMiniApp" })">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="userHash" value="@Model.CurrentUserHash" />
+            <div class="s-modal-body">
+                <label class="s-form-label">Gruppen-Name</label>
+                <input name="title" class="s-form-input" maxlength="160" placeholder="z. B. Familienplan oder WG-Küche" required />
+            </div>
+            <div class="s-modal-footer">
+                <button type="button" class="s-btn s-btn-secondary" onclick="closeCreateGroupModal()">Abbrechen</button>
+                <button type="submit" class="s-btn s-btn-primary">Erstellen</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Import Meal Plan Modal -->
+<div id="importMealPlanModal" class="s-modal" style="display: none;">
+    <div class="s-modal-content">
+        <div class="s-modal-header">
+            <h3>Essensplan importieren</h3>
+            <button type="button" class="s-modal-close" onclick="closeImportMealPlanModal()">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+        </div>
+        <div id="importMealPlanList" class="s-modal-body">
+            <div class="s-modal-loading">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+                Lade deine Essenspläne...
+            </div>
+        </div>
+    </div>
+</div>
+
+@functions {
+    private string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        var words = name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length == 0) return "?";
+        if (words.Length == 1) return words[0].Substring(0, Math.Min(2, words[0].Length)).ToUpper();
+        return (words[0][0].ToString() + words[1][0].ToString()).ToUpper();
+    }
+
+    private int GetGradientIndex(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return 0;
+        var sum = name.Sum(c => (int)c);
+        return sum % 6;
+    }
+}
+
+<script src="~/areas/worldminiapp/js/shared-feed.js" asp-append-version="true"></script>
+
+<style>
+    /* Design Tokens */
+    :root {
+        --bg-cream: #f5efe1;
+        --bg-cream-2: #ede5d2;
+        --ink-deep: #14391f;
+        --ink-deep-2: #0f2c18;
+        --ink-mid: #2a4a32;
+        --ink-line: rgba(20, 57, 31, 0.12);
+        --ink-text: #1a2e20;
+        --ink-mute: #6b7868;
+        --ink-soft: #9aa295;
+        --avocado: #5fa052;
+        --avocado-dark: #3f7536;
+        --gold-warm: #f5e9a0;
+        --coral: #ff7849;
+        --card: #ffffff;
+        --card-soft: #faf6ec;
+        --shadow-sm: 0 2px 8px rgba(20, 57, 31, 0.06);
+        --shadow-md: 0 8px 24px rgba(20, 57, 31, 0.10);
+        --shadow-lg: 0 20px 60px rgba(20, 57, 31, 0.16);
+        --radius-sm: 10px;
+        --radius-md: 16px;
+        --radius-lg: 22px;
+        --radius-xl: 28px;
+        --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+        --font-serif: 'Fraunces', 'Playfair Display', Georgia, serif;
+        --grad-hero: linear-gradient(135deg, #5fa052 0%, #2f6a3a 55%, #14391f 100%);
+        --grad-bubble: linear-gradient(135deg, #2f6a3a, #14391f);
+        --grad-send: linear-gradient(135deg, #5fa052, #14391f);
+        --grad-checkbox: linear-gradient(135deg, #5fa052, #3f7536);
+        --grad-progress: linear-gradient(90deg, #5fa052, #14391f);
+    }
+
+    * { box-sizing: border-box; }
+
+    .s-screen {
+        width: 100%;
+        min-height: 100vh;
+        background: var(--bg-cream);
+        font-family: var(--font-sans);
+        color: var(--ink-text);
+        padding: 0 0 100px;
+    }
+
+    /* TopBar */
+    .s-topbar {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding: 14px 16px 8px;
+    }
+
+    .s-back-pill,
+    .s-lang-pill {
+        background: white;
+        border: 1px solid rgba(20,57,31,0.08);
+        border-radius: 999px;
+        padding: 7px 14px 7px 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: var(--ink-deep);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        text-decoration: none;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .s-lang-pill {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.06em;
+    }
+
+    .s-title-block {
+        flex: 1;
+        text-align: center;
+        padding: 0 10px;
+    }
+
+    .s-eyebrow {
+        font-size: 10px;
+        font-weight: 700;
+        letter-spacing: 0.18em;
+        color: var(--ink-soft);
+        text-transform: uppercase;
+        margin-bottom: 2px;
+    }
+
+    .s-title-block h1 {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        color: var(--ink-deep);
+        margin: 0;
+    }
+
+    /* Stories Row */
+    .s-stories-row {
+        display: flex;
+        gap: 14px;
+        padding: 0 16px 16px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+    }
+
+    .s-stories-row::-webkit-scrollbar {
+        display: none;
+    }
+
+    .s-story-tile {
+        flex-shrink: 0;
+        width: 64px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        scroll-snap-align: start;
+        position: relative;
+    }
+
+    .s-story-create {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        background: var(--card-soft);
+        border: 2px dashed rgba(20,57,31,0.25);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--ink-mute);
+    }
+
+    .s-story-avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: var(--font-serif);
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.02em;
+        box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+    }
+
+    .s-story-avatar[data-gradient="0"] { background: linear-gradient(135deg, #5fa052, #3f7536); }
+    .s-story-avatar[data-gradient="1"] { background: linear-gradient(135deg, #f5b942, #d99a3c); }
+    .s-story-avatar[data-gradient="2"] { background: linear-gradient(135deg, #ff7849, #c44e4e); }
+    .s-story-avatar[data-gradient="3"] { background: linear-gradient(135deg, #2f6a3a, #14391f); }
+    .s-story-avatar[data-gradient="4"] { background: linear-gradient(135deg, #7a4a18, #3a2510); }
+    .s-story-avatar[data-gradient="5"] { background: linear-gradient(135deg, #8a6418, #5a3d12); }
+
+    .s-story-tile.is-active .s-story-avatar {
+        width: 50px;
+        height: 50px;
+        box-shadow: 0 0 0 2px white, 0 0 0 4.5px var(--avocado);
+    }
+
+    .s-story-label {
+        font-size: 10px;
+        font-weight: 600;
+        color: var(--ink-mute);
+        text-align: center;
+    }
+
+    .s-story-tile.is-active .s-story-label {
+        color: var(--ink-deep);
+        font-weight: 700;
+    }
+
+    .s-story-badge {
+        position: absolute;
+        top: -2px;
+        right: 4px;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 5px;
+        border-radius: 999px;
+        background: var(--coral);
+        color: white;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 2px solid var(--bg-cream);
+    }
+
+    /* Hero Banner */
+    .s-hero {
+        margin: 0 14px 20px;
+        border-radius: 24px;
+        padding: 20px 18px;
+        background: var(--grad-hero);
+        box-shadow: 0 14px 32px rgba(20,57,31,0.28);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .s-hero-glow {
+        position: absolute;
+        top: -50px;
+        right: -30px;
+        width: 180px;
+        height: 180px;
+        border-radius: 50%;
+        background: radial-gradient(circle, rgba(245,233,160,0.28) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .s-hero-content {
+        position: relative;
+        z-index: 1;
+    }
+
+    .s-hero-pill {
+        background: rgba(255,255,255,0.16);
+        backdrop-filter: blur(6px);
+        padding: 3px 9px 3px 7px;
+        border-radius: 999px;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 9.5px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        color: white;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .s-hero-pill svg {
+        color: var(--gold-warm);
+    }
+
+    .s-hero-title {
+        font-family: var(--font-serif);
+        font-size: 26px;
+        font-weight: 700;
+        letter-spacing: -0.025em;
+        line-height: 1.05;
+        color: white;
+        margin: 0 0 8px;
+    }
+
+    .s-hero-members {
+        display: flex;
+        align-items: center;
+        gap: -8px;
+        margin-bottom: 14px;
+    }
+
+    .s-hero-member-avatar {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        margin-left: -8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: var(--font-serif);
+        font-size: 9px;
+        font-weight: 700;
+        box-shadow: 0 0 0 2px rgba(20,57,31,0.4);
+    }
+
+    .s-hero-member-avatar:first-child {
+        margin-left: 0;
+    }
+
+    .s-hero-member-avatar[data-gradient="0"] { background: linear-gradient(135deg, #5fa052, #3f7536); }
+    .s-hero-member-avatar[data-gradient="1"] { background: linear-gradient(135deg, #f5b942, #d99a3c); }
+    .s-hero-member-avatar[data-gradient="2"] { background: linear-gradient(135deg, #ff7849, #c44e4e); }
+    .s-hero-member-avatar[data-gradient="3"] { background: linear-gradient(135deg, #2f6a3a, #14391f); }
+    .s-hero-member-avatar[data-gradient="4"] { background: linear-gradient(135deg, #7a4a18, #3a2510); }
+    .s-hero-member-avatar[data-gradient="5"] { background: linear-gradient(135deg, #8a6418, #5a3d12); }
+
+    .s-hero-meta {
+        font-size: 12px;
+        font-weight: 500;
+        opacity: 0.9;
+        color: white;
+        margin-left: 12px;
+    }
+
+    .s-hero-invite {
+        position: absolute;
+        top: 20px;
+        right: 18px;
+        background: rgba(255,255,255,0.95);
+        border: none;
+        border-radius: 14px;
+        padding: 10px 12px;
+        font-size: 11.5px;
+        font-weight: 700;
+        color: var(--ink-deep);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+        cursor: pointer;
+    }
+
+    .s-hero-stats {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 8px;
+        margin-top: 14px;
+    }
+
+    .s-hero-stat {
+        background: rgba(255,255,255,0.10);
+        border: 1px solid rgba(255,255,255,0.14);
+        border-radius: 12px;
+        padding: 8px 10px;
+        backdrop-filter: blur(6px);
+        text-align: center;
+    }
+
+    .s-hero-stat-val {
+        font-family: var(--font-serif);
+        font-size: 18px;
+        font-weight: 700;
+        color: white;
+        margin-bottom: 2px;
+    }
+
+    .s-hero-stat-label {
+        font-size: 9px;
+        font-weight: 600;
+        opacity: 0.75;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: white;
+    }
+
+    /* Tab Bar */
+    .s-tab-bar {
+        margin: 0 14px 16px;
+        background: rgba(20,57,31,0.06);
+        border-radius: 14px;
+        padding: 4px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 2px;
+    }
+
+    .s-tab {
+        background: transparent;
+        border: none;
+        border-radius: 11px;
+        padding: 8px 4px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+        cursor: pointer;
+        position: relative;
+        color: var(--ink-mute);
+        font-size: 10px;
+        font-weight: 600;
+        letter-spacing: 0.04em;
+        transition: all 0.2s;
+    }
+
+    .s-tab svg {
+        stroke-width: 2;
+    }
+
+    .s-tab.active {
+        background: white;
+        color: var(--ink-deep);
+        font-weight: 700;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .s-tab.active svg {
+        stroke-width: 2.4;
+    }
+
+    .s-tab-badge {
+        position: absolute;
+        top: -2px;
+        right: 6px;
+        min-width: 14px;
+        height: 14px;
+        padding: 0 4px;
+        border-radius: 999px;
+        background: var(--coral);
+        color: white;
+        font-size: 8.5px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Tab Content */
+    .s-tab-content {
+        padding: 0 14px;
+    }
+
+    .s-tab-body {
+        display: none;
+    }
+
+    .s-tab-body.active {
+        display: block;
+    }
+
+    /* Composer Trigger (Feed Tab) */
+    .s-composer-trigger {
+        background: white;
+        border: 1px solid rgba(20,57,31,0.08);
+        border-radius: 16px;
+        padding: 12px 14px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: all 0.2s;
+        width: 100%;
+    }
+
+    .s-composer-trigger:hover {
+        border-color: rgba(20,57,31,0.2);
+    }
+
+    .s-composer-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: var(--font-serif);
+        font-size: 14px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .s-composer-text {
+        flex: 1;
+        font-size: 13px;
+        color: var(--ink-soft);
+        text-align: left;
+    }
+
+    .s-composer-pill {
+        background: rgba(95,160,82,0.10);
+        color: var(--avocado);
+        padding: 5px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Chat Messages */
+    .s-chat-messages {
+        height: 500px;
+        overflow-y: auto;
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        background: white;
+        border-radius: 18px;
+        margin-bottom: 12px;
+        border: 1px solid rgba(20,57,31,0.04);
+    }
+
+    .s-chat-loading,
+    .s-chat-empty {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--ink-mute);
+        font-size: 14px;
+    }
+
+    /* Chat Composer */
+    .s-chat-composer {
+        position: sticky;
+        bottom: 0;
+        background: rgba(245,239,225,0.92);
+        backdrop-filter: blur(12px);
+        padding: 10px 0 14px;
+        border-top: 1px solid rgba(20,57,31,0.06);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .s-chat-attach {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        background: white;
+        border: 1px solid rgba(20,57,31,0.08);
+        color: var(--ink-deep);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .s-chat-input-pill {
+        flex: 1;
+        background: white;
+        border: 1px solid rgba(20,57,31,0.08);
+        border-radius: 999px;
+        padding: 9px 14px 9px 16px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .s-chat-input-pill input {
+        flex: 1;
+        border: none;
+        background: transparent;
+        font-size: 13.5px;
+        color: var(--ink-text);
+        outline: none;
+    }
+
+    .s-chat-emoji {
+        background: none;
+        border: none;
+        color: var(--ink-soft);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        padding: 0;
+    }
+
+    .s-chat-send {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        background: var(--grad-send);
+        border: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 6px 16px rgba(20,57,31,0.28);
+    }
+
+    /* Task Add */
+    .s-task-add {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 14px;
+    }
+
+    .s-task-input {
+        flex: 1;
+        background: white;
+        border: 1px solid rgba(20,57,31,0.08);
+        border-radius: 14px;
+        padding: 11px 14px;
+        font-size: 13px;
+        box-shadow: var(--shadow-sm);
+    }
+
+    .s-task-add-btn {
+        width: 44px;
+        height: 44px;
+        border-radius: 14px;
+        background: var(--grad-send);
+        border: none;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 6px 14px rgba(20,57,31,0.22);
+    }
+
+    /* Progress Card */
+    .s-progress-card {
+        background: white;
+        border: 1px solid rgba(20,57,31,0.04);
+        border-radius: 18px;
+        padding: 14px;
+        box-shadow: var(--shadow-md);
+        margin-bottom: 12px;
+    }
+
+    .s-progress-row {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 10px;
+    }
+
+    .s-progress-eyebrow {
+        font-size: 10px;
+        font-weight: 700;
+        color: var(--ink-soft);
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+    }
+
+    .s-progress-num {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--ink-deep);
+        letter-spacing: -0.02em;
+    }
+
+    .s-progress-total {
+        font-family: var(--font-serif);
+        font-size: 16px;
+        font-weight: 500;
+        color: var(--ink-soft);
+    }
+
+    .s-progress-percent {
+        font-family: var(--font-serif);
+        font-size: 22px;
+        font-weight: 700;
+        color: var(--avocado);
+    }
+
+    .s-progress-bar {
+        height: 8px;
+        border-radius: 999px;
+        background: rgba(20,57,31,0.08);
+        overflow: hidden;
+    }
+
+    .s-progress-fill {
+        height: 100%;
+        background: var(--grad-progress);
+        transition: width 0.4s ease-out;
+    }
+
+    /* Task List */
+    .s-task-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .s-task-row {
+        background: white;
+        border: 1px solid rgba(20,57,31,0.04);
+        border-radius: 14px;
+        padding: 12px 14px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s;
+    }
+
+    .s-task-row:hover {
+        border-color: rgba(20,57,31,0.2);
+    }
+
+    .s-task-row.is-done {
+        opacity: 0.6;
+        background: #f8faf7;
+    }
+
+    .s-task-checkbox {
+        cursor: pointer;
+        color: var(--avocado);
+        display: flex;
+        flex-shrink: 0;
+    }
+
+    .s-task-content {
+        flex: 1;
+    }
+
+    .s-task-text {
+        color: var(--ink-deep);
+        font-size: 13.5px;
+        font-weight: 600;
+        line-height: 1.4;
+    }
+
+    .s-task-row.is-done .s-task-text {
+        text-decoration: line-through;
+        color: var(--ink-mute);
+    }
+
+    .s-task-meta {
+        font-size: 10.5px;
+        color: var(--ink-mute);
+        margin-top: 4px;
+    }
+
+    .s-task-delete {
+        background: none;
+        border: none;
+        color: #d9534f;
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        opacity: 0;
+        transition: all 0.2s;
+    }
+
+    .s-task-row:hover .s-task-delete {
+        opacity: 1;
+    }
+
+    /* Invite Card */
+    .s-invite-card {
+        background: white;
+        border: 1px dashed rgba(20,57,31,0.18);
+        border-radius: 18px;
+        padding: 14px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+
+    .s-invite-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: rgba(95,160,82,0.12);
+        color: var(--avocado);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .s-invite-text {
+        flex: 1;
+    }
+
+    .s-invite-title {
+        font-family: var(--font-serif);
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--ink-deep);
+        margin-bottom: 2px;
+    }
+
+    .s-invite-url {
+        font-size: 11px;
+        color: var(--ink-mute);
+    }
+
+    .s-invite-copy {
+        background: var(--ink-deep);
+        color: white;
+        border: none;
+        border-radius: 12px;
+        padding: 8px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        cursor: pointer;
+    }
+
+    /* Member Row */
+    .s-member-row {
+        background: white;
+        border: 1px solid rgba(20,57,31,0.04);
+        border-radius: 14px;
+        padding: 10px 14px;
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        box-shadow: var(--shadow-sm);
+        margin-bottom: 8px;
+    }
+
+    .s-member-avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: var(--font-serif);
+        font-size: 17px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .s-member-text {
+        flex: 1;
+    }
+
+    .s-member-name {
+        font-family: var(--font-serif);
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--ink-deep);
+        letter-spacing: -0.01em;
+        margin-bottom: 2px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .s-member-role {
+        font-family: var(--font-sans);
+        font-size: 8px;
+        font-weight: 700;
+        color: var(--avocado);
+        background: rgba(95,160,82,0.12);
+        padding: 2px 6px;
+        border-radius: 4px;
+        letter-spacing: 0.12em;
+    }
+
+    .s-member-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--avocado);
+        box-shadow: 0 0 0 2px white;
+    }
+
+    .s-member-activity {
+        font-size: 11px;
+        color: var(--ink-mute);
+    }
+
+    .s-member-more {
+        background: none;
+        border: none;
+        color: var(--ink-soft);
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+    }
+
+    /* Leave Group Button */
+    .s-leave-group-btn {
+        width: 100%;
+        background: white;
+        border: 2px solid #d9534f;
+        border-radius: 14px;
+        padding: 14px 20px;
+        color: #d9534f;
+        font-size: 15px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .s-leave-group-btn:hover {
+        background: #d9534f;
+        color: white;
+    }
+
+    .s-leave-group-btn:active {
+        transform: scale(0.98);
+    }
+
+    /* Empty States */
+    .s-empty,
+    .s-empty-main {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--ink-mute);
+    }
+
+    .s-empty svg,
+    .s-empty-main svg {
+        color: var(--avocado);
+        margin-bottom: 16px;
+    }
+
+    .s-empty-main h2 {
+        font-family: var(--font-serif);
+        font-size: 24px;
+        font-weight: 700;
+        color: var(--ink-deep);
+        margin: 16px 0 8px;
+    }
+
+    .s-empty p,
+    .s-empty-main p {
+        font-size: 14px;
+        color: var(--ink-mute);
+        line-height: 1.5;
+        margin: 0;
+    }
+
+    /* Modal */
+    .s-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+    }
+
+    .s-modal-content {
+        background: white;
+        border-radius: 24px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: var(--shadow-lg);
+    }
+
+    .s-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(20,57,31,0.08);
+    }
+
+    .s-modal-header h3 {
+        margin: 0;
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--ink-deep);
+    }
+
+    .s-modal-close {
+        background: none;
+        border: none;
+        color: var(--ink-mute);
+        cursor: pointer;
+        padding: 4px;
+        display: flex;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .s-modal-close:hover {
+        background: rgba(20,57,31,0.08);
+        color: var(--ink-deep);
+    }
+
+    .s-modal-body {
+        padding: 16px 24px;
+        overflow-y: auto;
+    }
+
+    .s-modal-footer {
+        padding: 16px 24px;
+        border-top: 1px solid rgba(20,57,31,0.08);
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .s-modal-loading {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--ink-mute);
+    }
+
+    .s-modal-loading svg {
+        animation: spin 2s linear infinite;
+        margin-bottom: 12px;
+    }
+
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    /* Form Elements */
+    .s-form-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 700;
+        color: var(--ink-mute);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+    }
+
+    .s-form-input {
+        width: 100%;
+        background: var(--card-soft);
+        border: 1px solid rgba(20,57,31,0.14);
+        border-radius: 14px;
+        padding: 11px 14px;
+        font-size: 14px;
+        color: var(--ink-deep);
+    }
+
+    .s-btn {
+        border: none;
+        border-radius: 14px;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .s-btn-primary {
+        background: var(--ink-deep);
+        color: white;
+    }
+
+    .s-btn-secondary {
+        background: var(--card-soft);
+        color: var(--ink-deep);
+    }
+
+    /* Responsive */
+    @@media (max-width: 640px) {
+        .s-topbar {
+            padding: 12px 12px 8px;
+        }
+
+        .s-hero {
+            margin: 0 12px 16px;
+        }
+
+        .s-tab-bar {
+            margin: 0 12px 14px;
+        }
+
+        .s-tab-content {
+            padding: 0 12px;
+        }
+    }
+</style>

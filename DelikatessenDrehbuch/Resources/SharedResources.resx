@@ -555,4 +555,256 @@
   <data name="Video.LoadError" xml:space="preserve">
     <value>Fehler beim Laden des Videos. Bitte versuchen Sie es erneut.</value>
   </data>
+
+  <!-- Create Posting -->
+  <data name="CreatePosting.CreatorStudio" xml:space="preserve">
+    <value>Creator Studio</value>
+  </data>
+  <data name="CreatePosting.BasicInfo" xml:space="preserve">
+    <value>Basis Informationen</value>
+  </data>
+  <data name="CreatePosting.Title" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="CreatePosting.Preference" xml:space="preserve">
+    <value>Präferenz</value>
+  </data>
+  <data name="CreatePosting.Minutes" xml:space="preserve">
+    <value>Minuten</value>
+  </data>
+  <data name="CreatePosting.MediaScript" xml:space="preserve">
+    <value>Media-Drehbuch</value>
+  </data>
+  <data name="CreatePosting.SelectVideoOrImage" xml:space="preserve">
+    <value>Video oder Bild wählen</value>
+  </data>
+  <data name="CreatePosting.SelectIngredients" xml:space="preserve">
+    <value>Zutaten wählen</value>
+  </data>
+  <data name="CreatePosting.SelectKeywords" xml:space="preserve">
+    <value>Keywords wählen</value>
+  </data>
+  <data name="CreatePosting.Publish" xml:space="preserve">
+    <value>Veröffentlichen</value>
+  </data>
+
+  <!-- Preferences -->
+  <data name="Preference.Vegan" xml:space="preserve">
+    <value>Vegan</value>
+  </data>
+  <data name="Preference.Vegetarian" xml:space="preserve">
+    <value>Vegetarisch</value>
+  </data>
+  <data name="Preference.Fish" xml:space="preserve">
+    <value>Fisch</value>
+  </data>
+  <data name="Preference.Pork" xml:space="preserve">
+    <value>Schwein</value>
+  </data>
+  <data name="Preference.Beef" xml:space="preserve">
+    <value>Rind</value>
+  </data>
+  <data name="Preference.OtherMeat" xml:space="preserve">
+    <value>Anderes Fleisch</value>
+  </data>
+
+  <!-- CreatePosting Additional Keys -->
+  <data name="CreatePosting.NewPosting" xml:space="preserve">
+    <value>New Posting</value>
+  </data>
+  <data name="CreatePosting.SelectCategory" xml:space="preserve">
+    <value>Select category</value>
+  </data>
+  <data name="CreatePosting.Basics" xml:space="preserve">
+    <value>Basics</value>
+  </data>
+  <data name="CreatePosting.TitleCategoryPersonsTime" xml:space="preserve">
+    <value>Title, category, persons, time</value>
+  </data>
+  <data name="CreatePosting.Category" xml:space="preserve">
+    <value>Category</value>
+  </data>
+  <data name="CreatePosting.Persons" xml:space="preserve">
+    <value>Persons</value>
+  </data>
+  <data name="CreatePosting.DurationMin" xml:space="preserve">
+    <value>Time (min)</value>
+  </data>
+  <data name="CreatePosting.VideoOrImageForFeed" xml:space="preserve">
+    <value>Video or image for the feed</value>
+  </data>
+  <data name="CreatePosting.CurrentImageVideo" xml:space="preserve">
+    <value>Current image/video</value>
+  </data>
+  <data name="CreatePosting.OptionalUploadNew" xml:space="preserve">
+    <value>Optional: upload new image/video</value>
+  </data>
+  <data name="CreatePosting.UploadStart" xml:space="preserve">
+    <value>Start upload</value>
+  </data>
+  <data name="CreatePosting.ChooseVideoOrImage" xml:space="preserve">
+    <value>Choose a video or image (feed style).</value>
+  </data>
+  <data name="CreatePosting.IngredientsSelection" xml:space="preserve">
+    <value>Ingredients Selection</value>
+  </data>
+  <data name="CreatePosting.SearchConfigureIngredients" xml:space="preserve">
+    <value>Search &amp; configure your ingredients</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Tap to edit</value>
+  </data>
+  <data name="CreatePosting.YourIngredientMissing" xml:space="preserve">
+    <value>Your ingredient is missing?</value>
+  </data>
+  <data name="CreatePosting.IngredientTestHint" xml:space="preserve">
+    <value>For testing: enter an ingredient, search the catalog first, otherwise get an AI suggestion.</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Preparation Steps</value>
+  </data>
+  <data name="CreatePosting.WriteStepsWillTranslate" xml:space="preserve">
+    <value>Write your steps - will be translated to 10 languages on save</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Cooking Instructions</value>
+  </data>
+  <data name="CreatePosting.WriteStepsAiTranslates" xml:space="preserve">
+    <value>Just write your steps - AI will translate to all languages on save (German, English, Spanish, Portuguese, Indonesian, Dutch, Swedish, Danish, Norwegian, Malay)</value>
+  </data>
+  <data name="CreatePosting.KeywordsHelpFeedSearch" xml:space="preserve">
+    <value>Helps feed &amp; search</value>
+  </data>
+  <data name="CreatePosting.ReadyToPost" xml:space="preserve">
+    <value>Ready to post?</value>
+  </data>
+  <data name="CreatePosting.Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="CreatePosting.Add" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="CreatePosting.SavedSessionFound" xml:space="preserve">
+    <value>Saved session found</value>
+  </data>
+  <data name="CreatePosting.Restore" xml:space="preserve">
+    <value>Restore</value>
+  </data>
+  <data name="CreatePosting.Discard" xml:space="preserve">
+    <value>Discard</value>
+  </data>
+  <data name="MyProfile.BackToFeed" xml:space="preserve">
+    <value>Back to feed</value>
+  </data>
+  <data name="MyProfile.Following" xml:space="preserve">
+    <value>Following</value>
+  </data>
+  <data name="MyProfile.Likes" xml:space="preserve">
+    <value>Likes</value>
+  </data>
+  <data name="MyProfile.Followers" xml:space="preserve">
+    <value>Followers</value>
+  </data>
+  <data name="MyProfile.Settings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="MyProfile.DisplayName" xml:space="preserve">
+    <value>Display Name</value>
+  </data>
+  <data name="MyProfile.Save" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="MyProfile.Marketplace" xml:space="preserve">
+    <value>Marketplace</value>
+  </data>
+  <data name="MyProfile.MyListings" xml:space="preserve">
+    <value>My listings</value>
+  </data>
+  <data name="MyProfile.CommentModeration" xml:space="preserve">
+    <value>Comment moderation</value>
+  </data>
+  <data name="MyProfile.ReportedContent" xml:space="preserve">
+    <value>Reported Content</value>
+  </data>
+  <data name="MyProfile.CreatorManager" xml:space="preserve">
+    <value>Creator Manager</value>
+  </data>
+  <data name="MyProfile.CreatorDashboard" xml:space="preserve">
+    <value>Creator dashboard</value>
+  </data>
+  <data name="MyProfile.TabLikes" xml:space="preserve">
+    <value>LIKES</value>
+  </data>
+  <data name="MyProfile.TabAI" xml:space="preserve">
+    <value>AI</value>
+  </data>
+  <data name="MyProfile.TabCreators" xml:space="preserve">
+    <value>CREATORS</value>
+  </data>
+  <data name="MyProfile.TabCreated" xml:space="preserve">
+    <value>CREATED</value>
+  </data>
+  <data name="MyProfile.TabBought" xml:space="preserve">
+    <value>BOUGHT</value>
+  </data>
+  <data name="MyProfile.TabVideos" xml:space="preserve">
+    <value>VIDEOS</value>
+  </data>
+  <data name="MyProfile.NoLikesYet" xml:space="preserve">
+    <value>No likes yet</value>
+  </data>
+  <data name="MyProfile.NoAIVariantsYet" xml:space="preserve">
+    <value>No AI variants yet</value>
+  </data>
+  <data name="MyProfile.NoCreatedPlansYet" xml:space="preserve">
+    <value>No created plans yet</value>
+  </data>
+  <data name="MyProfile.Delete" xml:space="preserve">
+    <value>Delete</value>
+  </data>
+  <data name="MyProfile.NoPurchasedPlansYet" xml:space="preserve">
+    <value>No purchased plans yet</value>
+  </data>
+  <data name="MyProfile.GoToMarketplace" xml:space="preserve">
+    <value>Go to Marketplace</value>
+  </data>
+  <data name="MyProfile.DaysLowercase" xml:space="preserve">
+    <value>days</value>
+  </data>
+  <data name="MyProfile.Days" xml:space="preserve">
+    <value>Days</value>
+  </data>
+  <data name="MyProfile.Recipes" xml:space="preserve">
+    <value>Recipes</value>
+  </data>
+  <data name="MyProfile.Purchased" xml:space="preserve">
+    <value>Purchased</value>
+  </data>
+  <data name="MyProfile.PurchasedOn" xml:space="preserve">
+    <value>Purchased on</value>
+  </data>
+  <data name="MyProfile.Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="MyProfile.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="MyProfile.TakePostingOfflineConfirm" xml:space="preserve">
+    <value>Take posting offline?</value>
+  </data>
+  <data name="MyProfile.TakeOffline" xml:space="preserve">
+    <value>Take offline</value>
+  </data>
+  <data name="MyProfile.PutPostingOnlineConfirm" xml:space="preserve">
+    <value>Put posting back online?</value>
+  </data>
+  <data name="MyProfile.PutOnline" xml:space="preserve">
+    <value>Put online</value>
+  </data>
+  <data name="MyProfile.DeletePostingPermanentlyConfirm" xml:space="preserve">
+    <value>Permanently DELETE this posting? All data will be removed!</value>
+  </data>
+  <data name="MyProfile.DeletePermanently" xml:space="preserve">
+    <value>Delete permanently</value>
+  </data>
 </root>

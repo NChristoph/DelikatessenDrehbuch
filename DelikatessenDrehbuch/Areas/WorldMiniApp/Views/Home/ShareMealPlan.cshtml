@@ -1,50 +1,855 @@
+@using Microsoft.Extensions.Localization
+@using System.Linq
+@using DelikatessenDrehbuch.Models
+@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
+
 @{
     Layout = "_MiniAppLayout";
     var title = ViewData["Title"] as string ?? "Geteilter Plan";
-    var personCount = ViewData["PersonCount"] ?? 1;
-    var recipeNames = ViewData["RecipeNames"] as List<string> ?? new List<string>();
+    var personCount = (int)(ViewData["PersonCount"] ?? 1);
+    var mealPlan = ViewData["MealPlan"] as List<MealPlanHelperMobile> ?? new();
+    var recipes = (ViewData["Recipes"] as System.Collections.IEnumerable)?.Cast<dynamic>().ToList() ?? new List<dynamic>();
     var shoppingListText = ViewData["ShoppingListText"] as string ?? string.Empty;
+
+    string T(string de, string en, string es, string pt)
+    {
+        var culture = System.Globalization.CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+        return culture switch
+        {
+            "de" => de,
+            "en" => en,
+            "es" => es,
+            "pt" => pt,
+            _ => de
+        };
+    }
+
+    string SlotLabel(int slotIndex) => slotIndex switch
+    {
+        0 => T("Vorspeise", "Starter", "Entrante", "Entrada"),
+        1 => T("Hauptspeise", "Main", "Principal", "Principal"),
+        2 => T("Dessert", "Dessert", "Postre", "Sobremesa"),
+        _ => T("Gericht", "Meal", "Comida", "Refeicao")
+    };
+
+    string DayLabel(int dayIndex)
+    {
+        var daysDe = new[] { "Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag" };
+        var daysEn = new[] { "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday" };
+        var daysEs = new[] { "Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo" };
+        var daysPt = new[] { "Segunda", "Terca", "Quarta", "Quinta", "Sexta", "Sabado", "Domingo" };
+
+        if (dayIndex < 0 || dayIndex > 6)
+        {
+            return $"Tag {dayIndex + 1}";
+        }
+
+        var culture = System.Globalization.CultureInfo.CurrentCulture.TwoLetterISOLanguageName;
+        return culture switch
+        {
+            "de" => daysDe[dayIndex],
+            "en" => daysEn[dayIndex],
+            "es" => daysEs[dayIndex],
+            "pt" => daysPt[dayIndex],
+            _ => daysDe[dayIndex]
+        };
+    }
+
+    string CategoryLabel(string category) => (category ?? string.Empty).ToLowerInvariant() switch
+    {
+        "appetizer" => T("Vorspeise", "Appetizer", "Entrante", "Entrada"),
+        "main" => T("Hauptspeise", "Main course", "Plato principal", "Prato principal"),
+        "dessert" => T("Dessert", "Dessert", "Postre", "Sobremesa"),
+        "breakfast" => T("Fruehstueck", "Breakfast", "Desayuno", "Cafe da manha"),
+        _ => category ?? string.Empty
+    };
+
+    decimal CalculateNutrition(dynamic recipe, string nutrientType)
+    {
+        decimal total = 0;
+        try
+        {
+            foreach (var ing in recipe.Ingredients)
+            {
+                decimal quantity = 0;
+                try { quantity = (decimal)(ing.QuantityFloat ?? 0m); } catch { }
+                var nutrition = ing.Nutrition;
+                if (nutrition == null) continue;
+
+                var factor = quantity / 100m;
+                total += nutrientType switch
+                {
+                    "calories" => (decimal)(nutrition.Kcal_a_100g ?? 0m) * factor,
+                    "protein" => (decimal)(nutrition.Protein_a_100g ?? 0m) * factor,
+                    "fat" => (decimal)(nutrition.Fat_a_100g ?? 0m) * factor,
+                    "carbs" => (decimal)(nutrition.Carbohydrates_a_100g ?? 0m) * factor,
+                    "sugar" => (decimal)(nutrition.Sugar_a_100g ?? 0m) * factor,
+                    "fiber" => (decimal)(nutrition.Fiber_a_100g ?? 0m) * factor,
+                    _ => 0m
+                };
+            }
+        }
+        catch { }
+        return total;
+    }
+
+    var recipeMap = recipes
+        .GroupBy(r => (int)r.Id)
+        .ToDictionary(g => g.Key, g => g.First());
+
+    decimal totalCalories = 0, totalProtein = 0, totalFat = 0, totalCarbs = 0, totalSugar = 0, totalFiber = 0;
+    var uniqueRecipeIds = new HashSet<int>();
+    foreach (var slot in mealPlan)
+    {
+        if (!recipeMap.TryGetValue(slot.RecipeId, out var slotRecipe))
+        {
+            continue;
+        }
+
+        uniqueRecipeIds.Add(slot.RecipeId);
+        var recipePortions = Math.Max(1, (int)(slotRecipe.PersonCount ?? 1));
+        totalCalories += CalculateNutrition(slotRecipe, "calories") / recipePortions * personCount;
+        totalProtein += CalculateNutrition(slotRecipe, "protein") / recipePortions * personCount;
+        totalFat += CalculateNutrition(slotRecipe, "fat") / recipePortions * personCount;
+        totalCarbs += CalculateNutrition(slotRecipe, "carbs") / recipePortions * personCount;
+        totalSugar += CalculateNutrition(slotRecipe, "sugar") / recipePortions * personCount;
+        totalFiber += CalculateNutrition(slotRecipe, "fiber") / recipePortions * personCount;
+    }
 }
 
-<div class="px-4 pt-4 pb-2">
-    <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
-        <i class="bi bi-arrow-left"></i> Zurück
-    </a>
-    <h2 class="fw-bold mb-1" style="color: #2c3e50;">@title</h2>
-    <p class="text-muted small">Personen: @personCount</p>
-</div>
-
-<div class="container px-4 pb-5">
-    <div class="card border-0 shadow-sm rounded-4 mb-3">
-        <div class="card-body p-4">
-            <h6 class="fw-bold mb-3">Rezepte</h6>
-            @if (recipeNames.Any())
-            {
-                <ul class="list-group list-group-flush">
-                    @foreach (var name in recipeNames)
-                    {
-                        <li class="list-group-item">@name</li>
-                    }
-                </ul>
-            }
-            else
-            {
-                <p class="text-muted mb-0">Keine Rezepte gefunden.</p>
-            }
-        </div>
-    </div>
-
-    <div class="card border-0 shadow-sm rounded-4">
-        <div class="card-body p-4">
-            <h6 class="fw-bold mb-3">Einkaufsliste (bearbeitbar)</h6>
-            <textarea class="form-control bg-light" rows="12">@shoppingListText</textarea>
-        </div>
-    </div>
-</div>
+<link rel="stylesheet" href="~/css/creator-shop-cards.css" asp-append-version="true" />
 
 <style>
     body {
-        background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);
-        min-height: 100vh;
+        background: #faf7f2;
+    }
+
+    .shared-plan-shell {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 16px 16px 96px;
+    }
+
+    .shared-plan-header {
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbf7 100%);
+        border: 1px solid rgba(20, 57, 31, 0.08);
+        border-radius: 28px;
+        padding: 20px;
+        box-shadow: 0 14px 32px rgba(20, 57, 31, 0.08);
+        margin-bottom: 18px;
+    }
+
+    .shared-plan-title {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 30px;
+        line-height: 1.05;
+        color: #14391f;
+        margin: 0 0 8px;
+    }
+
+    .shared-plan-sub {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #ff7a59;
+        margin-bottom: 14px;
+    }
+
+    .shared-plan-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+    }
+
+    .shared-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 999px;
+        background: rgba(45, 90, 61, 0.08);
+        color: #14391f;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .shared-plan-nutrition {
+        background: #1f4530;
+        color: white;
+        border-radius: 28px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 16px 32px rgba(31, 69, 48, 0.22);
+    }
+
+    .shared-plan-nutrition h2 {
+        font-size: 16px;
+        font-weight: 700;
+        margin: 0 0 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .shared-plan-nutrition-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .shared-nutrition-item {
+        background: rgba(255, 255, 255, 0.08);
+        border-radius: 18px;
+        padding: 12px 14px;
+    }
+
+    .shared-nutrition-item span {
+        display: block;
+        font-size: 11px;
+        font-weight: 600;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.72);
+    }
+
+    .shared-nutrition-item strong {
+        display: block;
+        margin-top: 6px;
+        font-size: 22px;
+        font-weight: 800;
+        line-height: 1;
+    }
+
+    .shared-day-section {
+        margin-bottom: 22px;
+    }
+
+    .shared-day-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 0 4px 12px;
+    }
+
+    .shared-day-name {
+        font-family: "Fraunces", Georgia, serif;
+        font-size: 28px;
+        color: #14391f;
+        margin: 0;
+    }
+
+    .shared-day-count {
+        background: rgba(255, 122, 89, 0.12);
+        color: #b4573f;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 700;
+    }
+
+    .shared-meal-stack {
+        display: grid;
+        gap: 14px;
+    }
+
+    .shared-meal-card {
+        background: white;
+        border-radius: 24px;
+        overflow: hidden;
+        box-shadow: 0 14px 32px rgba(20, 57, 31, 0.08);
+        border: 1px solid rgba(20, 57, 31, 0.06);
+    }
+
+    .shared-meal-hero {
+        position: relative;
+        aspect-ratio: 4 / 3;
+        background: linear-gradient(135deg, #dde6d8 0%, #f4efe5 100%);
+    }
+
+    .shared-meal-hero img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+    }
+
+    .shared-meal-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(180deg, rgba(0, 0, 0, 0.02) 0%, rgba(0, 0, 0, 0.58) 100%);
+    }
+
+    .shared-meal-top {
+        position: absolute;
+        inset: 14px 14px auto 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        z-index: 2;
+    }
+
+    .shared-glass-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(255, 255, 255, 0.18);
+        backdrop-filter: blur(14px);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.24);
+        padding: 7px 10px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+    }
+
+    .shared-meal-bottom {
+        position: absolute;
+        inset: auto 16px 16px 16px;
+        z-index: 2;
+        color: white;
+    }
+
+    .shared-meal-bottom h3 {
+        font-size: 22px;
+        line-height: 1.1;
+        margin: 0 0 10px;
+        font-weight: 700;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
+    }
+
+    .shared-hero-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .shared-hero-tag {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.16);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        font-size: 12px;
+        font-weight: 600;
+        color: white;
+    }
+
+    .shared-meal-body {
+        padding: 16px;
+    }
+
+    .shared-meal-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 14px;
+    }
+
+    .shared-stat {
+        background: #f8faf7;
+        border-radius: 16px;
+        padding: 10px;
+        text-align: center;
+    }
+
+    .shared-stat strong {
+        display: block;
+        color: #14391f;
+        font-size: 16px;
+        line-height: 1.1;
+    }
+
+    .shared-stat span {
+        display: block;
+        margin-top: 4px;
+        color: #6b7868;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .shared-macro-bars {
+        display: grid;
+        gap: 10px;
+    }
+
+    .shared-macro-row {
+        display: grid;
+        grid-template-columns: 58px 1fr auto;
+        gap: 10px;
+        align-items: center;
+        font-size: 13px;
+        font-weight: 600;
+        color: #14391f;
+    }
+
+    .shared-macro-track {
+        height: 8px;
+        border-radius: 999px;
+        background: #edf2ec;
+        overflow: hidden;
+    }
+
+    .shared-macro-fill {
+        height: 100%;
+        border-radius: inherit;
+    }
+
+    .shared-macro-fill.protein { background: #c55a3d; }
+    .shared-macro-fill.fat { background: #e8b34a; }
+    .shared-macro-fill.carbs { background: #5b8a52; }
+
+    .shared-shopping {
+        background: white;
+        border-radius: 24px;
+        padding: 18px;
+        box-shadow: 0 14px 32px rgba(20, 57, 31, 0.08);
+        border: 1px solid rgba(20, 57, 31, 0.06);
+    }
+
+    .shared-shopping h2 {
+        font-size: 20px;
+        margin: 0 0 12px;
+        color: #14391f;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .shared-shopping pre {
+        white-space: pre-wrap;
+        margin: 0;
+        font-family: inherit;
+        color: #14391f;
+        font-size: 14px;
+        line-height: 1.75;
+        background: #f8faf7;
+        border-radius: 18px;
+        padding: 14px;
+    }
+
+    .shared-plan-actions {
+        margin-top: 16px;
+        padding-top: 16px;
+        border-top: 1px solid rgba(20, 57, 31, 0.08);
+    }
+
+    .shared-btn-add-to-feed {
+        background: linear-gradient(135deg, #5b8a52, #14391f);
+        border: none;
+        border-radius: 16px;
+        padding: 13px 20px;
+        font-size: 15px;
+        font-weight: 700;
+        color: white;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 6px 20px rgba(20, 57, 31, 0.3);
+        transition: all 0.2s;
+        width: 100%;
+        justify-content: center;
+    }
+
+    .shared-btn-add-to-feed:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(20, 57, 31, 0.4);
+    }
+
+    .add-to-feed-modal {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        padding: 20px;
+        backdrop-filter: blur(4px);
+    }
+
+    .add-to-feed-content {
+        background: white;
+        border-radius: 24px;
+        max-width: 500px;
+        width: 100%;
+        max-height: 80vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 24px 48px rgba(0, 0, 0, 0.3);
+    }
+
+    .add-to-feed-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(20, 57, 31, 0.08);
+    }
+
+    .add-to-feed-header h3 {
+        margin: 0;
+        font-size: 20px;
+        color: #14391f;
+    }
+
+    .add-to-feed-close {
+        background: none;
+        border: none;
+        font-size: 20px;
+        cursor: pointer;
+        color: #7c8a7f;
+        padding: 4px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 8px;
+        transition: all 0.2s;
+    }
+
+    .add-to-feed-close:hover {
+        background: rgba(20, 57, 31, 0.08);
+        color: #14391f;
+    }
+
+    .add-to-feed-list {
+        padding: 16px;
+        overflow-y: auto;
+        max-height: 400px;
+    }
+
+    .add-to-feed-loading,
+    .add-to-feed-empty,
+    .add-to-feed-error {
+        text-align: center;
+        padding: 40px 20px;
+        color: #7c8a7f;
+    }
+
+    .add-to-feed-loading i {
+        font-size: 32px;
+        animation: spin 2s linear infinite;
+    }
+
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+
+    .feed-option {
+        background: #f8faf7;
+        border: 2px solid rgba(20, 57, 31, 0.08);
+        border-radius: 16px;
+        padding: 14px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .feed-option:hover {
+        border-color: #5b8a52;
+        background: #f0f5ee;
+    }
+
+    .feed-option-info h4 {
+        margin: 0 0 4px;
+        font-size: 16px;
+        color: #14391f;
+    }
+
+    .feed-option-info p {
+        margin: 0;
+        font-size: 12px;
+        color: #7c8a7f;
+    }
+
+    .feed-option-icon {
+        font-size: 20px;
+        color: #5b8a52;
+    }
+
+    @@media (max-width: 640px) {
+        .shared-meal-stats {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .shared-plan-nutrition-grid {
+            grid-template-columns: 1fr 1fr;
+        }
+
+        .add-to-feed-content {
+            max-height: 90vh;
+        }
     }
 </style>
+
+<div class="shared-plan-shell">
+    @Html.AntiForgeryToken()
+    <section class="shared-plan-header">
+        <div class="shared-plan-sub">@T("Geteilter Wochenplan", "Shared weekly plan", "Plan semanal compartido", "Plano semanal partilhado")</div>
+        <h1 class="shared-plan-title">@title</h1>
+        <div class="shared-plan-meta">
+            <span class="shared-pill"><i class="bi bi-people-fill"></i> @personCount @T("Personen", "people", "personas", "pessoas")</span>
+            <span class="shared-pill"><i class="bi bi-journal-richtext"></i> @mealPlan.Count @T("Mahlzeiten", "meals", "comidas", "refeicoes")</span>
+            <span class="shared-pill"><i class="bi bi-grid-1x2-fill"></i> @uniqueRecipeIds.Count @T("Rezepte", "recipes", "recetas", "receitas")</span>
+        </div>
+
+        <div class="shared-plan-actions">
+            <button type="button" class="shared-btn-add-to-feed" onclick="showAddToFeedModal()">
+                <i class="bi bi-plus-circle-fill"></i>
+                <span>@T("Zu Feed hinzufügen", "Add to feed", "Añadir a feed", "Adicionar ao feed")</span>
+            </button>
+        </div>
+    </section>
+
+    <div id="addToFeedModal" class="add-to-feed-modal" style="display: none;">
+        <div class="add-to-feed-content">
+            <div class="add-to-feed-header">
+                <h3>@T("Zu Feed hinzufügen", "Add to feed", "Añadir a feed", "Adicionar ao feed")</h3>
+                <button type="button" class="add-to-feed-close" onclick="closeAddToFeedModal()">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div id="feedListContainer" class="add-to-feed-list">
+                <div class="add-to-feed-loading">
+                    <i class="bi bi-hourglass-split"></i>
+                    @T("Lade Feeds...", "Loading feeds...", "Cargando feeds...", "Carregando feeds...")
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="shared-plan-nutrition">
+        <h2><i class="bi bi-pie-chart-fill"></i> @T("Gesamt Nährwerte", "Total nutrition", "Nutricion total", "Nutricao total")</h2>
+        <div class="shared-plan-nutrition-grid">
+            <div class="shared-nutrition-item"><span>@T("Kalorien", "Calories", "Calorias", "Calorias")</span><strong>@Math.Round(totalCalories) kcal</strong></div>
+            <div class="shared-nutrition-item"><span>@T("Protein", "Protein", "Proteina", "Proteina")</span><strong>@Math.Round(totalProtein, 1) g</strong></div>
+            <div class="shared-nutrition-item"><span>@T("Fett", "Fat", "Grasa", "Gordura")</span><strong>@Math.Round(totalFat, 1) g</strong></div>
+            <div class="shared-nutrition-item"><span>@T("Kohlenhydrate", "Carbs", "Carbohidratos", "Carboidratos")</span><strong>@Math.Round(totalCarbs, 1) g</strong></div>
+            <div class="shared-nutrition-item"><span>@T("Zucker", "Sugar", "Azucar", "Acucar")</span><strong>@Math.Round(totalSugar, 1) g</strong></div>
+            <div class="shared-nutrition-item"><span>@T("Ballaststoffe", "Fiber", "Fibra", "Fibra")</span><strong>@Math.Round(totalFiber, 1) g</strong></div>
+        </div>
+    </section>
+
+    @{
+        var groupedDays = mealPlan
+            .OrderBy(x => x.DayIndex)
+            .ThenBy(x => x.SlotIndex)
+            .GroupBy(x => x.DayIndex)
+            .ToList();
+    }
+
+    @foreach (var dayGroup in groupedDays)
+    {
+        <section class="shared-day-section">
+            <div class="shared-day-header">
+                <h2 class="shared-day-name">@DayLabel(dayGroup.Key)</h2>
+                <span class="shared-day-count">@dayGroup.Count() @T("Gerichte", "meals", "platos", "pratos")</span>
+            </div>
+
+            <div class="shared-meal-stack">
+                @foreach (var slot in dayGroup)
+                {
+                    if (!recipeMap.TryGetValue(slot.RecipeId, out var recipe))
+                    {
+                        continue;
+                    }
+
+                    var images = ((IEnumerable<string>)recipe.Images).Where(x => !string.IsNullOrWhiteSpace(x)).ToList();
+                    var keywords = ((IEnumerable<dynamic>)recipe.Keywords).Take(3).ToList();
+                    var category = recipe.Category as string ?? string.Empty;
+                    var prepTime = recipe.PreparationTime ?? 0;
+                    var recipePersonCount = Math.Max(1, (int)(recipe.PersonCount ?? 1));
+                    var recipeCalories = CalculateNutrition(recipe, "calories") / recipePersonCount * personCount;
+                    var recipeProtein = CalculateNutrition(recipe, "protein") / recipePersonCount * personCount;
+                    var recipeFat = CalculateNutrition(recipe, "fat") / recipePersonCount * personCount;
+                    var recipeCarbs = CalculateNutrition(recipe, "carbs") / recipePersonCount * personCount;
+                    var proteinPct = recipeProtein > 0 ? Math.Min(100, Math.Round((double)recipeProtein / 180.0 * 100.0)) : 0;
+                    var fatPct = recipeFat > 0 ? Math.Min(100, Math.Round((double)recipeFat / 160.0 * 100.0)) : 0;
+                    var carbsPct = recipeCarbs > 0 ? Math.Min(100, Math.Round((double)recipeCarbs / 240.0 * 100.0)) : 0;
+                    var heroImage = images.FirstOrDefault();
+
+                    <article class="shared-meal-card">
+                        <div class="shared-meal-hero">
+                            @if (!string.IsNullOrWhiteSpace(heroImage))
+                            {
+                                <img src="@heroImage" alt="@recipe.Title" loading="lazy" />
+                            }
+                            <div class="shared-meal-overlay"></div>
+                            <div class="shared-meal-top">
+                                <span class="shared-glass-pill">@SlotLabel(slot.SlotIndex)</span>
+                                <span class="shared-glass-pill">@CategoryLabel(category)</span>
+                            </div>
+                            <div class="shared-meal-bottom">
+                                <h3>@recipe.Title</h3>
+                                <div class="shared-hero-tags">
+                                    @foreach (var keyword in keywords)
+                                    {
+                                        var keywordText = (keyword.Word_DE ?? keyword.Word_EN ?? string.Empty)?.ToString();
+                                        if (!string.IsNullOrWhiteSpace(keywordText))
+                                        {
+                                            <span class="shared-hero-tag">@keywordText</span>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="shared-meal-body">
+                            <div class="shared-meal-stats">
+                                <div class="shared-stat"><strong>@Math.Round(recipeCalories)</strong><span>kcal</span></div>
+                                <div class="shared-stat"><strong>@prepTime</strong><span>@T("Minuten", "minutes", "minutos", "minutos")</span></div>
+                                <div class="shared-stat"><strong>@personCount</strong><span>@T("Portionen", "servings", "porciones", "porcoes")</span></div>
+                                <div class="shared-stat"><strong>@recipePersonCount</strong><span>@T("Basis", "base", "base", "base")</span></div>
+                            </div>
+
+                            <div class="shared-macro-bars">
+                                <div class="shared-macro-row">
+                                    <span>@T("Protein", "Protein", "Proteina", "Proteina")</span>
+                                    <div class="shared-macro-track"><div class="shared-macro-fill protein" style="width:@(proteinPct)%"></div></div>
+                                    <strong>@Math.Round(recipeProtein, 1) g</strong>
+                                </div>
+                                <div class="shared-macro-row">
+                                    <span>@T("Fett", "Fat", "Grasa", "Gordura")</span>
+                                    <div class="shared-macro-track"><div class="shared-macro-fill fat" style="width:@(fatPct)%"></div></div>
+                                    <strong>@Math.Round(recipeFat, 1) g</strong>
+                                </div>
+                                <div class="shared-macro-row">
+                                    <span>@T("KH", "Carbs", "Carbs", "Carbs")</span>
+                                    <div class="shared-macro-track"><div class="shared-macro-fill carbs" style="width:@(carbsPct)%"></div></div>
+                                    <strong>@Math.Round(recipeCarbs, 1) g</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
+                }
+            </div>
+        </section>
+    }
+
+    <section class="shared-shopping">
+        <h2><i class="bi bi-cart3"></i> @T("Einkaufsliste", "Shopping list", "Lista de compras", "Lista de compras")</h2>
+        <pre>@shoppingListText</pre>
+    </section>
+</div>
+
+<script>
+    (function() {
+        // Extract token from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const shareToken = urlParams.get('token');
+        const userHash = '@(Context.Request.Cookies["WorldMiniAppUserHash"] ?? "")';
+
+        if (!shareToken) {
+            console.error('No share token found in URL');
+            document.querySelector('.shared-btn-add-to-feed')?.remove();
+            return;
+        }
+
+        window.showAddToFeedModal = function() {
+            const modal = document.getElementById('addToFeedModal');
+            modal.style.display = 'flex';
+            loadUserFeeds();
+        };
+
+        window.closeAddToFeedModal = function() {
+            document.getElementById('addToFeedModal').style.display = 'none';
+        };
+
+        function loadUserFeeds() {
+            const container = document.getElementById('feedListContainer');
+            container.innerHTML = '<div class="add-to-feed-loading"><i class="bi bi-hourglass-split"></i> @T("Lade Feeds...", "Loading feeds...", "Cargando feeds...", "Carregando feeds...")</div>';
+
+            fetch(`/WorldMiniApp/Shared/GetUserFeeds?userHash=${encodeURIComponent(userHash)}`)
+                .then(res => {
+                    if (!res.ok) throw new Error('Failed to load feeds');
+                    return res.json();
+                })
+                .then(feeds => {
+                    if (feeds.length === 0) {
+                        container.innerHTML = '<div class="add-to-feed-empty"><i class="bi bi-inbox"></i><p>@T("Du hast noch keine Feeds. Erstelle zuerst einen Feed.", "You don't have any feeds yet. Create a feed first.", "Aún no tienes feeds. Crea un feed primero.", "Você ainda não tem feeds. Crie um feed primeiro.")</p></div>';
+                        return;
+                    }
+
+                    container.innerHTML = feeds.map(feed => `
+                        <div class="feed-option" onclick="addToFeed(${feed.Id}, '${escapeHtml(feed.Title)}')">
+                            <div class="feed-option-info">
+                                <h4>${escapeHtml(feed.Title)}</h4>
+                                <p>${feed.MemberCount} @T("Mitglieder", "members", "miembros", "membros") · ${feed.ItemCount} @T("Inhalte", "items", "elementos", "itens")</p>
+                            </div>
+                            <i class="bi bi-plus-circle feed-option-icon"></i>
+                        </div>
+                    `).join('');
+                })
+                .catch(err => {
+                    console.error('Error loading feeds:', err);
+                    container.innerHTML = '<div class="add-to-feed-error"><i class="bi bi-exclamation-triangle"></i><p>@T("Fehler beim Laden der Feeds.", "Error loading feeds.", "Error al cargar feeds.", "Erro ao carregar feeds.")</p></div>';
+                });
+        }
+
+        window.addToFeed = function(feedId, feedTitle) {
+            const container = document.getElementById('feedListContainer');
+            container.innerHTML = '<div class="add-to-feed-loading"><i class="bi bi-hourglass-split"></i> @T("Wird hinzugefügt...", "Adding...", "Añadiendo...", "Adicionando...")</div>';
+
+            fetch('/WorldMiniApp/Shared/AddExistingItem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: new URLSearchParams({
+                    '__RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || '',
+                    'feedId': feedId,
+                    'contentType': 'mealplan',
+                    'sourceToken': shareToken,
+                    'userHash': userHash
+                })
+            })
+            .then(res => {
+                if (res.redirected) {
+                    // Success - show confirmation
+                    container.innerHTML = `
+                        <div class="add-to-feed-success">
+                            <i class="bi bi-check-circle-fill" style="font-size: 48px; color: #5b8a52;"></i>
+                            <h4 style="margin: 16px 0 8px;">@T("Erfolgreich hinzugefügt!", "Successfully added!", "¡Añadido con éxito!", "Adicionado com sucesso!")</h4>
+                            <p>@T("Der Essensplan wurde zu", "The meal plan was added to", "El plan de comida fue añadido a", "O plano de refeições foi adicionado ao")</p>
+                            <p style="font-weight: 700; color: #14391f;">"${escapeHtml(feedTitle)}"</p>
+                            <button type="button" onclick="closeAddToFeedModal()" style="margin-top: 16px; background: #5b8a52; color: white; border: none; padding: 10px 20px; border-radius: 12px; cursor: pointer;">@T("Schließen", "Close", "Cerrar", "Fechar")</button>
+                        </div>
+                    `;
+                } else {
+                    throw new Error('Failed to add to feed');
+                }
+            })
+            .catch(err => {
+                console.error('Error adding to feed:', err);
+                container.innerHTML = `
+                    <div class="add-to-feed-error">
+                        <i class="bi bi-exclamation-triangle"></i>
+                        <p>@T("Fehler beim Hinzufügen. Möglicherweise ist der Plan bereits im Feed.", "Error adding. The plan may already be in the feed.", "Error al añadir. El plan puede estar ya en el feed.", "Erro ao adicionar. O plano pode já estar no feed.")</p>
+                        <button type="button" onclick="loadUserFeeds()" style="margin-top: 12px; background: #14391f; color: white; border: none; padding: 8px 16px; border-radius: 12px; cursor: pointer;">@T("Erneut versuchen", "Try again", "Intentar de nuevo", "Tentar novamente")</button>
+                    </div>
+                `;
+            });
+        };
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Close modal on backdrop click
+        document.getElementById('addToFeedModal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAddToFeedModal();
+            }
+        });
+    })();
+</script>

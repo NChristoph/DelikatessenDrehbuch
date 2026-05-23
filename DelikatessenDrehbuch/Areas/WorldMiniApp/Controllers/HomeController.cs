@@ -2,6 +2,7 @@ using DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
+using DebugLog = DelikatessenDrehbuch.Areas.WorldMiniApp.Services.DebugLogger;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using Microsoft.AspNetCore.Mvc;
@@ -16,6 +17,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
     public class HomeController : WorldMiniAppBaseController
     {
+        private const string WorldMiniAppId = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
         private readonly ApplicationDbContext _context;
         private readonly IWorldClipWatchService _worldClipWatchService;
         private readonly IWorldAdPreferenceService _worldAdPreferenceService;
@@ -125,8 +127,94 @@ END;
             _logger = logger;
         }
 
-        public IActionResult Index()
+        [HttpGet]
+        [Route("/WorldMiniApp")]
+        [Route("/WorldMiniApp/Home")]
+        [Route("/WorldMiniApp/Home/Index")]
+        [Route("/WorldMiniApp/Home/Index/{*extraPath}")]
+        public IActionResult Index(string? extraPath = null, string? returnTo = null, string? path = null)
         {
+            DebugLog.Log($"=== HOME INDEX === extra:{extraPath ?? "null"} returnTo:{returnTo ?? "null"} path:{path ?? "null"}");
+            _logger.LogWarning("=== HOME INDEX CALLED === extraPath: {ExtraPath}, returnTo: {ReturnTo}, path: {Path}",
+                extraPath ?? "NULL", returnTo ?? "NULL", path ?? "NULL");
+
+            // World Mini App passes the path as part of the URL, not as a query parameter
+            // Example: /WorldMiniApp/Home/Index/WorldMiniApp/Shared/Invite?token=...
+            if (!string.IsNullOrWhiteSpace(extraPath))
+            {
+                DebugLog.Log($"Index: extraPath detected, treating as deep link: {extraPath}");
+                _logger.LogWarning("WorldMiniApp Index called with trailing path segment (deep link): {ExtraPath}", extraPath);
+
+                // Prepend "/" to make it a valid path
+                var deepLinkPath = "/" + extraPath;
+                var queryString = Request.QueryString.ToString();
+
+                // Append query string if present (e.g., ?token=...)
+                if (!string.IsNullOrEmpty(queryString))
+                {
+                    deepLinkPath += queryString;
+                }
+
+                DebugLog.Log($"Index: constructed deep link: {deepLinkPath}");
+
+                var userHash = ResolveUserHash(string.Empty);
+                DebugLog.Log($"Index: userHash for deep link: {userHash ?? "null"}");
+
+                if (!string.IsNullOrWhiteSpace(userHash))
+                {
+                    // User is logged in, redirect immediately
+                    DebugLog.Log($"Index: REDIRECTING logged-in user to: {deepLinkPath}");
+                    return Redirect(deepLinkPath);
+                }
+                else
+                {
+                    // User not logged in, set as post-login redirect
+                    DebugLog.Log($"Index: setting as post-login redirect: {deepLinkPath}");
+                    returnTo = deepLinkPath;
+                }
+            }
+
+            // If a path parameter is provided (from World Mini App deep link), use it for redirect
+            if (!string.IsNullOrWhiteSpace(path))
+            {
+                DebugLog.Log($"Index: path detected: {path}");
+                _logger.LogWarning("Path parameter detected: {Path}", path);
+                var normalizedPath = NormalizeMiniAppReturnUrl(path);
+                DebugLog.Log($"Index: normalized: {normalizedPath ?? "null"}");
+                _logger.LogWarning("Normalized path: {NormalizedPath}", normalizedPath ?? "NULL");
+
+                if (!string.IsNullOrWhiteSpace(normalizedPath))
+                {
+                    var userHash = ResolveUserHash(string.Empty);
+                    DebugLog.Log($"Index: userHash: {userHash ?? "null"}");
+                    _logger.LogWarning("UserHash for redirect: {UserHash}", userHash ?? "NULL");
+
+                    if (!string.IsNullOrWhiteSpace(userHash))
+                    {
+                        // User is already logged in, redirect immediately
+                        DebugLog.Log($"Index: REDIRECTING to {normalizedPath}");
+                        _logger.LogWarning("Redirecting logged-in user to deep link: {Path}", normalizedPath);
+                        return Redirect(normalizedPath);
+                    }
+                    else
+                    {
+                        // User not logged in, set as post-login redirect
+                        DebugLog.Log($"Index: setting post-login redirect: {normalizedPath}");
+                        _logger.LogWarning("Setting post-login redirect for deep link: {Path}", normalizedPath);
+                        returnTo = path;
+                    }
+                }
+                else
+                {
+                    DebugLog.Log($"Index: normalization FAILED for: {path}");
+                    _logger.LogWarning("Path normalization failed for: {Path}", path);
+                }
+            }
+
+            var finalRedirectUrl = NormalizeMiniAppReturnUrl(returnTo);
+            _logger.LogWarning("Final PostLoginRedirectUrl: {Url}", finalRedirectUrl ?? "NULL");
+            ViewData["PostLoginRedirectUrl"] = finalRedirectUrl;
+
             // ========== LOCALIZATION DEBUG LOGGING ==========
             var currentCulture = System.Globalization.CultureInfo.CurrentCulture;
             var currentUICulture = System.Globalization.CultureInfo.CurrentUICulture;
@@ -356,6 +444,8 @@ END;
             });
         }
 
+        [HttpGet]
+        [Route("/WorldMiniApp/Home/SharedRecipe")]
         public async Task<IActionResult> ShowRecipe(int id, int? aiVariantId = null, int? swapVariantId = null, int? communityVariantId = null, bool original = false, string share = null, string direct = null)
         {
             var model = await _context.RecipeBaseData
@@ -381,7 +471,7 @@ END;
                 if (swapVariantId.HasValue) queryParams += $"&swapVariantId={swapVariantId}";
                 if (communityVariantId.HasValue) queryParams += $"&communityVariantId={communityVariantId}";
                 if (original) queryParams += "&original=true";
-                ViewData["TargetPath"] = $"/WorldMiniApp/Home/ShowRecipe?{queryParams}";
+                ViewData["TargetPath"] = $"/WorldMiniApp/Home/SharedRecipe?{queryParams}";
                 return View("~/Areas/WorldMiniApp/Views/Home/SharedLinkLanding.cshtml");
             }
 
@@ -402,6 +492,7 @@ END;
             {
                 ViewData["PostingThumbnailUrl"] = posting.ThumbnailUrl ?? posting.Source;
                 ViewData["PostingCreatorName"] = posting.CreatorName;
+                ViewData["PostingIdForShare"] = posting.Id;
                 if (isSuperUser)
                 {
                     ViewData["ExistingPostingId"] = (int?)posting.Id;
@@ -538,6 +629,36 @@ END;
             }
 
             return View(model);
+        }
+
+        private static string BuildWorldMiniAppShareUrl(string targetPath)
+        {
+            var normalizedPath = string.IsNullOrWhiteSpace(targetPath)
+                ? "/"
+                : targetPath.StartsWith("/", StringComparison.Ordinal) ? targetPath : "/" + targetPath;
+
+            return $"https://world.org/mini-app?app_id={WorldMiniAppId}&path={Uri.EscapeDataString(normalizedPath)}";
+        }
+
+        private static string? NormalizeMiniAppReturnUrl(string? returnTo)
+        {
+            if (string.IsNullOrWhiteSpace(returnTo))
+            {
+                return null;
+            }
+
+            var trimmed = Uri.UnescapeDataString(returnTo.Trim());
+            if (!trimmed.StartsWith("/", StringComparison.Ordinal))
+            {
+                return null;
+            }
+
+            if (trimmed.StartsWith("//", StringComparison.Ordinal) || !trimmed.StartsWith("/WorldMiniApp", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            return trimmed;
         }
 
         private IActionResult RecipeAiEditingDisabled()
@@ -915,34 +1036,7 @@ END;
                    userAgent.Contains("Worldcoin", StringComparison.OrdinalIgnoreCase);
         }
 
-        [HttpGet]
-        public async Task<IActionResult> SharedShoppingList(string token, bool? direct)
-        {
-            if (string.IsNullOrWhiteSpace(token))
-                return NotFound();
-
-            var list = await _context.WorldSharedShoppingList.FirstOrDefaultAsync(x => x.ShareToken == token);
-            if (list == null)
-                return NotFound();
-
-            // Wenn nicht mit direct=true UND nicht in World App → Landing Page zeigen
-            var isWorldApp = IsWorldAppRequest();
-            if (direct != true && !isWorldApp)
-            {
-                ViewData["ShareType"] = "shopping-list";
-                ViewData["Token"] = token;
-                ViewData["Title"] = "Geteilte Einkaufsliste";
-                ViewData["Description"] = "Öffne diese Einkaufsliste in der World App, um sie live zu synchronisieren.";
-                ViewData["TargetPath"] = $"/WorldMiniApp/Home/SharedShoppingList?token={token}&direct=true";
-                return View("~/Areas/WorldMiniApp/Views/Home/SharedLinkLanding.cshtml");
-            }
-
-            ViewData["Token"] = list.ShareToken;
-            ViewData["Items"] = list.ItemsJson;
-            ViewData["Checked"] = list.CheckedJson;
-
-            return View("~/Areas/WorldMiniApp/Views/Home/SharedShoppingList.cshtml");
-        }
+        // SharedShoppingList moved to MealPlanController for consistency
 
         /// <summary>
         /// Returns all localized strings from SharedResources as JSON for client-side usage.

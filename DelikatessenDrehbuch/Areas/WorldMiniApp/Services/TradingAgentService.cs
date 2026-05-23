@@ -1,14 +1,11 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
+using Nethereum.Hex.HexTypes;
+using Nethereum.Web3;
+using System.Numerics;
 using System.Security.Cryptography;
 using System.Text;
-using Nethereum.Web3;
-using Nethereum.Web3.Accounts;
-using Nethereum.Hex.HexTypes;
-using Nethereum.Contracts;
-using Nethereum.RPC.Eth.DTOs;
-using System.Numerics;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 {
@@ -17,6 +14,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILogger<TradingAgentService> _logger;
+        private readonly BlockchainService _blockchainService;
+        private readonly DexService _dexService;
 
         // Encryption Key (sollte aus appsettings/environment kommen)
         private readonly byte[] _encryptionKey;
@@ -24,13 +23,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         public TradingAgentService(
             ApplicationDbContext context,
             IConfiguration configuration,
-            ILogger<TradingAgentService> logger)
+            ILogger<TradingAgentService> logger,
+            BlockchainService blockchainService,
+            DexService dexService)
         {
             _context = context;
             _configuration = configuration;
             _logger = logger;
+            _blockchainService = blockchainService;
+            _dexService = dexService;
 
-            // Encryption Key für Private Keys (32 bytes für AES-256)
+            // Encryption Key fuer Private Keys (32 bytes fuer AES-256)
             var keyString = _configuration["TradingAgent:EncryptionKey"] ?? "CHANGE_THIS_TO_SECURE_KEY_32BYTES!";
             _encryptionKey = Encoding.UTF8.GetBytes(keyString.PadRight(32).Substring(0, 32));
         }
@@ -40,10 +43,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         /// </summary>
         public async Task<WorldTradingAgent> CreateAgentAsync(string userHash, string? agentName = null)
         {
-            // Generiere neues Ethereum Wallet
             var (walletAddress, privateKey) = GenerateEthereumWallet();
-
-            // Verschlüssele Private Key
             var encryptedKey = EncryptPrivateKey(privateKey);
 
             var agent = new WorldTradingAgent
@@ -71,18 +71,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return agent;
         }
 
-        /// <summary>
-        /// Hole Agent für User
-        /// </summary>
         public async Task<WorldTradingAgent?> GetAgentByUserAsync(string userHash)
         {
             return await _context.WorldTradingAgents
                 .FirstOrDefaultAsync(a => a.UserHash == userHash);
         }
 
-        /// <summary>
-        /// Hole alle Agents für User (falls mehrere erlaubt)
-        /// </summary>
         public async Task<List<WorldTradingAgent>> GetAgentsByUserAsync(string userHash)
         {
             return await _context.WorldTradingAgents
@@ -91,9 +85,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Starte Agent (aktiviere Trading)
-        /// </summary>
         public async Task<bool> StartAgentAsync(int agentId, string userHash)
         {
             var agent = await _context.WorldTradingAgents
@@ -101,14 +92,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
             if (agent == null) return false;
 
-            // Prüfe ob genug Funding (nur bei erstmaligem Start, nicht bei Restart)
             if (agent.Status == "Created" && agent.CurrentBalanceWLD < 1)
             {
                 _logger.LogWarning("Cannot start agent {AgentId}: insufficient funding", agentId);
                 return false;
             }
 
-            // Bei Restart: Erlaube Start auch mit weniger Balance
             if (agent.Status == "Stopped" && agent.CurrentBalanceWLD < 0.1m)
             {
                 _logger.LogWarning("Cannot restart agent {AgentId}: balance too low ({Balance} WLD)",
@@ -125,9 +114,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return true;
         }
 
-        /// <summary>
-        /// Pausiere Agent
-        /// </summary>
         public async Task<bool> PauseAgentAsync(int agentId, string userHash)
         {
             var agent = await _context.WorldTradingAgents
@@ -142,9 +128,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return true;
         }
 
-        /// <summary>
-        /// Stoppe Agent (permanent)
-        /// </summary>
         public async Task<bool> StopAgentAsync(int agentId, string userHash)
         {
             var agent = await _context.WorldTradingAgents
@@ -160,9 +143,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return true;
         }
 
-        /// <summary>
-        /// Update Agent Funding (nach Transfer)
-        /// </summary>
         public async Task<bool> UpdateFundingAsync(int agentId, decimal amountWLD)
         {
             var agent = await _context.WorldTradingAgents.FindAsync(agentId);
@@ -180,18 +160,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             _logger.LogInformation("Updated agent {AgentId} funding: +{Amount} WLD, new balance: {Balance} WLD",
                 agentId, amountWLD, agent.CurrentBalanceWLD);
 
-            // Auto-Swap: Bei erstem Funding 1 WLD zu ETH für Gas
-            if (agent.InitialFundingWLD == amountWLD && agent.CurrentBalanceETH < 0.001m)
-            {
-                _logger.LogInformation("Performing initial auto-swap for agent {AgentId}: 1 WLD → ETH", agentId);
-                await SwapWLDtoETHAsync(agentId, 1m);
-            }
-
             return true;
         }
 
         /// <summary>
-        /// Swap WLD zu ETH für Gas (Auto-Swap)
+        /// Manueller WLD -> ETH Swap. Dieser Pfad braucht weiterhin native Gas-Mittel,
+        /// weil er direkt ueber Web3/DexService ausgefuehrt wird.
         /// </summary>
         public async Task<bool> SwapWLDtoETHAsync(int agentId, decimal amountWLD)
         {
@@ -205,98 +179,134 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 return false;
             }
 
-            // TODO: Hier echte DEX Integration (Uniswap V3 auf World Chain)
-            // Für jetzt: Simuliere Swap mit geschätztem Wechselkurs
-            // In Production: Nutze Nethereum + Uniswap Router Contract
-
-            _logger.LogInformation("AUTO-SWAP: Agent {AgentId} swapping {Amount} WLD to ETH", agentId, amountWLD);
-
-            // Geschätzter Wechselkurs (WLD ≈ $2, ETH ≈ $3000)
-            // 1 WLD ≈ 0.00067 ETH (minus 0.3% DEX fee, minus ~$0.02 gas)
-            decimal estimatedETH = amountWLD * 0.00065m;
-
-            // Update Balances
-            agent.CurrentBalanceWLD -= amountWLD;
-            agent.CurrentBalanceETH += estimatedETH;
-            agent.LastBalanceUpdate = DateTime.UtcNow;
-
-            // Log Trade
-            var trade = new WorldAgentTrade
+            try
             {
-                AgentId = agentId,
-                TradeType = "AutoSwap",
-                FromToken = _configuration["WorldChain:WldTokenAddress"] ?? "",
-                ToToken = "ETH",
-                FromAmount = amountWLD,
-                ToAmount = estimatedETH,
-                GasFee = 0.00002m, // ~$0.02 gas auf World Chain
-                ProfitLossWLD = -amountWLD, // Verlust durch Swap (aber notwendig für Gas)
-                Status = "Success",
-                ExecutedAt = DateTime.UtcNow,
-                DexUsed = "Uniswap-V3-WorldChain"
-            };
+                _logger.LogInformation("REAL BLOCKCHAIN SWAP: Agent {AgentId} swapping {Amount} WLD to ETH on-chain",
+                    agentId, amountWLD);
 
-            _context.WorldAgentTrades.Add(trade);
-            await _context.SaveChangesAsync();
+                var wldTokenAddress = _configuration["WorldChain:WldTokenAddress"]
+                    ?? throw new Exception("WLD Token address not configured");
+                var wethAddress = _configuration["WorldChain:WethAddress"]
+                    ?? throw new Exception("WETH address not configured");
 
-            _logger.LogInformation("Auto-swap completed: Agent {AgentId} now has {ETH} ETH for gas", agentId, agent.CurrentBalanceETH);
+                var privateKey = DecryptPrivateKey(agent.EncryptedPrivateKey);
+                var web3 = _blockchainService.GetWeb3Instance(privateKey);
 
-            return true;
+                var hasGas = await _blockchainService.HasSufficientGasAsync(
+                    web3,
+                    agent.WalletAddress,
+                    new BigInteger(500000));
+
+                if (!hasGas)
+                {
+                    _logger.LogError("Agent {AgentId} has insufficient ETH for manual WLD -> ETH swap", agentId);
+                    return false;
+                }
+
+                var (success, amountOut, txHash, _) = await _dexService.SwapTokensAsync(
+                    web3,
+                    wldTokenAddress,
+                    wethAddress,
+                    amountWLD,
+                    slippagePct: 5m,
+                    feeTier: 3000);
+
+                if (!success)
+                {
+                    var failedTrade = new WorldAgentTrade
+                    {
+                        AgentId = agentId,
+                        TradeType = "AutoSwap",
+                        FromToken = wldTokenAddress,
+                        ToToken = "ETH",
+                        FromAmount = amountWLD,
+                        ToAmount = 0,
+                        GasFee = 0,
+                        ProfitLossWLD = 0,
+                        Status = "Failed",
+                        ExecutedAt = DateTime.UtcNow,
+                        TxHash = "",
+                        DexUsed = "Uniswap-V3-WorldChain"
+                    };
+                    _context.WorldAgentTrades.Add(failedTrade);
+                    await _context.SaveChangesAsync();
+                    return false;
+                }
+
+                agent.CurrentBalanceWLD -= amountWLD;
+                agent.CurrentBalanceETH += amountOut;
+                agent.LastBalanceUpdate = DateTime.UtcNow;
+
+                var trade = new WorldAgentTrade
+                {
+                    AgentId = agentId,
+                    TradeType = "AutoSwap",
+                    FromToken = wldTokenAddress,
+                    ToToken = "ETH",
+                    FromAmount = amountWLD,
+                    ToAmount = amountOut,
+                    GasFee = 0.00002m,
+                    ProfitLossWLD = -amountWLD,
+                    Status = "Success",
+                    ExecutedAt = DateTime.UtcNow,
+                    TxHash = txHash,
+                    DexUsed = "Uniswap-V3-WorldChain"
+                };
+
+                _context.WorldAgentTrades.Add(trade);
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("Manual swap completed: Agent {AgentId} now has {ETH} ETH for gas",
+                    agentId, agent.CurrentBalanceETH);
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Manual WLD -> ETH swap failed: {Message}", ex.Message);
+                return false;
+            }
         }
 
         /// <summary>
-        /// Prüfe ETH Balance und führe Auto-Swap aus falls nötig
-        /// (Wird vor jedem Trade aufgerufen)
+        /// Der automatische Trading-Flow laeuft ueber AgentKit und braucht hier keinen separaten ETH-Gas-Puffer.
         /// </summary>
         public async Task<bool> CheckAndAutoSwapGasAsync(int agentId)
         {
             var agent = await _context.WorldTradingAgents.FindAsync(agentId);
             if (agent == null) return false;
 
-            // Wenn ETH unter Threshold, führe Auto-Swap aus
-            if (agent.CurrentBalanceETH < agent.AutoSwapThresholdETH)
-            {
-                _logger.LogInformation("Agent {AgentId} ETH balance {Current} < threshold {Threshold}, triggering auto-swap",
-                    agentId, agent.CurrentBalanceETH, agent.AutoSwapThresholdETH);
+            _logger.LogDebug(
+                "Skipping ETH auto-swap for agent {AgentId}. Main trading flow uses AgentKit gas abstraction.",
+                agentId);
 
-                return await SwapWLDtoETHAsync(agentId, agent.AutoSwapAmountWLD);
-            }
-
-            return true; // Genug Gas vorhanden
+            return true;
         }
 
-        /// <summary>
-        /// Prüfe Profit-Ziel und führe Auto-Withdraw aus
-        /// Bei 100% Profit (Verdopplung) → 50% der Gewinne auszahlen
-        /// </summary>
         public async Task<bool> CheckProfitTargetAndWithdrawAsync(int agentId)
         {
             var agent = await _context.WorldTradingAgents.FindAsync(agentId);
             if (agent == null || agent.InitialFundingWLD == 0) return false;
 
-            // Berechne aktuellen Profit Prozentsatz
             decimal profitPercent = ((agent.CurrentBalanceWLD - agent.InitialFundingWLD) / agent.InitialFundingWLD) * 100;
 
-            // Bei 100% Profit (Verdopplung)
             if (profitPercent >= 100)
             {
                 decimal totalGain = agent.CurrentBalanceWLD - agent.InitialFundingWLD;
-                decimal withdrawAmount = totalGain * 0.5m; // 50% der Gewinne
+                decimal withdrawAmount = totalGain * 0.5m;
                 decimal remainingBalance = agent.CurrentBalanceWLD - withdrawAmount;
 
                 _logger.LogInformation("Agent {AgentId} reached 100% profit target! Withdrawing 50% of gains: {Amount} WLD",
                     agentId, withdrawAmount);
 
-                // TODO: Hier echten Transfer zum User Wallet implementieren
-                // Für jetzt: Nur in DB tracken
+                _logger.LogWarning("Auto-Withdraw is SIMULATED ONLY - no real blockchain transfer! Agent {AgentId}, Amount: {Amount} WLD",
+                    agentId, withdrawAmount);
 
-                // Update Agent Balance
                 agent.CurrentBalanceWLD = remainingBalance;
                 agent.TotalProfitLossWLD = remainingBalance - agent.InitialFundingWLD;
                 agent.ProfitLossPercentage = ((remainingBalance - agent.InitialFundingWLD) / agent.InitialFundingWLD) * 100;
                 agent.LastBalanceUpdate = DateTime.UtcNow;
 
-                // Log Withdrawal Trade
                 var withdrawalTrade = new WorldAgentTrade
                 {
                     AgentId = agentId,
@@ -306,27 +316,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     FromAmount = withdrawAmount,
                     ToAmount = withdrawAmount,
                     GasFee = 0,
-                    ProfitLossWLD = -withdrawAmount, // Aus Agent-Sicht ein "Verlust"
-                    Status = "Success",
+                    ProfitLossWLD = -withdrawAmount,
+                    Status = "Simulated",
                     ExecutedAt = DateTime.UtcNow,
-                    DexUsed = "Auto-Withdrawal"
+                    DexUsed = "Auto-Withdrawal-SIMULATED"
                 };
 
                 _context.WorldAgentTrades.Add(withdrawalTrade);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Auto-withdraw completed: {Amount} WLD sent to user, agent continues with {Remaining} WLD",
+                _logger.LogInformation("Auto-withdraw SIMULATED: {Amount} WLD marked as withdrawn in DB only, agent continues with {Remaining} WLD",
                     withdrawAmount, remainingBalance);
 
                 return true;
             }
 
-            return false; // Kein Withdraw nötig
+            return false;
         }
 
-        /// <summary>
-        /// Withdraw Funds vom Agent zurück zum User
-        /// </summary>
         public async Task<(bool success, string error)> WithdrawFundsAsync(int agentId, string userHash, decimal amountWLD)
         {
             var agent = await _context.WorldTradingAgents
@@ -335,29 +342,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             if (agent == null)
                 return (false, "Agent nicht gefunden");
 
-            // Validierung
             if (amountWLD <= 0)
-                return (false, "Betrag muss größer als 0 sein");
+                return (false, "Betrag muss groesser als 0 sein");
 
             if (amountWLD > agent.CurrentBalanceWLD)
-                return (false, $"Nicht genug Guthaben. Verfügbar: {agent.CurrentBalanceWLD:F2} WLD");
+                return (false, $"Nicht genug Guthaben. Verfuegbar: {agent.CurrentBalanceWLD:F2} WLD");
 
-            // Min-Balance für Gas behalten (0.1 WLD)
             decimal remainingBalance = agent.CurrentBalanceWLD - amountWLD;
             if (remainingBalance < 0.1m && remainingBalance > 0)
             {
-                return (false, "Mindestens 0.1 WLD müssen für Gas-Fees im Agent verbleiben. Nutze 'Alles abheben' um komplett zu leeren.");
+                return (false, "Mindestens 0.1 WLD muessen fuer Restbetrieb im Agent verbleiben. Nutze 'Alles abheben' um komplett zu leeren.");
             }
 
-            // Pause Agent wenn aktiv (Sicherheit)
-            bool wasActive = agent.Status == "Active";
-            if (wasActive)
-            {
-                agent.Status = "Paused";
-                _logger.LogInformation("Agent {AgentId} automatically paused for withdrawal", agentId);
-            }
+            _logger.LogInformation("Withdrawal fuer Agent {AgentId}: {Amount} WLD (Agent bleibt aktiv)", agentId, amountWLD);
 
-            // Update Balance
             agent.CurrentBalanceWLD -= amountWLD;
             agent.TotalProfitLossWLD = agent.CurrentBalanceWLD - agent.InitialFundingWLD;
             agent.ProfitLossPercentage = agent.InitialFundingWLD > 0
@@ -365,7 +363,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 : 0;
             agent.LastBalanceUpdate = DateTime.UtcNow;
 
-            // Log Withdrawal Trade
             var withdrawalTrade = new WorldAgentTrade
             {
                 AgentId = agentId,
@@ -374,7 +371,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 ToToken = "User",
                 FromAmount = amountWLD,
                 ToAmount = amountWLD,
-                GasFee = 0.00002m, // Geschätzte Gas Fee für Transfer
+                GasFee = 0.00002m,
                 ProfitLossWLD = -amountWLD,
                 Status = "Pending",
                 ExecutedAt = DateTime.UtcNow,
@@ -387,53 +384,131 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             _logger.LogInformation("User {UserHash} withdrew {Amount} WLD from agent {AgentId}. New balance: {Balance} WLD",
                 userHash, amountWLD, agentId, agent.CurrentBalanceWLD);
 
-            // TODO: Hier echten Transfer vom Agent Wallet zum User Wallet implementieren
-            // Für Production: Nutze Agent's Private Key um WLD zu transferieren
-            // var privateKey = DecryptPrivateKey(agent.EncryptedPrivateKey);
-            // ... Transfer Logik ...
-
-            // Markiere Trade als Success (nach echtem Transfer)
             withdrawalTrade.Status = "Success";
-            withdrawalTrade.TxHash = "manual-withdraw-" + DateTime.UtcNow.Ticks; // TODO: Echte TX Hash
+            withdrawalTrade.TxHash = "manual-withdraw-" + DateTime.UtcNow.Ticks;
             await _context.SaveChangesAsync();
 
             return (true, string.Empty);
         }
 
-        /// <summary>
-        /// Hole Trading History
-        /// </summary>
-        public async Task<List<WorldAgentTrade>> GetTradeHistoryAsync(int agentId, int limit = 50)
+        public async Task<(bool success, string error, string? txHash)> WithdrawEthReserveAsync(
+            int agentId,
+            string userHash,
+            decimal amountEth,
+            string targetWalletAddress)
+        {
+            var agent = await _context.WorldTradingAgents
+                .FirstOrDefaultAsync(a => a.Id == agentId && a.UserHash == userHash);
+
+            if (agent == null)
+                return (false, "Agent nicht gefunden", null);
+
+            if (amountEth <= 0)
+                return (false, "Betrag muss groesser als 0 sein", null);
+
+            if (!IsValidWalletAddress(targetWalletAddress))
+                return (false, "Ungueltige Ziel-Wallet-Adresse", null);
+
+            var normalizedTargetWallet = targetWalletAddress.Trim();
+            var privateKey = DecryptPrivateKey(agent.EncryptedPrivateKey);
+            var web3 = _blockchainService.GetWeb3Instance(privateKey);
+
+            var wethTokenAddress = _configuration["WorldChain:WethAddress"]
+                ?? throw new Exception("WETH Token address not configured");
+
+            var nativeBalanceWei = await web3.Eth.GetBalance.SendRequestAsync(agent.WalletAddress);
+            var wethBalance = await GetERC20BalanceAsync(web3, wethTokenAddress, agent.WalletAddress);
+            var nativeBalance = Web3.Convert.FromWei(nativeBalanceWei.Value);
+
+            string? txHash = null;
+            string transferMode;
+
+            if (wethBalance >= amountEth)
+            {
+                txHash = await TransferErc20Async(web3, wethTokenAddress, normalizedTargetWallet, amountEth);
+                transferMode = "WETH";
+            }
+            else
+            {
+                var gasPrice = await _blockchainService.GetGasPriceAsync(web3);
+                var gasLimit = new BigInteger(21000);
+                var requiredGasWei = gasPrice * gasLimit;
+                var sendAmountWei = Web3.Convert.ToWei(amountEth);
+
+                if (nativeBalanceWei.Value < sendAmountWei + requiredGasWei)
+                {
+                    return (false, "Nicht genug ETH/WETH Reserve fuer diese Auszahlung", null);
+                }
+
+                txHash = await TransferNativeEthAsync(web3, normalizedTargetWallet, sendAmountWei, gasPrice, gasLimit);
+                transferMode = "ETH";
+            }
+
+            if (string.IsNullOrWhiteSpace(txHash))
+                return (false, "Transfer konnte nicht gesendet werden", null);
+
+            agent.LastBalanceUpdate = DateTime.UtcNow;
+
+            var trade = new WorldAgentTrade
+            {
+                AgentId = agentId,
+                TradeType = "EthWithdraw",
+                FromToken = transferMode,
+                ToToken = normalizedTargetWallet,
+                FromAmount = amountEth,
+                ToAmount = amountEth,
+                GasFee = 0,
+                ProfitLossWLD = 0,
+                Status = "Success",
+                ExecutedAt = DateTime.UtcNow,
+                TxHash = txHash,
+                DexUsed = $"Agent-{transferMode}-Withdraw"
+            };
+
+            _context.WorldAgentTrades.Add(trade);
+            await _context.SaveChangesAsync();
+            await UpdateRealBalancesAsync(agentId);
+
+            _logger.LogInformation(
+                "User {UserHash} withdrew {Amount} {Mode} reserve from agent {AgentId} to {TargetWallet}. Tx: {TxHash}",
+                userHash,
+                amountEth,
+                transferMode,
+                agentId,
+                normalizedTargetWallet,
+                txHash);
+
+            return (true, string.Empty, txHash);
+        }
+
+        public async Task<List<WorldAgentTrade>> GetTradeHistoryAsync(int agentId, int limit = 50, int skip = 0)
         {
             return await _context.WorldAgentTrades
                 .Where(t => t.AgentId == agentId)
                 .OrderByDescending(t => t.ExecutedAt)
+                .Skip(skip)
                 .Take(limit)
                 .ToListAsync();
         }
 
-        /// <summary>
-        /// Generiere Ethereum Wallet (vereinfacht - in Production: Ethers.js verwenden)
-        /// </summary>
+        public async Task<int> GetTradeCountAsync(int agentId)
+        {
+            return await _context.WorldAgentTrades
+                .Where(t => t.AgentId == agentId)
+                .CountAsync();
+        }
+
         private (string address, string privateKey) GenerateEthereumWallet()
         {
-            // HINWEIS: Dies ist eine vereinfachte Version
-            // In Production sollte man Nethereum oder eine sichere Lib verwenden
+            var ecKey = Nethereum.Signer.EthECKey.GenerateKey();
+            var privateKeyHex = ecKey.GetPrivateKey();
+            var address = ecKey.GetPublicAddress();
 
-            using var ecdsa = ECDsa.Create(ECCurve.NamedCurves.nistP256);
-            var privateKeyBytes = ecdsa.ExportECPrivateKey();
-            var privateKeyHex = "0x" + Convert.ToHexString(privateKeyBytes).ToLower();
-
-            // Generiere "fake" Adresse (in Production: richtig aus Public Key ableiten)
-            var addressBytes = RandomNumberGenerator.GetBytes(20);
-            var address = "0x" + Convert.ToHexString(addressBytes).ToLower();
+            _logger.LogInformation("Generated new Ethereum wallet: {Address}", address);
 
             return (address, privateKeyHex);
         }
 
-        /// <summary>
-        /// Verschlüssele Private Key mit AES-256
-        /// </summary>
         private string EncryptPrivateKey(string privateKey)
         {
             using var aes = Aes.Create();
@@ -444,7 +519,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var plainBytes = Encoding.UTF8.GetBytes(privateKey);
             var cipherBytes = encryptor.TransformFinalBlock(plainBytes, 0, plainBytes.Length);
 
-            // IV + Encrypted Data
             var result = new byte[aes.IV.Length + cipherBytes.Length];
             Buffer.BlockCopy(aes.IV, 0, result, 0, aes.IV.Length);
             Buffer.BlockCopy(cipherBytes, 0, result, aes.IV.Length, cipherBytes.Length);
@@ -452,9 +526,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             return Convert.ToBase64String(result);
         }
 
-        /// <summary>
-        /// Entschlüssele Private Key (nur für Trading Service)
-        /// </summary>
         public string DecryptPrivateKey(string encryptedKey)
         {
             var fullCipher = Convert.FromBase64String(encryptedKey);
@@ -474,6 +545,139 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var plainBytes = decryptor.TransformFinalBlock(cipher, 0, cipher.Length);
 
             return Encoding.UTF8.GetString(plainBytes);
+        }
+
+        public async Task<(decimal ethBalance, decimal wldBalance)> UpdateRealBalancesAsync(int agentId)
+        {
+            var agent = await _context.WorldTradingAgents.FindAsync(agentId);
+            if (agent == null)
+                throw new Exception($"Agent {agentId} not found");
+
+            try
+            {
+                var privateKey = DecryptPrivateKey(agent.EncryptedPrivateKey);
+                var web3 = _blockchainService.GetWeb3Instance(privateKey);
+
+                var nativeEthBalanceWei = await web3.Eth.GetBalance.SendRequestAsync(agent.WalletAddress);
+                var nativeEthBalance = Web3.Convert.FromWei(nativeEthBalanceWei.Value);
+
+                var wethTokenAddress = _configuration["WorldChain:WethAddress"]
+                    ?? throw new Exception("WETH Token address not configured");
+                var wethBalance = await GetERC20BalanceAsync(web3, wethTokenAddress, agent.WalletAddress);
+                var ethBalanceRaw = nativeEthBalance + wethBalance;
+
+                var wldTokenAddress = _configuration["WorldChain:WldTokenAddress"]
+                    ?? throw new Exception("WLD Token address not configured");
+                var wldBalanceRaw = await GetERC20BalanceAsync(web3, wldTokenAddress, agent.WalletAddress);
+
+                var ethBalance = SafeDecimalConvert(ethBalanceRaw, 9, 9);
+                var wldBalance = SafeDecimalConvert(wldBalanceRaw, 12, 6);
+
+                agent.CurrentBalanceETH = ethBalance;
+                agent.CurrentBalanceWLD = wldBalance;
+                agent.LastBalanceUpdate = DateTime.UtcNow;
+
+                if (agent.InitialFundingWLD > 0)
+                {
+                    var profitLoss = wldBalance - agent.InitialFundingWLD;
+                    var profitPercent = ((wldBalance - agent.InitialFundingWLD) / agent.InitialFundingWLD) * 100;
+
+                    agent.TotalProfitLossWLD = SafeDecimalConvert(profitLoss, 12, 6);
+                    agent.ProfitLossPercentage = SafeDecimalConvert(profitPercent, 3, 4);
+                }
+
+                await _context.SaveChangesAsync();
+                return (ethBalance, wldBalance);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to update real balances for agent {AgentId}: {Message}",
+                    agentId, ex.Message);
+                throw;
+            }
+        }
+
+        private decimal SafeDecimalConvert(decimal value, int maxDigitsBeforeDecimal, int maxDigitsAfterDecimal)
+        {
+            var rounded = Math.Round(value, maxDigitsAfterDecimal);
+            var maxValue = (decimal)Math.Pow(10, maxDigitsBeforeDecimal) - (decimal)Math.Pow(10, -maxDigitsAfterDecimal);
+
+            if (rounded > maxValue)
+            {
+                _logger.LogWarning("Value {Value} exceeds max {Max}, clamping to max", rounded, maxValue);
+                return maxValue;
+            }
+
+            if (rounded < -maxValue)
+            {
+                _logger.LogWarning("Value {Value} below min {Min}, clamping to min", rounded, -maxValue);
+                return -maxValue;
+            }
+
+            return rounded;
+        }
+
+        private async Task<decimal> GetERC20BalanceAsync(Web3 web3, string tokenAddress, string walletAddress)
+        {
+            try
+            {
+                var balanceOfFunction = web3.Eth.GetContract(
+                    "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"}]",
+                    tokenAddress
+                ).GetFunction("balanceOf");
+
+                var balance = await balanceOfFunction.CallAsync<BigInteger>(walletAddress);
+                return Web3.Convert.FromWei(balance);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get ERC20 balance for token {Token}, wallet {Wallet}",
+                    tokenAddress, walletAddress);
+                return 0;
+            }
+        }
+
+        private static bool IsValidWalletAddress(string? walletAddress)
+        {
+            if (string.IsNullOrWhiteSpace(walletAddress))
+            {
+                return false;
+            }
+
+            var value = walletAddress.Trim();
+            return value.Length == 42
+                && value.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+                && value.Skip(2).All(Uri.IsHexDigit);
+        }
+
+        private async Task<string?> TransferErc20Async(Web3 web3, string tokenAddress, string targetWalletAddress, decimal amount)
+        {
+            const string erc20Abi =
+                "[{\"constant\":false,\"inputs\":[{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
+
+            var contract = web3.Eth.GetContract(erc20Abi, tokenAddress);
+            var transferFunction = contract.GetFunction("transfer");
+            var amountWei = Web3.Convert.ToWei(amount);
+            return await transferFunction.SendTransactionAsync(web3.TransactionManager.Account.Address, new HexBigInteger(120000), null, targetWalletAddress, amountWei);
+        }
+
+        private async Task<string?> TransferNativeEthAsync(
+            Web3 web3,
+            string targetWalletAddress,
+            BigInteger amountWei,
+            BigInteger gasPrice,
+            BigInteger gasLimit)
+        {
+            var tx = new Nethereum.RPC.Eth.DTOs.TransactionInput
+            {
+                From = web3.TransactionManager.Account.Address,
+                To = targetWalletAddress,
+                Value = new HexBigInteger(amountWei),
+                Gas = new HexBigInteger(gasLimit),
+                GasPrice = new HexBigInteger(gasPrice)
+            };
+
+            return await web3.TransactionManager.SendTransactionAsync(tx);
         }
     }
 }

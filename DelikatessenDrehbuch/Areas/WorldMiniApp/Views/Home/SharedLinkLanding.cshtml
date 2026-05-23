@@ -3,7 +3,7 @@
     var shareType = ViewData["ShareType"] as string ?? "content";
     var token = ViewData["Token"] as string ?? "";
     var title = ViewData["Title"] as string ?? "Geteilter Inhalt";
-    var description = ViewData["Description"] as string ?? "Öffne diesen Inhalt in der World App";
+    var description = ViewData["Description"] as string ?? "Oeffne diesen Inhalt in der World App";
     var targetPath = ViewData["TargetPath"] as string ?? "";
 }
 <!DOCTYPE html>
@@ -21,18 +21,20 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             padding: 20px;
         }
+
         .landing-card {
             background: white;
             border-radius: 24px;
             padding: 48px 32px;
             max-width: 480px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
             text-align: center;
         }
+
         .world-logo {
             width: 80px;
             height: 80px;
@@ -45,18 +47,21 @@
             font-size: 40px;
             color: white;
         }
+
         h1 {
             font-size: 28px;
             font-weight: 700;
             color: #1a1a1a;
             margin-bottom: 12px;
         }
+
         .description {
             color: #666;
             font-size: 16px;
             margin-bottom: 32px;
             line-height: 1.5;
         }
+
         .open-app-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
@@ -73,25 +78,43 @@
             align-items: center;
             justify-content: center;
             gap: 12px;
+            text-decoration: none;
         }
+
         .open-app-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4);
+            color: white;
         }
+
         .open-app-btn:active {
             transform: translateY(0);
         }
+
+        .secondary-btn {
+            background: #f5f5f5;
+            color: #333;
+        }
+
+        .secondary-btn:hover {
+            background: #e8e8e8;
+            color: #333;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        }
+
         .fallback-text {
             color: #999;
             font-size: 14px;
             margin: 24px 0 16px;
         }
+
         .download-links {
             display: flex;
             gap: 12px;
             justify-content: center;
             flex-wrap: wrap;
         }
+
         .download-link {
             display: inline-flex;
             align-items: center;
@@ -105,22 +128,28 @@
             font-weight: 500;
             transition: background 0.2s;
         }
+
         .download-link:hover {
             background: #e8e8e8;
             color: #333;
         }
+
         .spinner {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
+            border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: white;
             animation: spin 1s linear infinite;
         }
+
         @@keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
+
         .status-message {
             color: #666;
             font-size: 14px;
@@ -144,22 +173,37 @@
         <button class="open-app-btn" id="openAppBtn" onclick="openInWorldApp()">
             <span id="btnContent">
                 <i class="bi bi-app"></i>
-                In World App öffnen
+                In World App oeffnen
             </span>
         </button>
 
         <div class="status-message" id="statusMessage"></div>
+
+        <div style="margin-top: 16px;">
+            <button class="open-app-btn" style="background: linear-gradient(135deg, #5fa052 0%, #3f7536 100%);" onclick="copyLinkAndOpenApp()">
+                <i class="bi bi-clipboard-check"></i>
+                Link kopieren und App oeffnen
+            </button>
+            <p style="font-size: 12px; color: #666; margin-top: 8px;">
+                Kopiert den Link und oeffnet World App. Navigiere dort zur Mini App und fuege den Link ein.
+            </p>
+        </div>
+
+        <a class="open-app-btn secondary-btn" id="openBrowserBtn" href="#">
+            <i class="bi bi-browser-chrome"></i>
+            Im Browser oeffnen
+        </a>
 
         <div class="fallback-text">
             Noch keine World App?
         </div>
 
         <div class="download-links">
-            <a href="https://apps.apple.com/app/worldcoin/id1560859847" class="download-link" target="_blank">
+            <a href="https://apps.apple.com/app/worldcoin/id1560859847" class="download-link" target="_blank" rel="noopener noreferrer">
                 <i class="bi bi-apple"></i>
                 iOS herunterladen
             </a>
-            <a href="https://play.google.com/store/apps/details?id=com.worldcoin" class="download-link" target="_blank">
+            <a href="https://play.google.com/store/apps/details?id=com.worldcoin" class="download-link" target="_blank" rel="noopener noreferrer">
                 <i class="bi bi-google-play"></i>
                 Android herunterladen
             </a>
@@ -167,105 +211,146 @@
     </div>
 
     <script>
-        // Lese Werte aus data-Attributen (sicher gegen XSS)
-        const card = document.querySelector('.landing-card');
-        const token = card.dataset.token || '';
-        const targetPath = card.dataset.targetPath || '';
-        const shareType = card.dataset.shareType || '';
-
-        // World App Mini App ID (aus deiner App-Konfiguration)
-        const WORLD_APP_ID = 'app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa';
+        const card = document.querySelector(".landing-card");
+        const token = card.dataset.token || "";
+        const targetPath = card.dataset.targetPath || "";
+        const shareType = card.dataset.shareType || "";
 
         let attemptCount = 0;
         let appOpened = false;
 
-        // Prüfe ob wir bereits in der World App sind
+        function buildTargetUrl() {
+            return window.location.origin + targetPath;
+        }
+
         function isInWorldApp() {
-            const ua = navigator.userAgent || '';
-            return ua.toLowerCase().includes('worldapp') ||
-                   ua.toLowerCase().includes('minikit') ||
-                   ua.toLowerCase().includes('worldcoin') ||
-                   window.MiniKit !== undefined ||
-                   window.minikit !== undefined;
+            const ua = navigator.userAgent || "";
+            const hasWorldAppUA = ua.toLowerCase().includes("worldapp") ||
+                ua.toLowerCase().includes("minikit") ||
+                ua.toLowerCase().includes("worldcoin");
+            const hasMiniKit = window.MiniKit !== undefined || window.minikit !== undefined;
+
+            return hasWorldAppUA || hasMiniKit;
         }
 
         function openInWorldApp() {
-            const btn = document.getElementById('openAppBtn');
-            const status = document.getElementById('statusMessage');
-            const btnContent = document.getElementById('btnContent');
+            const btn = document.getElementById("openAppBtn");
+            const status = document.getElementById("statusMessage");
+            const btnContent = document.getElementById("btnContent");
+            const fullUrl = buildTargetUrl();
 
             attemptCount++;
-
-            // Show loading state
-            btnContent.innerHTML = '<span class="spinner"></span> Öffne World App...';
+            btnContent.innerHTML = '<span class="spinner"></span> Oeffne World App...';
             btn.disabled = true;
 
-            // Wenn wir bereits IN der World App sind → direkt navigieren
             if (isInWorldApp()) {
-                const fullUrl = window.location.origin + targetPath;
                 window.location.replace(fullUrl);
                 return;
             }
 
-            // Konstruiere absolute URL statt Deep Link
-            // World App sollte URLs auf deiner Domain abfangen
-            const fullUrl = window.location.origin + targetPath;
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+            const isAndroid = /Android/.test(navigator.userAgent);
 
-            // Versuche die App zu öffnen (direkte Navigation)
-            window.location.href = fullUrl;
+            if (isAndroid) {
+                try {
+                    const urlObj = new URL(fullUrl);
+                    const path = urlObj.pathname + urlObj.search;
+                    const intentLink = `intent:${path}#Intent;scheme=https;package=com.worldcoin;action=android.intent.action.VIEW;S.browser_fallback_url=${encodeURIComponent(fullUrl)};end`;
+                    window.location.href = intentLink;
+                } catch (e) {
+                    console.error("Intent failed:", e);
+                    window.location.href = fullUrl;
+                }
 
-            // Fallback detection
+                setTimeout(() => {
+                    if (!document.hidden && !appOpened) {
+                        window.location.href = fullUrl;
+                    }
+                }, 2000);
+            } else if (isIOS) {
+                window.location.href = fullUrl;
+            } else {
+                window.location.href = fullUrl;
+            }
+
             const startTime = Date.now();
-
             setTimeout(() => {
                 const elapsed = Date.now() - startTime;
 
-                // If still on page after 2.5 seconds, app probably not installed
-                if (!document.hidden && elapsed > 2000) {
+                if (!document.hidden && elapsed > 3000) {
                     btnContent.innerHTML = '<i class="bi bi-app"></i> Erneut versuchen';
                     btn.disabled = false;
 
                     if (attemptCount === 1) {
-                        status.textContent = 'App konnte nicht geöffnet werden. Ist die World App installiert?';
+                        status.innerHTML = 'World App konnte nicht geoeffnet werden.<br><small>Oeffne den Inhalt direkt im Browser oder installiere die App.</small>';
                     } else {
-                        status.textContent = 'Bitte lade die World App herunter, um fortzufahren.';
+                        status.textContent = "Bitte oeffne die World App manuell oder nutze direkt den Browser-Button.";
                     }
                 } else {
                     appOpened = true;
                 }
-            }, 2500);
+            }, 3500);
 
-            // Reset button after timeout
             setTimeout(() => {
                 if (!appOpened) {
-                    btnContent.innerHTML = '<i class="bi bi-app"></i> In World App öffnen';
+                    btnContent.innerHTML = '<i class="bi bi-app"></i> In World App oeffnen';
                     btn.disabled = false;
                 }
-            }, 5000);
+            }, 7000);
         }
 
-        // Detect if page becomes hidden (app opened)
-        document.addEventListener('visibilitychange', () => {
+        document.addEventListener("visibilitychange", () => {
             if (document.hidden) {
                 appOpened = true;
-                document.getElementById('statusMessage').textContent = '✓ World App wird geöffnet...';
+                document.getElementById("statusMessage").textContent = "World App wird geoeffnet...";
             }
         });
 
-        // Detect if user returns to page (app not installed)
-        window.addEventListener('focus', () => {
+        window.addEventListener("focus", () => {
             if (attemptCount > 0 && !appOpened) {
                 setTimeout(() => {
-                    const status = document.getElementById('statusMessage');
+                    const status = document.getElementById("statusMessage");
                     if (!appOpened) {
-                        status.textContent = 'Zurück zur Seite. Versuche es erneut oder lade die App herunter.';
+                        status.textContent = "Zurueck zur Seite. Du kannst es erneut versuchen oder direkt im Browser oeffnen.";
                     }
                 }, 300);
             }
         });
 
-        // Auto-attempt to open app on page load
-        window.addEventListener('DOMContentLoaded', () => {
+        function copyLinkAndOpenApp() {
+            const fullUrl = buildTargetUrl();
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(fullUrl).then(() => {
+                    document.getElementById("statusMessage").textContent = "Link kopiert. Oeffne jetzt die World App...";
+
+                    setTimeout(() => {
+                        if (/Android/.test(navigator.userAgent)) {
+                            window.location.href = "intent://launch#Intent;scheme=worldapp;package=com.worldcoin;end";
+                        } else {
+                            window.location.href = "worldapp://";
+                        }
+                    }, 500);
+                }).catch(() => {
+                    alert("Link: " + fullUrl);
+                });
+            } else {
+                alert("Kopiere diesen Link:\n\n" + fullUrl);
+            }
+        }
+
+        window.addEventListener("DOMContentLoaded", () => {
+            const fullUrl = buildTargetUrl();
+            const browserButton = document.getElementById("openBrowserBtn");
+            if (browserButton) {
+                browserButton.href = fullUrl;
+            }
+
+            if (isInWorldApp()) {
+                window.location.replace(fullUrl);
+                return;
+            }
+
             setTimeout(() => {
                 openInWorldApp();
             }, 500);

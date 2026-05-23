@@ -569,4 +569,301 @@
   <data name="Video.LoadError" xml:space="preserve">
     <value>Fel vid inläsning av video. Försök igen.</value>
   </data>
+
+  <!-- Create Posting -->
+  <data name="CreatePosting.CreatorStudio" xml:space="preserve">
+    <value>Creator Studio</value>
+  </data>
+  <data name="CreatePosting.BasicInfo" xml:space="preserve">
+    <value>Grundläggande information</value>
+  </data>
+  <data name="CreatePosting.Title" xml:space="preserve">
+    <value>Titel</value>
+  </data>
+  <data name="CreatePosting.Preference" xml:space="preserve">
+    <value>Preferens</value>
+  </data>
+  <data name="CreatePosting.Minutes" xml:space="preserve">
+    <value>Minuter</value>
+  </data>
+  <data name="CreatePosting.MediaScript" xml:space="preserve">
+    <value>Mediaskript</value>
+  </data>
+  <data name="CreatePosting.SelectVideoOrImage" xml:space="preserve">
+    <value>Välj video eller bild</value>
+  </data>
+  <data name="CreatePosting.SelectIngredients" xml:space="preserve">
+    <value>Välj ingredienser</value>
+  </data>
+  <data name="CreatePosting.SelectKeywords" xml:space="preserve">
+    <value>Välj nyckelord</value>
+  </data>
+  <data name="CreatePosting.Publish" xml:space="preserve">
+    <value>Publicera</value>
+  </data>
+
+  <!-- Preferences -->
+  <data name="Preference.Vegan" xml:space="preserve">
+    <value>Vegansk</value>
+  </data>
+  <data name="Preference.Vegetarian" xml:space="preserve">
+    <value>Vegetarisk</value>
+  </data>
+  <data name="Preference.Fish" xml:space="preserve">
+    <value>Fisk</value>
+  </data>
+  <data name="Preference.Pork" xml:space="preserve">
+    <value>Fläsk</value>
+  </data>
+  <data name="Preference.Beef" xml:space="preserve">
+    <value>Nötkött</value>
+  </data>
+  <data name="Preference.OtherMeat" xml:space="preserve">
+    <value>Annat kött</value>
+  </data>
+
+  <!-- CreatePosting Additional Keys -->
+  <data name="CreatePosting.NewPosting" xml:space="preserve">
+    <value>Nytt inlägg</value>
+  </data>
+  <data name="CreatePosting.SelectCategory" xml:space="preserve">
+    <value>Välj kategori</value>
+  </data>
+  <data name="CreatePosting.Basics" xml:space="preserve">
+    <value>Grundläggande</value>
+  </data>
+  <data name="CreatePosting.TitleCategoryPersonsTime" xml:space="preserve">
+    <value>Titel, kategori, personer, tid</value>
+  </data>
+  <data name="CreatePosting.Category" xml:space="preserve">
+    <value>Kategori</value>
+  </data>
+  <data name="CreatePosting.Persons" xml:space="preserve">
+    <value>Personer</value>
+  </data>
+  <data name="CreatePosting.DurationMin" xml:space="preserve">
+    <value>Varaktighet (min)</value>
+  </data>
+  <data name="CreatePosting.VideoOrImageForFeed" xml:space="preserve">
+    <value>Video eller bild för flödet</value>
+  </data>
+  <data name="CreatePosting.CurrentImageVideo" xml:space="preserve">
+    <value>Nuvarande bild/video</value>
+  </data>
+  <data name="CreatePosting.OptionalUploadNew" xml:space="preserve">
+    <value>Valfritt: ladda upp ny bild/video</value>
+  </data>
+  <data name="CreatePosting.UploadStart" xml:space="preserve">
+    <value>Starta uppladdning</value>
+  </data>
+  <data name="CreatePosting.ChooseVideoOrImage" xml:space="preserve">
+    <value>Välj en video eller bild (flödesstil).</value>
+  </data>
+  <data name="CreatePosting.IngredientsSelection" xml:space="preserve">
+    <value>Val av ingredienser</value>
+  </data>
+  <data name="CreatePosting.SearchConfigureIngredients" xml:space="preserve">
+    <value>Sök och konfigurera dina ingredienser</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Tryck för att redigera</value>
+  </data>
+  <data name="CreatePosting.YourIngredientMissing" xml:space="preserve">
+    <value>Saknas din ingrediens?</value>
+  </data>
+  <data name="CreatePosting.IngredientTestHint" xml:space="preserve">
+    <value>För testning: ange en ingrediens, sök först i katalogen, annars få ett AI-förslag.</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Tillredningssteg</value>
+  </data>
+  <data name="CreatePosting.WriteStepsWillTranslate" xml:space="preserve">
+    <value>Skriv dina steg - översätts till 10 språk vid sparande</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Tillagningsinstruktioner</value>
+  </data>
+  <data name="CreatePosting.WriteStepsAiTranslates" xml:space="preserve">
+    <value>Skriv bara dina steg - AI översätter till alla språk vid sparande (tyska, engelska, spanska, portugisiska, indonesiska, nederländska, svenska, danska, norska, malajiska)</value>
+  </data>
+  <data name="CreatePosting.KeywordsHelpFeedSearch" xml:space="preserve">
+    <value>Hjälper flöde och sökning</value>
+  </data>
+  <data name="CreatePosting.ReadyToPost" xml:space="preserve">
+    <value>Redo att publicera?</value>
+  </data>
+  <data name="CreatePosting.Save" xml:space="preserve">
+    <value>Spara</value>
+  </data>
+  <data name="CreatePosting.Add" xml:space="preserve">
+    <value>Lägg till</value>
+  </data>
+  <data name="CreatePosting.SavedSessionFound" xml:space="preserve">
+    <value>Sparad session hittades</value>
+  </data>
+  <data name="CreatePosting.Restore" xml:space="preserve">
+    <value>Återställ</value>
+  </data>
+  <data name="CreatePosting.Discard" xml:space="preserve">
+    <value>Kassera</value>
+  </data>
+  <data name="MyProfile.BackToFeed" xml:space="preserve">
+    <value>Tillbaka till flödet</value>
+  </data>
+  <data name="MyProfile.Following" xml:space="preserve">
+    <value>Följer</value>
+  </data>
+  <data name="MyProfile.Likes" xml:space="preserve">
+    <value>Gillningar</value>
+  </data>
+  <data name="MyProfile.Followers" xml:space="preserve">
+    <value>Följare</value>
+  </data>
+  <data name="MyProfile.Settings" xml:space="preserve">
+    <value>Inställningar</value>
+  </data>
+  <data name="MyProfile.DisplayName" xml:space="preserve">
+    <value>Visningsnamn</value>
+  </data>
+  <data name="MyProfile.Save" xml:space="preserve">
+    <value>Spara</value>
+  </data>
+  <data name="MyProfile.Marketplace" xml:space="preserve">
+    <value>Marknadsplats</value>
+  </data>
+  <data name="MyProfile.MyListings" xml:space="preserve">
+    <value>Mina annonser</value>
+  </data>
+  <data name="MyProfile.CommentModeration" xml:space="preserve">
+    <value>Kommentarmoderation</value>
+  </data>
+  <data name="MyProfile.ReportedContent" xml:space="preserve">
+    <value>Rapporterat innehåll</value>
+  </data>
+  <data name="MyProfile.CreatorManager" xml:space="preserve">
+    <value>Creator Manager</value>
+  </data>
+  <data name="MyProfile.CreatorDashboard" xml:space="preserve">
+    <value>Creator dashboard</value>
+  </data>
+  <data name="MyProfile.TabLikes" xml:space="preserve">
+    <value>GILLNINGAR</value>
+  </data>
+  <data name="MyProfile.TabAI" xml:space="preserve">
+    <value>AI</value>
+  </data>
+  <data name="MyProfile.TabCreators" xml:space="preserve">
+    <value>SKAPARE</value>
+  </data>
+  <data name="MyProfile.TabCreated" xml:space="preserve">
+    <value>SKAPAD</value>
+  </data>
+  <data name="MyProfile.TabBought" xml:space="preserve">
+    <value>KÖPT</value>
+  </data>
+  <data name="MyProfile.TabVideos" xml:space="preserve">
+    <value>VIDEOS</value>
+  </data>
+  <data name="MyProfile.NoLikesYet" xml:space="preserve">
+    <value>Inga gillningar ännu</value>
+  </data>
+  <data name="MyProfile.NoAIVariantsYet" xml:space="preserve">
+    <value>Inga AI-varianter ännu</value>
+  </data>
+  <data name="MyProfile.NoCreatedPlansYet" xml:space="preserve">
+    <value>Inga skapade planer ännu</value>
+  </data>
+  <data name="MyProfile.Delete" xml:space="preserve">
+    <value>Ta bort</value>
+  </data>
+  <data name="MyProfile.NoPurchasedPlansYet" xml:space="preserve">
+    <value>Inga köpta planer ännu</value>
+  </data>
+  <data name="MyProfile.GoToMarketplace" xml:space="preserve">
+    <value>Gå till marknadsplats</value>
+  </data>
+  <data name="MyProfile.DaysLowercase" xml:space="preserve">
+    <value>dagar</value>
+  </data>
+  <data name="MyProfile.Days" xml:space="preserve">
+    <value>Dagar</value>
+  </data>
+  <data name="MyProfile.Recipes" xml:space="preserve">
+    <value>Recept</value>
+  </data>
+  <data name="MyProfile.Purchased" xml:space="preserve">
+    <value>Köpt</value>
+  </data>
+  <data name="MyProfile.PurchasedOn" xml:space="preserve">
+    <value>Köpt den</value>
+  </data>
+  <data name="MyProfile.Open" xml:space="preserve">
+    <value>Öppna</value>
+  </data>
+  <data name="MyProfile.Edit" xml:space="preserve">
+    <value>Redigera</value>
+  </data>
+  <data name="MyProfile.TakePostingOfflineConfirm" xml:space="preserve">
+    <value>Ta inlägg offline?</value>
+  </data>
+  <data name="MyProfile.TakeOffline" xml:space="preserve">
+    <value>Ta offline</value>
+  </data>
+  <data name="MyProfile.PutPostingOnlineConfirm" xml:space="preserve">
+    <value>Sätt inlägg online igen?</value>
+  </data>
+  <data name="MyProfile.PutOnline" xml:space="preserve">
+    <value>Sätt online</value>
+  </data>
+  <data name="MyProfile.DeletePostingPermanentlyConfirm" xml:space="preserve">
+    <value>Ta bort inlägg PERMANENT? All data kommer att tas bort!</value>
+  </data>
+  <data name="MyProfile.DeletePermanently" xml:space="preserve">
+    <value>Ta bort permanent</value>
+  </data>
+  <data name="SharedFeed.Title" xml:space="preserve"><value>Delat Innehåll</value></data>
+  <data name="SharedFeed.MyGroups" xml:space="preserve"><value>Mina Grupper</value></data>
+  <data name="SharedFeed.MemberIn" xml:space="preserve"><value>Medlem i</value></data>
+  <data name="SharedFeed.CreateNewFeed" xml:space="preserve"><value>Skapa Nytt Gruppflöde</value></data>
+  <data name="SharedFeed.Create" xml:space="preserve"><value>Skapa</value></data>
+  <data name="SharedFeed.Members" xml:space="preserve"><value>medlemmar</value></data>
+  <data name="SharedFeed.Items" xml:space="preserve"><value>objekt</value></data>
+  <data name="SharedFeed.InviteLink" xml:space="preserve"><value>Kopiera inbjudningslänk</value></data>
+  <data name="Todo.Title" xml:space="preserve"><value>Att Göra-lista</value></data>
+  <data name="Todo.AddPlaceholder" xml:space="preserve"><value>Lägg till ny uppgift...</value></data>
+  <data name="Todo.Delete" xml:space="preserve"><value>Ta bort</value></data>
+  <data name="Chat.Title" xml:space="preserve"><value>Gruppchatt</value></data>
+  <data name="Chat.MessagePlaceholder" xml:space="preserve"><value>Skriv ett meddelande...</value></data>
+  <data name="AddToFeed.Title" xml:space="preserve"><value>Lägg till i Flöde</value></data>
+  <data name="Home.SharedContent" xml:space="preserve"><value>Delat Innehåll</value></data>
+  <data name="Home.SharedContentDesc" xml:space="preserve"><value>Gruppflöden, chatt och uppgifter</value></data>
+
+  <!-- Import Meal Plan -->
+  <data name="Import.Title" xml:space="preserve">
+    <value>Importera Måltidsplan</value>
+  </data>
+  <data name="Import.Button" xml:space="preserve">
+    <value>Importera Min Måltidsplan</value>
+  </data>
+  <data name="Import.Loading" xml:space="preserve">
+    <value>Laddar planer...</value>
+  </data>
+  <data name="Import.NoPlans" xml:space="preserve">
+    <value>Du har inga sparade måltidsplaner än.</value>
+  </data>
+  <data name="Import.Importing" xml:space="preserve">
+    <value>Importerar...</value>
+  </data>
+  <data name="Import.Success" xml:space="preserve">
+    <value>Importerad!</value>
+  </data>
+  <data name="Import.SuccessMessage" xml:space="preserve">
+    <value>Måltidsplanen importerades till gruppen.</value>
+  </data>
+  <data name="Import.Error" xml:space="preserve">
+    <value>Fel vid import av plan.</value>
+  </data>
+  <data name="Import.AdminActions" xml:space="preserve">
+    <value>Administratörsåtgärder</value>
+  </data>
 </root>

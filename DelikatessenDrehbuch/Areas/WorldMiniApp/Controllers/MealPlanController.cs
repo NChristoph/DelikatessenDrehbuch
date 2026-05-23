@@ -1,4 +1,5 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
@@ -11,9 +12,10 @@ using Newtonsoft.Json;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
-    [Route("WorldMiniApp/Home/{action}")]
+    [Route("WorldMiniApp/MealPlan/{action}")]
     public class MealPlanController : WorldMiniAppBaseController
     {
+        private const string WorldMiniAppId = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
         private readonly ApplicationDbContext _context;
         private readonly IRecipesService _recipesService;
         private readonly IWorldAppMealPlanService _worldAppMealPlanService;
@@ -158,53 +160,36 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [HttpGet]
         public async Task<IActionResult> SaveMealPlan(string mealPlanJson, int personCount, string userHash, string title)
         {
-            userHash = ResolveUserHash(userHash);
+            var result = await ProcessMealPlanSaveAsync(mealPlanJson, personCount, userHash, title);
+            if (result.RedirectToPersonality)
+            {
+                return RedirectToAction("PersonalityAsync", new { userHash = result.UserHash });
+            }
+
             ViewData["PersonCount"] = personCount;
-            var indexIds = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(mealPlanJson.ToString());
+            return View("~/Areas/WorldMiniApp/Views/Home/Finaly.cshtml", result.Model);
+        }
 
-            List<MealPlanerModel> model = new();
-            var baseDataDictionary = new Dictionary<int, List<int>>();
-            var usesBaseData = false;
-
-            var allRecipeIds = indexIds.Select(x => x.RecipeId).Distinct().ToList();
-            var recipesDict = (await _recipesService.GetRecipesListByIdsAsync(allRecipeIds))
-                .ToDictionary(r => r.Id);
-            var missingRecipeIds = allRecipeIds.Except(recipesDict.Keys).ToList();
-            var baseDataDict = missingRecipeIds.Count > 0
-                ? await _context.RecipeBaseData.AsNoTracking()
-                    .Where(r => missingRecipeIds.Contains(r.Id))
-                    .ToDictionaryAsync(r => r.Id)
-                : new Dictionary<int, RecipeBaseData>();
-
-            foreach (var item in indexIds)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SaveMealPlanFromLayout([FromBody] SharedMealPlanRequest request)
+        {
+            if (request == null || string.IsNullOrWhiteSpace(request.MealPlanJson))
             {
-                if (recipesDict.TryGetValue(item.RecipeId, out var recipe))
-                {
-                    model.Add(new MealPlanerModel
-                    {
-                        Index = item.DayIndex,
-                        Recipes = recipe
-                    });
-                }
-                else if (baseDataDict.TryGetValue(item.RecipeId, out var baseData))
-                {
-                    usesBaseData = true;
-                    if (!baseDataDictionary.ContainsKey(item.DayIndex))
-                    {
-                        baseDataDictionary[item.DayIndex] = new List<int>();
-                    }
-                    baseDataDictionary[item.DayIndex].Add(baseData.Id);
-                }
+                return BadRequest("Meal plan fehlt.");
             }
 
-            if (usesBaseData)
-            {
-                await SaveBaseDataMealPlanAsync(userHash, title, baseDataDictionary, personCount);
-                return RedirectToAction("PersonalityAsync", new { userHash });
-            }
+            var result = await ProcessMealPlanSaveAsync(request.MealPlanJson, request.PersonCount, request.UserHash, request.Title);
 
-            await _worldAppMealPlanService.SaveNewMealPlanAsync(userHash, model, title);
-            return View("~/Areas/WorldMiniApp/Views/Home/Finaly.cshtml", model);
+            var redirectUrl = result.RedirectToPersonality
+                ? Url.Action("PersonalityAsync", "MealPlan", new { area = "WorldMiniApp", userHash = result.UserHash })
+                : Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = result.UserHash, tab = "mealplans" });
+
+            return Ok(new
+            {
+                success = true,
+                redirectUrl
+            });
         }
 
         [HttpGet]
@@ -341,6 +326,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return BadRequest("Meal plan fehlt.");
             }
 
+            var resolvedUserHash = ResolveUserHash(request.UserHash ?? string.Empty);
+
             var mealPlan = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(request.MealPlanJson);
             if (mealPlan == null || mealPlan.Count == 0)
             {
@@ -354,7 +341,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var sharedPlan = new WorldSharedMealPlan
             {
                 ShareToken = shareToken,
-                UserHash = request.UserHash,
+                UserHash = resolvedUserHash,
                 Title = string.IsNullOrWhiteSpace(request.Title) ? "Mein Wochenplan" : request.Title.Trim(),
                 PersonCount = request.PersonCount <= 0 ? 1 : request.PersonCount,
                 MealPlanJson = request.MealPlanJson,
@@ -364,11 +351,29 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.WorldSharedMealPlan.AddAsync(sharedPlan);
             await _context.SaveChangesAsync();
 
-            var shareUrl = Url.Action("ShareMealPlan", "Home", new { area = "WorldMiniApp", token = shareToken }, Request.Scheme);
+            if (request.SharedFeedId.HasValue && request.SharedFeedId.Value > 0)
+            {
+                var wasAdded = await TryAddSharedFeedItemAsync(
+                    request.SharedFeedId.Value,
+                    "mealplan",
+                    shareToken,
+                    string.IsNullOrWhiteSpace(resolvedUserHash) ? string.Empty : resolvedUserHash,
+                    sharedPlan.Title);
+
+                if (wasAdded)
+                {
+                    await TouchSharedFeedAsync(request.SharedFeedId.Value);
+                }
+            }
+
+            var shareTargetPath = $"/WorldMiniApp/MealPlan/SharedMealPlan?token={Uri.EscapeDataString(shareToken)}&direct=true";
+            var sharePath = $"/WorldMiniApp/Home/Index?returnTo={Uri.EscapeDataString(shareTargetPath)}";
+            var shareUrl = BuildWorldMiniAppShareUrl(sharePath);
             return Ok(new { shareUrl });
         }
 
         [HttpGet]
+        [Route("/WorldMiniApp/MealPlan/SharedMealPlan")]
         public async Task<IActionResult> ShareMealPlan(string token, bool? direct)
         {
             if (string.IsNullOrWhiteSpace(token))
@@ -382,23 +387,57 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return NotFound();
             }
 
-            // Wenn nicht mit direct=true UND nicht in World App → Landing Page zeigen
+            // Prüfe ob in World App
             var isWorldApp = IsWorldAppRequest();
+
             if (direct != true && !isWorldApp)
             {
-                ViewData["ShareType"] = "meal-plan";
+                ViewData["ShareType"] = "mealplan";
                 ViewData["Token"] = token;
-                ViewData["Title"] = sharedPlan.Title ?? "Geteilter Essensplan";
-                ViewData["Description"] = $"Öffne diesen Essensplan in der World App ({sharedPlan.PersonCount} Person(en), {sharedPlan.MealPlanJson?.Count(c => c == '{') ?? 0} Rezepte).";
-                ViewData["TargetPath"] = $"/WorldMiniApp/MealPlan/ShareMealPlan?token={token}&direct=true";
+                ViewData["Title"] = string.IsNullOrWhiteSpace(sharedPlan.Title)
+                    ? "Geteilter Essensplan"
+                    : sharedPlan.Title;
+                ViewData["Description"] = string.IsNullOrWhiteSpace(sharedPlan.Title)
+                    ? "Öffne diesen Essensplan in der World App oder direkt im Browser."
+                    : $"Öffne den Essensplan \"{sharedPlan.Title}\" in der World App oder direkt im Browser.";
+                ViewData["TargetPath"] = $"/WorldMiniApp/MealPlan/SharedMealPlan?token={Uri.EscapeDataString(token)}&direct=true";
+
                 return View("~/Areas/WorldMiniApp/Views/Home/SharedLinkLanding.cshtml");
             }
 
+            // Setze Flag ob "In World App öffnen" Button angezeigt werden soll
+            ViewData["ShowOpenInAppButton"] = !isWorldApp;
+
             var mealPlan = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(sharedPlan.MealPlanJson) ?? new();
             var recipeIds = mealPlan.Select(x => x.RecipeId).Distinct().ToList();
-            var recipeNames = await _context.RecipeBaseData
+
+            // Load full recipe data with images, keywords, and nutrition
+            var recipes = await _context.RecipeBaseData
                 .Where(r => recipeIds.Contains(r.Id))
-                .Select(r => r.Title)
+                .Include(r => r.Images)
+                .Include(r => r.RecipeKeywords)
+                    .ThenInclude(rk => rk.Keyword)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(i => i.Ingredient)
+                        .ThenInclude(ing => ing.IngredientsAndNutrients)
+                .Include(r => r.Ingredients)
+                    .ThenInclude(i => i.Ingredient)
+                        .ThenInclude(ing => ing.Quantity)
+                .Select(r => new
+                {
+                    r.Id,
+                    r.Title,
+                    r.Category,
+                    r.PreparationTime,
+                    r.PersonCount,
+                    Images = r.Images.OrderBy(i => i.Id).Select(i => i.Image).ToList(),
+                    Keywords = r.RecipeKeywords.Select(k => new { k.Keyword.Word_DE, k.Keyword.Word_EN }).ToList(),
+                    Ingredients = r.Ingredients.Select(i => new
+                    {
+                        QuantityFloat = i.Ingredient.Quantity != null ? (decimal)i.Ingredient.Quantity.Quantitys : 0,
+                        Nutrition = i.Ingredient.IngredientsAndNutrients
+                    }).ToList()
+                })
                 .ToListAsync();
 
             var items = string.IsNullOrWhiteSpace(sharedPlan.ShoppingListJson)
@@ -407,7 +446,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             ViewData["Title"] = sharedPlan.Title;
             ViewData["PersonCount"] = sharedPlan.PersonCount;
-            ViewData["RecipeNames"] = recipeNames;
+            ViewData["MealPlan"] = mealPlan;
+            ViewData["Recipes"] = recipes;
             ViewData["ShoppingListText"] = BuildShoppingListText(items);
 
             return View("~/Areas/WorldMiniApp/Views/Home/ShareMealPlan.cshtml");
@@ -416,9 +456,77 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private bool IsWorldAppRequest()
         {
             var userAgent = Request.Headers["User-Agent"].ToString();
-            return userAgent.Contains("WorldApp", StringComparison.OrdinalIgnoreCase) ||
-                   userAgent.Contains("MiniKit", StringComparison.OrdinalIgnoreCase) ||
-                   userAgent.Contains("Worldcoin", StringComparison.OrdinalIgnoreCase);
+
+            // Prüfe verschiedene Varianten
+            var isWorldApp = userAgent.Contains("WorldApp", StringComparison.OrdinalIgnoreCase) ||
+                             userAgent.Contains("MiniKit", StringComparison.OrdinalIgnoreCase) ||
+                             userAgent.Contains("Worldcoin", StringComparison.OrdinalIgnoreCase) ||
+                             userAgent.Contains("World App", StringComparison.OrdinalIgnoreCase);
+
+            // Log für Debugging
+            _logger.LogInformation($"IsWorldAppRequest check: UserAgent='{userAgent}', Result={isWorldApp}");
+
+            return isWorldApp;
+        }
+
+        private static string BuildWorldMiniAppShareUrl(string targetPath)
+        {
+            var normalizedPath = string.IsNullOrWhiteSpace(targetPath)
+                ? "/"
+                : targetPath.StartsWith("/", StringComparison.Ordinal) ? targetPath : "/" + targetPath;
+
+            return $"https://world.org/mini-app?app_id={WorldMiniAppId}&path={Uri.EscapeDataString(normalizedPath)}";
+        }
+
+        private async Task<bool> TryAddSharedFeedItemAsync(int feedId, string contentType, string sourceToken, string addedByUserHash, string title)
+        {
+            if (feedId <= 0 || string.IsNullOrWhiteSpace(addedByUserHash))
+            {
+                return false;
+            }
+
+            var hasAccess = await _context.WorldSharedFeedMembers
+                .AnyAsync(x => x.WorldSharedFeedId == feedId && x.UserHash == addedByUserHash);
+
+            if (!hasAccess)
+            {
+                return false;
+            }
+
+            var exists = await _context.WorldSharedFeedItems.AnyAsync(x =>
+                x.WorldSharedFeedId == feedId &&
+                x.ContentType == contentType &&
+                x.SourceToken == sourceToken);
+
+            if (exists)
+            {
+                return false;
+            }
+
+            await _context.WorldSharedFeedItems.AddAsync(new WorldSharedFeedItem
+            {
+                WorldSharedFeedId = feedId,
+                ContentType = contentType,
+                SourceToken = sourceToken,
+                Title = title,
+                AddedByUserHash = addedByUserHash,
+                CreatedAtUtc = DateTime.UtcNow
+            });
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        private async Task TouchSharedFeedAsync(int feedId)
+        {
+            var feed = await _context.WorldSharedFeeds.FirstOrDefaultAsync(x => x.Id == feedId);
+            if (feed == null)
+            {
+                return;
+            }
+
+            feed.LastActivityAtUtc = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
         }
 
         [HttpGet]
@@ -426,6 +534,43 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             ViewData["List"] = list ?? string.Empty;
             return View("~/Areas/WorldMiniApp/Views/Home/ShareShoppingList.cshtml");
+        }
+
+        [HttpGet]
+        [Route("/WorldMiniApp/MealPlan/SharedShoppingList")]
+        public async Task<IActionResult> SharedShoppingList(string token, bool? direct)
+        {
+            if (string.IsNullOrWhiteSpace(token))
+                return NotFound();
+
+            var list = await _context.WorldSharedShoppingList.FirstOrDefaultAsync(x => x.ShareToken == token);
+            if (list == null)
+                return NotFound();
+
+            // Prüfe ob in World App
+            var isWorldApp = IsWorldAppRequest();
+
+            if (direct != true && !isWorldApp)
+            {
+                ViewData["ShareType"] = "shopping-list";
+                ViewData["Token"] = token;
+                ViewData["Title"] = "Geteilte Einkaufsliste";
+                ViewData["Description"] = "Öffne diese Einkaufsliste in der World App oder direkt im Browser.";
+                ViewData["TargetPath"] = Url.Action(
+                    "SharedShoppingList",
+                    "MealPlan",
+                    new { area = "WorldMiniApp", token, direct = true }) ?? $"/WorldMiniApp/MealPlan/SharedShoppingList?token={Uri.EscapeDataString(token)}&direct=true";
+
+                return View("~/Areas/WorldMiniApp/Views/Home/SharedLinkLanding.cshtml");
+            }
+
+            // Setze Flag ob "In World App öffnen" Button angezeigt werden soll
+            ViewData["ShowOpenInAppButton"] = !isWorldApp;
+            ViewData["Token"] = list.ShareToken;
+            ViewData["Items"] = list.ItemsJson;
+            ViewData["Checked"] = list.CheckedJson;
+
+            return View("~/Areas/WorldMiniApp/Views/Home/SharedShoppingList.cshtml");
         }
 
         [HttpGet]
@@ -715,6 +860,82 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return await _context.RecipeBaseData.FirstOrDefaultAsync(r => r.Id == id);
         }
 
+        private async Task<MealPlanSaveResult> ProcessMealPlanSaveAsync(string mealPlanJson, int personCount, string? userHash, string? title)
+        {
+            var resolvedUserHash = ResolveUserHash(userHash ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(resolvedUserHash))
+            {
+                throw new WorldMiniAppValidationException("User Hash nicht gefunden.");
+            }
+
+            var indexIds = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(mealPlanJson) ?? new List<MealPlanHelperMobile>();
+            if (indexIds.Count == 0)
+            {
+                throw new WorldMiniAppValidationException("Meal plan ist leer.");
+            }
+
+            var model = new List<MealPlanerModel>();
+            var baseDataDictionary = new Dictionary<int, List<int>>();
+            var usesBaseData = false;
+
+            var allRecipeIds = indexIds.Select(x => x.RecipeId).Distinct().ToList();
+            var recipesDict = (await _recipesService.GetRecipesListByIdsAsync(allRecipeIds)).ToDictionary(r => r.Id);
+            var missingRecipeIds = allRecipeIds.Except(recipesDict.Keys).ToList();
+            var baseDataDict = missingRecipeIds.Count > 0
+                ? await _context.RecipeBaseData.AsNoTracking()
+                    .Where(r => missingRecipeIds.Contains(r.Id))
+                    .ToDictionaryAsync(r => r.Id)
+                : new Dictionary<int, RecipeBaseData>();
+
+            foreach (var item in indexIds)
+            {
+                if (recipesDict.TryGetValue(item.RecipeId, out var recipe))
+                {
+                    model.Add(new MealPlanerModel
+                    {
+                        Index = item.DayIndex,
+                        Recipes = recipe
+                    });
+                }
+                else if (baseDataDict.TryGetValue(item.RecipeId, out var baseData))
+                {
+                    usesBaseData = true;
+                    if (!baseDataDictionary.ContainsKey(item.DayIndex))
+                    {
+                        baseDataDictionary[item.DayIndex] = new List<int>();
+                    }
+
+                    baseDataDictionary[item.DayIndex].Add(baseData.Id);
+                }
+            }
+
+            if (usesBaseData)
+            {
+                await SaveBaseDataMealPlanAsync(resolvedUserHash, title ?? string.Empty, baseDataDictionary, personCount);
+                return new MealPlanSaveResult
+                {
+                    RedirectToPersonality = true,
+                    UserHash = resolvedUserHash,
+                    Model = model
+                };
+            }
+
+            await _worldAppMealPlanService.SaveNewMealPlanAsync(resolvedUserHash, model, title ?? string.Empty);
+            return new MealPlanSaveResult
+            {
+                RedirectToPersonality = false,
+                UserHash = resolvedUserHash,
+                Model = model
+            };
+        }
+
+        private sealed class MealPlanSaveResult
+        {
+            public bool RedirectToPersonality { get; set; }
+            public string UserHash { get; set; } = string.Empty;
+            public List<MealPlanerModel> Model { get; set; } = new();
+        }
+
         private async Task SaveBaseDataMealPlanAsync(string userHash, string title, Dictionary<int, List<int>> baseDataDictionary, int personCount)
         {
             var planTitle = string.IsNullOrWhiteSpace(title) ? "Feed-Plan" : title.Trim();
@@ -801,6 +1022,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             public string ItemsJson { get; set; }
             public string UserHash { get; set; }
+            public int? SharedFeedId { get; set; }
         }
 
         public class UpdateCheckedRequest
@@ -818,11 +1040,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return BadRequest("Einkaufsliste fehlt.");
             }
 
+            var resolvedUserHash = ResolveUserHash(request.UserHash ?? string.Empty);
+
             var shareToken = Guid.NewGuid().ToString("N");
             var sharedList = new WorldSharedShoppingList
             {
                 ShareToken = shareToken,
-                UserHash = request.UserHash ?? "",
+                UserHash = resolvedUserHash,
                 ItemsJson = request.ItemsJson,
                 CheckedJson = "[]"
             };
@@ -830,7 +1054,27 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.WorldSharedShoppingList.AddAsync(sharedList);
             await _context.SaveChangesAsync();
 
-            var shareUrl = Url.Action("SharedShoppingList", "Home", new { area = "WorldMiniApp", token = shareToken }, Request.Scheme);
+            if (request.SharedFeedId.HasValue && request.SharedFeedId.Value > 0)
+            {
+                var wasAdded = await TryAddSharedFeedItemAsync(
+                    request.SharedFeedId.Value,
+                    "shoppinglist",
+                    shareToken,
+                    string.IsNullOrWhiteSpace(resolvedUserHash) ? string.Empty : resolvedUserHash,
+                    "Geteilte Einkaufsliste");
+
+                if (wasAdded)
+                {
+                    await TouchSharedFeedAsync(request.SharedFeedId.Value);
+                }
+            }
+
+            var shareTargetPath = Url.Action(
+                "SharedShoppingList",
+                "MealPlan",
+                new { area = "WorldMiniApp", token = shareToken, direct = true }) ?? $"/WorldMiniApp/MealPlan/SharedShoppingList?token={Uri.EscapeDataString(shareToken)}&direct=true";
+            var sharePath = $"/WorldMiniApp/Home/Index?returnTo={Uri.EscapeDataString(shareTargetPath)}";
+            var shareUrl = BuildWorldMiniAppShareUrl(sharePath);
             return Ok(new { shareUrl, token = shareToken });
         }
 

@@ -199,6 +199,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["CommentCounts"] = await GetCommentCountsForPostingsAsync(postingIds);
             ViewData["CanWriteComments"] = await CanWriteCommentsAsync(userHash);
 
+            // User Verification Level für Upload-Button
+            // In Debug-Mode oder für Test-Hashes: Upload erlauben
+            var isLocalRequest = string.Equals(HttpContext.Request.Host.Host, "localhost", StringComparison.OrdinalIgnoreCase)
+                || string.Equals(HttpContext.Request.Host.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
+            var isDebugMode = System.Diagnostics.Debugger.IsAttached || isLocalRequest;
+
+            const string devTestHash1 = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
+            const string devTestHash2 = "0x7c1f6a4be3c2d9aa51e4c0bf2a6e7d8f9b1c3d5e7f8091a2b3c4d5e6f7081920";
+            var isTestHash = string.Equals(userHash, devTestHash1, StringComparison.OrdinalIgnoreCase)
+                || string.Equals(userHash, devTestHash2, StringComparison.OrdinalIgnoreCase);
+
+            var userForVerification = await _context.WorldAppUser
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.UserHash == userHash);
+
+            var isOrbVerified = string.Equals(userForVerification?.IsVerified, "orb", StringComparison.OrdinalIgnoreCase);
+
+            ViewData["UserVerificationLevel"] = userForVerification?.IsVerified ?? "device";
+            ViewData["IsOrbVerified"] = isOrbVerified || isDebugMode || isTestHash;
+
             ViewData["ScrollToId"] = scrollToId;
             ViewData["CurrentFilter"] = filter;
             ViewData["SearchTerm"] = searchTerm;

@@ -7,195 +7,223 @@
 
 @{
     Layout = "_MiniAppLayout";
-    ViewData["Title"] = "Start";
+    ViewData["Title"] = "Avocado";
 
     var requestCulture = Context.Features.Get<IRequestCultureFeature>();
     var currentCulture = requestCulture?.RequestCulture.Culture ?? System.Globalization.CultureInfo.CurrentCulture;
-    var language = currentCulture.TwoLetterISOLanguageName;
+    var language = currentCulture.TwoLetterISOLanguageName.ToUpper();
 
     var isLocalRequest = string.Equals(Context.Request.Host.Host, "localhost", StringComparison.OrdinalIgnoreCase)
         || string.Equals(Context.Request.Host.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
     var isDebugMode = System.Diagnostics.Debugger.IsAttached || isLocalRequest;
     var activeDebugHash = Context.Request.Cookies["WorldMiniAppTestUserHash"];
+    var postLoginRedirectUrl = ViewData["PostLoginRedirectUrl"]?.ToString() ?? string.Empty;
     const string devTestHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
     const string altDevTestHash = "0x7c1f6a4be3c2d9aa51e4c0bf2a6e7d8f9b1c3d5e7f8091a2b3c4d5e6f7081920";
 }
 
-<div class="d-flex flex-column min-vh-100 justify-content-center p-4"
-     style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
-    <div class="text-center mb-3">
-        <div class="rounded-circle shadow d-inline-flex align-items-center justify-content-center mb-3 bg-white"
-             style="width: 100px; height: 100px; border: 4px solid rgba(255,255,255,0.5);">
-            <span style="font-size: 3.5rem;">🥑</span>
-        </div>
-        <h2 class="fw-bold mb-1" style="color: #2c3e50; letter-spacing: -1px;">Delikatessen<br>Drehbuch</h2>
-        <p class="text-muted small text-uppercase fw-bold" style="letter-spacing: 2px; font-size: 0.7rem;">Mini App</p>
-    </div>
-
-    <div class="d-grid gap-3">
-
-        <a href="@Url.Action("Generator", "Home", new { area = "WorldMiniApp" })"
-           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect position-relative app-link"
-           style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
-
-            <div class="position-absolute top-0 end-0 opacity-25" style="transform: translate(20%, -20%);">
-                <i class="bi bi-calendar-check-fill" style="font-size: 8rem; color: white;"></i>
-            </div>
-
-            <div class="card-body p-4 d-flex align-items-center position-relative">
-                <div class="bg-white bg-opacity-25 rounded-3 d-flex align-items-center justify-content-center me-3"
-                     style="width: 50px; height: 50px; min-width: 50px;">
-                    <i class="bi bi-magic text-white fs-4"></i>
-                </div>
-                <div class="text-white">
-                    <h5 class="fw-bold mb-0">@SharedLocalizer["Home.WeeklyPlan"]</h5>
-                    <small style="opacity: 0.85;">@SharedLocalizer["Home.AutoCreate"]</small>
-                </div>
-            </div>
-        </a>
-
-        <a href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })"
-           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect position-relative app-link"
-           style="background: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);">
-
-            <div class="position-absolute top-0 end-0 opacity-25" style="transform: translate(20%, -20%);">
-                <i class="bi bi-compass-fill" style="font-size: 8rem; color: white;"></i>
-            </div>
-
-            <div class="card-body p-4 d-flex align-items-center position-relative">
-                <div class="bg-white bg-opacity-25 rounded-3 d-flex align-items-center justify-content-center me-3"
-                     style="width: 50px; height: 50px; min-width: 50px;">
-                    <i class="bi bi-stars text-white fs-4"></i>
-                </div>
-                <div class="text-white">
-                    <h5 class="fw-bold mb-0">@SharedLocalizer["Home.Discover"]</h5>
-                    <small style="opacity: 0.85;">@SharedLocalizer["Home.CommunityTrends"]</small>
-                </div>
-            </div>
-        </a>
-
-        <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })"
-           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect position-relative app-link"
-           style="background: linear-gradient(135deg, #F7971E 0%, #FFD200 100%);">
-
-            <div class="position-absolute top-0 end-0 opacity-25" style="transform: translate(20%, -20%);">
-                <i class="bi bi-shop-window" style="font-size: 8rem; color: white;"></i>
-            </div>
-
-            <div class="card-body p-4 d-flex align-items-center position-relative">
-                <div class="bg-white bg-opacity-25 rounded-3 d-flex align-items-center justify-content-center me-3"
-                     style="width: 50px; height: 50px; min-width: 50px;">
-                    <i class="bi bi-currency-exchange text-white fs-4"></i>
-                </div>
-                <div class="text-white">
-                    <h5 class="fw-bold mb-0">@SharedLocalizer["Home.Marketplace"]</h5>
-                    <small style="opacity: 0.9;">@SharedLocalizer["Home.MarketplaceSubtitle"]</small>
-                </div>
-            </div>
-        </a>
-
-        <a href="@Url.Action("Upload", "Home", new { area = "WorldMiniApp" })"
-           class="card text-decoration-none border-0 shadow rounded-4 overflow-hidden btn-hover-effect cursor-pointer app-link"
-           style="background: linear-gradient(135deg, #00C9FF 0%, #92FE9D 100%); cursor: pointer;">
-
-            <div class="position-absolute top-0 end-0 opacity-25" style="transform: translate(10%, -10%);">
-                <i class="bi bi-shield-lock-fill" style="font-size: 7rem; color: white;"></i>
-            </div>
-
-            <div class="card-body p-4 d-flex align-items-center position-relative">
-                <div class="bg-white bg-opacity-25 rounded-3 d-flex align-items-center justify-content-center me-3"
-                     style="width: 50px; height: 50px; min-width: 50px;">
-                    <i class="bi bi-fingerprint text-white fs-2"></i>
-                </div>
-                <div class="text-white">
-                    <div class="d-flex align-items-center gap-2 mb-1">
-                        <h5 class="fw-bold mb-0">@SharedLocalizer["Home.UploadRecipe"]</h5>
-                        <span class="badge bg-white text-primary rounded-pill fw-bold border border-white"
-                              style="font-size: 9px; padding: 4px 8px;">
-                            <i class="bi bi-person-check-fill me-1"></i> @SharedLocalizer["Home.VerificationStatusID"]
-                        </span>
-                    </div>
-                    <small style="opacity: 0.9;">@SharedLocalizer["Home.BecomeCreator"]</small>
-                </div>
-            </div>
-        </a>
-
-        <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp" })"
-           class="card text-decoration-none border-0 shadow-sm rounded-4 overflow-hidden btn-hover-effect bg-white app-link">
-            <div class="card-body p-3 d-flex align-items-center justify-content-between">
-                <div class="d-flex align-items-center">
-                    <div class="rounded-circle bg-light d-flex align-items-center justify-content-center me-3" style="width: 40px; height: 40px;">
-                        <i class="bi bi-person-fill text-muted fs-5"></i>
-                    </div>
-                    <div>
-                        <h6 class="fw-bold text-dark mb-0">@SharedLocalizer["Home.MyArea"]</h6>
-                        <small class="text-muted" style="font-size: 0.75rem;">@SharedLocalizer["Home.MyAreaSubtitle"]</small>
-                    </div>
-                </div>
-                <i class="bi bi-chevron-right text-muted opacity-50"></i>
-            </div>
-        </a>
-
-
-
-    </div>
-
-    <div class="mt-auto text-center pt-5">
-        <button type="button" id="manualLoginButton" class="btn btn-dark rounded-pill px-4 mb-3 shadow-sm">
-            <i class="bi bi-box-arrow-in-right me-1"></i>
-            @SharedLocalizer["Home.LoginNow"]
-        </button>
+<div class="avocado-home">
+    <!-- TopBar mit Language Switcher -->
+    <div class="avocado-topbar">
         @if (isDebugMode)
         {
-            <div class="mb-3 d-flex flex-column gap-2 align-items-center">
-                <div class="small text-muted text-center px-3">
+            <a href="@Url.Action("DebugLogs", "Shared", new { area = "WorldMiniApp" })" class="lang-pill" style="background: #ff6b6b; border-color: #ff6b6b;">
+                <i class="bi bi-bug-fill" style="font-size: 13px;"></i> Debug
+            </a>
+        }
+        <button type="button" class="lang-pill" onclick="setLanguage('@language')">
+            @language <i class="bi bi-chevron-down" style="font-size: 12px;"></i>
+        </button>
+    </div>
+
+    <!-- Logo Block -->
+    <div class="logo-block">
+        <div class="logo-circle">
+            <svg width="48" height="56" viewBox="0 0 48 56" fill="none">
+                <!-- Avocado Outer Skin -->
+                <defs>
+                    <linearGradient id="avocadoSkin" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#5fa052;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#3f7536;stop-opacity:1" />
+                    </linearGradient>
+                    <linearGradient id="avocadoFlesh" x1="0%" y1="0%" x2="0%" y2="100%">
+                        <stop offset="0%" style="stop-color:#f5e8b8;stop-opacity:1" />
+                        <stop offset="100%" style="stop-color:#d9c98a;stop-opacity:1" />
+                    </linearGradient>
+                </defs>
+                <ellipse cx="24" cy="28" rx="22" ry="26" fill="url(#avocadoSkin)"/>
+                <ellipse cx="24" cy="30" rx="16" ry="19" fill="url(#avocadoFlesh)"/>
+                <circle cx="24" cy="30" r="7" fill="#7a4a26"/>
+                <circle cx="25" cy="28" r="2" fill="#9a6234" opacity="0.6"/>
+            </svg>
+        </div>
+        <h1 class="logo-title">Avocado</h1>
+        <div class="logo-eyebrow">
+            <span class="line"></span>
+            <span class="text">MINI APP</span>
+            <span class="line"></span>
+        </div>
+    </div>
+
+    <div class="cards-container">
+        <!-- Hero Card: Feed -->
+        <a href="@Url.Action("Index", "Feed", new { area = "WorldMiniApp" })" class="hero-card app-link">
+            <!-- Goldglow Decoration -->
+            <div class="hero-goldglow"></div>
+
+            <!-- Sparkle Decoration -->
+            <svg class="hero-sparkles" width="120" height="120" viewBox="0 0 120 120" fill="none">
+                <path d="M90 50L92 56L98 58L92 60L90 66L88 60L82 58L88 56L90 50Z" fill="rgba(255,255,255,0.85)"/>
+                <path d="M70 80L71 84L75 85L71 86L70 90L69 86L65 85L69 84L70 80Z" fill="rgba(255,255,255,0.7)" opacity="0.7"/>
+                <path d="M100 75L101 78L104 79L101 80L100 83L99 80L96 79L99 78L100 75Z" fill="rgba(255,255,255,0.5)" opacity="0.5"/>
+                <circle cx="85" cy="70" r="2" fill="rgba(255,255,255,0.85)"/>
+                <circle cx="95" cy="85" r="1.5" fill="rgba(255,255,255,0.7)"/>
+                <circle cx="75" cy="95" r="1" fill="rgba(255,255,255,0.5)"/>
+            </svg>
+
+            <!-- LIVE Pill -->
+            <div class="live-pill">
+                <span class="live-dot"></span>
+                <span>LIVE</span>
+            </div>
+
+            <!-- Content -->
+            <div class="hero-content">
+                <div class="hero-icon-tile">
+                    <i class="bi bi-stars"></i>
+                </div>
+                <div class="hero-text">
+                    <h2 class="hero-title">Feed</h2>
+                    <p class="hero-subtitle">Community, Trends & neue Rezepte</p>
+                </div>
+                <i class="bi bi-chevron-right hero-chevron"></i>
+            </div>
+        </a>
+
+        <!-- Square Cards Grid -->
+        <div class="squares-grid">
+            <!-- Square: Hochladen -->
+            <a href="@Url.Action("Upload", "Recipe", new { area = "WorldMiniApp" })" class="square-card square-upload app-link">
+                <div class="square-decor">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <div class="square-top">
+                    <div class="square-icon-tile">
+                        <i class="bi bi-fingerprint"></i>
+                    </div>
+                    <span class="orb-badge">
+                        <i class="bi bi-shield-check"></i> Orb
+                    </span>
+                </div>
+                <div class="square-text">
+                    <h3 class="square-title">Hochladen</h3>
+                    <p class="square-subtitle">Werde Creator</p>
+                </div>
+            </a>
+
+            <!-- Square: Mein Bereich -->
+            <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp" })" class="square-card square-profile app-link">
+                <div class="square-decor">
+                    <i class="bi bi-person-vcard"></i>
+                </div>
+                <div class="square-top">
+                    <div class="square-icon-tile">
+                        <i class="bi bi-person"></i>
+                    </div>
+                </div>
+                <div class="square-text">
+                    <h3 class="square-title">Mein Bereich</h3>
+                    <p class="square-subtitle">Pläne & Listen</p>
+                </div>
+            </a>
+        </div>
+
+        <a href="@Url.Action("FeedLight", "Shared", new { area = "WorldMiniApp" })" class="marketplace-card marketplace-card-shared app-link">
+            <div class="marketplace-decor marketplace-decor-shared">
+                <i class="bi bi-people-fill"></i>
+            </div>
+            <div class="marketplace-badge-new">
+                <span>NEW</span>
+            </div>
+            <div class="marketplace-content">
+                <div class="marketplace-icon-tile marketplace-icon-shared">
+                    <i class="bi bi-send-check-fill"></i>
+                </div>
+                <div class="marketplace-text">
+                    <h3 class="marketplace-title">@SharedLocalizer["Home.SharedContent"]</h3>
+                    <p class="marketplace-subtitle">@SharedLocalizer["Home.SharedContentDesc"]</p>
+                    <div class="marketplace-features">
+                        <span class="feature-badge"><i class="bi bi-chat-dots"></i> Chat</span>
+                        <span class="feature-badge"><i class="bi bi-list-check"></i> Todos</span>
+                        <span class="feature-badge"><i class="bi bi-share"></i> Share</span>
+                    </div>
+                </div>
+            </div>
+        </a>
+
+        <!-- Marktplatz Card -->
+        <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="marketplace-card app-link">
+            <div class="marketplace-decor">
+                <i class="bi bi-shop-window"></i>
+            </div>
+            <div class="marketplace-content">
+                <div class="marketplace-icon-tile">
+                    <i class="bi bi-shop"></i>
+                </div>
+                <div class="marketplace-text">
+                    <h3 class="marketplace-title">Marktplatz</h3>
+                    <p class="marketplace-subtitle">Diätpläne kaufen & verkaufen</p>
+                </div>
+            </div>
+        </a>
+
+        <!-- Login CTA -->
+        <div class="login-cta-wrapper">
+            <button type="button" id="manualLoginButton" class="login-cta">
+                <i class="bi bi-box-arrow-in-right"></i>
+                <span>Jetzt einloggen</span>
+            </button>
+        </div>
+
+        <!-- Debug Block -->
+        @if (isDebugMode)
+        {
+            <div class="debug-block">
+                <div class="debug-header">DEBUG-MODUS</div>
+                <div class="debug-hash-display">
                     @if (!string.IsNullOrWhiteSpace(activeDebugHash))
                     {
-                        <span>
-                            @SharedLocalizer["Debug.ActiveHash"]
-                            <code id="activeDebugHashLabel">@activeDebugHash</code>
-                        </span>
+                        <code id="activeDebugHashLabel">@activeDebugHash.Substring(0, 10)…@activeDebugHash.Substring(activeDebugHash.Length - 5)</code>
                     }
                     else
                     {
-                        <span id="activeDebugHashLabel">@SharedLocalizer["Debug.NoHashActive"]</span>
+                        <code id="activeDebugHashLabel">Kein Hash aktiv</code>
                     }
                 </div>
-                <button type="button"
-                        class="btn btn-outline-secondary rounded-pill px-4 shadow-sm debug-test-login-button"
-                        data-user-hash="@devTestHash">
-                    <i class="bi bi-wrench-adjustable-circle me-1"></i>
-                    @SharedLocalizer["Debug.SignInTestHashA"]
+                <button type="button" class="debug-btn debug-btn-test debug-test-login-button" data-user-hash="@devTestHash">
+                    <i class="bi bi-globe2"></i> Test-Hash A
                 </button>
-                <button type="button"
-                        class="btn btn-outline-dark rounded-pill px-4 shadow-sm debug-test-login-button"
-                        data-user-hash="@altDevTestHash">
-                    <i class="bi bi-person-bounding-box me-1"></i>
-                    @SharedLocalizer["Debug.SignInTestHashB"]
+                <button type="button" class="debug-btn debug-btn-test debug-test-login-button" data-user-hash="@altDevTestHash">
+                    <i class="bi bi-person-circle"></i> Test-Hash B
                 </button>
-                <button type="button"
-                        id="clearDebugTestLoginButton"
-                        class="btn btn-outline-danger rounded-pill px-4 shadow-sm">
-                    <i class="bi bi-box-arrow-left me-1"></i>
-                    @SharedLocalizer["Debug.SignOutDebug"]
+                <button type="button" class="debug-btn debug-btn-logout" id="clearDebugTestLoginButton">
+                    <i class="bi bi-box-arrow-left"></i> Debug abmelden
                 </button>
-                <div class="small text-muted">
-                    @SharedLocalizer["Debug.OnlyVisibleInDebug"]
-                </div>
             </div>
         }
-        <p class="text-muted opacity-50" style="font-size: 0.75rem;">
-            @Html.Raw(SharedLocalizer["Home.MadeWithLove"])
-        </p>
+
+        <!-- Footer Hash -->
+        <div class="footer-hash">
+            v2.4.1 · build 2026.05.20
+        </div>
     </div>
-
 </div>
 
-<div class="d-none">
-    @Html.AntiForgeryToken()
-</div>
-
+<!-- Login Modal (unverändert) -->
 <div class="offcanvas offcanvas-bottom rounded-top-4" tabindex="-1" id="loginModal" style="height: auto;">
     <div class="offcanvas-body p-4 text-center">
         <div class="login-card bg-white rounded-4 shadow-lg p-4 position-relative text-start">
@@ -237,29 +265,622 @@
     </div>
 </div>
 
+<div class="d-none">
+    @Html.AntiForgeryToken()
+</div>
+
 <style>
-    body {
-        background: #fff8e1;
-    }
+/* Avocado Design System */
+:root {
+    --bg-screen: #ffffff;
+    --card-soft: #faf6ec;
+    --ink-deep: #14391f;
+    --ink-deep-2: #0f2c18;
+    --ink-mid: #2a4a32;
+    --ink-text: #1a2e20;
+    --ink-mute: #6b7868;
+    --ink-soft: #9aa295;
+    --ink-line: rgba(20,57,31,0.12);
+    --avocado: #5fa052;
+    --avocado-dark: #3f7536;
+    --gold-warm: #f5e9a0;
+    --gold: #f5b942;
+    --gold-dark: #d99a3c;
+    --crimson: #c44e4e;
+}
 
-    .login-card {
-        max-width: 420px;
-        margin: 0 auto;
-    }
+body {
+    background: var(--bg-screen);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
 
-    .btn-hover-effect {
-        transition: all 0.2s ease;
-    }
+.avocado-home {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 0;
+    min-height: 100vh;
+}
 
-        .btn-hover-effect:active {
-            transform: scale(0.97);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1) !important;
-        }
+/* TopBar */
+.avocado-topbar {
+    padding: 12px 18px 0;
+    text-align: right;
+}
+
+.lang-pill {
+    background: white;
+    border: 1px solid rgba(20,57,31,0.08);
+    border-radius: 999px;
+    padding: 7px 12px;
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--ink-deep);
+    letter-spacing: 0.08em;
+    box-shadow: 0 2px 8px rgba(20,57,31,0.05);
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.lang-pill:hover {
+    box-shadow: 0 4px 12px rgba(20,57,31,0.10);
+}
+
+/* Logo Block */
+.logo-block {
+    text-align: center;
+    padding-top: 16px;
+    margin-bottom: 24px;
+}
+
+.logo-circle {
+    width: 88px;
+    height: 88px;
+    border-radius: 50%;
+    background: white;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 8px 24px rgba(20,57,31,0.10), inset 0 0 0 1px rgba(20,57,31,0.04);
+    margin-bottom: 14px;
+}
+
+.logo-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    color: var(--ink-deep);
+    line-height: 1.05;
+    margin: 0;
+}
+
+.logo-eyebrow {
+    margin-top: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.logo-eyebrow .text {
+    font-family: 'Inter', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+}
+
+.logo-eyebrow .line {
+    width: 16px;
+    height: 1px;
+    background: var(--ink-soft);
+}
+
+/* Cards Container */
+.cards-container {
+    padding: 0 14px 24px;
+}
+
+/* Hero Card */
+.hero-card {
+    display: block;
+    position: relative;
+    width: 100%;
+    padding: 24px 22px;
+    border-radius: 26px;
+    background: linear-gradient(135deg, #5fa052 0%, #2f6a3a 55%, #14391f 100%);
+    box-shadow: 0 16px 36px rgba(20,57,31,0.30);
+    color: white;
+    text-decoration: none;
+    overflow: hidden;
+    transition: all 0.2s ease-out;
+    margin-bottom: 12px;
+}
+
+.hero-card:hover {
+    box-shadow: 0 20px 44px rgba(20,57,31,0.36);
+}
+
+.hero-card:active {
+    transform: scale(0.985);
+}
+
+.hero-goldglow {
+    position: absolute;
+    top: -60px;
+    right: -40px;
+    width: 220px;
+    height: 220px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(245,233,160,0.32) 0%, rgba(245,233,160,0) 70%);
+    pointer-events: none;
+}
+
+.hero-sparkles {
+    position: absolute;
+    right: 10px;
+    bottom: -10px;
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+.live-pill {
+    position: absolute;
+    top: 24px;
+    left: 22px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    background: rgba(255,255,255,0.16);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    border-radius: 999px;
+    color: white;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    z-index: 1;
+}
+
+.live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--gold-warm);
+    box-shadow: 0 0 8px var(--gold-warm);
+}
+
+.hero-content {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: flex-end;
+    gap: 16px;
+    margin-top: 14px;
+}
+
+.hero-icon-tile {
+    width: 62px;
+    height: 62px;
+    border-radius: 18px;
+    background: rgba(255,255,255,0.18);
+    border: 1px solid rgba(255,255,255,0.22);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--gold-warm);
+    font-size: 30px;
+    flex-shrink: 0;
+}
+
+.hero-text {
+    flex: 1;
+}
+
+.hero-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 30px;
+    font-weight: 700;
+    letter-spacing: -0.025em;
+    line-height: 1;
+    margin: 0;
+    color: white;
+}
+
+.hero-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    opacity: 0.88;
+    line-height: 1.3;
+    margin: 6px 0 0;
+    color: white;
+}
+
+.hero-chevron {
+    font-size: 20px;
+    color: rgba(255,255,255,0.85);
+    align-self: center;
+}
+
+/* Square Cards Grid */
+.squares-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.square-card {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    aspect-ratio: 1 / 1;
+    padding: 18px;
+    border-radius: 24px;
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+}
+
+.square-card:active {
+    transform: scale(0.985);
+}
+
+.square-upload {
+    background: linear-gradient(135deg, #5fa052 0%, #3f7536 100%);
+    box-shadow: 0 12px 28px rgba(63,117,54,0.32);
+    color: white;
+}
+
+.square-profile {
+    background: linear-gradient(135deg, #2f6a3a 0%, #1a3a23 100%);
+    box-shadow: 0 12px 28px rgba(20,57,31,0.22);
+    color: white;
+}
+
+.square-decor {
+    position: absolute;
+    right: -22px;
+    bottom: -22px;
+    font-size: 140px;
+    opacity: 0.16;
+    pointer-events: none;
+}
+
+.square-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+}
+
+.square-icon-tile {
+    width: 48px;
+    height: 48px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.16);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 22px;
+}
+
+.orb-badge {
+    background: rgba(255,255,255,0.92);
+    color: var(--ink-deep);
+    padding: 3px 8px 3px 7px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+
+.orb-badge i {
+    color: var(--avocado);
+    font-size: 10px;
+}
+
+.square-text {
+    margin-top: auto;
+}
+
+.square-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.05;
+    margin: 0;
+    color: white;
+}
+
+.square-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    opacity: 0.85;
+    line-height: 1.25;
+    margin: 4px 0 0;
+    color: white;
+}
+
+/* Marketplace Card */
+.marketplace-card {
+    display: block;
+    padding: 18px;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #f5b942 0%, #d99a3c 100%);
+    box-shadow: 0 10px 24px rgba(217,154,60,0.32);
+    text-decoration: none;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+    margin-bottom: 24px;
+}
+
+.marketplace-card:active {
+    transform: scale(0.985);
+}
+
+.marketplace-decor {
+    position: absolute;
+    right: 10px;
+    bottom: -20px;
+    font-size: 150px;
+    opacity: 0.18;
+    color: #3a2510;
+    pointer-events: none;
+}
+
+.marketplace-content {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    position: relative;
+    z-index: 1;
+}
+
+.marketplace-icon-tile {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #7a4a18;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.marketplace-text {
+    flex: 1;
+}
+
+.marketplace-title {
+    font-family: 'Fraunces', Georgia, serif;
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: #3a2510;
+}
+
+.marketplace-subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    margin: 4px 0 0;
+    color: #3a2510;
+}
+
+/* Shared Content Card (enhanced) */
+.marketplace-card-shared {
+    background: linear-gradient(135deg, #5fa052 0%, #3f7536 100%);
+    box-shadow: 0 10px 24px rgba(95,160,82,0.32);
+}
+
+.marketplace-decor-shared {
+    color: rgba(255,255,255,0.15);
+}
+
+.marketplace-icon-shared {
+    background: rgba(255,255,255,0.9);
+    color: #3f7536;
+}
+
+.marketplace-card-shared .marketplace-title,
+.marketplace-card-shared .marketplace-subtitle {
+    color: white;
+}
+
+.marketplace-badge-new {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    background: #ffd700;
+    color: #3a2510;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    padding: 4px 10px;
+    border-radius: 999px;
+    z-index: 2;
+    box-shadow: 0 2px 8px rgba(255,215,0,0.4);
+    animation: pulse-badge 2s ease-in-out infinite;
+}
+
+@@keyframes pulse-badge {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+.marketplace-features {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 10px;
+}
+
+.feature-badge {
+    background: rgba(255,255,255,0.2);
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    font-size: 11px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    backdrop-filter: blur(4px);
+}
+
+.feature-badge i {
+    font-size: 12px;
+}
+
+/* Login CTA */
+.login-cta-wrapper {
+    text-align: center;
+    margin-bottom: 24px;
+}
+
+.login-cta {
+    background: linear-gradient(135deg, #1a3a23, #0e2415);
+    color: white;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 20px;
+    font-family: 'Inter', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    box-shadow: 0 8px 22px rgba(20,57,31,0.28);
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.login-cta:hover {
+    box-shadow: 0 10px 26px rgba(20,57,31,0.32);
+}
+
+.login-cta:active {
+    transform: scale(0.97);
+}
+
+/* Debug Block */
+.debug-block {
+    margin: 0 0 24px;
+    padding: 18px 14px;
+    background: var(--card-soft);
+    border: 1px dashed rgba(20,57,31,0.18);
+    border-radius: 18px;
+}
+
+.debug-header {
+    font-family: 'Inter', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+}
+
+.debug-hash-display {
+    background: white;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 12px;
+}
+
+.debug-hash-display code {
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: var(--crimson);
+}
+
+.debug-btn {
+    width: 100%;
+    border: none;
+    border-radius: 999px;
+    padding: 10px 16px;
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.debug-btn-test {
+    background: white;
+    color: var(--ink-deep);
+    border: 1px solid rgba(20,57,31,0.12);
+}
+
+.debug-btn-test:hover {
+    background: #fafafa;
+}
+
+.debug-btn-logout {
+    background: rgba(196,78,78,0.06);
+    color: var(--crimson);
+    border: 1px solid rgba(196,78,78,0.3);
+}
+
+.debug-btn-logout:hover {
+    background: rgba(196,78,78,0.10);
+}
+
+/* Footer Hash */
+.footer-hash {
+    text-align: center;
+    font-family: 'Courier New', monospace;
+    font-size: 10px;
+    color: #c8cec5;
+    margin-top: 18px;
+}
+
+/* Login Modal Styling */
+.login-card {
+    max-width: 420px;
+    margin: 0 auto;
+}
+
+/* Reduced Motion */
+@@media (prefers-reduced-motion: reduce) {
+    .live-dot {
+        box-shadow: none !important;
+    }
+}
+
+/* Responsive */
+@@media (min-width: 481px) {
+    .avocado-home {
+        max-width: 480px;
+    }
+}
 </style>
 
-
 @section Scripts {
-   
     <script type="module" src="~/js/minikitt.js"></script>
     <script>
         function showToastBottomRight(message) {
@@ -274,19 +895,22 @@
             }, 4000);
         }
 
+        function setLanguage(lang) {
+            // TODO: Implement language switcher
+            console.log('Switch to:', lang);
+        }
+
         document.addEventListener("DOMContentLoaded", function() {
+            const postLoginRedirectUrl = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(postLoginRedirectUrl));
             const activeDebugHashLabel = document.getElementById('activeDebugHashLabel');
             const clearDebugTestLoginButton = document.getElementById('clearDebugTestLoginButton');
 
             function setActiveDebugHashLabel(hash) {
-                if (!activeDebugHashLabel) {
-                    return;
-                }
-
+                if (!activeDebugHashLabel) return;
                 if (hash) {
-                    activeDebugHashLabel.textContent = hash;
+                    activeDebugHashLabel.textContent = hash.substring(0, 10) + '…' + hash.substring(hash.length - 5);
                 } else {
-                    activeDebugHashLabel.textContent = '@SharedLocalizer["Debug.NoHashActive"]';
+                    activeDebugHashLabel.textContent = 'Kein Hash aktiv';
                 }
             }
 
@@ -294,19 +918,15 @@
             const toastParam = new URLSearchParams(window.location.search).get('toast');
             if (toastParam === 'published') {
                 showToastBottomRight('@SharedLocalizer["Toast.RecipePublished"]');
-                // URL aufräumen
                 window.history.replaceState({}, '', window.location.pathname);
             } else if (toastParam === 'upload-processing') {
                 showToastBottomRight('📤 Upload wird verarbeitet... Dein Video wird im Hintergrund hochgeladen. Du erhältst eine Benachrichtigung, wenn es fertig ist.');
-                // URL aufräumen
                 window.history.replaceState({}, '', window.location.pathname);
             } else if (toastParam === 'translation-in-progress') {
                 showToastBottomRight('✅ Upload erfolgreich! Übersetzungen werden im Hintergrund erstellt. Du erhältst eine Benachrichtigung wenn fertig.');
-                // URL aufräumen
                 window.history.replaceState({}, '', window.location.pathname);
             } else if (toastParam === 'video-uploading') {
                 showToastBottomRight('📹 Video wird verarbeitet! Dies kann einige Minuten dauern.');
-                // URL aufräumen
                 window.history.replaceState({}, '', window.location.pathname);
             }
 
@@ -315,24 +935,42 @@
                 rememberToggle.checked = localStorage.getItem("remember_login") === "true";
             }
 
-
-            document.querySelectorAll('.app-link').forEach(link => {
-                link.addEventListener('click', function (event) {
-                    event.preventDefault();
-                    if (window.triggerLogin) {
-                        window.triggerLogin('device', this.href);
-                    }
-                });
-            });
-
+            // Auto-Login für nicht eingeloggte User
             if (window.initAutoLogin) {
                 window.initAutoLogin('device');
+            }
+
+            // App-Links nur für nicht-eingeloggte User abfangen
+            const userToken = localStorage.getItem('UserToken') || sessionStorage.getItem('UserToken');
+            if (postLoginRedirectUrl) {
+                if (userToken) {
+                    window.location.href = postLoginRedirectUrl;
+                    return;
+                }
+
+                if (window.triggerLogin) {
+                    window.triggerLogin('device', postLoginRedirectUrl);
+                    return;
+                }
+            }
+
+            if (!userToken) {
+                document.querySelectorAll('.app-link').forEach(link => {
+                    link.addEventListener('click', function (event) {
+                        event.preventDefault();
+                        if (window.triggerLogin) {
+                            window.triggerLogin('device', this.href);
+                        }
+                    });
+                });
             }
 
             const manualLoginButton = document.getElementById('manualLoginButton');
             if (manualLoginButton) {
                 manualLoginButton.addEventListener('click', function () {
-                    if (window.retryVerification) {
+                    if (postLoginRedirectUrl && window.triggerLogin) {
+                        window.triggerLogin('device', postLoginRedirectUrl);
+                    } else if (window.retryVerification) {
                         window.retryVerification();
                     }
                 });
@@ -341,9 +979,7 @@
             document.querySelectorAll('.debug-test-login-button').forEach(function (button) {
                 button.addEventListener('click', async function () {
                     const selectedHash = this.getAttribute('data-user-hash');
-                    if (!selectedHash) {
-                        return;
-                    }
+                    if (!selectedHash) return;
 
                     const originalText = this.innerHTML;
                     this.disabled = true;
@@ -351,9 +987,7 @@
                     try {
                         const response = await fetch('/WorldMiniApp/Auth/SetTestHash', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            },
+                            headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
                                 userHash: selectedHash,
                                 rememberLogin: true
@@ -361,7 +995,7 @@
                         });
 
                         if (!response.ok) {
-                            throw new Error('@SharedLocalizer["Debug.TestLoginFailed"]');
+                            throw new Error('Test-Login fehlgeschlagen');
                         }
 
                         localStorage.setItem('UserToken', selectedHash);
@@ -370,7 +1004,7 @@
                         window.location.reload();
                     } catch (error) {
                         console.error(error);
-                        alert('@SharedLocalizer["Debug.TestLoginFailed"]');
+                        alert('Test-Login fehlgeschlagen');
                         this.disabled = false;
                         this.innerHTML = originalText;
                     }
@@ -384,13 +1018,11 @@
                     try {
                         const response = await fetch('/WorldMiniApp/Auth/ClearTestHash', {
                             method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json'
-                            }
+                            headers: { 'Content-Type': 'application/json' }
                         });
 
                         if (!response.ok) {
-                            throw new Error('@SharedLocalizer["Debug.LogoutFailed"]');
+                            throw new Error('Logout fehlgeschlagen');
                         }
 
                         localStorage.removeItem('UserToken');
@@ -399,14 +1031,11 @@
                         window.location.reload();
                     } catch (error) {
                         console.error(error);
-                        alert('@SharedLocalizer["Debug.LogoutFailed"]');
+                        alert('Logout fehlgeschlagen');
                         clearDebugTestLoginButton.disabled = false;
                     }
                 });
             }
-
         });
     </script>
 }
-
- 

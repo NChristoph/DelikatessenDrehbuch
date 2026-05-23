@@ -24,7 +24,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string ResolveUserHash()
         {
-            return Request.Cookies["WorldMiniAppUserHash"] ?? string.Empty;
+            return WorldMiniAppUserHashHelper.Resolve(HttpContext);
         }
 
         /// <summary>
@@ -46,8 +46,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return Json(new { success = true, hasAgent = false });
             }
 
-            // Trading History
-            var trades = await _agentService.GetTradeHistoryAsync(agent.Id, 10);
+            // Trading History (nur erste 5 Trades)
+            var trades = await _agentService.GetTradeHistoryAsync(agent.Id, 5);
+            var totalTradeCount = await _agentService.GetTradeCountAsync(agent.Id);
 
             return Json(new
             {
@@ -73,7 +74,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     stopLossPercent = agent.StopLossPercentage,
                     createdAt = agent.CreatedAt,
                     startedAt = agent.StartedAt,
-                    lastTradeAt = agent.LastTradeAt
+                    lastTradeAt = agent.LastTradeAt,
+                    lastSignalAction = agent.LastSignalAction,
+                    lastSignalConfidence = agent.LastSignalConfidence,
+                    lastSignalAt = agent.LastSignalAt,
+                    lastSignalReason = agent.LastSignalReason
                 },
                 recentTrades = trades.Select(t => new
                 {
@@ -86,8 +91,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     profitLoss = t.ProfitLossWLD,
                     status = t.Status,
                     executedAt = t.ExecutedAt,
-                    txHash = t.TxHash
-                })
+                    txHash = t.TxHash,
+                    errorMessage = t.ErrorMessage
+                }),
+                tradePagination = new
+                {
+                    total = totalTradeCount,
+                    loaded = trades.Count,
+                    hasMore = totalTradeCount > 5
+                }
             });
         }
 
@@ -346,6 +358,195 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 _logger.LogError(ex, "Error withdrawing funds from agent {AgentId}", agentId);
                 return Json(new { success = false, error = "Fehler beim Abheben" });
+            }
+        }
+
+        /// <summary>
+        /// POST: Withdraw ETH/WETH Reserve vom Agent an eine Ziel-Wallet.
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> WithdrawEthReserve(
+            [FromForm] int agentId,
+            [FromForm] decimal amount,
+            [FromForm] string targetWalletAddress)
+        {
+            var userHash = ResolveUserHash();
+            if (string.IsNullOrEmpty(userHash))
+            {
+                return Json(new { success = false, error = "Not authenticated" });
+            }
+
+            try
+            {
+                var (success, error, txHash) = await _agentService.WithdrawEthReserveAsync(
+                    agentId,
+                    userHash,
+                    amount,
+                    targetWalletAddress);
+
+                if (!success)
+                {
+                    return Json(new { success = false, error });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    txHash
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error withdrawing ETH reserve from agent {AgentId}", agentId);
+                return Json(new { success = false, error = "Fehler beim ETH/WETH-Abheben" });
+            }
+        }
+
+        /// <summary>
+        /// POST: WETH Funding bestätigen (für ETH Gas-Fees)
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ConfirmWETHFunding([FromForm] int agentId, [FromForm] decimal amount, [FromForm] string txHash)
+        {
+            var userHash = ResolveUserHash();
+            if (string.IsNullOrEmpty(userHash))
+            {
+                return Json(new { success = false, error = "Not authenticated" });
+            }
+
+            try
+            {
+                // Prüfe ob Agent dem User gehört
+                var agent = await _context.WorldTradingAgents
+                    .FirstOrDefaultAsync(a => a.Id == agentId && a.UserHash == userHash);
+
+                if (agent == null)
+                {
+                    return Json(new { success = false, error = "Agent nicht gefunden" });
+                }
+
+                // Update ETH Balance (WETH = Wrapped ETH, wird zu ETH)
+                agent.CurrentBalanceETH += amount;
+                agent.LastBalanceUpdate = DateTime.UtcNow;
+                await _context.SaveChangesAsync();
+
+                _logger.LogInformation("User {UserHash} funded agent {AgentId} with {Amount} WETH, TX: {TxHash}",
+                    userHash, agentId, amount, txHash);
+
+                return Json(new { success = true, newBalance = agent.CurrentBalanceETH });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error confirming WETH funding for agent {AgentId}", agentId);
+                return Json(new { success = false, error = "Fehler beim Bestätigen" });
+            }
+        }
+
+        /// <summary>
+        /// POST: Aktualisiere echte Balances von der Blockchain
+        /// </summary>
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RefreshBalances([FromForm] int agentId)
+        {
+            var userHash = ResolveUserHash();
+            if (string.IsNullOrEmpty(userHash))
+            {
+                return Json(new { success = false, error = "Not authenticated" });
+            }
+
+            try
+            {
+                // Prüfe ob Agent dem User gehört
+                var agent = await _context.WorldTradingAgents
+                    .FirstOrDefaultAsync(a => a.Id == agentId && a.UserHash == userHash);
+
+                if (agent == null)
+                {
+                    return Json(new { success = false, error = "Agent nicht gefunden" });
+                }
+
+                // Hole echte Balances von der Blockchain
+                var (ethBalance, wldBalance) = await _agentService.UpdateRealBalancesAsync(agentId);
+
+                _logger.LogInformation("User {UserHash} refreshed balances for agent {AgentId}: {ETH} ETH, {WLD} WLD",
+                    userHash, agentId, ethBalance, wldBalance);
+
+                return Json(new
+                {
+                    success = true,
+                    ethBalance = ethBalance,
+                    wldBalance = wldBalance
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error refreshing balances for agent {AgentId}: {Message}", agentId, ex.Message);
+                return Json(new { success = false, error = $"Fehler beim Abrufen: {ex.Message}" });
+            }
+        }
+
+        /// <summary>
+        /// GET: Lade Trading History mit Pagination
+        /// </summary>
+        [HttpGet]
+        public async Task<IActionResult> GetTradeHistory([FromQuery] int limit = 5, [FromQuery] int skip = 0)
+        {
+            var userHash = ResolveUserHash();
+            if (string.IsNullOrEmpty(userHash))
+            {
+                return Json(new { success = false, error = "Not authenticated" });
+            }
+
+            try
+            {
+                var agent = await _agentService.GetAgentByUserAsync(userHash);
+
+                if (agent == null)
+                {
+                    return Json(new { success = false, error = "Agent not found" });
+                }
+
+                // Hole Trades mit Pagination
+                var trades = await _agentService.GetTradeHistoryAsync(agent.Id, limit, skip);
+                var totalCount = await _agentService.GetTradeCountAsync(agent.Id);
+
+                _logger.LogInformation("User {UserHash} loaded trades for agent {AgentId}: {Count} trades (skip: {Skip}, limit: {Limit})",
+                    userHash, agent.Id, trades.Count, skip, limit);
+
+                return Json(new
+                {
+                    success = true,
+                    trades = trades.Select(t => new
+                    {
+                        id = t.Id,
+                        type = t.TradeType,
+                        fromToken = t.FromToken,
+                        toToken = t.ToToken,
+                        fromAmount = t.FromAmount,
+                        toAmount = t.ToAmount,
+                        profitLoss = t.ProfitLossWLD,
+                        status = t.Status,
+                        executedAt = t.ExecutedAt,
+                        txHash = t.TxHash,
+                        errorMessage = t.ErrorMessage,
+                        dexUsed = t.DexUsed
+                    }),
+                    pagination = new
+                    {
+                        total = totalCount,
+                        limit = limit,
+                        skip = skip,
+                        hasMore = (skip + limit) < totalCount
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading trade history: {Message}", ex.Message);
+                return Json(new { success = false, error = $"Fehler beim Laden: {ex.Message}" });
             }
         }
     }
