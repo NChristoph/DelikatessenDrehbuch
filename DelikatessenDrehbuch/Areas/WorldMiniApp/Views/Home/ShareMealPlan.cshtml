@@ -125,6 +125,29 @@
         background: #faf7f2;
     }
 
+    .return-to-group-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: white;
+        border: 1px solid rgba(20, 57, 31, 0.12);
+        border-radius: 14px;
+        color: #14391f;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        margin-bottom: 16px;
+        box-shadow: 0 2px 8px rgba(20, 57, 31, 0.06);
+        transition: all 0.2s;
+    }
+
+    .return-to-group-btn:hover {
+        background: #f0f5ee;
+        border-color: #5fa052;
+        transform: translateX(-4px);
+    }
+
     .shared-plan-shell {
         max-width: 720px;
         margin: 0 auto;
@@ -592,6 +615,15 @@
 
 <div class="shared-plan-shell">
     @Html.AntiForgeryToken()
+
+    @if (ViewData["ReturnToUrl"] != null)
+    {
+        <a href="@ViewData["ReturnToUrl"]" class="return-to-group-btn">
+            <i class="bi bi-arrow-left"></i>
+            @T("Zurück zur Gruppe", "Back to group", "Volver al grupo", "Voltar ao grupo")
+        </a>
+    }
+
     <section class="shared-plan-header">
         <div class="shared-plan-sub">@T("Geteilter Wochenplan", "Shared weekly plan", "Plan semanal compartido", "Plano semanal partilhado")</div>
         <h1 class="shared-plan-title">@title</h1>

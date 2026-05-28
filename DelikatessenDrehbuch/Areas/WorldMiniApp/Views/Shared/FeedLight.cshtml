@@ -8,7 +8,14 @@
     var allFeeds = Model.Feeds.ToList();
 }
 
-<div class="s-screen">
+<style>
+    /* Critical CSS to prevent FOUC */
+    .s-screen { width: 100%; min-height: 100vh; background: #f5efe1; font-family: 'Inter', -apple-system, sans-serif; color: #1a2e20; }
+    .s-screen.is-loading { opacity: 0; }
+    .s-screen.is-loaded { opacity: 1; transition: opacity 0.2s; }
+</style>
+
+<div class="s-screen is-loading">
     <!-- TopBar -->
     <div class="s-topbar">
         <a class="s-back-pill" href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })">
@@ -323,10 +330,29 @@
                     </div>
                 }
 
-                @if (!active.IsOwner)
-                {
-                    <!-- Leave Group Button -->
-                    <div style="margin-top: 24px; padding: 16px 0;">
+                <!-- Leave/Delete Group Buttons -->
+                <div style="margin-top: 24px; padding: 16px 0;">
+                    @if (active.IsOwner)
+                    {
+                        <!-- Delete Group Button (Admin only) -->
+                        <form method="post" action="@Url.Action("DeleteFeed", "Shared", new { area = "WorldMiniApp" })" onsubmit="return confirm('⚠️ Möchtest du diese Gruppe wirklich LÖSCHEN? Alle Inhalte, Nachrichten und Mitglieder werden entfernt. Diese Aktion kann nicht rückgängig gemacht werden!');">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="feedId" value="@active.Id" />
+                            <input type="hidden" name="userHash" value="@Model.CurrentUserHash" />
+                            <button type="submit" class="s-delete-group-btn">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polyline points="3 6 5 6 21 6"/>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                                    <line x1="10" y1="11" x2="10" y2="17"/>
+                                    <line x1="14" y1="11" x2="14" y2="17"/>
+                                </svg>
+                                Gruppe löschen
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <!-- Leave Group Button -->
                         <form method="post" action="@Url.Action("LeaveFeed", "Shared", new { area = "WorldMiniApp" })" onsubmit="return confirm('Möchtest du diese Gruppe wirklich verlassen?');">
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="feedId" value="@active.Id" />
@@ -340,8 +366,8 @@
                                 Gruppe verlassen
                             </button>
                         </form>
-                    </div>
-                }
+                    }
+                </div>
             </div>
         </div>
     }
@@ -416,6 +442,13 @@
     }
 }
 
+<script>
+    // Remove FOUC loading class
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelector('.s-screen').classList.remove('is-loading');
+        document.querySelector('.s-screen').classList.add('is-loaded');
+    });
+</script>
 <script src="~/areas/worldminiapp/js/shared-feed.js" asp-append-version="true"></script>
 
 <style>
@@ -1275,8 +1308,8 @@
         display: flex;
     }
 
-    /* Leave Group Button */
-    .s-leave-group-btn {
+    /* Leave/Delete Group Buttons */
+    .s-leave-group-btn, .s-delete-group-btn {
         width: 100%;
         background: white;
         border: 2px solid #d9534f;
@@ -1293,12 +1326,22 @@
         transition: all 0.2s;
     }
 
+    .s-delete-group-btn {
+        background: #d9534f;
+        color: white;
+    }
+
     .s-leave-group-btn:hover {
         background: #d9534f;
         color: white;
     }
 
-    .s-leave-group-btn:active {
+    .s-delete-group-btn:hover {
+        background: #c0392b;
+        border-color: #c0392b;
+    }
+
+    .s-leave-group-btn:active, .s-delete-group-btn:active {
         transform: scale(0.98);
     }
 

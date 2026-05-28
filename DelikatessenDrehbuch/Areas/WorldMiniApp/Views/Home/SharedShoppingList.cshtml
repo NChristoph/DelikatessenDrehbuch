@@ -8,6 +8,16 @@
 
 <form id="sharedListAntiForgeryForm" style="display:none;">@Html.AntiForgeryToken()</form>
 
+@if (ViewData["ReturnToUrl"] != null)
+{
+    <div class="px-4 pt-3">
+        <a href="@ViewData["ReturnToUrl"]" class="return-to-group-btn">
+            <i class="bi bi-arrow-left"></i>
+            Zurück zur Gruppe
+        </a>
+    </div>
+}
+
 <div class="px-4 pt-4 pb-2">
     <h2 class="fw-bold mb-1" style="color: #2c3e50;">Geteilte Einkaufsliste</h2>
     <p class="text-muted small mb-0">Echtzeit-Sync &mdash; Haken werden automatisch geteilt.</p>
@@ -17,6 +27,28 @@
 </div>
 
 <style>
+    .return-to-group-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: white;
+        border: 1px solid rgba(20, 57, 31, 0.12);
+        border-radius: 14px;
+        color: #14391f;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        box-shadow: 0 2px 8px rgba(20, 57, 31, 0.06);
+        transition: all 0.2s;
+    }
+
+    .return-to-group-btn:hover {
+        background: #f0f5ee;
+        border-color: #5fa052;
+        transform: translateX(-4px);
+    }
+
     body {
         background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);
         min-height: 100vh;

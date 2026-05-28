@@ -60,6 +60,8 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeAiVariantSelectedIngredient> RecipeAiVariantSelectedIngredients { get; set; }
         public DbSet<RecipeAiVariantIngredientRow> RecipeAiVariantIngredientRows { get; set; }
         public DbSet<RecipeAiVariantJob> RecipeAiVariantJobs { get; set; }
+        public DbSet<WorldAppAd> WorldAppAds { get; set; }
+        public DbSet<WorldAppAdImpression> WorldAppAdImpressions { get; set; }
 
         // New canonical AI recipe storage (v2)
         public DbSet<Keyword> Keywords { get; set; }

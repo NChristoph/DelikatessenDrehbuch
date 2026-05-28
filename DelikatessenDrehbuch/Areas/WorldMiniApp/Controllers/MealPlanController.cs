@@ -374,7 +374,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         [HttpGet]
         [Route("/WorldMiniApp/MealPlan/SharedMealPlan")]
-        public async Task<IActionResult> ShareMealPlan(string token, bool? direct)
+        public async Task<IActionResult> ShareMealPlan(string token, bool? direct, string returnTo = null)
         {
             if (string.IsNullOrWhiteSpace(token))
             {
@@ -407,6 +407,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             // Setze Flag ob "In World App öffnen" Button angezeigt werden soll
             ViewData["ShowOpenInAppButton"] = !isWorldApp;
+            ViewData["ReturnToUrl"] = returnTo;
 
             var mealPlan = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(sharedPlan.MealPlanJson) ?? new();
             var recipeIds = mealPlan.Select(x => x.RecipeId).Distinct().ToList();
@@ -538,7 +539,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         [HttpGet]
         [Route("/WorldMiniApp/MealPlan/SharedShoppingList")]
-        public async Task<IActionResult> SharedShoppingList(string token, bool? direct)
+        public async Task<IActionResult> SharedShoppingList(string token, bool? direct, string returnTo = null)
         {
             if (string.IsNullOrWhiteSpace(token))
                 return NotFound();
@@ -566,6 +567,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             // Setze Flag ob "In World App öffnen" Button angezeigt werden soll
             ViewData["ShowOpenInAppButton"] = !isWorldApp;
+            ViewData["ReturnToUrl"] = returnTo;
             ViewData["Token"] = list.ShareToken;
             ViewData["Items"] = list.ItemsJson;
             ViewData["Checked"] = list.CheckedJson;

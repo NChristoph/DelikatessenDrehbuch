@@ -1,27 +1,12 @@
 ﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
 using DelikatessenDrehbuch.Models;
-using DelikatessenDrehbuch.Services;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using Newtonsoft.Json;
-using NuGet.Packaging.Signing;
-using Stripe;
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Configuration;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Runtime.CompilerServices;
 using System.Text.Json;
-using System.Threading.Tasks;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace DelikatessenDrehbuch.Controllers

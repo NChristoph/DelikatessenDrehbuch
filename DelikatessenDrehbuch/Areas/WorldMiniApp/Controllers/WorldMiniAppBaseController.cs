@@ -8,8 +8,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     [Area("WorldMiniApp")]
     public abstract class WorldMiniAppBaseController : Controller
     {
-        // TODO: Secret noch entfernen — in Konfiguration (appsettings / Environment Variable) auslagern
-        protected const string SuperUserHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
+        protected IConfiguration Configuration =>
+            HttpContext.RequestServices.GetRequiredService<IConfiguration>();
+
+        protected string SuperUserHash => Configuration["WorldMiniApp:SuperUserHash"] ?? string.Empty;
 
         protected string ResolveUserHash(string userHash)
         {

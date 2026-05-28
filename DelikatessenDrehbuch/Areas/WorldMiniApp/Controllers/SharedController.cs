@@ -20,13 +20,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         [HttpGet]
-        public IActionResult DebugLogs()
-        {
-            ViewBag.Logs = DebugLogger.GetLogs();
-            return View("~/Areas/WorldMiniApp/Views/Shared/Debug.cshtml");
-        }
-
-        [HttpGet]
         public async Task<IActionResult> FeedLight(string userHash = "", int? feedId = null)
         {
             userHash = ResolveUserHash(userHash);
@@ -408,12 +401,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                     var maxDayIndex = planItems.Any() ? planItems.Max(x => x.DayIndex) + 1 : 0;
 
+                    var returnToFeed = $"/WorldMiniApp/Shared/FeedLight?feedId={feedId}&userHash={Uri.EscapeDataString(userHash)}";
                     detail.Items.Add(new SharedFeedContentCardViewModel
                     {
                         ContentType = "mealplan",
                         Title = string.IsNullOrWhiteSpace(plan.Title) ? item.Title : plan.Title,
                         SourceToken = item.SourceToken,
-                        OpenUrl = $"/WorldMiniApp/MealPlan/SharedMealPlan?token={Uri.EscapeDataString(item.SourceToken)}&direct=true",
+                        OpenUrl = $"/WorldMiniApp/MealPlan/SharedMealPlan?token={Uri.EscapeDataString(item.SourceToken)}&direct=true&returnTo={Uri.EscapeDataString(returnToFeed)}",
                         AddedByName = users.TryGetValue(item.AddedByUserHash, out var addedByPlan) ? addedByPlan : ShortHash(item.AddedByUserHash),
                         CreatorUserHash = plan.UserHash ?? string.Empty,
                         IsCreator = string.Equals(plan.UserHash, userHash, StringComparison.OrdinalIgnoreCase),
@@ -430,12 +424,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     var listItems = JsonConvert.DeserializeObject<List<ShoppingListItem>>(list.ItemsJson) ?? new List<ShoppingListItem>();
                     var preview = string.Join(" • ", listItems.Select(x => x.IngredientName).Where(x => !string.IsNullOrWhiteSpace(x)).Take(4));
+                    var returnToFeed = $"/WorldMiniApp/Shared/FeedLight?feedId={feedId}&userHash={Uri.EscapeDataString(userHash)}";
                     detail.Items.Add(new SharedFeedContentCardViewModel
                     {
                         ContentType = "shoppinglist",
                         Title = item.Title,
                         SourceToken = item.SourceToken,
-                        OpenUrl = $"/WorldMiniApp/MealPlan/SharedShoppingList?token={Uri.EscapeDataString(item.SourceToken)}&direct=true",
+                        OpenUrl = $"/WorldMiniApp/MealPlan/SharedShoppingList?token={Uri.EscapeDataString(item.SourceToken)}&direct=true&returnTo={Uri.EscapeDataString(returnToFeed)}",
                         AddedByName = users.TryGetValue(item.AddedByUserHash, out var addedByList) ? addedByList : ShortHash(item.AddedByUserHash),
                         CreatorUserHash = list.UserHash ?? string.Empty,
                         IsCreator = string.Equals(list.UserHash, userHash, StringComparison.OrdinalIgnoreCase),
@@ -1127,6 +1122,120 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ShareRecipeToFeed([FromBody] ShareRecipeRequest request)
+        {
+            var userHash = ResolveUserHash(request.UserHash ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Unauthorized();
+            }
+
+            if (!await HasFeedAccessAsync(request.FeedId, userHash))
+            {
+                return Forbid();
+            }
+
+            var recipe = await _context.RecipeBaseData
+                .AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == request.RecipeId);
+
+            if (recipe == null)
+            {
+                return NotFound("Rezept nicht gefunden.");
+            }
+
+            // Create a simple meal plan with just this recipe
+            var mealPlanItems = new List<MealPlanHelperMobile>
+            {
+                new MealPlanHelperMobile
+                {
+                    DayIndex = 0,
+                    SlotIndex = 1, // Main dish
+                    RecipeId = recipe.Id
+                }
+            };
+
+            // Build shopping list for this recipe
+            var shoppingListItems = await BuildShoppingListItemsAsync(new List<int> { recipe.Id }, 2);
+
+            // Create shared meal plan
+            var shareToken = Guid.NewGuid().ToString("N");
+            var sharedPlan = new WorldSharedMealPlan
+            {
+                ShareToken = shareToken,
+                UserHash = userHash,
+                Title = recipe.Title,
+                PersonCount = 2,
+                MealPlanJson = JsonConvert.SerializeObject(mealPlanItems),
+                ShoppingListJson = JsonConvert.SerializeObject(shoppingListItems)
+            };
+
+            await _context.WorldSharedMealPlan.AddAsync(sharedPlan);
+            await _context.SaveChangesAsync();
+
+            // Add to feed
+            var wasAdded = await TryAddSharedFeedItemAsync(
+                request.FeedId,
+                "mealplan",
+                shareToken,
+                userHash);
+
+            if (wasAdded)
+            {
+                await TouchFeedAsync(request.FeedId);
+            }
+
+            return Ok(new { success = true, title = recipe.Title });
+        }
+
+        public class ShareRecipeRequest
+        {
+            public int FeedId { get; set; }
+            public int RecipeId { get; set; }
+            public string? UserHash { get; set; }
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteFeed(int feedId, string userHash = "")
+        {
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return Unauthorized();
+            }
+
+            var feed = await _context.WorldSharedFeeds.FirstOrDefaultAsync(x => x.Id == feedId);
+            if (feed == null)
+            {
+                return NotFound();
+            }
+
+            // Only owner can delete
+            if (!string.Equals(feed.OwnerUserHash, userHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return Forbid();
+            }
+
+            // Delete all related data
+            var members = await _context.WorldSharedFeedMembers.Where(x => x.WorldSharedFeedId == feedId).ToListAsync();
+            var items = await _context.WorldSharedFeedItems.Where(x => x.WorldSharedFeedId == feedId).ToListAsync();
+            var messages = await _context.WorldSharedFeedMessages.Where(x => x.WorldSharedFeedId == feedId).ToListAsync();
+            var todos = await _context.WorldSharedFeedTodos.Where(x => x.WorldSharedFeedId == feedId).ToListAsync();
+
+            _context.WorldSharedFeedMembers.RemoveRange(members);
+            _context.WorldSharedFeedItems.RemoveRange(items);
+            _context.WorldSharedFeedMessages.RemoveRange(messages);
+            _context.WorldSharedFeedTodos.RemoveRange(todos);
+            _context.WorldSharedFeeds.Remove(feed);
+
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(FeedLight), new { userHash });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> LeaveFeed(int feedId, string userHash = "")
         {
             userHash = ResolveUserHash(userHash);
@@ -1144,7 +1253,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             // Owner cannot leave their own group
             if (string.Equals(feed.OwnerUserHash, userHash, StringComparison.OrdinalIgnoreCase))
             {
-                return BadRequest("Als Owner kannst du die Gruppe nicht verlassen. Lösche die Gruppe stattdessen.");
+                return BadRequest("Als Admin kannst du die Gruppe nicht verlassen. Lösche die Gruppe stattdessen.");
             }
 
             var membership = await _context.WorldSharedFeedMembers

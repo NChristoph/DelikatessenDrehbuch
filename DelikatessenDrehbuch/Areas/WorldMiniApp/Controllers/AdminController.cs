@@ -8,13 +8,10 @@ using System.Text;
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
     [Area("WorldMiniApp")]
-    public class AdminController : Controller
+    public class AdminController : WorldMiniAppBaseController
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AdminController> _logger;
-
-        // Admin Hash - nur dieser Hash darf auf Admin-Funktionen zugreifen
-        private const string AdminHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
 
         public AdminController(ApplicationDbContext context, ILogger<AdminController> logger)
         {
@@ -31,7 +28,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             var userHash = GetCurrentUserHash();
             return !string.IsNullOrWhiteSpace(userHash) &&
-                   userHash.Equals(AdminHash, StringComparison.OrdinalIgnoreCase);
+                   !string.IsNullOrWhiteSpace(SuperUserHash) &&
+                   userHash.Equals(SuperUserHash, StringComparison.OrdinalIgnoreCase);
         }
 
         // GET: Admin/CreatorManager

@@ -17,7 +17,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     [Area("WorldMiniApp")]
     public class FeedController : Controller
     {
-        private const string WorldMiniAppAdminHash = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
         private const int CommentAutoHideReportThreshold = 3;
         private const string SessionWalletWLD = "WorldWallet_WLD";
         private const string SessionWalletUSDT = "WorldWallet_USDT";
@@ -40,6 +39,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IWildCoinService _coinService;
         private readonly IConfiguration _configuration;
         private readonly IFeedAlgorithmService _feedAlgorithmService;
+
+        private string SuperUserHash => _configuration["WorldMiniApp:SuperUserHash"] ?? string.Empty;
 
         public FeedController(ApplicationDbContext context, ILogger<FeedController> logger, IWildCoinService coinService, IConfiguration configuration, IFeedAlgorithmService feedAlgorithmService)
         {
@@ -200,14 +201,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["CanWriteComments"] = await CanWriteCommentsAsync(userHash);
 
             // User Verification Level für Upload-Button
-            // In Debug-Mode oder für Test-Hashes: Upload erlauben
+            // In Debug-Mode oder für SuperUser: Upload erlauben
             var isLocalRequest = string.Equals(HttpContext.Request.Host.Host, "localhost", StringComparison.OrdinalIgnoreCase)
                 || string.Equals(HttpContext.Request.Host.Host, "127.0.0.1", StringComparison.OrdinalIgnoreCase);
             var isDebugMode = System.Diagnostics.Debugger.IsAttached || isLocalRequest;
 
-            const string devTestHash1 = "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839";
             const string devTestHash2 = "0x7c1f6a4be3c2d9aa51e4c0bf2a6e7d8f9b1c3d5e7f8091a2b3c4d5e6f7081920";
-            var isTestHash = string.Equals(userHash, devTestHash1, StringComparison.OrdinalIgnoreCase)
+            var isTestHash = string.Equals(userHash, SuperUserHash, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(userHash, devTestHash2, StringComparison.OrdinalIgnoreCase);
 
             var userForVerification = await _context.WorldAppUser
@@ -1183,9 +1183,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var myVideos = new List<WorldUserPosting>();
             int followerCount = 0;
 
-            // Pr�fung auf "orb"
-            // TODO: Secret noch entfernen — hardcodierten SuperUserHash durch Konfiguration ersetzen
-            if (user.IsVerified == "orb" || user.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839")
+            // Pr�fung auf "orb" oder SuperUser
+            if (user.IsVerified == "orb" || user.UserHash == SuperUserHash)
             {
                 // 3. Eigene Videos laden
                 myVideos = await _context.WorldUserPosting
@@ -1621,7 +1620,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(userHash))
                 return User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin");
 
-            return string.Equals(userHash, WorldMiniAppAdminHash, StringComparison.OrdinalIgnoreCase)
+            return string.Equals(userHash, SuperUserHash, StringComparison.OrdinalIgnoreCase)
                 || GetConfiguredCommentModeratorHashes().Contains(userHash, StringComparer.OrdinalIgnoreCase)
                 || (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"));
         }

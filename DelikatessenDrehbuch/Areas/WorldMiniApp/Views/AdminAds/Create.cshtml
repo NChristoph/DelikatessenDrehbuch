@@ -1,0 +1,267 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldAppAd
+@{
+    ViewData["Title"] = "Create Ad";
+    Layout = "_MiniAppLayout";
+    var isEdit = Model.Id > 0;
+}
+
+<style>
+    .form-container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 30px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+    }
+    .form-header {
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e9ecef;
+    }
+    .form-header h1 {
+        margin: 0;
+        color: #2c3e50;
+    }
+    .form-group {
+        margin-bottom: 20px;
+    }
+    .form-label {
+        display: block;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+        font-size: 0.95rem;
+    }
+    .form-control {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 0.95rem;
+        transition: all 0.2s;
+    }
+    .form-control:focus {
+        outline: none;
+        border-color: #5fa052;
+        box-shadow: 0 0 0 3px rgba(95,160,82,0.1);
+    }
+    .form-check {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+    .form-check input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        cursor: pointer;
+    }
+    .form-help {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 4px;
+    }
+    .btn-group {
+        display: flex;
+        gap: 12px;
+        margin-top: 30px;
+    }
+    .btn-primary {
+        background: #5fa052;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-primary:hover {
+        background: #4a8040;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(95,160,82,0.3);
+    }
+    .btn-secondary {
+        background: #6c757d;
+        color: white;
+        padding: 12px 24px;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: inline-block;
+    }
+    .btn-secondary:hover {
+        background: #5a6268;
+    }
+    .preview-box {
+        margin-top: 12px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border: 1px dashed #dee2e6;
+    }
+    .preview-img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+    }
+</style>
+
+<div class="form-container">
+    <div class="form-header">
+        <h1>@(isEdit ? "Edit Ad" : "Create New Ad")</h1>
+    </div>
+
+    <form method="post" action="@(isEdit ? Url.Action("Edit", new { id = Model.Id }) : Url.Action("Create"))">
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.Id)
+
+        <div class="form-group">
+            <label class="form-label" for="Title">Title *</label>
+            <input type="text" class="form-control" id="Title" name="Title" value="@Model.Title" required maxlength="200" />
+            <div class="form-help">Short, catchy title for the ad</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="Description">Description</label>
+            <textarea class="form-control" id="Description" name="Description" rows="3" maxlength="500">@Model.Description</textarea>
+            <div class="form-help">Optional description (shown on some ad placements)</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="MediaUrl">Media URL * (Image or Video)</label>
+            <input type="url" class="form-control" id="MediaUrl" name="MediaUrl" value="@Model.MediaUrl" required maxlength="1000"
+                   placeholder="https://..." onchange="previewMedia()" />
+            <div class="form-help">Full URL to the ad image or video (must be accessible publicly)</div>
+            <div id="mediaPreview" class="preview-box" style="display:none;">
+                <img id="previewImg" class="preview-img" alt="Preview" />
+                <video id="previewVideo" class="preview-img" controls muted style="display:none;"></video>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-check">
+                <input type="checkbox" id="IsVideo" name="IsVideo" value="true" @(Model.IsVideo ? "checked" : "") />
+                <span class="form-label" style="margin:0;">This is a video ad</span>
+            </label>
+            <div class="form-help">Check this if MediaURL is a video (MP4, WEBM, etc.)</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="ThumbnailUrl">Thumbnail URL (for video ads)</label>
+            <input type="url" class="form-control" id="ThumbnailUrl" name="ThumbnailUrl" value="@Model.ThumbnailUrl" maxlength="1000"
+                   placeholder="https://..." />
+            <div class="form-help">Poster image shown before video plays</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="TargetUrl">Target URL (Click Destination)</label>
+            <input type="url" class="form-control" id="TargetUrl" name="TargetUrl" value="@Model.TargetUrl" maxlength="1000"
+                   placeholder="https://..." />
+            <div class="form-help">Where users go when they click the ad (leave empty for no link)</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="CtaText">Call-to-Action Text</label>
+            <input type="text" class="form-control" id="CtaText" name="CtaText" value="@Model.CtaText" maxlength="50"
+                   placeholder="Learn More" />
+            <div class="form-help">Button text (e.g., "Shop Now", "Learn More", "Sign Up")</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-check">
+                <input type="checkbox" id="IsActive" name="IsActive" value="true" @(Model.IsActive ? "checked" : "") />
+                <span class="form-label" style="margin:0;">Active (show in feed)</span>
+            </label>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="ShowEveryXVideos">Show Every X Videos *</label>
+            <input type="number" class="form-control" id="ShowEveryXVideos" name="ShowEveryXVideos" value="@Model.ShowEveryXVideos"
+                   required min="1" max="100" />
+            <div class="form-help">Ad appears after every X videos (e.g., 5 = show after video 5, 10, 15...)</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="Priority">Priority *</label>
+            <input type="number" class="form-control" id="Priority" name="Priority" value="@Model.Priority"
+                   required min="1" max="100" />
+            <div class="form-help">Higher priority = shown more often (1-100)</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="TargetAudience">Target Audience</label>
+            <select class="form-control" id="TargetAudience" name="TargetAudience">
+                @if (string.IsNullOrWhiteSpace(Model.TargetAudience))
+                {
+                    <option value="" selected>All Users</option>
+                    <option value="orb">Orb Verified Only</option>
+                    <option value="device">Device Verified Only</option>
+                }
+                else if (Model.TargetAudience == "orb")
+                {
+                    <option value="">All Users</option>
+                    <option value="orb" selected>Orb Verified Only</option>
+                    <option value="device">Device Verified Only</option>
+                }
+                else
+                {
+                    <option value="">All Users</option>
+                    <option value="orb">Orb Verified Only</option>
+                    <option value="device" selected>Device Verified Only</option>
+                }
+            </select>
+            <div class="form-help">Target specific user verification levels (optional)</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="StartDate">Start Date (Optional)</label>
+            <input type="datetime-local" class="form-control" id="StartDate" name="StartDate"
+                   value="@(Model.StartDate?.ToString("yyyy-MM-ddTHH:mm"))" />
+            <div class="form-help">Ad won't show before this date</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="EndDate">End Date (Optional)</label>
+            <input type="datetime-local" class="form-control" id="EndDate" name="EndDate"
+                   value="@(Model.EndDate?.ToString("yyyy-MM-ddTHH:mm"))" />
+            <div class="form-help">Ad won't show after this date</div>
+        </div>
+
+        <div class="btn-group">
+            <button type="submit" class="btn-primary">@(isEdit ? "Update Ad" : "Create Ad")</button>
+            <a href="@Url.Action("Index")" class="btn-secondary">Cancel</a>
+        </div>
+    </form>
+</div>
+
+<script>
+    function previewMedia() {
+        const url = document.getElementById('MediaUrl').value;
+        const previewBox = document.getElementById('mediaPreview');
+        const img = document.getElementById('previewImg');
+        const video = document.getElementById('previewVideo');
+        const isVideo = document.getElementById('IsVideo').checked;
+
+        if (url) {
+            previewBox.style.display = 'block';
+            if (isVideo) {
+                img.style.display = 'none';
+                video.style.display = 'block';
+                video.src = url;
+            } else {
+                video.style.display = 'none';
+                img.style.display = 'block';
+                img.src = url;
+            }
+        } else {
+            previewBox.style.display = 'none';
+        }
+    }
+
+    document.getElementById('IsVideo').addEventListener('change', previewMedia);
+</script>

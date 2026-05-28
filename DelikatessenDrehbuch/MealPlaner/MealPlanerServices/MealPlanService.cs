@@ -1,18 +1,9 @@
-﻿using Azure.Storage.Blobs.Models;
-using DelikatessenDrehbuch.Data;
+﻿using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.MealPlaner.MealPlanerServices.Interfaces;
-using DelikatessenDrehbuch.MealPlaner;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
-using Microsoft.EntityFrameworkCore;
-using NuGet.Packaging;
-using System;
-using System.Linq.Expressions;
-using System.Reflection;
-using System.Security.Cryptography.X509Certificates;
 using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace DelikatessenDrehbuch.MealPlaner.MealPlanerServices
 {

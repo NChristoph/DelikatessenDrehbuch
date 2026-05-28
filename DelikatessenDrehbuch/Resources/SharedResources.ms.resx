@@ -123,6 +123,12 @@
   <data name="Feed.Title" xml:space="preserve">
     <value>Suapan</value>
   </data>
+  <data name="Feed.Creator" xml:space="preserve">
+    <value>Pencipta</value>
+  </data>
+  <data name="Feed.PlanPreview" xml:space="preserve">
+    <value>Pratonton rancangan</value>
+  </data>
   <data name="Feed.NoDish" xml:space="preserve">
     <value>Tiada hidangan</value>
   </data>
@@ -363,6 +369,18 @@
   </data>
 
   <!-- Home Menu -->
+  <data name="Home.Feed" xml:space="preserve">
+    <value>Feed</value>
+  </data>
+  <data name="Home.FeedDesc" xml:space="preserve">
+    <value>Komuniti, trend &amp; resipi baru</value>
+  </data>
+  <data name="Home.Upload" xml:space="preserve">
+    <value>Muat naik</value>
+  </data>
+  <data name="Home.UploadDesc" xml:space="preserve">
+    <value>Jadi pencipta</value>
+  </data>
   <data name="Home.WeeklyPlan" xml:space="preserve">
     <value>Rancangan mingguan saya</value>
   </data>

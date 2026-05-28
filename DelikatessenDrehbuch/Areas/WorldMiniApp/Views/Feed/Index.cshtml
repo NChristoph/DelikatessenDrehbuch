@@ -3187,18 +3187,18 @@
     @Html.AntiForgeryToken()
 
     <div class="section-switch-hint" id="sectionSwitchHint">
-        <span class="section-pill" data-section-pill="creator" onclick="setSection('creator')">Creator</span>
+        <span class="section-pill" data-section-pill="creator" onclick="setSection('creator')">@SharedLocalizer["Feed.Creator"]</span>
         <i class="bi bi-arrow-left-right"></i>
-        <span class="section-pill active" data-section-pill="feed" onclick="setSection('feed')">Feed</span>
+        <span class="section-pill active" data-section-pill="feed" onclick="setSection('feed')">@SharedLocalizer["Feed.Title"]</span>
         <i class="bi bi-arrow-left-right"></i>
-        <span class="section-pill" data-section-pill="marketplace" onclick="setSection('marketplace')">Marktplatz</span>
+        <span class="section-pill" data-section-pill="marketplace" onclick="setSection('marketplace')">@SharedLocalizer["Feed.Marketplace"]</span>
     </div>
 
     <div class="feed-container" id="feedContainer">
         <div class="feed-sections" id="feedSections">
             <section class="feed-section" id="creatorFeedSection">
                 <div class="creator-feed-panel" id="creatorFeedPanel">
-                    <div class="creator-feed-header" id="creatorFeedHeader">@SharedLocalizer["Feed.RecipesBy"] <span id="creatorFeedName">Creator</span></div>
+                    <div class="creator-feed-header" id="creatorFeedHeader">@SharedLocalizer["Feed.RecipesBy"] <span id="creatorFeedName">@SharedLocalizer["Feed.Creator"]</span></div>
                     <div id="creatorFeedItems"></div>
                     <div class="creator-feed-empty" id="creatorFeedEmpty" style="display:none;">
                         <svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -3412,7 +3412,7 @@
         <div class="add-btn-wrapper">
             @if (isOrbVerified)
             {
-                <a href="@Url.Action("CreatePosting", "Recipe", new { area = "WorldMiniApp" })" class="add-btn text-decoration-none" aria-label="Rezept hochladen">
+                <a href="/WorldMiniApp/Home/Upload" class="add-btn text-decoration-none" aria-label="Rezept hochladen">
                     <i class="bi bi-plus"></i>
                 </a>
             }
@@ -3680,7 +3680,7 @@
 
     <div class="offcanvas offcanvas-bottom" tabindex="-1" id="feedPreviewOffcanvas" style="max-height:82vh; border-radius:1.2rem 1.2rem 0 0;">
         <div class="offcanvas-header">
-            <h6 class="offcanvas-title fw-bold" id="feedPreviewTitle">Plan-Vorschau</h6>
+            <h6 class="offcanvas-title fw-bold" id="feedPreviewTitle">@SharedLocalizer["Feed.PlanPreview"]</h6>
             <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="SchlieÃŸen"></button>
         </div>
         <div class="offcanvas-body" id="feedPreviewBody"></div>
@@ -3837,6 +3837,11 @@
 
     <script>
         const DEBUG = false; // Set to true for TTS and system debug logging
+
+        // Translations
+        const i18n = {
+            creator: '@SharedLocalizer["Feed.Creator"]'
+        };
 
         window.worldChainMarketplaceConfig = {
             chainId: Number('@worldChainId'),
@@ -4810,6 +4815,35 @@
             const title = container.querySelector('.recipe-title')?.textContent?.trim() || 'Rezept';
             const creatorName = container.dataset.creatorName || '';
 
+            // Show share modal
+            showShareModal(recipeId, postingId, title, creatorName);
+        }
+
+        function showShareModal(recipeId, postingId, title, creatorName) {
+            const modal = document.getElementById('shareModal');
+            if (!modal) return;
+
+            modal.dataset.recipeId = recipeId;
+            modal.dataset.postingId = postingId;
+            modal.dataset.title = title;
+            modal.dataset.creatorName = creatorName;
+
+            document.getElementById('shareOptions').style.display = 'block';
+            document.getElementById('shareGroupList').style.display = 'none';
+            modal.style.display = 'flex';
+        }
+
+        function closeShareModal() {
+            document.getElementById('shareModal').style.display = 'none';
+        }
+
+        async function shareViaLink() {
+            const modal = document.getElementById('shareModal');
+            const recipeId = modal.dataset.recipeId;
+            const postingId = modal.dataset.postingId;
+            const title = modal.dataset.title;
+            const creatorName = modal.dataset.creatorName;
+
             const worldAppId = 'app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa';
             const feedTarget = new URL('/WorldMiniApp/Feed/Index', window.location.origin);
             if (recipeId) feedTarget.searchParams.set('scrollToId', recipeId);
@@ -4827,18 +4861,97 @@
             try {
                 if (navigator.share) {
                     await navigator.share(shareData);
+                    closeShareModal();
                 } else if (navigator.clipboard?.writeText) {
                     await navigator.clipboard.writeText(url);
                     showToast('Link kopiert!', 'success');
+                    closeShareModal();
                 } else {
                     window.prompt('Link teilen:', url);
+                    closeShareModal();
                 }
-
             } catch (error) {
                 if (error?.name === 'AbortError') return;
                 console.error('Share failed', error);
                 showToast('Teilen gerade nicht verfügbar.', 'warn');
             }
+        }
+
+        async function shareToGroup() {
+            document.getElementById('shareOptions').style.display = 'none';
+            const groupListContainer = document.getElementById('shareGroupList');
+            groupListContainer.style.display = 'block';
+            groupListContainer.innerHTML = '<div class="share-loading">Lade Gruppen...</div>';
+
+            try {
+                const userHash = getCookie('WorldMiniAppUserHash') || '';
+                const response = await fetch(`/WorldMiniApp/Shared/GetUserFeeds?userHash=${encodeURIComponent(userHash)}`);
+                const groups = await response.json();
+
+                if (groups.length === 0) {
+                    groupListContainer.innerHTML = '<div class="share-empty">Du bist noch in keiner Gruppe. Erstelle zuerst eine Gruppe!</div>';
+                    return;
+                }
+
+                const modal = document.getElementById('shareModal');
+                const recipeId = modal.dataset.recipeId;
+                const title = modal.dataset.title;
+
+                groupListContainer.innerHTML = groups.map(group => `
+                    <div class="share-group-item" onclick="confirmShareToGroup(${group.id}, '${escapeHtml(group.title)}', ${recipeId}, '${escapeHtml(title)}')">
+                        <div class="share-group-icon">👥</div>
+                        <div class="share-group-info">
+                            <div class="share-group-title">${escapeHtml(group.title)}</div>
+                            <div class="share-group-meta">${group.memberCount} Mitglieder · ${group.itemCount} Inhalte</div>
+                        </div>
+                        <i class="bi bi-chevron-right"></i>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error('Failed to load groups', error);
+                groupListContainer.innerHTML = '<div class="share-error">Fehler beim Laden der Gruppen.</div>';
+            }
+        }
+
+        async function confirmShareToGroup(feedId, feedTitle, recipeId, recipeTitle) {
+            if (!confirm(`"${recipeTitle}" in Gruppe "${feedTitle}" teilen?`)) return;
+
+            try {
+                const userHash = getCookie('WorldMiniAppUserHash') || '';
+                const response = await fetch('/WorldMiniApp/Shared/ShareRecipeToFeed', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''
+                    },
+                    body: JSON.stringify({
+                        feedId: feedId,
+                        recipeId: parseInt(recipeId),
+                        userHash: userHash
+                    })
+                });
+
+                if (!response.ok) throw new Error('Failed to share');
+
+                showToast(`In "${feedTitle}" geteilt!`, 'success');
+                closeShareModal();
+            } catch (error) {
+                console.error('Share to group failed', error);
+                showToast('Fehler beim Teilen', 'error');
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return '';
         }
 
         function bindFeedItemState(container) {
@@ -7076,7 +7189,7 @@
                 : '';
 
             const creatorBadgeHtml = isCreator
-                ? `<span class="comment-creator-badge">Creator</span>`
+                ? `<span class="comment-creator-badge">${i18n.creator}</span>`
                 : '';
 
             const likeText = likeCount > 0 ? `<span>${likeCount}</span>` : '';
@@ -7923,7 +8036,7 @@
                             <div class="icon-circle"><i class="bi bi-file-earmark-plus"></i></div>
                             <span class="action-label">@SharedLocalizer["Feed.AddToPlan"]</span>
                         </div>
-                        <div class="action-btn" role="button" aria-label="Rezept anzeigen" onclick="window.location.href='/WorldMiniApp/Home/ShowRecipe/${item.recipeId}'">
+                        <div class="action-btn" role="button" aria-label="Rezept anzeigen" onclick="window.location.href='/WorldMiniApp/Home/SharedRecipe/${item.recipeId}'">
                             <div class="icon-circle"><i class="bi bi-journal-text"></i></div>
                             <span class="action-label">@SharedLocalizer["Feed.Recipe"]</span>
                         </div>
@@ -8095,6 +8208,206 @@
     </script>
 
     @* Agent Payment Test UI entfernt - nur im MyProfile Trading Agent Dashboard *@
+
+    <!-- Share Modal -->
+    <div id="shareModal" class="share-modal" style="display: none;" onclick="if(event.target === this) closeShareModal()">
+        <div class="share-modal-content">
+            <div class="share-modal-header">
+                <h3>Rezept teilen</h3>
+                <button class="share-modal-close" onclick="closeShareModal()">✕</button>
+            </div>
+
+            <!-- Share Options -->
+            <div id="shareOptions" class="share-modal-body">
+                <div class="share-option" onclick="shareViaLink()">
+                    <div class="share-option-icon">🔗</div>
+                    <div class="share-option-text">
+                        <div class="share-option-title">Link teilen</div>
+                        <div class="share-option-desc">Per Messenger, WhatsApp, etc.</div>
+                    </div>
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+
+                <div class="share-option" onclick="shareToGroup()">
+                    <div class="share-option-icon">👥</div>
+                    <div class="share-option-text">
+                        <div class="share-option-title">In Gruppe teilen</div>
+                        <div class="share-option-desc">Mit deinen Gruppen teilen</div>
+                    </div>
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </div>
+
+            <!-- Group List -->
+            <div id="shareGroupList" class="share-modal-body" style="display: none;">
+                <!-- Dynamically filled -->
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .share-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 10000;
+            animation: fadeIn 0.2s;
+        }
+
+        @@keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .share-modal-content {
+            background: white;
+            border-radius: 24px 24px 0 0;
+            width: 100%;
+            max-width: 600px;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+            animation: slideUp 0.3s;
+        }
+
+        @@keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .share-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 24px;
+            border-bottom: 1px solid rgba(20,57,31,0.08);
+        }
+
+        .share-modal-header h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 700;
+            color: #14391f;
+        }
+
+        .share-modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            color: #6b7868;
+            cursor: pointer;
+            padding: 0;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .share-modal-body {
+            padding: 16px 24px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        .share-option {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: #faf6ec;
+            border: 2px solid rgba(20,57,31,0.08);
+            border-radius: 16px;
+            margin-bottom: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .share-option:hover {
+            border-color: #5fa052;
+            background: #f0f5ee;
+            transform: translateX(4px);
+        }
+
+        .share-option-icon {
+            font-size: 32px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border-radius: 12px;
+        }
+
+        .share-option-text {
+            flex: 1;
+        }
+
+        .share-option-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #14391f;
+            margin-bottom: 4px;
+        }
+
+        .share-option-desc {
+            font-size: 13px;
+            color: #6b7868;
+        }
+
+        .share-group-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: white;
+            border: 2px solid rgba(20,57,31,0.08);
+            border-radius: 14px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .share-group-item:hover {
+            border-color: #5fa052;
+            transform: translateX(4px);
+        }
+
+        .share-group-icon {
+            font-size: 24px;
+        }
+
+        .share-group-info {
+            flex: 1;
+        }
+
+        .share-group-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: #14391f;
+            margin-bottom: 4px;
+        }
+
+        .share-group-meta {
+            font-size: 12px;
+            color: #6b7868;
+        }
+
+        .share-loading, .share-empty, .share-error {
+            text-align: center;
+            padding: 40px 20px;
+            color: #6b7868;
+        }
+
+        .share-error {
+            color: #d9534f;
+        }
+    </style>
 
 </body>
 </html>

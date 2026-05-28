@@ -1,6 +1,4 @@
-﻿using DelikatessenDrehbuch.Data;
-using Microsoft.Build.Framework;
-using System.ComponentModel.DataAnnotations.Schema;
+﻿
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 {

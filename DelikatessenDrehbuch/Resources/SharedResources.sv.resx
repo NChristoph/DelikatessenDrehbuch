@@ -123,6 +123,12 @@
   <data name="Feed.Title" xml:space="preserve">
     <value>Flöde</value>
   </data>
+  <data name="Feed.Creator" xml:space="preserve">
+    <value>Skapare</value>
+  </data>
+  <data name="Feed.PlanPreview" xml:space="preserve">
+    <value>Planförhandsvisning</value>
+  </data>
   <data name="Feed.NoDish" xml:space="preserve">
     <value>Ingen rätt</value>
   </data>
@@ -363,6 +369,18 @@
   </data>
 
   <!-- Home Menu -->
+  <data name="Home.Feed" xml:space="preserve">
+    <value>Flöde</value>
+  </data>
+  <data name="Home.FeedDesc" xml:space="preserve">
+    <value>Community, trender &amp; nya recept</value>
+  </data>
+  <data name="Home.Upload" xml:space="preserve">
+    <value>Ladda upp</value>
+  </data>
+  <data name="Home.UploadDesc" xml:space="preserve">
+    <value>Bli skapare</value>
+  </data>
   <data name="Home.WeeklyPlan" xml:space="preserve">
     <value>Min veckoplan</value>
   </data>

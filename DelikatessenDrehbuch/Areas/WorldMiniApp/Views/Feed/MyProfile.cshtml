@@ -705,32 +705,40 @@
         </div>
     }
 
-    <!-- Trading Agent Dropdown -->
-    <button class="quick-link quick-link-dashboard"
-            id="tradingAgentToggleBtn"
-            type="button"
-            data-bs-toggle="collapse"
-            data-bs-target="#tradingAgentCollapse"
-            aria-expanded="false"
-            aria-controls="tradingAgentCollapse">
-        <i class="bi bi-robot"></i> Trading Agent
-        <span class="ms-1 opacity-75" id="tradingAgentToggleCaret">▾</span>
-    </button>
+    @if (Model.User.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839")
+    {
+        <!-- Ad Manager Link -->
+        <a href="@Url.Action("Index", "AdminAds", new { area = "WorldMiniApp" })" class="quick-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <i class="bi bi-megaphone-fill"></i> Ad Manager
+        </a>
 
-    <div class="collapse mt-1 mb-1" id="tradingAgentCollapse">
-        <div class="dashboard-embed-shell" style="background: white; border-radius: 16px; padding: 24px;">
-            <div id="agent-container">
-                <div class="text-center" style="padding: 40px 20px;">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
+        <!-- Trading Agent Dropdown -->
+        <button class="quick-link quick-link-dashboard"
+                id="tradingAgentToggleBtn"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#tradingAgentCollapse"
+                aria-expanded="false"
+                aria-controls="tradingAgentCollapse">
+            <i class="bi bi-robot"></i> Trading Agent
+            <span class="ms-1 opacity-75" id="tradingAgentToggleCaret">▾</span>
+        </button>
+
+        <div class="collapse mt-1 mb-1" id="tradingAgentCollapse">
+            <div class="dashboard-embed-shell" style="background: white; border-radius: 16px; padding: 24px;">
+                <div id="agent-container">
+                    <div class="text-center" style="padding: 40px 20px;">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            @* Agent Payment Test UI - nur im Trading Agent Dashboard *@
-            @Html.Partial("_AgentPaymentTest")
+                @* Agent Payment Test UI - nur im Trading Agent Dashboard *@
+                @Html.Partial("_AgentPaymentTest")
+            </div>
         </div>
-    </div>
+    }
 
     <!-- Tabs -->
     <ul class="nav nav-custom" role="tablist">
@@ -823,7 +831,7 @@
                     @foreach (var card in Model.AiEditedRecipes)
                     {
                         // All cards are now swap variants (RecipeAiBaseRecipes removed)
-                                var href = $"/WorldMiniApp/Home/ShowRecipe?id={card.BaseRecipeId}&swapVariantId={card.AiVariantId}";
+                                var href = $"/WorldMiniApp/Home/SharedRecipe?id={card.BaseRecipeId}&swapVariantId={card.AiVariantId}";
 
                         <a href="@href" class="grid-item shadow-sm position-relative text-decoration-none" style="display: block; cursor: pointer;">
                             <img src="@card.ImageUrl" class="grid-img" loading="lazy">

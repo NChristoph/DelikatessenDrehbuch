@@ -1,0 +1,312 @@
+@model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldAppAd>
+@{
+    ViewData["Title"] = "Ad Management";
+    Layout = "_MiniAppLayout";
+}
+
+<style>
+    .admin-container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f8f9fa;
+        min-height: 100vh;
+    }
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding: 20px;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    }
+    .admin-header h1 {
+        margin: 0;
+        font-size: 1.8rem;
+        color: #2c3e50;
+    }
+    .btn-create {
+        background: #5fa052;
+        color: white;
+        padding: 12px 24px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.2s;
+    }
+    .btn-create:hover {
+        background: #4a8040;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(95,160,82,0.3);
+    }
+    .ad-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+    }
+    .ad-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.2s;
+    }
+    .ad-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .ad-media {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        background: #e9ecef;
+    }
+    .ad-body {
+        padding: 16px;
+    }
+    .ad-title {
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: #2c3e50;
+    }
+    .ad-description {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-bottom: 12px;
+        line-height: 1.4;
+    }
+    .ad-stats {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 12px;
+        padding: 12px;
+        background: #f8f9fa;
+        border-radius: 8px;
+    }
+    .ad-stat {
+        text-align: center;
+    }
+    .ad-stat-label {
+        font-size: 0.75rem;
+        color: #6c757d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .ad-stat-value {
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .ad-badge {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 12px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        margin-right: 8px;
+        margin-bottom: 8px;
+    }
+    .badge-active {
+        background: #d4edda;
+        color: #155724;
+    }
+    .badge-inactive {
+        background: #f8d7da;
+        color: #721c24;
+    }
+    .badge-video {
+        background: #d1ecf1;
+        color: #0c5460;
+    }
+    .badge-image {
+        background: #fff3cd;
+        color: #856404;
+    }
+    .ad-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .btn-sm {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+        border-radius: 6px;
+        text-decoration: none;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .btn-edit {
+        background: #007bff;
+        color: white;
+    }
+    .btn-edit:hover {
+        background: #0056b3;
+    }
+    .btn-analytics {
+        background: #17a2b8;
+        color: white;
+    }
+    .btn-analytics:hover {
+        background: #117a8b;
+    }
+    .btn-toggle {
+        background: #ffc107;
+        color: #000;
+    }
+    .btn-toggle:hover {
+        background: #e0a800;
+    }
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+    .btn-delete:hover {
+        background: #c82333;
+    }
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 16px;
+        margin-bottom: 30px;
+    }
+    .summary-card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        text-align: center;
+    }
+    .summary-card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: #5fa052;
+    }
+    .summary-card-label {
+        font-size: 0.9rem;
+        color: #6c757d;
+        margin-top: 8px;
+    }
+</style>
+
+<div class="admin-container">
+    <div class="admin-header">
+        <h1>📊 Ad Management</h1>
+        <a href="@Url.Action("Create")" class="btn-create">+ Create New Ad</a>
+    </div>
+
+    @if (Model.Any())
+    {
+        var totalViews = Model.Sum(a => a.ViewCount);
+        var totalClicks = Model.Sum(a => a.ClickCount);
+        var avgCTR = totalViews > 0 ? Math.Round((double)totalClicks / totalViews * 100, 2) : 0;
+
+        <div class="summary-cards">
+            <div class="summary-card">
+                <div class="summary-card-value">@Model.Count</div>
+                <div class="summary-card-label">Total Ads</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-value">@Model.Count(a => a.IsActive)</div>
+                <div class="summary-card-label">Active Ads</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-value">@totalViews.ToString("N0")</div>
+                <div class="summary-card-label">Total Views</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-value">@totalClicks.ToString("N0")</div>
+                <div class="summary-card-label">Total Clicks</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-card-value">@avgCTR%</div>
+                <div class="summary-card-label">Avg CTR</div>
+            </div>
+        </div>
+
+        <div class="ad-grid">
+            @foreach (var ad in Model)
+            {
+                var ctr = ad.ViewCount > 0 ? Math.Round((double)ad.ClickCount / ad.ViewCount * 100, 2) : 0;
+                <div class="ad-card">
+                    @if (ad.IsVideo)
+                    {
+                        <video class="ad-media" src="@ad.MediaUrl" poster="@ad.ThumbnailUrl" muted></video>
+                    }
+                    else
+                    {
+                        <img class="ad-media" src="@ad.MediaUrl" alt="@ad.Title" loading="lazy" />
+                    }
+
+                    <div class="ad-body">
+                        <div class="ad-title">@ad.Title</div>
+
+                        @if (!string.IsNullOrWhiteSpace(ad.Description))
+                        {
+                            <div class="ad-description">@ad.Description</div>
+                        }
+
+                        <div>
+                            <span class="ad-badge @(ad.IsActive ? "badge-active" : "badge-inactive")">
+                                @(ad.IsActive ? "Active" : "Inactive")
+                            </span>
+                            <span class="ad-badge @(ad.IsVideo ? "badge-video" : "badge-image")">
+                                @(ad.IsVideo ? "Video" : "Image")
+                            </span>
+                        </div>
+
+                        <div class="ad-stats">
+                            <div class="ad-stat">
+                                <div class="ad-stat-label">Views</div>
+                                <div class="ad-stat-value">@ad.ViewCount</div>
+                            </div>
+                            <div class="ad-stat">
+                                <div class="ad-stat-label">Clicks</div>
+                                <div class="ad-stat-value">@ad.ClickCount</div>
+                            </div>
+                            <div class="ad-stat">
+                                <div class="ad-stat-label">CTR</div>
+                                <div class="ad-stat-value">@ctr%</div>
+                            </div>
+                        </div>
+
+                        <small class="text-muted d-block mb-2">
+                            Every @ad.ShowEveryXVideos videos | Priority: @ad.Priority
+                        </small>
+
+                        <div class="ad-actions">
+                            <a href="@Url.Action("Edit", new { id = ad.Id })" class="btn-sm btn-edit">Edit</a>
+                            <a href="@Url.Action("Analytics", new { id = ad.Id })" class="btn-sm btn-analytics">Analytics</a>
+
+                            <form method="post" action="@Url.Action("ToggleActive", new { id = ad.Id })" style="display:inline;">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-sm btn-toggle">
+                                    @(ad.IsActive ? "Deactivate" : "Activate")
+                                </button>
+                            </form>
+
+                            <form method="post" action="@Url.Action("Delete", new { id = ad.Id })" style="display:inline;"
+                                  onsubmit="return confirm('Delete this ad? This cannot be undone.');">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn-sm btn-delete">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div style="text-align: center; padding: 60px 20px; background: white; border-radius: 12px;">
+            <h3 style="color: #6c757d; margin-bottom: 12px;">No ads yet</h3>
+            <p style="color: #adb5bd; margin-bottom: 24px;">Create your first ad to start monetizing your feed</p>
+            <a href="@Url.Action("Create")" class="btn-create">+ Create First Ad</a>
+        </div>
+    }
+</div>

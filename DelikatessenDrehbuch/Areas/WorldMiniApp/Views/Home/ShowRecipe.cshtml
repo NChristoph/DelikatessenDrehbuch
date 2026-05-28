@@ -1547,7 +1547,7 @@
                 }
 
                 const id = data.communityVariant.id;
-                window.location.href = `/WorldMiniApp/Home/ShowRecipe?id=${recipeId}&communityVariantId=${id}`;
+                window.location.href = `/WorldMiniApp/Home/SharedRecipe?id=${recipeId}&communityVariantId=${id}`;
             } catch (e) {
                 console.error(e);
                 btn.disabled = false;
@@ -1622,7 +1622,7 @@
                     const prep = Number.isFinite(i.preparationTime) ? i.preparationTime : 0;
 
                     return `
-                        <a class="text-decoration-none" href="/WorldMiniApp/Home/ShowRecipe?id=@Model.Id&communityVariantId=${i.id}">
+                        <a class="text-decoration-none" href="/WorldMiniApp/Home/SharedRecipe?id=@Model.Id&communityVariantId=${i.id}">
                             <div class="variant-card">
                                 <div class="variant-card__body">
                                     <div class="variant-card__header">

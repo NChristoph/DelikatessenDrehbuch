@@ -285,12 +285,20 @@ Original nutrition per 100g: {original.Calories_a_100g} kcal, protein {original.
 Amount used in this recipe: {FormatDecimal(originalUsage.DisplayQuantity)} {originalUsage.DisplayUnit} (about {FormatDecimal(originalUsage.QuantityInGrams)} g).
 {contextBlock}
 
-Rules:
+CRITICAL Rules - Follow Strictly:
 - Suggest at most {maxSuggestions} real alternatives from the available ingredient list.
-- Keep the recipe style plausible.
-- Prefer similar culinary use, not random ingredients.
-- Suggested quantity must realistically replace the full amount used in this recipe, not a generic 100 g default.
-- Prefer alternatives that match the original ingredient's type (liquid/fat/powder/solid) and culinary role.
+- ONLY suggest ingredients that serve the SAME CULINARY ROLE as the original ingredient.
+- Match the ingredient's PURPOSE in the recipe:
+  * Nuts → other nuts or seeds (NEVER grains, sweeteners, or vegetables)
+  * Proteins (meat/fish) → other proteins from same category
+  * Grains (rice/pasta) → other grains (NEVER proteins or sweeteners)
+  * Sweeteners (sugar/honey) → other sweeteners (NEVER savory ingredients)
+  * Vegetables → similar vegetables with similar texture
+  * Herbs/Spices → other herbs/spices with similar flavor profile
+  * Dairy → other dairy or appropriate plant-based alternatives
+- REJECT suggestions that would drastically change the dish type or flavor category.
+- Match texture and physical form: crunchy → crunchy, creamy → creamy, liquid → liquid.
+- Suggested quantity must realistically replace the FULL amount used ({FormatDecimal(originalUsage.QuantityInGrams)} g), not a generic 100 g default.
 - Use unit '{unitRule}' for quantity.
 - Do not suggest the original ingredient itself.
 - Keep reasons short and concrete.
@@ -788,9 +796,39 @@ Available ingredients:
                 return quantity * 1000m;
             }
 
-            if (normalizedUnit is "l" or "liter")
+            if (normalizedUnit is "l" or "liter" or "litre")
             {
                 return quantity * 1000m;
+            }
+
+            // Tablespoon conversions (approximate for solids)
+            if (normalizedUnit is "el" or "essl" or "esslöffel" or "tbsp" or "tablespoon" or "tablespoons")
+            {
+                return quantity * 15m; // ~15g per tablespoon for most solids
+            }
+
+            // Teaspoon conversions (approximate for solids)
+            if (normalizedUnit is "tl" or "teel" or "teelöffel" or "tsp" or "teaspoon" or "teaspoons")
+            {
+                return quantity * 5m; // ~5g per teaspoon for most solids
+            }
+
+            // Cup conversions (approximate)
+            if (normalizedUnit is "cup" or "cups" or "tasse" or "tassen")
+            {
+                return quantity * 200m; // ~200g per cup (varies by ingredient)
+            }
+
+            // Ounce conversions
+            if (normalizedUnit is "oz" or "ounce" or "ounces" or "unze" or "unzen")
+            {
+                return quantity * 28.35m; // 1 oz = 28.35g
+            }
+
+            // Pound conversions
+            if (normalizedUnit is "lb" or "lbs" or "pound" or "pounds" or "pfund")
+            {
+                return quantity * 453.59m; // 1 lb = 453.59g
             }
 
             if (isPieceUnit && weightPerPiece > 0)
@@ -862,6 +900,49 @@ Available ingredients:
             // Prefer same group/category when available, but don't hard-lock (keeps "pork only" from happening).
             if (original.GroupId.HasValue && candidate.GroupId == original.GroupId) score += 12m;
             if (original.FoodCategoryId.HasValue && candidate.FoodCategoryId == original.FoodCategoryId) score += 8m;
+
+            // CRITICAL: Nutritional profile matching to filter out incompatible ingredients
+            // This prevents suggesting grains for nuts, sweeteners for proteins, etc.
+            var origProtein = original.Protein_a_100g;
+            var origCarbs = original.Carbohydrates_a_100g;
+            var origFat = original.Fat_a_100g;
+            var candProtein = candidate.Protein;
+            var candCarbs = candidate.Carbs;
+            var candFat = candidate.Fat;
+
+            // Calculate nutritional profile similarity
+            // Heavily penalize ingredients with drastically different macro ratios
+            var proteinDiff = Math.Abs(origProtein - candProtein);
+            var carbsDiff = Math.Abs(origCarbs - candCarbs);
+            var fatDiff = Math.Abs(origFat - candFat);
+
+            // If macros are vastly different, this is probably a bad swap
+            // Example: peanuts (50% fat) vs rice (1% fat) → fatDiff = 49 → penalty = -24.5
+            score -= (proteinDiff + carbsDiff + fatDiff) / 6m;
+
+            // Extra penalty for extreme mismatches
+            // If the dominant macro is completely different, heavily penalize
+            var origDominantMacro = Math.Max(origProtein, Math.Max(origCarbs, origFat));
+            var candDominantMacro = Math.Max(candProtein, Math.Max(candCarbs, candFat));
+
+            // Check if dominant macros align
+            var origIsFatDominant = origFat >= origProtein && origFat >= origCarbs && origFat > 15m;
+            var origIsProteinDominant = origProtein >= origFat && origProtein >= origCarbs && origProtein > 10m;
+            var origIsCarbDominant = origCarbs >= origFat && origCarbs >= origProtein && origCarbs > 40m;
+
+            var candIsFatDominant = candFat >= candProtein && candFat >= candCarbs && candFat > 15m;
+            var candIsProteinDominant = candProtein >= candFat && candProtein >= candCarbs && candProtein > 10m;
+            var candIsCarbDominant = candCarbs >= candFat && candCarbs >= candProtein && candCarbs > 40m;
+
+            // Heavily penalize if dominant macro doesn't match
+            if (origIsFatDominant && !candIsFatDominant) score -= 40m;
+            if (origIsProteinDominant && !candIsProteinDominant) score -= 40m;
+            if (origIsCarbDominant && !candIsCarbDominant) score -= 40m;
+
+            // Bonus for matching dominant macro
+            if (origIsFatDominant && candIsFatDominant) score += 20m;
+            if (origIsProteinDominant && candIsProteinDominant) score += 20m;
+            if (origIsCarbDominant && candIsCarbDominant) score += 20m;
 
             return score;
         }

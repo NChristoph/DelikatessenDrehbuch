@@ -17,8 +17,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.StackExchangeRedis;
-using Microsoft.Extensions.DependencyInjection;
 using Polly;
 using Stripe;
 using System.Globalization;
@@ -86,6 +84,30 @@ var retryPolicy = Policy
 var configuration = builder.Configuration;
 // Add services to the container.
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+
+// Environment Variable Override für Production
+var envConnectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING");
+if (!string.IsNullOrWhiteSpace(envConnectionString))
+{
+    connectionString = envConnectionString;
+}
+
+var bunnyStoragePassword = Environment.GetEnvironmentVariable("BUNNY_STORAGE_PASSWORD");
+if (!string.IsNullOrWhiteSpace(bunnyStoragePassword))
+    builder.Configuration["Bunny_Net_Passwort_Lager"] = bunnyStoragePassword;
+
+var bunnyStreamApi = Environment.GetEnvironmentVariable("BUNNY_STREAM_API_KEY");
+if (!string.IsNullOrWhiteSpace(bunnyStreamApi))
+    builder.Configuration["Bunny_Net_Api_Stream"] = bunnyStreamApi;
+
+var emailPassword = Environment.GetEnvironmentVariable("EMAIL_PASSWORD");
+if (!string.IsNullOrWhiteSpace(emailPassword))
+    builder.Configuration["EmailSettings:Password"] = emailPassword;
+
+var superUserHash = Environment.GetEnvironmentVariable("WORLDMINIAPP_SUPERUSER_HASH");
+if (!string.IsNullOrWhiteSpace(superUserHash))
+    builder.Configuration["WorldMiniApp:SuperUserHash"] = superUserHash;
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
@@ -120,6 +142,7 @@ builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
 builder.Services.AddScoped<CaptionGenerationService>();
 builder.Services.AddScoped<WorldMiniApp.Services.IFeedAlgorithmService, WorldMiniApp.Services.FeedAlgorithmService>();
+builder.Services.AddScoped<IAdInjectionService, AdInjectionService>();
 builder.Services.AddScoped<TradingAgentService>();
 builder.Services.AddScoped<BlockchainService>();
 builder.Services.AddScoped<DexService>();

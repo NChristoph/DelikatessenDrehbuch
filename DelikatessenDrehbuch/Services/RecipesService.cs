@@ -2,11 +2,7 @@
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.EntityFrameworkCore;
-using NuGet.Packaging.Signing;
-using Polly;
-using System;
 
 namespace DelikatessenDrehbuch.Services
 {
