@@ -60,6 +60,9 @@
   </resheader>
 
   <!-- Common UI Elements -->
+  <data name="Common.New" xml:space="preserve">
+    <value>Neu</value>
+  </data>
   <data name="Common.Back" xml:space="preserve">
     <value>Zurück</value>
   </data>
@@ -518,6 +521,24 @@
   <data name="Recipe.Share" xml:space="preserve">
     <value>Teilen</value>
   </data>
+  <data name="Recipe.EditFeedPost" xml:space="preserve">
+    <value>Feed-Posting bearbeiten</value>
+  </data>
+  <data name="Recipe.CreateFeedPost" xml:space="preserve">
+    <value>Als Feed-Posting anlegen</value>
+  </data>
+  <data name="Recipe.TotalCalories" xml:space="preserve">
+    <value>Gesamt Kcal</value>
+  </data>
+  <data name="Recipe.Swaps" xml:space="preserve">
+    <value>Angepasst</value>
+  </data>
+  <data name="Recipe.Variants" xml:space="preserve">
+    <value>Varianten</value>
+  </data>
+  <data name="Recipe.SaveAsVariant" xml:space="preserve">
+    <value>Als Variante speichern</value>
+  </data>
 
   <!-- AI Step Generator -->
   <data name="AI.GenerateStepsFromText" xml:space="preserve">
@@ -569,6 +590,64 @@
   </data>
   <data name="Category.Variante" xml:space="preserve">
     <value>Variante</value>
+  </data>
+
+  <!-- MealPlan (Feed) -->
+  <data name="MealPlan.Title" xml:space="preserve">
+    <value>Essensplan</value>
+  </data>
+  <data name="MealPlan.CalendarWeek" xml:space="preserve">
+    <value>Kalenderwoche</value>
+  </data>
+  <data name="MealPlan.Edit" xml:space="preserve">
+    <value>Bearbeiten</value>
+  </data>
+  <data name="MealPlan.Days" xml:space="preserve">
+    <value>Tage</value>
+  </data>
+  <data name="MealPlan.Recipes" xml:space="preserve">
+    <value>Rezepte</value>
+  </data>
+  <data name="MealPlan.Meals" xml:space="preserve">
+    <value>Mahlzeiten</value>
+  </data>
+  <data name="MealPlan.Persons" xml:space="preserve">
+    <value>Personen</value>
+  </data>
+  <data name="MealPlan.DishesInPlan" xml:space="preserve">
+    <value>Gerichte im Plan</value>
+  </data>
+  <data name="MealPlan.Delete" xml:space="preserve">
+    <value>Essensplan löschen</value>
+  </data>
+  <data name="MealPlan.DeleteConfirm" xml:space="preserve">
+    <value>Möchten Sie diesen Essensplan wirklich löschen? Er wird aus allen Feeds entfernt.</value>
+  </data>
+  <data name="MealPlan.Open" xml:space="preserve">
+    <value>Öffnen</value>
+  </data>
+  <data name="MealPlan.SharedAction" xml:space="preserve">
+    <value>hat einen Essensplan geteilt</value>
+  </data>
+  <data name="ShoppingList.SharedAction" xml:space="preserve">
+    <value>hat eine Einkaufsliste geteilt</value>
+  </data>
+
+  <!-- ShoppingList (Feed) -->
+  <data name="ShoppingList.Title" xml:space="preserve">
+    <value>Einkaufsliste</value>
+  </data>
+  <data name="ShoppingList.Entries" xml:space="preserve">
+    <value>Einträge</value>
+  </data>
+  <data name="ShoppingList.Delete" xml:space="preserve">
+    <value>Einkaufsliste löschen</value>
+  </data>
+  <data name="ShoppingList.DeleteConfirm" xml:space="preserve">
+    <value>Möchten Sie diese Einkaufsliste wirklich löschen? Sie wird aus allen Feeds entfernt.</value>
+  </data>
+  <data name="ShoppingList.Open" xml:space="preserve">
+    <value>Öffnen</value>
   </data>
 
   <!-- Video Upload Validation -->
@@ -843,6 +922,9 @@
   <!-- Shared Feeds -->
   <data name="SharedFeed.Title" xml:space="preserve">
     <value>Geteilte Inhalte</value>
+  </data>
+  <data name="SharedFeed.GroupName" xml:space="preserve">
+    <value>Gruppen-Name</value>
   </data>
   <data name="SharedFeed.MyGroups" xml:space="preserve">
     <value>Meine Gruppen</value>

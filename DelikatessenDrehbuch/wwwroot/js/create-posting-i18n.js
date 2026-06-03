@@ -330,6 +330,116 @@
             da: 'Upload billede/video',
             no: 'Last opp bilde/video',
             ms: 'Sila muat naik imej/video'
+        },
+
+        // === TAB LABELS ===
+        'CreatePosting.Basics': {
+            de: 'Basics',
+            en: 'Basics',
+            es: 'Básicos',
+            pt: 'Básicos',
+            id: 'Dasar',
+            nl: 'Basis',
+            sv: 'Grundläggande',
+            da: 'Grundlæggende',
+            no: 'Grunnleggende',
+            ms: 'Asas'
+        },
+        'CreatePosting.Media': {
+            de: 'Medien',
+            en: 'Media',
+            es: 'Medios',
+            pt: 'Mídia',
+            id: 'Media',
+            nl: 'Media',
+            sv: 'Media',
+            da: 'Medier',
+            no: 'Media',
+            ms: 'Media'
+        },
+        'CreatePosting.Ingredients': {
+            de: 'Zutaten',
+            en: 'Ingredients',
+            es: 'Ingredientes',
+            pt: 'Ingredientes',
+            id: 'Bahan',
+            nl: 'Ingrediënten',
+            sv: 'Ingredienser',
+            da: 'Ingredienser',
+            no: 'Ingredienser',
+            ms: 'Bahan-bahan'
+        },
+        'CreatePosting.Steps': {
+            de: 'Schritte',
+            en: 'Steps',
+            es: 'Pasos',
+            pt: 'Passos',
+            id: 'Langkah',
+            nl: 'Stappen',
+            sv: 'Steg',
+            da: 'Trin',
+            no: 'Trinn',
+            ms: 'Langkah'
+        },
+        'CreatePosting.SelectedIngredients': {
+            de: 'Ausgewählte Zutaten',
+            en: 'Selected Ingredients',
+            es: 'Ingredientes seleccionados',
+            pt: 'Ingredientes selecionados',
+            id: 'Bahan yang dipilih',
+            nl: 'Geselecteerde ingrediënten',
+            sv: 'Valda ingredienser',
+            da: 'Valgte ingredienser',
+            no: 'Valgte ingredienser',
+            ms: 'Bahan yang dipilih'
+        },
+        'CreatePosting.TapToEdit': {
+            de: 'Zum Bearbeiten tippen',
+            en: 'Tap to edit',
+            es: 'Toca para editar',
+            pt: 'Toque para editar',
+            id: 'Ketuk untuk mengedit',
+            nl: 'Tik om te bewerken',
+            sv: 'Tryck för att redigera',
+            da: 'Tryk for at redigere',
+            no: 'Trykk for å redigere',
+            ms: 'Ketik untuk edit'
+        },
+        'CreatePosting.CookingInstructions': {
+            de: 'Kochanleitung (wird automatisch übersetzt)',
+            en: 'Cooking Instructions (auto-translated)',
+            es: 'Instrucciones de cocina (traducidas automáticamente)',
+            pt: 'Instruções de cozinha (traduzidas automaticamente)',
+            id: 'Instruksi Memasak (diterjemahkan otomatis)',
+            nl: 'Kookinstructies (automatisch vertaald)',
+            sv: 'Tillagningsinstruktioner (automatiskt översatt)',
+            da: 'Madlavningsinstruktioner (automatisk oversættelse)',
+            no: 'Matlaginginstruksjoner (automatisk oversettelse)',
+            ms: 'Arahan Memasak (diterjemahkan automatik)'
+        },
+        'CreatePosting.Persons': {
+            de: 'Pers.',
+            en: 'Pers.',
+            es: 'Pers.',
+            pt: 'Pess.',
+            id: 'Org.',
+            nl: 'Pers.',
+            sv: 'Pers.',
+            da: 'Pers.',
+            no: 'Pers.',
+            ms: 'Org.'
+        },
+        'CreatePosting.Minutes': {
+            de: 'Min',
+            en: 'Min',
+            es: 'Min',
+            pt: 'Min',
+            id: 'Mnt',
+            nl: 'Min',
+            sv: 'Min',
+            da: 'Min',
+            no: 'Min',
+            ms: 'Min'
         }
     };
 

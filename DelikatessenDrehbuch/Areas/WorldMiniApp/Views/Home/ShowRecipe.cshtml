@@ -783,7 +783,7 @@
                         <div class="premium-badge" style="background: linear-gradient(135deg, #28a745, #20c997); color: white; font-weight: 700;">
                             <i class="bi bi-arrow-left-right"></i>
                             <span class="badge-value" style="color:white;">@swapCount</span>
-                            <span class="badge-unit" style="color:rgba(255,255,255,0.85);">@T("Angepasst", "Swaps", "Cambios", "Trocas")</span>
+                            <span class="badge-unit" style="color:rgba(255,255,255,0.85);">@SharedLocalizer["Recipe.Swaps"]</span>
                         </div>
                     }
                 }
@@ -811,7 +811,7 @@
                             data-bs-toggle="offcanvas"
                             data-bs-target="#communityVariantsCanvas"
                             aria-controls="communityVariantsCanvas">
-                        <i class="bi bi-layers"></i> @T("Varianten", "Variants", "Variantes", "Variantes") (@communityCount)
+                        <i class="bi bi-layers"></i> @SharedLocalizer["Recipe.Variants"] (@communityCount)
                     </button>
                 }
 
@@ -823,7 +823,7 @@
                             data-recipe-id="@Model.Id"
                             data-swap-variant-id="@swapVariantId"
                             data-parent-community-variant-id="@(ViewData["CommunityVariantId"] as int? ?? 0)">
-                        <i class="bi bi-check2-circle"></i> @T("Als Variante speichern", "Save as variant", "Guardar como variante", "Guardar como variante")
+                        <i class="bi bi-check2-circle"></i> @SharedLocalizer["Recipe.SaveAsVariant"]
                     </button>
                 }
 
@@ -833,7 +833,7 @@
                     {
                         <a class="top-pill-btn"
                            href="@Url.Action("EditRecipe", "Home", new { area = "WorldMiniApp", postingId = existingPostingId.Value })">
-                            <i class="bi bi-pencil-square"></i> @T("Feed-Posting bearbeiten", "Edit feed post", "Editar post del feed", "Editar post do feed")
+                            <i class="bi bi-pencil-square"></i> @SharedLocalizer["Recipe.EditFeedPost"]
                         </a>
                     }
                     else
@@ -842,7 +842,7 @@
                             @Html.AntiForgeryToken()
                             <input type="hidden" name="recipeBaseDataId" value="@Model.Id" />
                             <button type="submit" class="top-pill-btn">
-                                <i class="bi bi-broadcast-pin"></i> @T("Als Feed-Posting anlegen", "Create feed post", "Crear post del feed", "Criar post do feed")
+                                <i class="bi bi-broadcast-pin"></i> @SharedLocalizer["Recipe.CreateFeedPost"]
                             </button>
                         </form>
                     }
@@ -947,7 +947,7 @@
                 <div class="nutri-grid">
                     <div class="nutri-item nutri-item-main">
                         <span class="nutri-val dyn-nutri" data-base="@totalCalories.ToString(CultureInfo.InvariantCulture)">@Math.Round(totalCalories)</span>
-                        <span class="nutri-label">Gesamt Kcal</span>
+                        <span class="nutri-label">@SharedLocalizer["Recipe.TotalCalories"]</span>
                     </div>
                     <div class="nutri-item">
                         <span class="nutri-val dyn-nutri" data-base="@totalProtein.ToString(CultureInfo.InvariantCulture)">@Math.Round(totalProtein)</span>
@@ -1002,6 +1002,62 @@
 
         <div id="variantListEmpty" class="text-center text-muted py-5" style="display:none;">
             Keine Varianten gefunden.
+        </div>
+    </div>
+</div>
+
+@* Ingredient Alternatives Popup *@
+<div id="ingredientAlternativesModal" class="alt-modal" style="display:none;">
+    <div class="alt-backdrop"></div>
+    <div class="alt-sheet">
+        @* Header *@
+        <div class="alt-header">
+            <div class="alt-drag-handle"></div>
+            <div class="alt-header-content">
+                <div class="alt-header-left">
+                    <div class="alt-label">Alternativen für</div>
+                    <h2 class="alt-title" id="altIngredientName">Carrot</h2>
+                    <div class="alt-meta">
+                        <span class="alt-meta-badge">
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="#f5b942"><path d="M12 2l1.6 5.2L19 9l-5.4 1.8L12 16l-1.6-5.2L5 9l5.4-1.8L12 2z"/><path d="M19 14l.7 2.3L22 17l-2.3.7L19 20l-.7-2.3L16 17l2.3-.7L19 14z"/></svg>
+                            <span>ChatGPT · GPT-4o-mini</span>
+                        </span>
+                        <span class="alt-meta-time">
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.55)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            <span>9.8s</span>
+                        </span>
+                    </div>
+                </div>
+                <button type="button" class="alt-close" id="closeAltModal">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                </button>
+            </div>
+        </div>
+
+        @* Scroll Content *@
+        <div class="alt-scroll" id="altScrollContent">
+            @* Original Card *@
+            <div class="alt-original-card">
+                <div class="alt-original-label">ORIGINAL</div>
+                <div class="alt-original-header">
+                    <span class="alt-original-name" id="altOriginalName">Carrot</span>
+                    <span class="alt-original-amount" id="altOriginalAmount">2 Stk.</span>
+                </div>
+                <div class="alt-original-macros" id="altOriginalMacros">
+                    <span class="alt-macro-pill alt-macro-kcal"><span class="alt-macro-val">41</span><span class="alt-macro-unit">kcal</span></span>
+                    <span class="alt-macro-pill alt-macro-protein"><span class="alt-macro-val">0.9</span><span class="alt-macro-unit">P</span></span>
+                    <span class="alt-macro-pill alt-macro-carbs"><span class="alt-macro-val">10.0</span><span class="alt-macro-unit">C</span></span>
+                    <span class="alt-macro-pill alt-macro-fat"><span class="alt-macro-val">0.2</span><span class="alt-macro-unit">F</span></span>
+                </div>
+            </div>
+
+            @* Alternative Cards (will be generated dynamically) *@
+            <div id="altOptionsList"></div>
+        </div>
+
+        @* Footer *@
+        <div class="alt-footer">
+            <button type="button" class="alt-cancel-btn" id="cancelAltModal">Abbrechen</button>
         </div>
     </div>
 </div>
@@ -1077,6 +1133,519 @@
     .variant-badge--like { background: rgba(231, 76, 60, 0.10); border-color: rgba(231, 76, 60, 0.22); color: #b83a2c; }
     .variant-badge--swap { background: rgba(52, 152, 219, 0.10); border-color: rgba(52, 152, 219, 0.22); color: #1b5e8a; }
     .variant-badge--time { background: rgba(46, 204, 113, 0.10); border-color: rgba(46, 204, 113, 0.22); color: #1b7f45; }
+
+    /* Ingredient Alternatives Modal */
+    .alt-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+    }
+
+    .alt-backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(10,28,17,0.42);
+        backdrop-filter: blur(3px);
+        -webkit-backdrop-filter: blur(3px);
+    }
+
+    .alt-sheet {
+        position: relative;
+        background: #f5efe1;
+        border-top-left-radius: 28px;
+        border-top-right-radius: 28px;
+        height: 92%;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 -20px 60px rgba(10,28,17,0.30);
+    }
+
+    .alt-header {
+        background: linear-gradient(135deg, #1f4329, #0e2415);
+        padding: 16px 18px 18px;
+        color: white;
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .alt-drag-handle {
+        width: 38px;
+        height: 4px;
+        border-radius: 2px;
+        background: rgba(255,255,255,0.30);
+        margin: 0 auto 14px;
+    }
+
+    .alt-header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .alt-header-left {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .alt-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.14em;
+        text-transform: uppercase;
+        color: rgba(255,255,255,0.62);
+        margin-bottom: 5px;
+    }
+
+    .alt-title {
+        font-family: 'Fraunces', serif;
+        font-size: 26px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0;
+        line-height: 1.05;
+        color: white;
+    }
+
+    .alt-meta {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        margin-top: 10px;
+        flex-wrap: wrap;
+    }
+
+    .alt-meta-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.16);
+        border-radius: 999px;
+        padding: 4px 10px;
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.92);
+        white-space: nowrap;
+    }
+
+    .alt-meta-time {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-size: 11px;
+        font-weight: 600;
+        color: rgba(255,255,255,0.55);
+    }
+
+    .alt-close {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.14);
+        border: 1px solid rgba(255,255,255,0.18);
+        color: white;
+        cursor: pointer;
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .alt-close:hover {
+        background: rgba(255,255,255,0.22);
+    }
+
+    .alt-scroll {
+        flex: 1;
+        overflow-y: auto;
+        padding: 14px 16px 100px;
+        display: flex;
+        flex-direction: column;
+        gap: 18px;
+    }
+
+    .alt-original-card {
+        background: #faf6ec;
+        border: 1px solid rgba(20,57,31,0.07);
+        border-radius: 18px;
+        padding: 14px 16px;
+        box-shadow: 0 2px 8px rgba(20,57,31,0.06);
+    }
+
+    .alt-original-label {
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: #9aa295;
+        margin-bottom: 8px;
+    }
+
+    .alt-original-header {
+        display: flex;
+        align-items: baseline;
+        gap: 7px;
+        margin-bottom: 12px;
+    }
+
+    .alt-original-name {
+        font-family: 'Fraunces', serif;
+        font-size: 21px;
+        font-weight: 600;
+        color: #14391f;
+        letter-spacing: -0.02em;
+    }
+
+    .alt-original-amount {
+        font-size: 13px;
+        color: #6b7868;
+        font-weight: 500;
+    }
+
+    .alt-original-macros {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+    }
+
+    .alt-macro-pill {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 3px;
+        border-radius: 999px;
+        padding: 5px 11px;
+        white-space: nowrap;
+    }
+
+    .alt-macro-val {
+        font-family: 'Fraunces', serif;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    .alt-macro-unit {
+        font-size: 10px;
+        font-weight: 700;
+        opacity: 0.78;
+        letter-spacing: 0.02em;
+    }
+
+    .alt-macro-kcal {
+        background: rgba(20,57,31,0.07);
+        color: #2a4a32;
+        box-shadow: inset 0 0 0 1px rgba(20,57,31,0.10);
+    }
+
+    .alt-macro-protein {
+        background: rgba(95,160,82,0.16);
+        color: #3f7a36;
+        box-shadow: inset 0 0 0 1px rgba(95,160,82,0.28);
+    }
+
+    .alt-macro-carbs {
+        background: rgba(60,108,158,0.13);
+        color: #3a6390;
+        box-shadow: inset 0 0 0 1px rgba(60,108,158,0.24);
+    }
+
+    .alt-macro-fat {
+        background: rgba(245,185,66,0.20);
+        color: #9a7415;
+        box-shadow: inset 0 0 0 1px rgba(245,185,66,0.40);
+    }
+
+    .alt-option-card {
+        position: relative;
+        background: white;
+        border-radius: 22px;
+        padding: 16px 16px 16px 18px;
+        box-shadow: 0 4px 16px rgba(20,57,31,0.12);
+        overflow: hidden;
+        margin-bottom: 18px;
+    }
+
+    .alt-option-card:last-child {
+        margin-bottom: 0;
+    }
+
+    .alt-option-accent {
+        position: absolute;
+        left: 0;
+        top: 14px;
+        bottom: 14px;
+        width: 3px;
+        border-radius: 3px;
+        background: #5fa052;
+    }
+
+    .alt-option-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .alt-option-left {
+        min-width: 0;
+        flex: 1;
+    }
+
+    .alt-option-name {
+        font-family: 'Fraunces', serif;
+        font-size: 20px;
+        font-weight: 600;
+        color: #14391f;
+        letter-spacing: -0.02em;
+        line-height: 1.12;
+    }
+
+    .alt-option-amount {
+        font-family: 'Fraunces', serif;
+        font-size: 14px;
+        color: #6b7868;
+        font-weight: 500;
+        margin-top: 3px;
+    }
+
+    .alt-option-right {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 7px;
+        flex-shrink: 0;
+    }
+
+    .alt-match-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #5fa052;
+        color: white;
+        border-radius: 999px;
+        padding: 5px 11px 5px 9px;
+        font-size: 11.5px;
+        font-weight: 700;
+        letter-spacing: 0.01em;
+        box-shadow: 0 2px 8px rgba(95,160,82,0.30);
+        white-space: nowrap;
+    }
+
+    .alt-option-deltas {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        justify-content: flex-end;
+        max-width: 150px;
+    }
+
+    .alt-delta-pill {
+        display: inline-flex;
+        align-items: baseline;
+        gap: 2px;
+        border-radius: 999px;
+        padding: 4px 9px;
+        white-space: nowrap;
+    }
+
+    .alt-delta-val {
+        font-family: 'Fraunces', serif;
+        font-size: 12px;
+        font-weight: 600;
+        letter-spacing: -0.01em;
+    }
+
+    .alt-delta-unit {
+        font-size: 9.5px;
+        font-weight: 700;
+        opacity: 0.78;
+    }
+
+    .alt-option-desc {
+        margin: 12px 0 0;
+        font-size: 14px;
+        line-height: 1.5;
+        color: #2a4a32;
+    }
+
+    .alt-option-prep {
+        margin-top: 12px;
+        background: rgba(95,160,82,0.10);
+        border: 1px solid rgba(95,160,82,0.18);
+        border-radius: 14px;
+        padding: 11px 13px;
+        font-size: 13.5px;
+        line-height: 1.45;
+        color: #2a4a32;
+    }
+
+    .alt-option-prep-label {
+        font-weight: 700;
+        color: #14391f;
+    }
+
+    .alt-option-procon {
+        display: flex;
+        gap: 16px;
+        margin-top: 16px;
+    }
+
+    .alt-procon-col {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .alt-procon-title {
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.10em;
+        text-transform: uppercase;
+        margin-bottom: 8px;
+    }
+
+    .alt-procon-title.pros {
+        color: #3f7a36;
+    }
+
+    .alt-procon-title.cons {
+        color: #c2502f;
+    }
+
+    .alt-procon-list {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 7px;
+    }
+
+    .alt-procon-item {
+        display: flex;
+        gap: 8px;
+        font-size: 13px;
+        line-height: 1.4;
+        color: #2a4a32;
+    }
+
+    .alt-procon-dot {
+        width: 5px;
+        height: 5px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        margin-top: 6px;
+    }
+
+    .alt-procon-dot.pros {
+        background: #5fa052;
+    }
+
+    .alt-procon-dot.cons {
+        background: #ff7849;
+    }
+
+    .alt-option-taste {
+        margin-top: 14px;
+        background: #faf6ec;
+        border: 1px solid rgba(20,57,31,0.06);
+        border-radius: 14px;
+        padding: 11px 13px;
+        font-size: 13px;
+        line-height: 1.45;
+        color: #6b7868;
+    }
+
+    .alt-option-taste-label {
+        font-weight: 700;
+        color: #14391f;
+    }
+
+    .alt-option-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-top: 16px;
+    }
+
+    .alt-btn-use {
+        width: 100%;
+        background: linear-gradient(135deg, #1a3a23, #0e2415);
+        color: white;
+        border: none;
+        border-radius: 14px;
+        padding: 13px;
+        font-size: 14px;
+        font-weight: 700;
+        font-family: inherit;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        box-shadow: 0 6px 18px rgba(20,57,31,0.24);
+        transition: all 0.2s;
+    }
+
+    .alt-btn-use:hover {
+        background: linear-gradient(135deg, #225333, #132c1a);
+        transform: translateY(-1px);
+    }
+
+    .alt-btn-batch {
+        width: 100%;
+        background: white;
+        color: #14391f;
+        border: 1.5px solid rgba(20,57,31,0.18);
+        border-radius: 14px;
+        padding: 12px;
+        font-size: 13.5px;
+        font-weight: 600;
+        font-family: inherit;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        transition: all 0.2s;
+    }
+
+    .alt-btn-batch:hover {
+        background: rgba(20,57,31,0.04);
+    }
+
+    .alt-footer {
+        flex-shrink: 0;
+        padding: 12px 16px 22px;
+        background: linear-gradient(180deg, rgba(245,239,225,0) 0%, #f5efe1 36%);
+        margin-top: -28px;
+        pointer-events: none;
+    }
+
+    .alt-cancel-btn {
+        pointer-events: auto;
+        width: 100%;
+        background: white;
+        border: 1px solid rgba(20,57,31,0.12);
+        border-radius: 16px;
+        padding: 13px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #6b7868;
+        font-family: inherit;
+        cursor: pointer;
+        box-shadow: 0 2px 8px rgba(20,57,31,0.05);
+        transition: all 0.2s;
+    }
+
+    .alt-cancel-btn:hover {
+        background: rgba(20,57,31,0.03);
+    }
 </style>
 
 <script>

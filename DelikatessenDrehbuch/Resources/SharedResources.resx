@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -62,6 +62,9 @@
   <!-- Common UI Elements -->
   <data name="Common.Back" xml:space="preserve">
     <value>Zurück</value>
+  </data>
+  <data name="Common.New" xml:space="preserve">
+    <value>Neu</value>
   </data>
   <data name="Common.Save" xml:space="preserve">
     <value>Speichern</value>
@@ -824,5 +827,43 @@
   </data>
   <data name="MyProfile.DeletePermanently" xml:space="preserve">
     <value>Delete permanently</value>
+  </data>
+
+  <!-- Shared Feeds -->
+  <data name="SharedFeed.Title" xml:space="preserve">
+    <value>Geteilte Inhalte</value>
+  </data>
+  <data name="SharedFeed.GroupName" xml:space="preserve">
+    <value>Gruppen-Name</value>
+  </data>
+  <data name="CreatePosting.Ingredients" xml:space="preserve">
+    <value>Zutaten</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Zubereitungsschritte</value>
+  </data>
+  <data name="CreatePosting.SelectedIngredients" xml:space="preserve">
+    <value>Ausgewaehlte Zutaten</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Kochanleitung (wird automatisch uebersetzt)</value>
+  </data>
+  <data name="CreatePosting.Steps" xml:space="preserve">
+    <value>Schritte</value>
+  </data>
+  <data name="CreatePosting.Media" xml:space="preserve">
+    <value>Medien</value>
+  </data>
+  <data name="CreatePosting.WriteYourSteps" xml:space="preserve">
+    <value>Schreibe deine Schritte</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Zum Bearbeiten tippen</value>
+  </data>
+  <data name="CreatePosting.Keywords" xml:space="preserve">
+    <value>Schlagwoerter</value>
+  </data>
+  <data name="Common.AutoTranslated" xml:space="preserve">
+    <value>wird automatisch uebersetzt</value>
   </data>
 </root>

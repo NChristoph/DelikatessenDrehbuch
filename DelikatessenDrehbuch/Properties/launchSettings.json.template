@@ -1,4 +1,4 @@
-﻿{
+{
   "iisSettings": {
     "windowsAuthentication": false,
     "anonymousAuthentication": true,
@@ -24,8 +24,8 @@
         "EmailPasswort": "YOUR_EMAIL_PASSWORD",
         "OPENAI_API_KEY": "DEIN_OPENAI_KEY_HIER",
         "DEEPL_API_KEY": "Deep_L_API",
-        "WorldMiniApp__SuperUserHash": "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839",
-        "WorldMiniApp__AdminPassword": "$2a$11$8h522uIsiTCmOpqlT1SB5exLD1xIM1Td3eUNJ9LuSWfV.I5c1AN0u"
+        "WorldMiniApp__SuperUserHash": "IHR_SUPER_USER_HASH_HIER",
+        "WorldMiniApp__AdminPassword": "IHR_BCRYPT_HASH_HIER"
       }
     },
     "IIS Express": {
@@ -42,8 +42,8 @@
         "EmailPasswort": "YOUR_EMAIL_PASSWORD",
         "OPENAI_API_KEY": "DEIN_OPENAI_KEY_HIER",
         "DEEPL_API_KEY": "Deep_L_API",
-        "WorldMiniApp__SuperUserHash": "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839",
-        "WorldMiniApp__AdminPassword": "$2a$11$8h522uIsiTCmOpqlT1SB5exLD1xIM1Td3eUNJ9LuSWfV.I5c1AN0u"
+        "WorldMiniApp__SuperUserHash": "IHR_SUPER_USER_HASH_HIER",
+        "WorldMiniApp__AdminPassword": "IHR_BCRYPT_HASH_HIER"
       }
     }
   }

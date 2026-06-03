@@ -19,7 +19,8 @@ namespace DelikatessenDrehbuch.Services
             string? goal,
             string language,
             IReadOnlyList<IngredientSwap>? contextSwaps = null,
-            string? preferredProvider = null
+            string? preferredProvider = null,
+            List<string>? existingIngredients = null
         );
     }
 
@@ -94,7 +95,8 @@ namespace DelikatessenDrehbuch.Services
             string? goal,
             string language,
             IReadOnlyList<IngredientSwap>? contextSwaps = null,
-            string? preferredProvider = null)
+            string? preferredProvider = null,
+            List<string>? existingIngredients = null)
         {
             var stopwatch = Stopwatch.StartNew();
             var provider = "openai";
@@ -104,14 +106,17 @@ namespace DelikatessenDrehbuch.Services
             // Context matters: if the user has already queued/applied other swaps in the same recipe,
             // suggestions should reflect that. Include a short context key in caching so we don't serve stale suggestions.
             var contextKey = BuildContextKey(contextSwaps);
-            var cacheKey = $"swap_{provider}_{original.Id}_{recipe.Id}_{normalizedGoal}_{normalizedLanguage}_{contextKey}";
+            var existingKey = existingIngredients != null && existingIngredients.Count > 0
+                ? string.Join(",", existingIngredients.OrderBy(x => x).Take(10))
+                : "none";
+            var cacheKey = $"swap_{provider}_{original.Id}_{recipe.Id}_{normalizedGoal}_{normalizedLanguage}_{contextKey}_{existingKey}";
             if (_cache.TryGetValue<List<IngredientSwapOption>>(cacheKey, out var cachedSuggestions) && cachedSuggestions != null)
             {
                 stopwatch.Stop();
                 return (cachedSuggestions, provider, (int)stopwatch.ElapsedMilliseconds);
             }
 
-            var suggestions = await GetSwapSuggestionsFromOpenAiAsync(original, recipe, goal, normalizedLanguage, contextSwaps);
+            var suggestions = await GetSwapSuggestionsFromOpenAiAsync(original, recipe, goal, normalizedLanguage, contextSwaps, existingIngredients);
 
             _cache.Set(cacheKey, suggestions, TimeSpan.FromMinutes(30));
 
@@ -124,11 +129,12 @@ namespace DelikatessenDrehbuch.Services
             RecipeBaseData recipe,
             string? goal,
             string language,
-            IReadOnlyList<IngredientSwap>? contextSwaps)
+            IReadOnlyList<IngredientSwap>? contextSwaps,
+            List<string>? existingIngredients = null)
         {
             EnsureApiKeyConfigured(_openaiApiKey, "OpenAI");
 
-            var prompt = await BuildOptimizedSwapPromptAsync(original, recipe, goal, language, contextSwaps);
+            var prompt = await BuildOptimizedSwapPromptAsync(original, recipe, goal, language, contextSwaps, existingIngredients);
             var requestBody = new
             {
                 model = string.IsNullOrWhiteSpace(_openAiModel) ? DefaultOpenAiModel : _openAiModel,
@@ -223,7 +229,8 @@ namespace DelikatessenDrehbuch.Services
             RecipeBaseData recipe,
             string? goal,
             string language,
-            IReadOnlyList<IngredientSwap>? contextSwaps)
+            IReadOnlyList<IngredientSwap>? contextSwaps,
+            List<string>? existingIngredients = null)
         {
             var hasCommunityVariants = await _context.RecipeCommunityVariants
                 .AsNoTracking()
@@ -247,6 +254,38 @@ namespace DelikatessenDrehbuch.Services
             foreach (var s in otherContextSwaps)
             {
                 excludeIngredientIds.Add(s.ToIngredientId);
+            }
+
+            // Also exclude ingredients that are already in the recipe (provided by frontend)
+            if (existingIngredients != null && existingIngredients.Count > 0)
+            {
+                var existingNames = existingIngredients
+                    .Where(n => !string.IsNullOrWhiteSpace(n))
+                    .Select(n => n.Trim().ToLowerInvariant())
+                    .ToHashSet();
+
+                if (existingNames.Count > 0)
+                {
+                    var ingredientsToExclude = await _context.IngredientsAndNutrients
+                        .AsNoTracking()
+                        .Where(i => existingNames.Contains(i.Name_DE.ToLower()) ||
+                                    existingNames.Contains(i.Name_EN.ToLower()) ||
+                                    existingNames.Contains(i.Name_ESP.ToLower()) ||
+                                    existingNames.Contains(i.Name_PRT.ToLower()) ||
+                                    existingNames.Contains(i.Name_ID.ToLower()) ||
+                                    existingNames.Contains(i.Name_NL.ToLower()) ||
+                                    existingNames.Contains(i.Name_SE.ToLower()) ||
+                                    existingNames.Contains(i.Name_DK.ToLower()) ||
+                                    existingNames.Contains(i.Name_NO.ToLower()) ||
+                                    existingNames.Contains(i.Name_MS.ToLower()))
+                        .Select(i => i.Id)
+                        .ToListAsync();
+
+                    foreach (var id in ingredientsToExclude)
+                    {
+                        excludeIngredientIds.Add(id);
+                    }
+                }
             }
 
             var availableIngredients = await GetCachedIngredientListAsync(

@@ -1,20 +1,14 @@
-// Ingredient Swap Modal - AI-powered ingredient substitution
-// OpenAI-only implementation.
+// Ingredient Swap Modal - Design Handoff Implementation with ChatGPT API
+// Shows ingredient alternatives popup with ChatGPT-powered suggestions
 
 (function () {
     'use strict';
 
-    let currentModal = null;
+    let currentLanguage = 'de';
     let currentIngredientId = null;
     let currentRecipeId = null;
-    let currentLanguage = 'de';
-    let currentSuggestions = null;
-    let currentOriginalName = null;
-    let currentGoal = null;
     let currentIngredientName = null;
-    let currentProvider = 'openai';
-
-    const batchStorageKeyForRecipe = (recipeId) => `swap_batch_v1_${recipeId}`;
+    let currentOriginalData = null;
 
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
@@ -23,8 +17,7 @@
     }
 
     function init() {
-        // Prefer our app-specific language cookie first (used across the WorldMiniApp).
-        // Fallback to ASP.NET culture cookie if present.
+        // Get language from cookie
         const cookies = document.cookie.split('; ').filter(Boolean);
         const deliLangCookie = cookies.find(row => row.startsWith('deli-lang='));
         if (deliLangCookie) {
@@ -39,132 +32,86 @@
         }
 
         attachSwapButtonListeners();
-        renderBatchBarIfPresent();
+        setupModalHandlers();
     }
 
     function attachSwapButtonListeners() {
-        document.querySelectorAll('[data-swap-ingredient]').forEach(btn => {
-            btn.addEventListener('click', handleSwapClick);
+        document.addEventListener('click', function (e) {
+            const swapBtn = e.target.closest('[data-swap-ingredient]');
+            if (!swapBtn) return;
+
+            e.preventDefault();
+            e.stopPropagation();
+
+            handleSwapClick(swapBtn);
         });
     }
 
-    function getRecipeIdFromPage() {
-        const btn = document.querySelector('[data-swap-ingredient][data-recipe-id]');
-        if (!btn) return null;
-        const id = parseInt(btn.dataset.recipeId, 10);
-        return Number.isFinite(id) ? id : null;
+    function setupModalHandlers() {
+        const modal = document.getElementById('ingredientAlternativesModal');
+        if (!modal) return;
+
+        const closeBtn = document.getElementById('closeAltModal');
+        const cancelBtn = document.getElementById('cancelAltModal');
+        const backdrop = modal.querySelector('.alt-backdrop');
+
+        if (closeBtn) closeBtn.addEventListener('click', () => closeModal(modal));
+        if (cancelBtn) cancelBtn.addEventListener('click', () => closeModal(modal));
+        if (backdrop) backdrop.addEventListener('click', () => closeModal(modal));
     }
 
-    function loadBatch(recipeId) {
-        try {
-            const raw = sessionStorage.getItem(batchStorageKeyForRecipe(recipeId));
-            const parsed = raw ? JSON.parse(raw) : [];
-            return Array.isArray(parsed) ? parsed : [];
-        } catch {
-            return [];
-        }
+    function closeModal(modal) {
+        if (modal) modal.style.display = 'none';
     }
 
-    function saveBatch(recipeId, swaps) {
-        try {
-            sessionStorage.setItem(batchStorageKeyForRecipe(recipeId), JSON.stringify(swaps || []));
-        } catch {
-        }
+    function collectExistingIngredients() {
+        // Collect all ingredient names from the ingredient list on the page
+        const ingredients = [];
+        const ingredientElements = document.querySelectorAll('[data-swap-ingredient]');
+
+        ingredientElements.forEach(btn => {
+            const name = btn.getAttribute('data-ingredient-name');
+            if (name && name.trim()) {
+                ingredients.push(name.trim());
+            }
+        });
+
+        return ingredients;
     }
 
-    function upsertBatchSwap(recipeId, swap) {
-        const swaps = loadBatch(recipeId);
-        const idx = swaps.findIndex(s => s && s.fromIngredientId === swap.fromIngredientId);
-        if (idx >= 0) {
-            swaps[idx] = swap;
-        } else {
-            swaps.push(swap);
-        }
-        saveBatch(recipeId, swaps);
-        return swaps;
-    }
+    async function handleSwapClick(swapBtn) {
+        currentIngredientId = parseInt(swapBtn.dataset.swapIngredient, 10);
+        currentRecipeId = parseInt(swapBtn.dataset.recipeId, 10);
+        currentIngredientName = swapBtn.dataset.ingredientName || 'Unknown Ingredient';
 
-    function clearBatch(recipeId) {
-        try {
-            sessionStorage.removeItem(batchStorageKeyForRecipe(recipeId));
-        } catch {
-        }
-    }
+        const modal = document.getElementById('ingredientAlternativesModal');
+        if (!modal) return;
 
-    function renderBatchBarIfPresent() {
-        const recipeId = getRecipeIdFromPage();
-        const bar = document.getElementById('swapBatchBar');
-        if (!bar || !recipeId) {
-            console.debug('[swap-batch] skip render', { hasBar: !!bar, recipeId });
-            return;
-        }
-
-        const swaps = loadBatch(recipeId);
-        if (!swaps || swaps.length === 0) {
-            bar.style.display = 'none';
-            bar.innerHTML = '';
-            return;
-        }
-
-        console.debug('[swap-batch] render', { recipeId, count: swaps.length });
-        bar.style.display = 'block';
-        bar.innerHTML = `
-            <div class="d-flex align-items-center justify-content-between gap-2 rounded border bg-white px-3 py-2 shadow-sm">
-                <div class="small text-muted">
-                    <strong>Batch:</strong> ${swaps.length} Änderung(en) vorgemerkt
-                </div>
-                <div class="d-flex gap-2">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" id="swapBatchClearBtn">Leeren</button>
-                    <button type="button" class="btn btn-sm btn-success" id="swapBatchApplyBtn">Batch anwenden</button>
-                </div>
-            </div>
-        `;
-
-        const clearBtn = document.getElementById('swapBatchClearBtn');
-        const applyBtn = document.getElementById('swapBatchApplyBtn');
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => {
-                clearBatch(recipeId);
-                renderBatchBarIfPresent();
-                if (typeof showToast === 'function') showToast('Batch geleert.', 'info', 1500);
-            });
-        }
-
-        if (applyBtn) {
-            applyBtn.addEventListener('click', () => applyBatch(recipeId));
-        }
-    }
-
-    async function applyBatch(recipeId) {
-        const swaps = loadBatch(recipeId);
-        if (!swaps || swaps.length === 0) return;
-
-        if (!confirm(`Batch wirklich anwenden?\n\nÄnderungen: ${swaps.length}`)) {
-            return;
-        }
+        // Show loading state
+        showLoadingState(modal, currentIngredientName);
 
         try {
+            // Get swap variant ID from URL
             const u = new URL(window.location.href);
-            const raw = u.searchParams.get('swapVariantId');
-            const swapVariantId = raw ? parseInt(raw, 10) : null;
+            const rawVariant = u.searchParams.get('swapVariantId');
+            const swapVariantId = rawVariant ? parseInt(rawVariant, 10) : null;
 
-            const response = await fetch('/api/recipe-swap/apply-batch', {
+            // Collect all existing ingredients from the recipe to avoid suggesting them
+            const existingIngredients = collectExistingIngredients();
+
+            // Call ChatGPT API
+            const response = await fetch('/api/recipe-swap/suggest', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    recipeId,
+                    originalIngredientId: currentIngredientId,
+                    recipeId: currentRecipeId,
                     swapVariantId: Number.isFinite(swapVariantId) && swapVariantId > 0 ? swapVariantId : null,
-                    swaps: swaps.map(s => ({
-                        recipeId,
-                        swapVariantId: Number.isFinite(swapVariantId) && swapVariantId > 0 ? swapVariantId : null,
-                        fromIngredientId: s.fromIngredientId,
-                        fromName: s.fromName,
-                        toIngredientId: s.toIngredientId,
-                        toName: s.toName,
-                        newQuantity: s.newQuantity,
-                        unit: s.unit
-                    }))
+                    goal: null,
+                    language: currentLanguage,
+                    aiProvider: 'openai',
+                    contextSwaps: [],
+                    existingIngredients: existingIngredients
                 })
             });
 
@@ -174,271 +121,213 @@
             }
 
             const data = await response.json();
-            const variantId = data.variant?.id;
-
-            clearBatch(recipeId);
-            renderBatchBarIfPresent();
-
-            if (typeof showToast === 'function') {
-                showToast('Batch gespeichert! Wird geladen...', 'success', 1800);
-            }
-
-            if (variantId) {
-                const baseUrl = window.location.pathname.split('?')[0];
-                const newUrl = `${baseUrl}?id=${recipeId}&swapVariantId=${variantId}`;
-                setTimeout(() => window.location.href = newUrl, 700);
-            } else {
-                setTimeout(() => window.location.reload(), 700);
-            }
-        } catch (err) {
-            console.error('Apply batch error:', err);
-            alert('Fehler beim Batch-Speichern: ' + getErrorMessage(err));
-        }
-    }
-
-    async function handleSwapClick(event) {
-        event.preventDefault();
-        event.stopPropagation();
-
-        const button = event.currentTarget;
-        currentIngredientId = parseInt(button.dataset.swapIngredient, 10);
-        currentRecipeId = parseInt(button.dataset.recipeId, 10);
-        currentIngredientName = button.dataset.ingredientName;
-        currentGoal = button.dataset.goal || null;
-        currentProvider = 'openai';
-
-        try {
-            await loadSuggestions(currentProvider);
+            showAlternatives(modal, data);
         } catch (error) {
             console.error('Swap suggestion error:', error);
-            showErrorModal(currentIngredientName, getErrorMessage(error));
+            showErrorState(modal, currentIngredientName, getErrorMessage(error));
         }
     }
 
-    async function loadSuggestions(provider) {
-        currentProvider = 'openai';
-        showLoadingModal(currentIngredientName, currentProvider);
+    function showLoadingState(modal, ingredientName) {
+        const titleEl = document.getElementById('altIngredientName');
+        const originalNameEl = document.getElementById('altOriginalName');
+        const optionsListEl = document.getElementById('altOptionsList');
+        const originalMacrosEl = document.getElementById('altOriginalMacros');
+        const originalAmountEl = document.getElementById('altOriginalAmount');
 
-        const u = new URL(window.location.href);
-        const rawVariant = u.searchParams.get('swapVariantId');
-        const swapVariantId = rawVariant ? parseInt(rawVariant, 10) : null;
+        if (titleEl) titleEl.textContent = ingredientName;
+        if (originalNameEl) originalNameEl.textContent = ingredientName;
+        if (originalAmountEl) originalAmountEl.textContent = '...';
+        if (originalMacrosEl) originalMacrosEl.innerHTML = '';
 
-        const batch = currentRecipeId ? loadBatch(currentRecipeId) : [];
-        const contextSwaps = Array.isArray(batch)
-            ? batch
-                .filter(s => s && Number.isFinite(s.fromIngredientId) && Number.isFinite(s.toIngredientId))
-                .map(s => ({
-                    fromIngredientId: s.fromIngredientId,
-                    fromName: s.fromName || '',
-                    toIngredientId: s.toIngredientId,
-                    toName: s.toName || '',
-                    newQuantity: s.newQuantity || 0,
-                    unit: s.unit || 'g'
-                }))
-            : [];
-
-        const response = await fetch('/api/recipe-swap/suggest', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                originalIngredientId: currentIngredientId,
-                recipeId: currentRecipeId,
-                swapVariantId: Number.isFinite(swapVariantId) && swapVariantId > 0 ? swapVariantId : null,
-                goal: currentGoal,
-                language: currentLanguage,
-                aiProvider: 'openai',
-                contextSwaps
-            })
-        });
-
-        if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || `HTTP ${response.status}`);
-        }
-
-        const data = await response.json();
-        showSuggestionsModal(currentIngredientName, data);
-    }
-
-    function showLoadingModal(ingredientName, provider) {
-        const html = `
-            <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content" style="border-radius: 16px;">
-                        <div class="modal-body text-center py-5">
-                            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
-                            <h5 class="mb-2">Alternativen werden gesucht...</h5>
-                            <p class="text-muted mb-0">Fuer: <strong>${escapeHtml(ingredientName)}</strong></p>
-                            <small class="text-muted d-block mt-2">${getProviderLabel(provider)} wird abgefragt</small>
-                        </div>
+        if (optionsListEl) {
+            optionsListEl.innerHTML = `
+                <div style="text-align: center; padding: 60px 20px; color: #6b7868;">
+                    <div class="spinner-border" role="status" style="width: 3rem; height: 3rem; border-color: #5fa052; border-right-color: transparent;">
+                        <span class="visually-hidden">Laden...</span>
                     </div>
+                    <p style="margin-top: 20px; font-size: 14px;">ChatGPT generiert Alternativen...</p>
                 </div>
-            </div>
-        `;
-
-        if (currentModal) {
-            currentModal.remove();
+            `;
         }
 
-        currentModal = createElementFromHTML(html);
-        document.body.appendChild(currentModal);
+        modal.style.display = 'flex';
     }
 
-    function showSuggestionsModal(ingredientName, data) {
-        const { suggestions, original, aiProvider, processingTimeMs } = data;
-        currentSuggestions = suggestions || [];
-        currentOriginalName = original?.name || ingredientName;
-        currentProvider = 'openai';
+    function showAlternatives(modal, data) {
+        const { suggestions, original, processingTimeMs } = data;
+        const alternatives = suggestions || [];
+        currentOriginalData = original;
 
-        const html = `
-            <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content" style="border-radius: 16px;">
-                        <div class="modal-header" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 16px 16px 0 0;">
-                            <div>
-                                <h5 class="modal-title mb-1">Alternativen fuer ${escapeHtml(ingredientName)}</h5>
-                                <small style="opacity: 0.9;">
-                                    ${getProviderLabel(currentProvider)} • ${processingTimeMs}ms
-                                </small>
-                            </div>
-                            <button type="button" class="btn-close btn-close-white" data-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body" style="max-height: 60vh; overflow-y: auto;">
-                            <div class="card mb-3" style="background: #f8f9fa; border: none;">
-                                <div class="card-body">
-                                    <h6 class="mb-2">Original:</h6>
-                                    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                                        <span><strong>${escapeHtml(original.name)}</strong> (${original.quantity}${original.unit})</span>
-                                        <div class="d-flex gap-2 small flex-wrap">
-                                            <span class="badge bg-secondary">${Math.round(original.nutrition.calories)} kcal</span>
-                                            <span class="badge bg-success">${original.nutrition.protein.toFixed(1)}g P</span>
-                                            <span class="badge bg-primary">${original.nutrition.carbs.toFixed(1)}g C</span>
-                                            <span class="badge bg-warning text-dark">${original.nutrition.fat.toFixed(1)}g F</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
+        // Update header with processing time
+        const metaTime = modal.querySelector('.alt-meta-time span');
+        if (metaTime && processingTimeMs) {
+            metaTime.textContent = `${(processingTimeMs / 1000).toFixed(1)}s`;
+        }
 
-                            ${currentSuggestions.length === 0
-                                ? '<p class="text-center text-muted py-4">Keine passenden Alternativen gefunden.</p>'
-                                : currentSuggestions.map((s, idx) => renderSuggestionCard(s, idx)).join('')}
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Abbrechen</button>
-                        </div>
+        // Update original card
+        const originalNameEl = document.getElementById('altOriginalName');
+        const originalAmountEl = document.getElementById('altOriginalAmount');
+        const originalMacrosEl = document.getElementById('altOriginalMacros');
+
+        if (originalNameEl) originalNameEl.textContent = original.name;
+        if (originalAmountEl) originalAmountEl.textContent = `${original.quantity}${original.unit}`;
+
+        if (originalMacrosEl) {
+            originalMacrosEl.innerHTML = `
+                <span class="alt-macro-pill alt-macro-kcal">
+                    <span class="alt-macro-val">${Math.round(original.nutrition.calories)}</span>
+                    <span class="alt-macro-unit">kcal</span>
+                </span>
+                <span class="alt-macro-pill alt-macro-protein">
+                    <span class="alt-macro-val">${original.nutrition.protein.toFixed(1)}</span>
+                    <span class="alt-macro-unit">P</span>
+                </span>
+                <span class="alt-macro-pill alt-macro-carbs">
+                    <span class="alt-macro-val">${original.nutrition.carbs.toFixed(1)}</span>
+                    <span class="alt-macro-unit">C</span>
+                </span>
+                <span class="alt-macro-pill alt-macro-fat">
+                    <span class="alt-macro-val">${original.nutrition.fat.toFixed(1)}</span>
+                    <span class="alt-macro-unit">F</span>
+                </span>
+            `;
+        }
+
+        // Generate alternative cards
+        const optionsListEl = document.getElementById('altOptionsList');
+        if (optionsListEl) {
+            if (alternatives.length === 0) {
+                optionsListEl.innerHTML = `
+                    <div style="text-align: center; padding: 40px 20px; color: #6b7868;">
+                        <p>Keine passenden Alternativen gefunden.</p>
                     </div>
-                </div>
-            </div>
-        `;
+                `;
+            } else {
+                optionsListEl.innerHTML = alternatives.map(alt => createOptionCard(alt)).join('');
 
-        if (currentModal) {
-            currentModal.remove();
+                // Attach event listeners to buttons
+                optionsListEl.querySelectorAll('.alt-btn-use').forEach((btn, idx) => {
+                    btn.addEventListener('click', () => handleUseAlternative(alternatives[idx]));
+                });
+            }
         }
-
-        currentModal = createElementFromHTML(html);
-        document.body.appendChild(currentModal);
-
-        currentModal.querySelectorAll('[data-dismiss="modal"], .btn-close').forEach(btn => {
-            btn.addEventListener('click', closeModal);
-        });
-
-        currentModal.querySelectorAll('[data-apply-swap]').forEach(btn => {
-            btn.addEventListener('click', handleApplySwap);
-        });
-
-        currentModal.querySelectorAll('[data-add-to-batch]').forEach(btn => {
-            btn.addEventListener('click', handleAddToBatch);
-        });
-
     }
 
-    function renderSuggestionCard(suggestion, index) {
-        const scorePercent = Math.round((suggestion.compatibilityScore || 0) * 100);
-        const scoreColor = scorePercent >= 80 ? 'success' : scorePercent >= 60 ? 'warning' : 'danger';
+    function showErrorState(modal, ingredientName, errorMessage) {
+        const optionsListEl = document.getElementById('altOptionsList');
+        if (optionsListEl) {
+            optionsListEl.innerHTML = `
+                <div style="text-align: center; padding: 40px 20px;">
+                    <div style="color: #ff7849; font-size: 48px; margin-bottom: 16px;">⚠️</div>
+                    <h5 style="color: #14391f; margin-bottom: 8px;">Fehler beim Laden</h5>
+                    <p style="color: #6b7868; font-size: 14px;">Konnte keine Alternativen für <strong>${escapeHtml(ingredientName)}</strong> laden.</p>
+                    <p style="color: #9aa295; font-size: 12px; margin-top: 8px;">${escapeHtml(errorMessage)}</p>
+                </div>
+            `;
+        }
+    }
+
+    function createDeltaPill(tone, value, suffix) {
+        const tones = {
+            kcal: 'alt-macro-kcal',
+            protein: 'alt-macro-protein',
+            carbs: 'alt-macro-carbs',
+            fat: 'alt-macro-fat'
+        };
+
+        const numValue = Number(value) || 0;
+        const sign = numValue > 0 ? '+' : '';
+        const displayValue = suffix === 'kcal' ? Math.round(numValue) : numValue.toFixed(1);
+
+        return `<span class="alt-delta-pill ${tones[tone]}">
+            <span class="alt-delta-val">${sign}${displayValue}</span>
+            <span class="alt-delta-unit">${escapeHtml(suffix)}</span>
+        </span>`;
+    }
+
+    function createOptionCard(alt) {
+        const scorePercent = Math.round((alt.compatibilityScore || 0) * 100);
 
         return `
-            <div class="card mb-3 shadow-sm" style="border-left: 4px solid var(--bs-${scoreColor});">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2 gap-2">
-                        <div>
-                            <h6 class="mb-1">${escapeHtml(suggestion.name)}</h6>
-                            <small class="text-muted">${suggestion.quantity}${suggestion.unit}</small>
-                        </div>
-                        <div class="text-end">
-                            <div class="badge bg-${scoreColor} mb-1">${scorePercent}% Match</div>
-                            <div class="d-flex gap-1 small flex-wrap justify-content-end">
-                                ${formatDelta(suggestion.delta.caloriesDelta, 'kcal')}
-                                ${formatDelta(suggestion.delta.proteinDelta, 'P', 'success')}
-                                ${formatDelta(suggestion.delta.carbsDelta, 'C', 'primary')}
-                                ${formatDelta(suggestion.delta.fatDelta, 'F', 'warning')}
-                            </div>
+            <div class="alt-option-card">
+                <div class="alt-option-accent"></div>
+
+                <div class="alt-option-header">
+                    <div class="alt-option-left">
+                        <div class="alt-option-name">${escapeHtml(alt.name)}</div>
+                        <div class="alt-option-amount">${escapeHtml(alt.quantity)}${escapeHtml(alt.unit)}</div>
+                    </div>
+                    <div class="alt-option-right">
+                        <span class="alt-match-badge">
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                            ${scorePercent}% Match
+                        </span>
+                        <div class="alt-option-deltas">
+                            ${createDeltaPill('kcal', alt.delta.caloriesDelta, 'kcal')}
+                            ${createDeltaPill('protein', alt.delta.proteinDelta, 'P')}
+                            ${createDeltaPill('carbs', alt.delta.carbsDelta, 'C')}
+                            ${createDeltaPill('fat', alt.delta.fatDelta, 'F')}
                         </div>
                     </div>
+                </div>
 
-                    <p class="mb-2 small">${escapeHtml(suggestion.reason || '')}</p>
+                <p class="alt-option-desc">${escapeHtml(alt.reason || '')}</p>
 
-                    ${suggestion.preparationChange
-                        ? `<div class="alert alert-info py-2 px-3 mb-2 small">
-                             <strong>Zubereitung:</strong> ${escapeHtml(suggestion.preparationChange)}
-                           </div>`
-                        : ''}
-
-                    <div class="row mb-2">
-                        <div class="col-6">
-                            <strong class="small text-success">Vorteile:</strong>
-                            <ul class="small mb-0 ps-3">
-                                ${(suggestion.pros || []).map(p => `<li>${escapeHtml(p)}</li>`).join('')}
-                            </ul>
-                        </div>
-                        <div class="col-6">
-                            <strong class="small text-danger">Nachteile:</strong>
-                            <ul class="small mb-0 ps-3">
-                                ${(suggestion.cons || []).map(c => `<li>${escapeHtml(c)}</li>`).join('')}
-                            </ul>
-                        </div>
+                ${alt.preparationChange ? `
+                    <div class="alt-option-prep">
+                        <span class="alt-option-prep-label">Zubereitung:</span> ${escapeHtml(alt.preparationChange)}
                     </div>
+                ` : ''}
 
-                    <div class="alert alert-light py-2 px-3 mb-2 small">
-                        <strong>Geschmack:</strong> ${escapeHtml(suggestion.tasteImpact || '')}
+                <div class="alt-option-procon">
+                    <div class="alt-procon-col">
+                        <div class="alt-procon-title pros">Vorteile</div>
+                        <ul class="alt-procon-list">
+                            ${(alt.pros || []).map(p => `
+                                <li class="alt-procon-item">
+                                    <span class="alt-procon-dot pros"></span>
+                                    <span>${escapeHtml(p)}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
                     </div>
+                    <div class="alt-procon-col">
+                        <div class="alt-procon-title cons">Nachteile</div>
+                        <ul class="alt-procon-list">
+                            ${(alt.cons || []).map(c => `
+                                <li class="alt-procon-item">
+                                    <span class="alt-procon-dot cons"></span>
+                                    <span>${escapeHtml(c)}</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    </div>
+                </div>
 
-                    <button class="btn btn-primary btn-sm w-100"
-                            data-apply-swap
-                            data-suggestion-index="${index}">
+                ${alt.tasteImpact ? `
+                    <div class="alt-option-taste">
+                        <span class="alt-option-taste-label">Geschmack:</span> ${escapeHtml(alt.tasteImpact)}
+                    </div>
+                ` : ''}
+
+                <div class="alt-option-actions">
+                    <button class="alt-btn-use">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         Diese Alternative verwenden
-                    </button>
-                    <button class="btn btn-outline-success btn-sm w-100 mt-2"
-                            data-add-to-batch
-                            data-suggestion-index="${index}">
-                        Zum Batch hinzufügen
                     </button>
                 </div>
             </div>
         `;
     }
 
-    function formatDelta(delta, label, color = 'secondary') {
-        const numericDelta = Number(delta || 0);
-        if (Math.abs(numericDelta) < 0.1) {
-            return '';
-        }
-
-        const sign = numericDelta > 0 ? '+' : '';
-        const rounded = label === 'kcal' ? Math.round(numericDelta) : numericDelta.toFixed(1);
-        return `<span class="badge bg-${color}">${sign}${rounded}${label}</span>`;
-    }
-
-    async function handleApplySwap(event) {
-        const button = event.currentTarget;
-        const suggestionIndex = parseInt(button.dataset.suggestionIndex, 10);
-
-        if (!currentSuggestions || !currentSuggestions[suggestionIndex]) {
-            alert('Fehler: Vorschlagsdaten nicht verfugbar');
+    async function handleUseAlternative(alternative) {
+        if (!alternative || !currentOriginalData) {
+            alert('Fehler: Alternativdaten nicht verfügbar');
             return;
         }
 
-        const suggestion = currentSuggestions[suggestionIndex];
-        if (!confirm(`Diese Zutat wirklich ersetzen?\n\nAlt: ${currentOriginalName}\nNeu: ${suggestion.name} (${suggestion.quantity}${suggestion.unit})`)) {
+        if (!confirm(`Diese Zutat wirklich ersetzen?\n\nAlt: ${currentOriginalData.name}\nNeu: ${alternative.name} (${alternative.quantity}${alternative.unit})`)) {
             return;
         }
 
@@ -454,11 +343,11 @@
                     recipeId: currentRecipeId,
                     swapVariantId: Number.isFinite(swapVariantId) && swapVariantId > 0 ? swapVariantId : null,
                     fromIngredientId: currentIngredientId,
-                    fromName: currentOriginalName,
-                    toIngredientId: suggestion.ingredientId,
-                    toName: suggestion.name,
-                    newQuantity: suggestion.quantity,
-                    unit: suggestion.unit
+                    fromName: currentOriginalData.name,
+                    toIngredientId: alternative.ingredientId,
+                    toName: alternative.name,
+                    newQuantity: alternative.quantity,
+                    unit: alternative.unit
                 })
             });
 
@@ -487,129 +376,23 @@
         }
     }
 
-    function handleAddToBatch(event) {
-        const button = event.currentTarget;
-        const suggestionIndex = parseInt(button.dataset.suggestionIndex, 10);
-        const recipeId = currentRecipeId;
-
-        if (!recipeId || !currentSuggestions || !currentSuggestions[suggestionIndex]) {
-            alert('Fehler: Vorschlagsdaten nicht verfügbar');
-            return;
-        }
-
-        const suggestion = currentSuggestions[suggestionIndex];
-        const swap = {
-            fromIngredientId: currentIngredientId,
-            fromName: currentOriginalName,
-            toIngredientId: suggestion.ingredientId,
-            toName: suggestion.name,
-            newQuantity: suggestion.quantity,
-            unit: suggestion.unit
-        };
-
-        const next = upsertBatchSwap(recipeId, swap);
-        renderBatchBarIfPresent();
-
-        if (typeof showToast === 'function') {
-            showToast(`Zum Batch hinzugefügt (${next.length})`, 'success', 1500);
-        }
-
-        closeModal();
-    }
-
-    function injectSwapUiStylesOnce() {
-        if (document.getElementById('swapModalStylesV1')) return;
-        const style = document.createElement('style');
-        style.id = 'swapModalStylesV1';
-        style.textContent = `
-            .swap-modal { border-radius: 18px; overflow: hidden; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 28px 80px rgba(0,0,0,0.22); }
-            .swap-modal-header { background: radial-gradient(1200px 400px at 0% 0%, rgba(255,227,179,0.55) 0%, rgba(255,255,255,0.0) 55%), linear-gradient(180deg, #fff 0%, #fbfbfc 100%); border-bottom: 1px solid rgba(0,0,0,0.06); }
-            .swap-modal-kicker { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(0,0,0,0.55); font-weight: 800; }
-            .swap-modal-meta { font-size: 0.82rem; color: rgba(0,0,0,0.55); margin-top: 2px; }
-            .swap-modal-body { max-height: 60vh; overflow-y: auto; background: #fcfcfd; }
-            .swap-original { background: #fff; border-radius: 14px; padding: 14px; box-shadow: 0 10px 26px rgba(0,0,0,0.06); margin-bottom: 14px; border: 1px solid rgba(0,0,0,0.06); }
-            .swap-original-label { font-size: 0.82rem; color: rgba(0,0,0,0.55); font-weight: 800; }
-            .swap-original-title { font-size: 1.08rem; font-weight: 900; margin-top: 2px; }
-            .swap-original-sub { font-size: 0.9rem; color: rgba(0,0,0,0.55); }
-            .swap-chips { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
-            .chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; font-weight: 900; font-size: 0.82rem; border: 1px solid rgba(0,0,0,0.06); background: rgba(255,255,255,0.96); }
-            .chip-muted { color: rgba(0,0,0,0.75); }
-            .chip-good { background: rgba(46, 204, 113, 0.12); border-color: rgba(46, 204, 113, 0.25); color: #1b7f45; }
-            .chip-info { background: rgba(52, 152, 219, 0.12); border-color: rgba(52, 152, 219, 0.25); color: #1b5e8a; }
-            .chip-warn { background: rgba(241, 196, 15, 0.18); border-color: rgba(241, 196, 15, 0.35); color: #7a5b00; }
-            .chip-bad { background: rgba(231, 76, 60, 0.12); border-color: rgba(231, 76, 60, 0.25); color: #a43126; }
-            .swap-suggestion { border-radius: 14px; border: 1px solid rgba(0,0,0,0.06); box-shadow: 0 10px 26px rgba(0,0,0,0.06); overflow: hidden; background: #fff; }
-            .swap-reason { color: rgba(0,0,0,0.72); line-height: 1.35; }
-            @media (max-width: 576px) { .swap-modal-body { max-height: 66vh; } }
-        `;
-        document.head.appendChild(style);
-    }
-
-    function showErrorModal(ingredientName, errorMessage) {
-        const html = `
-            <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);">
-                <div class="modal-dialog modal-dialog-centered">
-                    <div class="modal-content" style="border-radius: 16px;">
-                        <div class="modal-header bg-danger text-white" style="border-radius: 16px 16px 0 0;">
-                            <h5 class="modal-title">Fehler</h5>
-                            <button type="button" class="btn-close btn-close-white" data-dismiss="modal"></button>
-                        </div>
-                        <div class="modal-body">
-                            <p>Konnte keine Alternativen fuer <strong>${escapeHtml(ingredientName)}</strong> finden.</p>
-                            <p class="text-muted small mb-0">Fehler: ${escapeHtml(errorMessage)}</p>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Schliessen</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        if (currentModal) {
-            currentModal.remove();
-        }
-
-        currentModal = createElementFromHTML(html);
-        document.body.appendChild(currentModal);
-        currentModal.querySelectorAll('[data-dismiss="modal"], .btn-close').forEach(btn => {
-            btn.addEventListener('click', closeModal);
-        });
-    }
-
-    function closeModal() {
-        if (currentModal) {
-            currentModal.remove();
-            currentModal = null;
-        }
-    }
-
-    function createElementFromHTML(htmlString) {
-        const div = document.createElement('div');
-        div.innerHTML = htmlString.trim();
-        return div.firstChild;
-    }
-
     function escapeHtml(text) {
         const div = document.createElement('div');
         div.textContent = text == null ? '' : String(text);
         return div.innerHTML;
     }
 
-    function getProviderLabel(provider) {
-        return 'ChatGPT (GPT-4o-mini)';
-    }
-
     function getErrorMessage(error) {
-        if (!error) {
-            return 'Unbekannter Fehler';
-        }
-
+        if (!error) return 'Unbekannter Fehler';
         return error.message || String(error);
     }
 
+    // Export for external use
     window.IngredientSwap = {
         openModal: handleSwapClick,
-        closeModal: closeModal
+        closeModal: function() {
+            const modal = document.getElementById('ingredientAlternativesModal');
+            if (modal) modal.style.display = 'none';
+        }
     };
 })();

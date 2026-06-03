@@ -27,18 +27,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <div class="avocado-home">
-    <!-- TopBar mit Language Switcher -->
-    <div class="avocado-topbar">
-        @if (isDebugMode)
-        {
+    <!-- TopBar -->
+    @if (isDebugMode)
+    {
+        <div class="avocado-topbar">
             <a href="@Url.Action("DebugLogs", "Shared", new { area = "WorldMiniApp" })" class="lang-pill" style="background: #ff6b6b; border-color: #ff6b6b;">
                 <i class="bi bi-bug-fill" style="font-size: 13px;"></i> Debug
             </a>
-        }
-        <button type="button" class="lang-pill" onclick="setLanguage('@language')">
-            @language <i class="bi bi-chevron-down" style="font-size: 12px;"></i>
-        </button>
-    </div>
+        </div>
+    }
 
     <!-- Logo Block -->
     <div class="logo-block">
@@ -460,7 +457,7 @@ body {
     display: flex;
     align-items: flex-end;
     gap: 16px;
-    margin-top: 14px;
+    margin-top: 32px;
 }
 
 .hero-icon-tile {
@@ -893,11 +890,6 @@ body {
                 toast.style.opacity = '0';
                 setTimeout(function() { toast.remove(); }, 300);
             }, 4000);
-        }
-
-        function setLanguage(lang) {
-            // TODO: Implement language switcher
-            console.log('Switch to:', lang);
         }
 
         document.addEventListener("DOMContentLoaded", function() {

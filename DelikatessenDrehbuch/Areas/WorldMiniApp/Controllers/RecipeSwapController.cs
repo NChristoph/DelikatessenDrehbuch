@@ -699,7 +699,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         request.Goal,
                         normalizedLanguage,
                         mergedContextSwaps,
-                        request.AiProvider
+                        request.AiProvider,
+                        request.ExistingIngredients
                     );
 
                     provider = result.provider;

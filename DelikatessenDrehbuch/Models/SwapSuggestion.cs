@@ -13,6 +13,9 @@ namespace DelikatessenDrehbuch.Models
 
         // Optional: include current batch/variant swaps so the next suggestions respect already-selected changes.
         public List<IngredientSwap>? ContextSwaps { get; set; }
+
+        // Optional: list of ingredient names already in the recipe to avoid suggesting them again
+        public List<string>? ExistingIngredients { get; set; }
     }
 
     public class SwapSuggestionResponse

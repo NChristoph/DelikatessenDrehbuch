@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -62,6 +62,9 @@
   <!-- Common UI Elements -->
   <data name="Common.Back" xml:space="preserve">
     <value>Tillbaka</value>
+  </data>
+  <data name="Common.New" xml:space="preserve">
+    <value>Ny</value>
   </data>
   <data name="Common.Save" xml:space="preserve">
     <value>Spara</value>
@@ -518,6 +521,24 @@
   <data name="Recipe.Share" xml:space="preserve">
     <value>Dela</value>
   </data>
+  <data name="Recipe.EditFeedPost" xml:space="preserve">
+    <value>Redigera feed-inlägg</value>
+  </data>
+  <data name="Recipe.CreateFeedPost" xml:space="preserve">
+    <value>Skapa feed-inlägg</value>
+  </data>
+  <data name="Recipe.TotalCalories" xml:space="preserve">
+    <value>Totalt kkal</value>
+  </data>
+  <data name="Recipe.Swaps" xml:space="preserve">
+    <value>Byten</value>
+  </data>
+  <data name="Recipe.Variants" xml:space="preserve">
+    <value>Varianter</value>
+  </data>
+  <data name="Recipe.SaveAsVariant" xml:space="preserve">
+    <value>Spara som variant</value>
+  </data>
 
   <!-- AI Step Generator -->
   <data name="AI.GenerateStepsFromText" xml:space="preserve">
@@ -569,6 +590,62 @@
   </data>
   <data name="Category.Variante" xml:space="preserve">
     <value>Variant</value>
+  </data>
+  <!-- MealPlan (Feed) -->
+  <data name="MealPlan.Title" xml:space="preserve">
+    <value>Måltidsplan</value>
+  </data>
+  <data name="MealPlan.CalendarWeek" xml:space="preserve">
+    <value>Kalendervecka</value>
+  </data>
+  <data name="MealPlan.Edit" xml:space="preserve">
+    <value>Redigera</value>
+  </data>
+  <data name="MealPlan.Days" xml:space="preserve">
+    <value>Dagar</value>
+  </data>
+  <data name="MealPlan.Recipes" xml:space="preserve">
+    <value>Recept</value>
+  </data>
+  <data name="MealPlan.Meals" xml:space="preserve">
+    <value>Måltider</value>
+  </data>
+  <data name="MealPlan.Persons" xml:space="preserve">
+    <value>Personer</value>
+  </data>
+  <data name="MealPlan.DishesInPlan" xml:space="preserve">
+    <value>Rätter i planen</value>
+  </data>
+  <data name="MealPlan.Delete" xml:space="preserve">
+    <value>Ta bort</value>
+  </data>
+  <data name="MealPlan.DeleteConfirm" xml:space="preserve">
+    <value>Är du säker på att du vill ta bort denna måltidsplan?</value>
+  </data>
+  <data name="MealPlan.Open" xml:space="preserve">
+    <value>Öppna</value>
+  </data>
+  <data name="MealPlan.SharedAction" xml:space="preserve">
+    <value>delade en måltidsplan</value>
+  </data>
+  <data name="ShoppingList.SharedAction" xml:space="preserve">
+    <value>delade en inköpslista</value>
+  </data>
+  <!-- ShoppingList (Feed) -->
+  <data name="ShoppingList.Title" xml:space="preserve">
+    <value>Inköpslista</value>
+  </data>
+  <data name="ShoppingList.Entries" xml:space="preserve">
+    <value>Poster</value>
+  </data>
+  <data name="ShoppingList.Delete" xml:space="preserve">
+    <value>Ta bort inköpslista</value>
+  </data>
+  <data name="ShoppingList.DeleteConfirm" xml:space="preserve">
+    <value>Vill du verkligen ta bort denna inköpslista? Den kommer att tas bort från alla flöden.</value>
+  </data>
+  <data name="ShoppingList.Open" xml:space="preserve">
+    <value>Öppna</value>
   </data>
 
   <!-- Video Upload Validation -->
@@ -840,6 +917,7 @@
     <value>Ta bort permanent</value>
   </data>
   <data name="SharedFeed.Title" xml:space="preserve"><value>Delat Innehåll</value></data>
+  <data name="SharedFeed.GroupName" xml:space="preserve"><value>Gruppnamn</value></data>
   <data name="SharedFeed.MyGroups" xml:space="preserve"><value>Mina Grupper</value></data>
   <data name="SharedFeed.MemberIn" xml:space="preserve"><value>Medlem i</value></data>
   <data name="SharedFeed.CreateNewFeed" xml:space="preserve"><value>Skapa Nytt Gruppflöde</value></data>
@@ -883,5 +961,35 @@
   </data>
   <data name="Import.AdminActions" xml:space="preserve">
     <value>Administratörsåtgärder</value>
+  </data>
+  <data name="CreatePosting.Ingredients" xml:space="preserve">
+    <value>Ingredienser</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Forberedelsesteg</value>
+  </data>
+  <data name="CreatePosting.SelectedIngredients" xml:space="preserve">
+    <value>Valda ingredienser</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Tillagningsinstruktioner (automatiskt oversatt)</value>
+  </data>
+  <data name="CreatePosting.Steps" xml:space="preserve">
+    <value>Steg</value>
+  </data>
+  <data name="CreatePosting.Media" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="CreatePosting.WriteYourSteps" xml:space="preserve">
+    <value>Skriv dina steg</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Tryck for att redigera</value>
+  </data>
+  <data name="CreatePosting.Keywords" xml:space="preserve">
+    <value>Nyckelord</value>
+  </data>
+  <data name="Common.AutoTranslated" xml:space="preserve">
+    <value>automatiskt oversatt</value>
   </data>
 </root>

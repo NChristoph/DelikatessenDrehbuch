@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -62,6 +62,9 @@
   <!-- Common UI Elements -->
   <data name="Common.Back" xml:space="preserve">
     <value>Back</value>
+  </data>
+  <data name="Common.New" xml:space="preserve">
+    <value>New</value>
   </data>
   <data name="Common.Save" xml:space="preserve">
     <value>Save</value>
@@ -518,6 +521,24 @@
   <data name="Recipe.Share" xml:space="preserve">
     <value>Share</value>
   </data>
+  <data name="Recipe.EditFeedPost" xml:space="preserve">
+    <value>Edit feed post</value>
+  </data>
+  <data name="Recipe.CreateFeedPost" xml:space="preserve">
+    <value>Create feed post</value>
+  </data>
+  <data name="Recipe.TotalCalories" xml:space="preserve">
+    <value>Total kcal</value>
+  </data>
+  <data name="Recipe.Swaps" xml:space="preserve">
+    <value>Swaps</value>
+  </data>
+  <data name="Recipe.Variants" xml:space="preserve">
+    <value>Variants</value>
+  </data>
+  <data name="Recipe.SaveAsVariant" xml:space="preserve">
+    <value>Save as variant</value>
+  </data>
 
   <!-- AI Step Generator -->
   <data name="AI.GenerateStepsFromText" xml:space="preserve">
@@ -569,6 +590,64 @@
   </data>
   <data name="Category.Variante" xml:space="preserve">
     <value>Variant</value>
+  </data>
+
+  <!-- MealPlan (Feed) -->
+  <data name="MealPlan.Title" xml:space="preserve">
+    <value>Meal Plan</value>
+  </data>
+  <data name="MealPlan.CalendarWeek" xml:space="preserve">
+    <value>Calendar Week</value>
+  </data>
+  <data name="MealPlan.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="MealPlan.Days" xml:space="preserve">
+    <value>Days</value>
+  </data>
+  <data name="MealPlan.Recipes" xml:space="preserve">
+    <value>Recipes</value>
+  </data>
+  <data name="MealPlan.Meals" xml:space="preserve">
+    <value>Meals</value>
+  </data>
+  <data name="MealPlan.Persons" xml:space="preserve">
+    <value>Persons</value>
+  </data>
+  <data name="MealPlan.DishesInPlan" xml:space="preserve">
+    <value>Dishes in Plan</value>
+  </data>
+  <data name="MealPlan.Delete" xml:space="preserve">
+    <value>Delete meal plan</value>
+  </data>
+  <data name="MealPlan.DeleteConfirm" xml:space="preserve">
+    <value>Do you really want to delete this meal plan? It will be removed from all feeds.</value>
+  </data>
+  <data name="MealPlan.Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
+  <data name="MealPlan.SharedAction" xml:space="preserve">
+    <value>shared a meal plan</value>
+  </data>
+  <data name="ShoppingList.SharedAction" xml:space="preserve">
+    <value>shared a shopping list</value>
+  </data>
+
+  <!-- ShoppingList (Feed) -->
+  <data name="ShoppingList.Title" xml:space="preserve">
+    <value>Shopping List</value>
+  </data>
+  <data name="ShoppingList.Entries" xml:space="preserve">
+    <value>Entries</value>
+  </data>
+  <data name="ShoppingList.Delete" xml:space="preserve">
+    <value>Delete shopping list</value>
+  </data>
+  <data name="ShoppingList.DeleteConfirm" xml:space="preserve">
+    <value>Do you really want to delete this shopping list? It will be removed from all feeds.</value>
+  </data>
+  <data name="ShoppingList.Open" xml:space="preserve">
+    <value>Open</value>
   </data>
 
   <!-- Video Upload Validation -->
@@ -844,6 +923,9 @@
   <data name="SharedFeed.Title" xml:space="preserve">
     <value>Shared Content</value>
   </data>
+  <data name="SharedFeed.GroupName" xml:space="preserve">
+    <value>Group Name</value>
+  </data>
   <data name="SharedFeed.MyGroups" xml:space="preserve">
     <value>My Groups</value>
   </data>
@@ -982,5 +1064,35 @@
   </data>
   <data name="Import.AdminActions" xml:space="preserve">
     <value>Admin Actions</value>
+  </data>
+  <data name="CreatePosting.Ingredients" xml:space="preserve">
+    <value>Ingredients</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Preparation Steps</value>
+  </data>
+  <data name="CreatePosting.SelectedIngredients" xml:space="preserve">
+    <value>Selected Ingredients</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Cooking Instructions (auto-translated)</value>
+  </data>
+  <data name="CreatePosting.Steps" xml:space="preserve">
+    <value>Steps</value>
+  </data>
+  <data name="CreatePosting.Media" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="CreatePosting.WriteYourSteps" xml:space="preserve">
+    <value>Write your steps</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Tap to edit</value>
+  </data>
+  <data name="CreatePosting.Keywords" xml:space="preserve">
+    <value>Keywords</value>
+  </data>
+  <data name="Common.AutoTranslated" xml:space="preserve">
+    <value>auto-translated</value>
   </data>
 </root>

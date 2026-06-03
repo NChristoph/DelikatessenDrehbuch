@@ -1,42 +1,336 @@
 @model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.SharedFeedContentCardViewModel
+@using Microsoft.AspNetCore.Mvc.Localization
+@inject IHtmlLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 
-<article class="shared-item-card shared-item-shopping">
-    <div class="shared-item-type">Shopping List</div>
-    <div class="shared-item-main">
-        <div>
-            <h3>@Model.Title</h3>
-            <div class="shared-item-meta">von @Model.AddedByName · @Model.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy HH:mm")</div>
+@{
+    // User initials helper
+    string GetInitials(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return "?";
+        var words = name.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        if (words.Length == 0) return "?";
+        if (words.Length == 1) return words[0].Substring(0, Math.Min(2, words[0].Length)).ToUpper();
+        return (words[0][0].ToString() + words[1][0].ToString()).ToUpper();
+    }
+
+    int GetGradientIndex(string name)
+    {
+        if (string.IsNullOrWhiteSpace(name)) return 0;
+        var sum = name.Sum(c => (int)c);
+        return sum % 6;
+    }
+
+    var userInitials = GetInitials(Model.AddedByName);
+    var userGradient = GetGradientIndex(Model.AddedByName);
+    var timeAgo = (DateTime.UtcNow - Model.CreatedAtUtc).TotalHours < 24
+        ? $"vor {(int)(DateTime.UtcNow - Model.CreatedAtUtc).TotalHours} Stunden"
+        : Model.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy");
+}
+
+<article class="sl-card">
+    @* User Header *@
+    <div class="sl-user-header">
+        <div class="sl-user-avatar" data-gradient="@userGradient">
+            <span>@userInitials</span>
         </div>
-        <div class="shared-item-actions">
-            @if (Model.IsCreator)
-            {
-                <form method="post" action="@Url.Action("DeleteSharedShoppingList", "Shared", new { area = "WorldMiniApp" })" style="display:inline;" onsubmit="return confirm('Möchten Sie diese Einkaufsliste wirklich löschen? Sie wird aus allen Feeds entfernt.');">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" name="token" value="@Model.SourceToken" />
-                    <input type="hidden" name="userHash" value="@ViewData["CurrentUserHash"]" />
-                    <input type="hidden" name="feedId" value="@ViewData["FeedId"]" />
-                    <button type="submit" class="shared-btn-delete" title="Einkaufsliste löschen">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </form>
-            }
-            <a class="shared-open-link" href="@Model.OpenUrl">Öffnen</a>
+        <div class="sl-user-info">
+            <div class="sl-user-name">
+                @Model.AddedByName
+                @if (Model.IsCreator)
+                {
+                    <span class="sl-user-badge">OWNER</span>
+                }
+            </div>
+            <div class="sl-user-meta">@timeAgo · @SharedLocalizer["ShoppingList.SharedAction"]</div>
+        </div>
+        <button type="button" class="sl-user-more" title="Optionen">
+            <i class="bi bi-three-dots"></i>
+        </button>
+    </div>
+
+    @* Header mit Icon *@
+    <div class="sl-header">
+        <div class="sl-icon-wrapper">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+            </svg>
+        </div>
+        <div class="sl-header-content">
+            <div class="sl-type-badge">@SharedLocalizer["ShoppingList.Title"]</div>
+            <h3 class="sl-title">@Model.Title</h3>
+            <div class="sl-meta">
+                <span class="sl-creator">
+                    <span class="sl-creator-avatar">🥑</span>
+                    <span class="sl-creator-name">@Model.AddedByName</span>
+                </span>
+                <span class="sl-separator">·</span>
+                <span class="sl-date">@Model.CreatedAtUtc.ToLocalTime().ToString("dd.MM.yyyy")</span>
+            </div>
         </div>
     </div>
-    <div class="shared-item-preview">@Model.PreviewText</div>
-    <div class="shared-item-stats">
-        <span><strong>@Model.RecipeCount</strong> Einträge</span>
+
+    @* Stats *@
+    <div class="sl-stats">
+        <div class="sl-stat">
+            <div class="sl-stat-value">@Model.RecipeCount</div>
+            <div class="sl-stat-label">@SharedLocalizer["ShoppingList.Entries"]</div>
+        </div>
+    </div>
+
+    @* Preview *@
+    @if (!string.IsNullOrEmpty(Model.PreviewText))
+    {
+        <div class="sl-preview">@Model.PreviewText</div>
+    }
+
+    @* Footer Actions *@
+    <div class="sl-footer">
+        @if (Model.IsCreator)
+        {
+            <form method="post" action="@Url.Action("DeleteSharedShoppingList", "Shared", new { area = "WorldMiniApp" })" style="display:inline;" onsubmit="return confirm('@SharedLocalizer["ShoppingList.DeleteConfirm"]');">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="token" value="@Model.SourceToken" />
+                <input type="hidden" name="userHash" value="@ViewData["CurrentUserHash"]" />
+                <input type="hidden" name="feedId" value="@ViewData["FeedId"]" />
+                <button type="submit" class="sl-btn-delete" title="@SharedLocalizer["ShoppingList.Delete"]">
+                    <i class="bi bi-trash"></i>
+                </button>
+            </form>
+        }
+        <a class="sl-btn-open" href="@Model.OpenUrl">@SharedLocalizer["ShoppingList.Open"]</a>
     </div>
 </article>
 
 <style>
-    .shared-item-preview { margin-top:14px; color:#50604f; line-height:1.5; }
-    .shared-item-actions {
+    /* Shopping List Card - Matched to MealPlan Design */
+    .sl-card {
+        background: #fff;
+        border-radius: 22px;
+        overflow: hidden;
+        box-shadow: 0 8px 24px rgba(20, 57, 31, 0.08);
+        margin-bottom: 20px;
+        font-family: 'Inter', system-ui, sans-serif;
+        border: 1px solid rgba(95, 160, 82, 0.12);
+    }
+
+    /* User Header */
+    .sl-user-header {
         display: flex;
         align-items: center;
         gap: 10px;
+        padding: 14px 16px 10px;
+        border-bottom: 1px solid rgba(20,57,31,0.04);
     }
-    .shared-btn-delete {
+
+    .sl-user-avatar {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-size: 14px;
+        font-weight: 700;
+        flex-shrink: 0;
+    }
+
+    .sl-user-avatar[data-gradient="0"] { background: linear-gradient(135deg, #5fa052, #3f7536); }
+    .sl-user-avatar[data-gradient="1"] { background: linear-gradient(135deg, #f5b942, #d99a3c); }
+    .sl-user-avatar[data-gradient="2"] { background: linear-gradient(135deg, #ff7849, #c44e4e); }
+    .sl-user-avatar[data-gradient="3"] { background: linear-gradient(135deg, #2f6a3a, #14391f); }
+    .sl-user-avatar[data-gradient="4"] { background: linear-gradient(135deg, #7a4a18, #3a2510); }
+    .sl-user-avatar[data-gradient="5"] { background: linear-gradient(135deg, #8a6418, #5a3d12); }
+
+    .sl-user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sl-user-name {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-size: 14px;
+        font-weight: 700;
+        color: #14391f;
+    }
+
+    .sl-user-badge {
+        font-family: 'Inter', system-ui, sans-serif;
+        font-size: 8px;
+        font-weight: 700;
+        color: #5fa052;
+        letter-spacing: 0.12em;
+        background: rgba(95,160,82,0.12);
+        padding: 2px 6px;
+        border-radius: 4px;
+    }
+
+    .sl-user-meta {
+        font-size: 11px;
+        color: #9aa295;
+        margin-top: 1px;
+    }
+
+    .sl-user-more {
+        background: none;
+        border: none;
+        color: #9aa295;
+        cursor: pointer;
+        padding: 4px;
+        font-size: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s;
+    }
+
+    .sl-user-more:hover {
+        color: #14391f;
+        background: rgba(20,57,31,0.06);
+        border-radius: 8px;
+    }
+
+    /* Header */
+    .sl-header {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 16px 16px 12px;
+        background: #faf6ec;
+        border-bottom: 1px solid rgba(20,57,31,0.08);
+    }
+
+    .sl-icon-wrapper {
+        width: 44px;
+        height: 44px;
+        background: linear-gradient(135deg, #5fa052 0%, #3f7536 100%);
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        flex-shrink: 0;
+        box-shadow: 0 4px 12px rgba(95, 160, 82, 0.2);
+    }
+
+    .sl-header-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sl-type-badge {
+        background: rgba(95, 160, 82, 0.12);
+        color: #3f7536;
+        padding: 3px 8px;
+        border-radius: 999px;
+        font-size: 10px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        display: inline-block;
+        margin-bottom: 6px;
+        border: 1px solid rgba(95, 160, 82, 0.2);
+    }
+
+    .sl-title {
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-size: 20px;
+        font-weight: 600;
+        letter-spacing: -0.02em;
+        margin: 0;
+        line-height: 1.2;
+        color: #14391f;
+    }
+
+    .sl-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 6px;
+        font-size: 12px;
+        color: #6b7868;
+    }
+
+    .sl-creator {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .sl-creator-avatar {
+        font-size: 13px;
+    }
+
+    .sl-creator-name {
+        font-weight: 600;
+        color: #1a2e20;
+    }
+
+    .sl-separator {
+        opacity: 0.5;
+    }
+
+    .sl-date {
+        font-size: 11px;
+    }
+
+    /* Stats */
+    .sl-stats {
+        display: grid;
+        grid-template-columns: 1fr;
+        background: #faf6ec;
+        border-bottom: 1px solid rgba(20,57,31,0.08);
+    }
+
+    .sl-stat {
+        padding: 12px 16px;
+        text-align: center;
+    }
+
+    .sl-stat-value {
+        font-family: 'Fraunces', 'Georgia', serif;
+        font-size: 18px;
+        font-weight: 600;
+        color: #14391f;
+        line-height: 1;
+    }
+
+    .sl-stat-label {
+        font-size: 10px;
+        color: #6b7868;
+        margin-top: 3px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+
+    /* Preview */
+    .sl-preview {
+        padding: 14px 16px;
+        color: #50604f;
+        line-height: 1.5;
+        font-size: 13px;
+        border-left: 3px solid #5fa052;
+        margin: 0 16px;
+        background: rgba(95, 160, 82, 0.04);
+        border-radius: 0 8px 8px 0;
+    }
+
+    /* Footer */
+    .sl-footer {
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .sl-btn-delete {
         background: linear-gradient(135deg, #ff4444, #cc0000);
         border: none;
         border-radius: 12px;
@@ -51,8 +345,37 @@
         box-shadow: 0 4px 14px rgba(204, 0, 0, 0.35);
         transition: all 0.2s;
     }
-    .shared-btn-delete:hover {
+
+    .sl-btn-delete:hover {
         background: linear-gradient(135deg, #ff6666, #ff0000);
         transform: scale(1.05);
+    }
+
+    .sl-btn-open {
+        background: linear-gradient(135deg, #ff9a3c, #ff7849);
+        border: none;
+        border-radius: 12px;
+        padding: 11px 18px;
+        font-size: 13px;
+        font-weight: 700;
+        color: white;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        box-shadow: 0 4px 14px rgba(255, 120, 73, 0.35);
+        margin-left: auto;
+        transition: all 0.2s;
+    }
+
+    .sl-btn-open:after {
+        content: '→';
+        font-size: 16px;
+    }
+
+    .sl-btn-open:hover {
+        background: linear-gradient(135deg, #ffaa4c, #ff8859);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 18px rgba(255, 120, 73, 0.4);
     }
 </style>

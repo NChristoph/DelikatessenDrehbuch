@@ -905,8 +905,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> CommentModeration(string userHash = "", CancellationToken cancellationToken = default)
         {
             userHash = ResolveUserHash(userHash);
-            if (!await CanModerateCommentsAsync(userHash, cancellationToken))
+
+            // Prüfe ob User Moderator ist
+            if (!IsCommentModerator(userHash))
                 return Forbid();
+
+            // Prüfe ob Admin-Passwort eingegeben wurde
+            if (!IsCommentModeratorAuthenticated(userHash))
+                return RedirectToAction("Login", "Admin", new { area = "WorldMiniApp", returnUrl = Url.Action("CommentModeration", "Feed", new { area = "WorldMiniApp", userHash }) });
 
             var reportRows = await _context.WorldUserCommentReports
                 .AsNoTracking()
@@ -979,7 +985,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         public async Task<IActionResult> ResolveCommentReport([FromForm] string userHash, [FromForm] int commentId, [FromForm] string actionType, CancellationToken cancellationToken)
         {
             userHash = ResolveUserHash(userHash);
-            if (!await CanModerateCommentsAsync(userHash, cancellationToken))
+            if (!IsCommentModeratorAuthenticated(userHash))
                 return Forbid();
 
             if (commentId <= 0)
@@ -1291,7 +1297,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 AiEditedRecipes = aiEditedCards
             };
 
-            ViewData["IsWorldMiniAppAdmin"] = await CanModerateCommentsAsync(userHash);
+            ViewData["IsWorldMiniAppAdmin"] = IsCommentModeratorAuthenticated(userHash);
             return View(model);
         }
 
@@ -1623,6 +1629,45 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return string.Equals(userHash, SuperUserHash, StringComparison.OrdinalIgnoreCase)
                 || GetConfiguredCommentModeratorHashes().Contains(userHash, StringComparer.OrdinalIgnoreCase)
                 || (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"));
+        }
+
+        private bool IsCommentModeratorAuthenticated(string userHash)
+        {
+            // Prüfe erst ob User überhaupt Moderator ist
+            if (!IsCommentModerator(userHash))
+            {
+                return false;
+            }
+
+            // Wenn User ASP.NET Identity Admin ist, keine weitere Prüfung nötig
+            if (User?.Identity?.IsAuthenticated == true && User.IsInRole("Admin"))
+            {
+                return true;
+            }
+
+            // Prüfe Admin-Session (für WorldMiniApp-SuperUser)
+            var isAuthenticated = HttpContext.Session.GetString("WorldMiniAppAdminAuthenticated");
+            if (isAuthenticated != "true")
+            {
+                return false;
+            }
+
+            // Prüfe ob Session abgelaufen ist
+            var expiryString = HttpContext.Session.GetString("WorldMiniAppAdminExpiry");
+            if (!string.IsNullOrEmpty(expiryString))
+            {
+                if (DateTime.TryParse(expiryString, out var expiryTime))
+                {
+                    if (DateTime.UtcNow > expiryTime)
+                    {
+                        HttpContext.Session.Remove("WorldMiniAppAdminAuthenticated");
+                        HttpContext.Session.Remove("WorldMiniAppAdminExpiry");
+                        return false;
+                    }
+                }
+            }
+
+            return true;
         }
 
         private IReadOnlyList<string> GetConfiguredCommentModeratorHashes()

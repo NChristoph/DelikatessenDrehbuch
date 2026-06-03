@@ -55,11 +55,14 @@ Configure the following **Application Settings** in Azure App Service:
 
 | Variable Name | Description | Example Value |
 |--------------|-------------|---------------|
-| `AZURE_SQL_CONNECTIONSTRING` | Full SQL connection string | `Server=tcp:...;Password=...;` |
+| `DB_ConectionString` | ✅ **PRIMARY:** Full SQL connection string | `Server=tcp:...;Password=...;` |
+| `AZURE_SQL_CONNECTIONSTRING` | Legacy fallback (if DB_ConectionString not set) | `Server=tcp:...;Password=...;` |
 | `BUNNY_STORAGE_PASSWORD` | Bunny.net Storage API Key | `84124467-...` |
 | `BUNNY_STREAM_API_KEY` | Bunny.net Stream API Key | `49035e33-...` |
 | `EMAIL_PASSWORD` | Gmail App Password | `hhpg xpwz ltng lvrp` |
 | `WORLDMINIAPP_SUPERUSER_HASH` | Admin Hash for WorldMiniApp | `0x2da33d4d7...` |
+
+**Note:** The application checks for `DB_ConectionString` first, then falls back to `AZURE_SQL_CONNECTIONSTRING` if not found.
 
 ### Azure Portal Configuration
 

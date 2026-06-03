@@ -86,7 +86,9 @@ var configuration = builder.Configuration;
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Environment Variable Override für Production
-var envConnectionString = Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING");
+// Unterstützt beide Variablennamen: DB_ConectionString (aktuell) und AZURE_SQL_CONNECTIONSTRING (alt)
+var envConnectionString = Environment.GetEnvironmentVariable("DB_ConectionString")
+                          ?? Environment.GetEnvironmentVariable("AZURE_SQL_CONNECTIONSTRING");
 if (!string.IsNullOrWhiteSpace(envConnectionString))
 {
     connectionString = envConnectionString;

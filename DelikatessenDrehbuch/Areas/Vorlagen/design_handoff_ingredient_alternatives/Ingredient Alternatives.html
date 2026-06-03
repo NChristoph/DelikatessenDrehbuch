@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<title>Zutaten-Alternativen — Avocado</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  html, body { margin: 0; padding: 0; background: #efece6; font-family: 'Inter', sans-serif; }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<script type="text/babel" src="design-canvas.jsx"></script>
+<script type="text/babel" src="recipe-detail.jsx"></script>
+<script type="text/babel" src="ingredient-alternatives.jsx"></script>
+
+<script type="text/babel">
+function PhoneFrame({ children }) {
+  return (
+    <div style={{
+      width: '100%', height: '100%',
+      background: 'white',
+      borderRadius: 36,
+      overflow: 'hidden',
+      position: 'relative',
+      boxShadow: 'inset 0 0 0 1px rgba(0,0,0,0.06)',
+    }}>
+      <div style={{
+        height: 44,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        padding: '0 24px', fontSize: 14, fontWeight: 600, color: '#fff',
+        position: 'absolute', top: 0, left: 0, right: 0, zIndex: 60,
+        pointerEvents: 'none', textShadow: '0 1px 4px rgba(0,0,0,0.4)',
+      }}>
+        <span>9:41</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
+          <svg width="16" height="10" viewBox="0 0 16 10" fill="#fff"><rect x="0" y="6" width="3" height="4" rx="0.5"/><rect x="4" y="4" width="3" height="6" rx="0.5"/><rect x="8" y="2" width="3" height="8" rx="0.5"/><rect x="12" y="0" width="3" height="10" rx="0.5"/></svg>
+          <svg width="24" height="11" viewBox="0 0 24 11" fill="none"><rect x="0.5" y="0.5" width="20" height="10" rx="2.5" stroke="#fff"/><rect x="2" y="2" width="17" height="7" rx="1.5" fill="#fff"/><rect x="21" y="3.5" width="1.5" height="4" rx="0.5" fill="#fff"/></svg>
+        </div>
+      </div>
+      <div style={{ position: 'absolute', inset: 0 }}>
+        {children}
+      </div>
+      <div style={{
+        position: 'absolute', bottom: 8, left: '50%', transform: 'translateX(-50%)',
+        width: 134, height: 5, borderRadius: 999,
+        background: 'rgba(0,0,0,0.85)', zIndex: 70,
+      }} />
+    </div>
+  );
+}
+
+function App() {
+  return (
+    <DesignCanvas>
+      <DCSection
+        id="alternatives"
+        title="Zutaten-Alternativen · Avocado-Stil"
+        subtitle="Das alte „Alternativen für …“-Pop-up, neu eingekleidet im Marketplace-Look: grüner Verlaufs-Header statt lila, weiche getönte Macro-Pills, Fraunces-Zahlen, Waldgrün-CTA statt Blau, grün/coral Vorteile/Nachteile.">
+        <DCArtboard id="alt-popup" label="Pop-up über Recipe Detail" width={390} height={844} data-screen-label="01 Alternativen Pop-up">
+          <PhoneFrame>
+            <RDScreen initialTab="ingredients" />
+            <AltModal open={true} onClose={() => {}} />
+          </PhoneFrame>
+        </DCArtboard>
+
+        <DCArtboard id="alt-content" label="Scroll-Inhalt (Alternative-Karten)" width={390} height={1180} data-screen-label="02 Scroll-Inhalt">
+          <div style={{ width: '100%', height: '100%', background: '#f5efe1', overflow: 'hidden', borderRadius: 8 }}>
+            <AltScrollContent />
+          </div>
+        </DCArtboard>
+      </DCSection>
+    </DesignCanvas>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>

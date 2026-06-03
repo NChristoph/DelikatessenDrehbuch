@@ -365,6 +365,8 @@ FodyWeavers.xsd
 ## Sensitive configuration files
 **/secrets.json
 **/appsettings.*.local.json
+**/appsettings.Development.json
+**/launchSettings.json
 .env
 .env.local
 *.env

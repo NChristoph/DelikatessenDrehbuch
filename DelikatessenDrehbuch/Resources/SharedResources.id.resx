@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
   <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
     <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
@@ -62,6 +62,9 @@
   <!-- Common UI Elements -->
   <data name="Common.Back" xml:space="preserve">
     <value>Kembali</value>
+  </data>
+  <data name="Common.New" xml:space="preserve">
+    <value>Baru</value>
   </data>
   <data name="Common.Save" xml:space="preserve">
     <value>Simpan</value>
@@ -518,6 +521,24 @@
   <data name="Recipe.Share" xml:space="preserve">
     <value>Bagikan</value>
   </data>
+  <data name="Recipe.EditFeedPost" xml:space="preserve">
+    <value>Edit postingan feed</value>
+  </data>
+  <data name="Recipe.CreateFeedPost" xml:space="preserve">
+    <value>Buat postingan feed</value>
+  </data>
+  <data name="Recipe.TotalCalories" xml:space="preserve">
+    <value>Total kkal</value>
+  </data>
+  <data name="Recipe.Swaps" xml:space="preserve">
+    <value>Penggantian</value>
+  </data>
+  <data name="Recipe.Variants" xml:space="preserve">
+    <value>Varian</value>
+  </data>
+  <data name="Recipe.SaveAsVariant" xml:space="preserve">
+    <value>Simpan sebagai varian</value>
+  </data>
 
   <!-- AI Step Generator -->
   <data name="AI.GenerateStepsFromText" xml:space="preserve">
@@ -569,6 +590,64 @@
   </data>
   <data name="Category.Variante" xml:space="preserve">
     <value>Varian</value>
+  </data>
+
+  <!-- MealPlan (Feed) -->
+  <data name="MealPlan.Title" xml:space="preserve">
+    <value>Rencana makan</value>
+  </data>
+  <data name="MealPlan.CalendarWeek" xml:space="preserve">
+    <value>Minggu kalender</value>
+  </data>
+  <data name="MealPlan.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="MealPlan.Days" xml:space="preserve">
+    <value>Hari</value>
+  </data>
+  <data name="MealPlan.Recipes" xml:space="preserve">
+    <value>Resep</value>
+  </data>
+  <data name="MealPlan.Meals" xml:space="preserve">
+    <value>Makanan</value>
+  </data>
+  <data name="MealPlan.Persons" xml:space="preserve">
+    <value>Orang</value>
+  </data>
+  <data name="MealPlan.DishesInPlan" xml:space="preserve">
+    <value>Hidangan dalam rencana</value>
+  </data>
+  <data name="MealPlan.Delete" xml:space="preserve">
+    <value>Hapus rencana makan</value>
+  </data>
+  <data name="MealPlan.DeleteConfirm" xml:space="preserve">
+    <value>Apakah Anda benar-benar ingin menghapus rencana makan ini? Ini akan dihapus dari semua feed.</value>
+  </data>
+  <data name="MealPlan.Open" xml:space="preserve">
+    <value>Buka</value>
+  </data>
+  <data name="MealPlan.SharedAction" xml:space="preserve">
+    <value>membagikan rencana makan</value>
+  </data>
+  <data name="ShoppingList.SharedAction" xml:space="preserve">
+    <value>membagikan daftar belanja</value>
+  </data>
+
+  <!-- ShoppingList (Feed) -->
+  <data name="ShoppingList.Title" xml:space="preserve">
+    <value>Daftar belanja</value>
+  </data>
+  <data name="ShoppingList.Entries" xml:space="preserve">
+    <value>Entri</value>
+  </data>
+  <data name="ShoppingList.Delete" xml:space="preserve">
+    <value>Hapus daftar belanja</value>
+  </data>
+  <data name="ShoppingList.DeleteConfirm" xml:space="preserve">
+    <value>Apakah Anda benar-benar ingin menghapus daftar belanja ini? Ini akan dihapus dari semua feed.</value>
+  </data>
+  <data name="ShoppingList.Open" xml:space="preserve">
+    <value>Buka</value>
   </data>
 
   <!-- Video Upload Validation -->
@@ -844,6 +923,9 @@
   <data name="SharedFeed.Title" xml:space="preserve">
     <value>Konten Bersama</value>
   </data>
+  <data name="SharedFeed.GroupName" xml:space="preserve">
+    <value>Nama grup</value>
+  </data>
   <data name="SharedFeed.MyGroups" xml:space="preserve">
     <value>Grup Saya</value>
   </data>
@@ -982,5 +1064,35 @@
   </data>
   <data name="Import.AdminActions" xml:space="preserve">
     <value>Tindakan Admin</value>
+  </data>
+  <data name="CreatePosting.Ingredients" xml:space="preserve">
+    <value>Bahan</value>
+  </data>
+  <data name="CreatePosting.PreparationSteps" xml:space="preserve">
+    <value>Langkah persiapan</value>
+  </data>
+  <data name="CreatePosting.SelectedIngredients" xml:space="preserve">
+    <value>Bahan yang dipilih</value>
+  </data>
+  <data name="CreatePosting.CookingInstructions" xml:space="preserve">
+    <value>Instruksi Memasak (diterjemahkan otomatis)</value>
+  </data>
+  <data name="CreatePosting.Steps" xml:space="preserve">
+    <value>Langkah</value>
+  </data>
+  <data name="CreatePosting.Media" xml:space="preserve">
+    <value>Media</value>
+  </data>
+  <data name="CreatePosting.WriteYourSteps" xml:space="preserve">
+    <value>Tulis langkah Anda</value>
+  </data>
+  <data name="CreatePosting.TapToEdit" xml:space="preserve">
+    <value>Ketuk untuk mengedit</value>
+  </data>
+  <data name="CreatePosting.Keywords" xml:space="preserve">
+    <value>Kata kunci</value>
+  </data>
+  <data name="Common.AutoTranslated" xml:space="preserve">
+    <value>diterjemahkan otomatis</value>
   </data>
 </root>

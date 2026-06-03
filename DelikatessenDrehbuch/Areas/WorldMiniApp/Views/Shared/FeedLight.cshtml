@@ -1,9 +1,10 @@
 @model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.SharedFeedIndexViewModel
 @using Microsoft.AspNetCore.Mvc.Localization
-@inject IViewLocalizer Localizer
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
     Layout = "_MiniAppLayout";
-    ViewData["Title"] = Localizer["SharedFeed.Title"];
+    ViewData["Title"] = SharedLocalizer["SharedFeed.Title"];
     var active = Model.ActiveFeed;
     var allFeeds = Model.Feeds.ToList();
 }
@@ -23,12 +24,7 @@
             <span>Home</span>
         </a>
         <div class="s-title-block">
-            <div class="s-eyebrow">GRUPPEN</div>
-            <h1>@Localizer["SharedFeed.Title"]</h1>
-        </div>
-        <div class="s-lang-pill">
-            <span>DE</span>
-            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="m6 9 6 6 6-6"/></svg>
+            <div class="s-eyebrow">@SharedLocalizer["SharedFeed.MyGroups"].Value.ToUpper()</div>
         </div>
     </div>
 
@@ -39,7 +35,7 @@
             <div class="s-story-create">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
             </div>
-            <div class="s-story-label">Neu</div>
+            <div class="s-story-label">@SharedLocalizer["Common.New"]</div>
         </div>
 
         <!-- Group Tiles -->
@@ -86,16 +82,16 @@
                             </div>
                         }
                     }
-                    <span class="s-hero-meta">@active.MemberCount Mitglieder · @active.ItemCount Beiträge</span>
+                    <span class="s-hero-meta">@active.MemberCount @SharedLocalizer["SharedFeed.Members"] · @active.ItemCount @SharedLocalizer["SharedFeed.Items"]</span>
                 </div>
                 <button type="button" class="s-hero-invite" onclick="copyInviteUrl('@active.InviteUrl')">
                     <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-                    <span>Einladen</span>
+                    <span>@SharedLocalizer["SharedFeed.InviteLink"]</span>
                 </button>
                 <div class="s-hero-stats">
                     <div class="s-hero-stat">
                         <div class="s-hero-stat-val">@active.MemberCount</div>
-                        <div class="s-hero-stat-label">MITGLIEDER</div>
+                        <div class="s-hero-stat-label">@SharedLocalizer["SharedFeed.Members"].Value.ToUpper()</div>
                     </div>
                     <div class="s-hero-stat">
                         <div class="s-hero-stat-val">@active.ItemCount</div>
@@ -113,11 +109,11 @@
         <div class="s-tab-bar">
             <button type="button" class="s-tab active" data-tab="feed" onclick="switchTab('feed')">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-                <span>Feed</span>
+                <span>@SharedLocalizer["Nav.Feed"]</span>
             </button>
             <button type="button" class="s-tab" data-tab="chat" onclick="switchTab('chat')">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Chat</span>
+                <span>@SharedLocalizer["Chat.Title"]</span>
                 @if (active.UnreadCount > 0)
                 {
                     <div class="s-tab-badge">@active.UnreadCount</div>
@@ -125,11 +121,11 @@
             </button>
             <button type="button" class="s-tab" data-tab="tasks" onclick="switchTab('tasks')">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                <span>Aufgaben</span>
+                <span>@SharedLocalizer["Todo.Title"]</span>
             </button>
             <button type="button" class="s-tab" data-tab="members" onclick="switchTab('members')">
                 <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                <span>Mitglieder</span>
+                <span>@SharedLocalizer["SharedFeed.Members"]</span>
             </button>
         </div>
 
@@ -157,7 +153,7 @@
                 {
                     <div class="s-empty">
                         <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/></svg>
-                        <p>Noch keine Inhalte in dieser Gruppe. Teile einen Mealplan.</p>
+                        <p>@SharedLocalizer["SharedFeed.NoItems"]</p>
                     </div>
                 }
                 else
@@ -181,7 +177,7 @@
             <!-- Chat Tab -->
             <div class="s-tab-body" data-tab-body="chat">
                 <div class="s-chat-messages" id="chatMessages" data-feed-id="@active.Id" data-user-hash="@Model.CurrentUserHash">
-                    <div class="s-chat-loading">Nachrichten werden geladen...</div>
+                    <div class="s-chat-loading">@SharedLocalizer["Chat.Loading"]</div>
                 </div>
                 <div class="s-chat-composer">
                     <input type="file" id="chatFileInput" accept="image/*,application/pdf,.doc,.docx" style="display: none;" />
@@ -190,7 +186,7 @@
                     </button>
                     <div class="s-chat-input-pill">
                         <div id="chatFilePreview" class="s-chat-file-preview" style="display: none;"></div>
-                        <input type="text" id="chatInput" placeholder="Nachricht eingeben..." maxlength="1000" />
+                        <input type="text" id="chatInput" placeholder="@SharedLocalizer["Chat.MessagePlaceholder"]" maxlength="1000" />
                         <button type="button" class="s-chat-emoji">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
                         </button>
@@ -204,7 +200,7 @@
             <!-- Tasks Tab -->
             <div class="s-tab-body" data-tab-body="tasks">
                 <div class="s-task-add">
-                    <input type="text" id="todoInput" class="s-task-input" placeholder="Neue Aufgabe hinzufügen..." maxlength="200" />
+                    <input type="text" id="todoInput" class="s-task-input" placeholder="@SharedLocalizer["Todo.AddPlaceholder"]" maxlength="200" />
                     <button type="button" id="todoAddBtn" class="s-task-add-btn">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
                     </button>
@@ -386,7 +382,7 @@
 <div id="createGroupModal" class="s-modal" style="display: none;">
     <div class="s-modal-content">
         <div class="s-modal-header">
-            <h3>Neue Gruppe erstellen</h3>
+            <h3>@SharedLocalizer["SharedFeed.CreateNewFeed"]</h3>
             <button type="button" class="s-modal-close" onclick="closeCreateGroupModal()">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             </button>
@@ -395,12 +391,12 @@
             @Html.AntiForgeryToken()
             <input type="hidden" name="userHash" value="@Model.CurrentUserHash" />
             <div class="s-modal-body">
-                <label class="s-form-label">Gruppen-Name</label>
-                <input name="title" class="s-form-input" maxlength="160" placeholder="z. B. Familienplan oder WG-Küche" required />
+                <label class="s-form-label">@SharedLocalizer["SharedFeed.GroupName"]</label>
+                <input name="title" class="s-form-input" maxlength="160" placeholder="@SharedLocalizer["SharedFeed.FeedTitlePlaceholder"]" required />
             </div>
             <div class="s-modal-footer">
-                <button type="button" class="s-btn s-btn-secondary" onclick="closeCreateGroupModal()">Abbrechen</button>
-                <button type="submit" class="s-btn s-btn-primary">Erstellen</button>
+                <button type="button" class="s-btn s-btn-secondary" onclick="closeCreateGroupModal()">@SharedLocalizer["Common.Cancel"]</button>
+                <button type="submit" class="s-btn s-btn-primary">@SharedLocalizer["SharedFeed.Create"]</button>
             </div>
         </form>
     </div>
@@ -449,6 +445,7 @@
         document.querySelector('.s-screen').classList.add('is-loaded');
     });
 </script>
+<script src="~/areas/worldminiapp/js/shared-feed-i18n.js" asp-append-version="true"></script>
 <script src="~/areas/worldminiapp/js/shared-feed.js" asp-append-version="true"></script>
 
 <style>
@@ -554,7 +551,7 @@
     .s-stories-row {
         display: flex;
         gap: 14px;
-        padding: 0 16px 16px;
+        padding: 24px 16px 16px;
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         scrollbar-width: none;

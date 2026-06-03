@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Cryptography;
 using System.Text;
+using BCrypt.Net;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -32,12 +33,141 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                    userHash.Equals(SuperUserHash, StringComparison.OrdinalIgnoreCase);
         }
 
-        // GET: Admin/CreatorManager
-        public async Task<IActionResult> CreatorManager()
+        private bool IsAdminAuthenticated()
+        {
+            // Prüfe erst ob User überhaupt Admin ist
+            if (!IsAdmin())
+            {
+                return false;
+            }
+
+            // Prüfe ob Admin bereits eingeloggt ist (Session)
+            var isAuthenticated = HttpContext.Session.GetString("WorldMiniAppAdminAuthenticated");
+            if (isAuthenticated != "true")
+            {
+                return false;
+            }
+
+            // Prüfe ob Admin-Session abgelaufen ist
+            var expiryString = HttpContext.Session.GetString("WorldMiniAppAdminExpiry");
+            if (!string.IsNullOrEmpty(expiryString))
+            {
+                if (DateTime.TryParse(expiryString, out var expiryTime))
+                {
+                    if (DateTime.UtcNow > expiryTime)
+                    {
+                        // Session abgelaufen
+                        HttpContext.Session.Remove("WorldMiniAppAdminAuthenticated");
+                        HttpContext.Session.Remove("WorldMiniAppAdminExpiry");
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
+        private string GetAdminPassword()
+        {
+            return Configuration["WorldMiniApp:AdminPassword"] ?? string.Empty;
+        }
+
+        // GET: Admin/Login
+        public IActionResult Login(string returnUrl = "")
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
+            }
+
+            // Wenn bereits eingeloggt, weiterleiten
+            if (IsAdminAuthenticated())
+            {
+                if (!string.IsNullOrWhiteSpace(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+                return RedirectToAction(nameof(CreatorManager));
+            }
+
+            ViewData["ReturnUrl"] = returnUrl;
+            return View();
+        }
+
+        // POST: Admin/Login
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Login(string password, string returnUrl = "")
         {
             if (!IsAdmin())
             {
                 return Unauthorized("Nur für Admins zugänglich.");
+            }
+
+            var configuredPasswordHash = GetAdminPassword();
+
+            if (string.IsNullOrWhiteSpace(configuredPasswordHash))
+            {
+                TempData["Error"] = "Admin-Passwort ist nicht konfiguriert.";
+                return View();
+            }
+
+            // Prüfe ob Passwort korrekt ist (BCrypt-Vergleich)
+            bool isPasswordValid = false;
+            try
+            {
+                isPasswordValid = BCrypt.Net.BCrypt.Verify(password, configuredPasswordHash);
+            }
+            catch (Exception)
+            {
+                // Falls Hash ungültig ist, versuche Klartext-Vergleich (für Migration)
+                isPasswordValid = password == configuredPasswordHash;
+            }
+
+            if (isPasswordValid)
+            {
+                // Admin-Session setzen (gültig für 2 Stunden)
+                HttpContext.Session.SetString("WorldMiniAppAdminAuthenticated", "true");
+
+                // Setze Ablaufzeit für Admin-Session (2 Stunden)
+                var expiryTime = DateTime.UtcNow.AddHours(2);
+                HttpContext.Session.SetString("WorldMiniAppAdminExpiry", expiryTime.ToString("o"));
+
+                TempData["Success"] = "Erfolgreich als Admin eingeloggt!";
+                _logger.LogInformation("Admin logged in: {UserHash}", GetCurrentUserHash());
+
+                if (!string.IsNullOrWhiteSpace(returnUrl))
+                {
+                    return Redirect(returnUrl);
+                }
+                return RedirectToAction(nameof(CreatorManager));
+            }
+            else
+            {
+                TempData["Error"] = "Falsches Passwort.";
+                _logger.LogWarning("Failed admin login attempt: {UserHash}", GetCurrentUserHash());
+                ViewData["ReturnUrl"] = returnUrl;
+                return View();
+            }
+        }
+
+        // POST: Admin/Logout
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Remove("WorldMiniAppAdminAuthenticated");
+            TempData["Success"] = "Erfolgreich ausgeloggt.";
+            _logger.LogInformation("Admin logged out: {UserHash}", GetCurrentUserHash());
+            return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = GetCurrentUserHash() });
+        }
+
+        // GET: Admin/CreatorManager
+        public async Task<IActionResult> CreatorManager()
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl = Url.Action(nameof(CreatorManager)) });
             }
 
             var creators = await _context.WorldAppUser
@@ -60,9 +190,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateCreator(string userName, string? bio, bool isOrbVerified)
         {
-            if (!IsAdmin())
+            if (!IsAdminAuthenticated())
             {
-                return Unauthorized("Nur für Admins zugänglich.");
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
             }
 
             if (string.IsNullOrWhiteSpace(userName))
@@ -107,9 +237,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult LoginAsCreator(string targetHash)
         {
-            if (!IsAdmin())
+            if (!IsAdminAuthenticated())
             {
-                return Unauthorized("Nur für Admins zugänglich.");
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
             }
 
             if (string.IsNullOrWhiteSpace(targetHash))
@@ -161,9 +291,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteCreator(string userHash)
         {
-            if (!IsAdmin())
+            if (!IsAdminAuthenticated())
             {
-                return Unauthorized("Nur für Admins zugänglich.");
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
             }
 
             var creator = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
@@ -193,9 +323,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         // GET: Admin/ReportedContent
         public async Task<IActionResult> ReportedContent(string status = "all")
         {
-            if (!IsAdmin())
+            if (!IsAdminAuthenticated())
             {
-                return Unauthorized("Nur für Admins zugänglich.");
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
             }
 
             var query = _context.WorldUserReports
@@ -246,9 +376,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ReviewReport(int reportId, string action, string? notes)
         {
-            if (!IsAdmin())
+            if (!IsAdminAuthenticated())
             {
-                return Unauthorized("Nur für Admins zugänglich.");
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
             }
 
             var report = await _context.WorldUserReports
@@ -299,9 +429,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteReportedPosting(int postingId)
         {
-            if (!IsAdmin())
+            if (!IsAdminAuthenticated())
             {
-                return Unauthorized("Nur für Admins zugänglich.");
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
             }
 
             var posting = await _context.WorldUserPosting.FirstOrDefaultAsync(p => p.Id == postingId);
@@ -337,6 +467,42 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             var hash = BitConverter.ToString(randomBytes).Replace("-", "").ToLowerInvariant();
             return $"0x{hash}";
+        }
+
+        // GET: Admin/GeneratePasswordHash (Hilfstool zum Hashen von Passwörtern)
+        [HttpGet]
+        public IActionResult GeneratePasswordHash()
+        {
+            // Nur für SuperUser zugänglich (keine Session-Prüfung nötig)
+            if (!IsAdmin())
+            {
+                return Unauthorized("Nur für Admins zugänglich.");
+            }
+
+            return View();
+        }
+
+        // POST: Admin/GeneratePasswordHash
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public IActionResult GeneratePasswordHash(string plainPassword)
+        {
+            if (!IsAdmin())
+            {
+                return Unauthorized("Nur für Admins zugänglich.");
+            }
+
+            if (string.IsNullOrWhiteSpace(plainPassword))
+            {
+                TempData["Error"] = "Bitte geben Sie ein Passwort ein.";
+                return View();
+            }
+
+            var hashedPassword = BCrypt.Net.BCrypt.HashPassword(plainPassword);
+            ViewData["HashedPassword"] = hashedPassword;
+            ViewData["PlainPassword"] = plainPassword;
+
+            return View();
         }
 
         // GET: Admin/GetCreatorRecipes?creatorHash=...
