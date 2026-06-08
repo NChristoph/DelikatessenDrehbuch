@@ -234,6 +234,9 @@
   <data name="Feed.Recipe" xml:space="preserve">
     <value>Rezept</value>
   </data>
+  <data name="Feed.Report" xml:space="preserve">
+    <value>Melden</value>
+  </data>
   <data name="Feed.Ingredients" xml:space="preserve">
     <value>Zutaten</value>
   </data>
@@ -287,6 +290,72 @@
   <data name="MealPlan.PerServing" xml:space="preserve">
     <value>Pro Portion</value>
   </data>
+  <data name="MealPlan.WhatWouldYouLike" xml:space="preserve">
+    <value>Was darf's sein?</value>
+  </data>
+  <data name="MealPlan.EverythingAllowed" xml:space="preserve">
+    <value>Alles erlaubt</value>
+  </data>
+  <data name="MealPlan.PlantBased" xml:space="preserve">
+    <value>Rein pflanzlich</value>
+  </data>
+  <data name="MealPlan.Days" xml:space="preserve">
+    <value>Tage</value>
+  </data>
+  <data name="MealPlan.PlanName" xml:space="preserve">
+    <value>Name des Plans *</value>
+  </data>
+  <data name="MealPlan.CreatePlan" xml:space="preserve">
+    <value>Plan erstellen</value>
+  </data>
+  <data name="MealPlan.ChangeSetup" xml:space="preserve">
+    <value>Setup ändern</value>
+  </data>
+  <data name="MealPlan.SwapDish" xml:space="preserve">
+    <value>Gericht tauschen</value>
+  </data>
+  <data name="MealPlan.WeeklyPlanner" xml:space="preserve">
+    <value>Wochenplaner</value>
+  </data>
+  <data name="MealPlan.ClearPlan" xml:space="preserve">
+    <value>Plan leeren</value>
+  </data>
+  <data name="MealPlan.IcsExport" xml:space="preserve">
+    <value>.ics Export</value>
+  </data>
+  <data name="MealPlan.CalorieGoal" xml:space="preserve">
+    <value>Kcal-Ziel</value>
+  </data>
+  <data name="MealPlan.MyWeeklyPlan" xml:space="preserve">
+    <value>Mein Wochenplan</value>
+  </data>
+  <data name="MealPlan.Pers" xml:space="preserve">
+    <value>Pers.</value>
+  </data>
+  <data name="MealPlan.DecreasePersonCount" xml:space="preserve">
+    <value>Personenzahl verringern</value>
+  </data>
+  <data name="MealPlan.IncreasePersonCount" xml:space="preserve">
+    <value>Personenzahl erhöhen</value>
+  </data>
+  <data name="MealPlan.PersonQuickSelect" xml:space="preserve">
+    <value>Schnellauswahl Personen</value>
+  </data>
+  <data name="MealPlan.PlanLinkPlaceholder" xml:space="preserve">
+    <value>Plan-Link erscheint hier...</value>
+  </data>
+  <data name="MealPlan.BeingAdded" xml:space="preserve">
+    <value>wird hinzugefügt</value>
+  </data>
+  <data name="MealPlan.TotalNutrition" xml:space="preserve">
+    <value>Nährwerte gesamt</value>
+  </data>
+  <data name="MealPlan.WeeklyGoal" xml:space="preserve">
+    <value>Wochenziel</value>
+  </data>
+  <data name="MealPlan.DailyGoal" xml:space="preserve">
+    <value>Tagesziel</value>
+  </data>
 
   <!-- AI Messages -->
   <data name="AI.PreviewCreating" xml:space="preserve">
@@ -338,6 +407,27 @@
   </data>
   <data name="Day.Sunday" xml:space="preserve">
     <value>Sonntag</value>
+  </data>
+  <data name="Day.MondayShort" xml:space="preserve">
+    <value>Mo</value>
+  </data>
+  <data name="Day.TuesdayShort" xml:space="preserve">
+    <value>Di</value>
+  </data>
+  <data name="Day.WednesdayShort" xml:space="preserve">
+    <value>Mi</value>
+  </data>
+  <data name="Day.ThursdayShort" xml:space="preserve">
+    <value>Do</value>
+  </data>
+  <data name="Day.FridayShort" xml:space="preserve">
+    <value>Fr</value>
+  </data>
+  <data name="Day.SaturdayShort" xml:space="preserve">
+    <value>Sa</value>
+  </data>
+  <data name="Day.SundayShort" xml:space="preserve">
+    <value>So</value>
   </data>
 
   <!-- Meal Types -->
@@ -835,6 +925,15 @@
   </data>
   <data name="SharedFeed.GroupName" xml:space="preserve">
     <value>Gruppen-Name</value>
+  </data>
+  <data name="SharedFeed.ShareMealPlan" xml:space="preserve">
+    <value>Essensplan teilen...</value>
+  </data>
+  <data name="SharedFeed.Posts" xml:space="preserve">
+    <value>Beiträge</value>
+  </data>
+  <data name="SharedFeed.Tasks" xml:space="preserve">
+    <value>Aufgaben</value>
   </data>
   <data name="CreatePosting.Ingredients" xml:space="preserve">
     <value>Zutaten</value>

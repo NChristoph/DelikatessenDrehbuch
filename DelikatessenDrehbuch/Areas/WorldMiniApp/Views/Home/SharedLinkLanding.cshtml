@@ -211,6 +211,36 @@
     </div>
 
     <script>
+        // Simple toast feedback function
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: ${type === 'success' ? '#5fa052' : '#ff5e62'};
+                color: white;
+                padding: 16px 24px;
+                border-radius: 12px;
+                box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                z-index: 10000;
+                font-size: 15px;
+                font-weight: 600;
+                max-width: 90%;
+                text-align: center;
+                word-break: break-all;
+            `;
+            toast.textContent = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
         const card = document.querySelector(".landing-card");
         const token = card.dataset.token || "";
         const targetPath = card.dataset.targetPath || "";
@@ -332,10 +362,15 @@
                         }
                     }, 500);
                 }).catch(() => {
-                    alert("Link: " + fullUrl);
+                    showToast("Link kopiert: " + fullUrl, 'success');
                 });
             } else {
-                alert("Kopiere diesen Link:\n\n" + fullUrl);
+                // Try to copy to clipboard
+                navigator.clipboard.writeText(fullUrl).then(() => {
+                    showToast("Link in Zwischenablage kopiert!", 'success');
+                }).catch(() => {
+                    showToast("Link: " + fullUrl, 'success');
+                });
             }
         }
 

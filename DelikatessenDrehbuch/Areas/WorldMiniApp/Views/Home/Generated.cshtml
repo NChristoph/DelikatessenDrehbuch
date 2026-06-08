@@ -1,5 +1,8 @@
 @using DelikatessenDrehbuch.Models
 @using DelikatessenDrehbuch.StaticScripts
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @model List<MealPlanerModel>
 
 @{
@@ -16,7 +19,7 @@
     <div class="px-4 pt-4 pb-2 d-flex justify-content-between align-items-center">
         <div>
             <a href="@Url.Action("Generator", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small opacity-75">
-                <i class="bi bi-arrow-left"></i> Setup ändern
+                <i class="bi bi-arrow-left"></i> @SharedLocalizer["MealPlan.ChangeSetup"]
             </a>
             <h2 class="fw-bold mb-0" style="color: #2c3e50;">Dein Plan 🥑</h2>
         </div>
@@ -159,7 +162,7 @@
 
 <div class="offcanvas offcanvas-bottom h-75 rounded-top-4" tabindex="-1" id="globalRecipeSearchOffcanvas">
     <div class="offcanvas-header border-bottom">
-        <h5 class="offcanvas-title fw-bold">Gericht tauschen</h5>
+        <h5 class="offcanvas-title fw-bold">@SharedLocalizer["MealPlan.SwapDish"]</h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body p-0" id="globalRecipeSearchContent">
@@ -172,6 +175,35 @@
 
 @section Scripts {
 <script>
+            // Simple toast feedback function
+            function showToast(message, type = 'error') {
+                const toast = document.createElement('div');
+                toast.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background: ${type === 'success' ? '#5fa052' : '#ff5e62'};
+                    color: white;
+                    padding: 16px 24px;
+                    border-radius: 12px;
+                    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+                    z-index: 10000;
+                    font-size: 15px;
+                    font-weight: 600;
+                    max-width: 90%;
+                    text-align: center;
+                    animation: slideDown 0.3s ease-out;
+                `;
+                toast.textContent = message;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.style.animation = 'slideUp 0.3s ease-out';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+
             // Globaler Cache für die Bootstrap Offcanvas Instanz
             let searchOffcanvasInstance = null;
 
@@ -398,7 +430,7 @@
                         btn.innerHTML = originalText;
                         btn.disabled = false;
                         console.error('Meal plan save failed', error);
-                        alert(`Plan konnte nicht gespeichert werden. ${error.message || ''}`.trim());
+                        showToast(`Plan konnte nicht gespeichert werden. ${error.message || ''}`.trim(), 'error');
                     });
 
 

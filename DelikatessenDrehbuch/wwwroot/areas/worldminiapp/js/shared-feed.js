@@ -29,13 +29,39 @@
         window.location.href = `/WorldMiniApp/Shared/FeedLight?feedId=${feedId}&userHash=${encodeURIComponent(userHash)}`;
     };
 
+    // Simple toast fallback if showToast doesn't exist
+    function simpleToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: ${type === 'success' ? '#5fa052' : '#ff5e62'};
+            color: white;
+            padding: 12px 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            z-index: 10000;
+            font-size: 14px;
+            font-weight: 600;
+            animation: slideIn 0.3s ease-out;
+        `;
+        toast.textContent = message;
+        document.body.appendChild(toast);
+
+        setTimeout(() => {
+            toast.style.animation = 'slideOut 0.3s ease-out';
+            setTimeout(() => toast.remove(), 300);
+        }, 2000);
+    }
+
     // Copy Invite URL
     window.copyInviteUrl = function(url) {
         navigator.clipboard.writeText(url).then(() => {
             if (window.showToast) {
                 window.showToast('Einladungslink kopiert', 'success');
             } else {
-                alert('Einladungslink kopiert!');
+                simpleToast('Einladungslink kopiert');
             }
         }).catch(() => {
             // Fallback
@@ -48,7 +74,7 @@
             if (window.showToast) {
                 window.showToast('Einladungslink kopiert', 'success');
             } else {
-                alert('Einladungslink kopiert!');
+                simpleToast('Einladungslink kopiert');
             }
         });
     };
@@ -462,7 +488,7 @@
 
             // Max 10MB
             if (file.size > 10 * 1024 * 1024) {
-                alert('Datei ist zu groß (max. 10 MB)');
+                simpleToast('Datei ist zu groß (max. 10 MB)', 'error');
                 fileInput.value = '';
                 return;
             }
@@ -615,7 +641,7 @@
                 })
                 .catch(err => {
                     console.error('Error sending message:', err);
-                    alert('Fehler beim Senden. Datei zu groß?');
+                    simpleToast('Fehler beim Senden. Datei zu groß?', 'error');
                 })
                 .finally(() => {
                     chatSendBtn.disabled = false;

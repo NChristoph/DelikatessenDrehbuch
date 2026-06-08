@@ -21,7 +21,7 @@
     <div class="s-topbar">
         <a class="s-back-pill" href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>
-            <span>Home</span>
+            <span>@SharedLocalizer["Common.Back"]</span>
         </a>
         <div class="s-title-block">
             <div class="s-eyebrow">@SharedLocalizer["SharedFeed.MyGroups"].Value.ToUpper()</div>
@@ -95,11 +95,11 @@
                     </div>
                     <div class="s-hero-stat">
                         <div class="s-hero-stat-val">@active.ItemCount</div>
-                        <div class="s-hero-stat-label">BEITRÄGE</div>
+                        <div class="s-hero-stat-label">@SharedLocalizer["SharedFeed.Posts"].Value.ToUpper()</div>
                     </div>
                     <div class="s-hero-stat">
                         <div class="s-hero-stat-val">@active.Todos.Count(t => !t.IsCompleted)</div>
-                        <div class="s-hero-stat-label">AUFGABEN</div>
+                        <div class="s-hero-stat-label">@SharedLocalizer["SharedFeed.Tasks"].Value.ToUpper()</div>
                     </div>
                 </div>
             </div>
@@ -140,7 +140,7 @@
                         <div class="s-composer-avatar" data-gradient="0">
                             <span>@GetInitials(Model.CurrentUserHash)</span>
                         </div>
-                        <span class="s-composer-text">Essensplan teilen...</span>
+                        <span class="s-composer-text">@SharedLocalizer["SharedFeed.ShareMealPlan"]</span>
                         <div class="s-composer-pill">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
                             <span>Plan</span>

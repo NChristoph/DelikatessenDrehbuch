@@ -996,7 +996,7 @@ body {
                         window.location.reload();
                     } catch (error) {
                         console.error(error);
-                        alert('Test-Login fehlgeschlagen');
+                        showToastBottomRight('Test-Login fehlgeschlagen');
                         this.disabled = false;
                         this.innerHTML = originalText;
                     }
@@ -1023,7 +1023,7 @@ body {
                         window.location.reload();
                     } catch (error) {
                         console.error(error);
-                        alert('Logout fehlgeschlagen');
+                        showToastBottomRight('Logout fehlgeschlagen');
                         clearDebugTestLoginButton.disabled = false;
                     }
                 });

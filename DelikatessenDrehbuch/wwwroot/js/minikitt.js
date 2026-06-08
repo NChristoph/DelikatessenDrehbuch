@@ -1,4 +1,4 @@
-import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js/+esm";
+import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@2.0.3/+esm";
 
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const REMEMBER_LOGIN_KEY = "remember_login";
@@ -350,7 +350,9 @@ function normalizeNonce(rawNonce) {
     return normalized;
 }
 
-// Debug-Funktionen entfernt für Production
+// Check MiniKit capabilities
+const hasWalletAuth = typeof MiniKit !== 'undefined' && typeof MiniKit.walletAuth === 'function';
+const hasSignMessage = typeof MiniKit !== 'undefined' && typeof MiniKit.signMessage === 'function';
 
 async function startWalletAuth() {
     const env = await diagnoseEnvironment();
@@ -379,7 +381,7 @@ async function startWalletAuth() {
             result = await MiniKit.walletAuth({ nonce });
         } else if (hasSignMessage) {
             console.log('🔵 Using MiniKit.signMessage (Fallback)');
-            alert('⚠️ walletAuth nicht verfügbar, versuche signMessage...');
+            console.warn('⚠️ walletAuth nicht verfügbar, versuche signMessage...');
             result = await MiniKit.signMessage({
                 message: `Wallet verbinden\nNonce: ${nonce}`
             });
@@ -387,14 +389,7 @@ async function startWalletAuth() {
             throw new Error('Weder walletAuth noch signMessage verfügbar!');
         }
     } catch (error) {
-        alert(`❌ MiniKit Call hat einen Fehler geworfen:\n\n${error.message || error}\n\nStack:\n${error.stack || 'keine'}`);
-        showMiniKitDebugAlert('MiniKit Call Fehler', error, {
-            flow: 'connectWalletOnly',
-            nonce,
-            hasWalletAuth,
-            hasSignMessage,
-            isInstalledValue
-        });
+        console.error(`❌ MiniKit Call hat einen Fehler geworfen:`, error);
         throw error;
     }
 

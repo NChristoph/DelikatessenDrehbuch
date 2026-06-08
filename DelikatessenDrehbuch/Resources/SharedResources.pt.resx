@@ -234,6 +234,9 @@
   <data name="Feed.Recipe" xml:space="preserve">
     <value>Receita</value>
   </data>
+  <data name="Feed.Report" xml:space="preserve">
+    <value>Denunciar</value>
+  </data>
   <data name="Feed.Ingredients" xml:space="preserve">
     <value>Ingredientes</value>
   </data>
@@ -286,6 +289,30 @@
   </data>
   <data name="MealPlan.PerServing" xml:space="preserve">
     <value>Por dose</value>
+  </data>
+  <data name="MealPlan.WhatWouldYouLike" xml:space="preserve">
+    <value>O que você gostaria?</value>
+  </data>
+  <data name="MealPlan.EverythingAllowed" xml:space="preserve">
+    <value>Tudo permitido</value>
+  </data>
+  <data name="MealPlan.PlantBased" xml:space="preserve">
+    <value>À base de plantas</value>
+  </data>
+  <data name="MealPlan.Days" xml:space="preserve">
+    <value>Dias</value>
+  </data>
+  <data name="MealPlan.PlanName" xml:space="preserve">
+    <value>Nome do plano *</value>
+  </data>
+  <data name="MealPlan.CreatePlan" xml:space="preserve">
+    <value>Criar plano</value>
+  </data>
+  <data name="MealPlan.ChangeSetup" xml:space="preserve">
+    <value>Alterar configuração</value>
+  </data>
+  <data name="MealPlan.SwapDish" xml:space="preserve">
+    <value>Trocar prato</value>
   </data>
 
   <!-- AI Messages -->
@@ -947,8 +974,17 @@
   <data name="SharedFeed.Items" xml:space="preserve">
     <value>itens</value>
   </data>
+  <data name="SharedFeed.Posts" xml:space="preserve">
+    <value>Postagens</value>
+  </data>
+  <data name="SharedFeed.Tasks" xml:space="preserve">
+    <value>Tarefas</value>
+  </data>
   <data name="SharedFeed.InviteLink" xml:space="preserve">
     <value>Copiar link de convite</value>
+  </data>
+  <data name="SharedFeed.ShareMealPlan" xml:space="preserve">
+    <value>Compartilhar plano de refeições...</value>
   </data>
   <data name="SharedFeed.NoFeeds" xml:space="preserve">
     <value>Ainda não há feeds partilhados.</value>
@@ -1094,5 +1130,72 @@
   </data>
   <data name="Common.AutoTranslated" xml:space="preserve">
     <value>traduzido automaticamente</value>
+  </data>
+
+  <!-- Meal Plan Modal (Feed) -->
+  <data name="MealPlan.WeeklyPlanner" xml:space="preserve">
+    <value>Planejador Semanal</value>
+  </data>
+  <data name="MealPlan.ClearPlan" xml:space="preserve">
+    <value>Limpar Plano</value>
+  </data>
+  <data name="MealPlan.IcsExport" xml:space="preserve">
+    <value>Exportar como .ics</value>
+  </data>
+  <data name="MealPlan.CalorieGoal" xml:space="preserve">
+    <value>Meta de Calorias</value>
+  </data>
+  <data name="MealPlan.MyWeeklyPlan" xml:space="preserve">
+    <value>Meu Plano Semanal</value>
+  </data>
+  <data name="MealPlan.Pers" xml:space="preserve">
+    <value>Pess.</value>
+  </data>
+  <data name="MealPlan.DecreasePersonCount" xml:space="preserve">
+    <value>Diminuir número de pessoas</value>
+  </data>
+  <data name="MealPlan.IncreasePersonCount" xml:space="preserve">
+    <value>Aumentar número de pessoas</value>
+  </data>
+  <data name="MealPlan.PersonQuickSelect" xml:space="preserve">
+    <value>Seleção rápida de número de pessoas</value>
+  </data>
+  <data name="MealPlan.PlanLinkPlaceholder" xml:space="preserve">
+    <value>Cole o link do plano compartilhado aqui...</value>
+  </data>
+  <data name="MealPlan.BeingAdded" xml:space="preserve">
+    <value>Adicionando...</value>
+  </data>
+  <data name="MealPlan.TotalNutrition" xml:space="preserve">
+    <value>Nutrição Total</value>
+  </data>
+  <data name="MealPlan.WeeklyGoal" xml:space="preserve">
+    <value>Meta Semanal</value>
+  </data>
+  <data name="MealPlan.DailyGoal" xml:space="preserve">
+    <value>Meta Diária</value>
+  </data>
+
+  <!-- Day Short Forms -->
+  <data name="Day.MondayShort" xml:space="preserve">
+    <value>Seg</value>
+  </data>
+  <data name="Day.TuesdayShort" xml:space="preserve">
+    <value>Ter</value>
+  </data>
+  <data name="Day.WednesdayShort" xml:space="preserve">
+    <value>Qua</value>
+  </data>
+  <data name="Day.ThursdayShort" xml:space="preserve">
+    <value>Qui</value>
+  </data>
+  <data name="Day.FridayShort" xml:space="preserve">
+    <value>Sex</value>
+  </data>
+  <data name="Day.SaturdayShort" xml:space="preserve">
+    <value>Sáb</value>
+  </data>
+  <data name="Day.SundayShort" xml:space="preserve">
+    <value>Dom</value>
   </data>
 </root>

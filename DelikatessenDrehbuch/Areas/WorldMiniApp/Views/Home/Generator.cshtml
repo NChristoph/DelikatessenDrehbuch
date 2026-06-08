@@ -1,10 +1,13 @@
 @using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@using Microsoft.AspNetCore.Mvc.Localization
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @model MiniAppSetupModel
 
 @{
     Layout = "_MiniAppLayout";
     ViewData["Title"] = "Setup";
-   
+
 }
 
 <div class="min-vh-100 pb-5" style="background: linear-gradient(140deg, #fff8e1 0%, #fff 50%, #f3e5f5 100%);">
@@ -14,7 +17,7 @@
             <i class="bi bi-arrow-left"></i> Zurück
         </a>
         <h2 class="fw-bold mb-1" style="color: #2c3e50;">Dein Setup ⚙️</h2>
-        <p class="text-muted small">Was darf's sein?</p>
+        <p class="text-muted small">@SharedLocalizer["MealPlan.WhatWouldYouLike"]</p>
     </div>
 
     <form method="post" action="@Url.Action("Generated", "MealPlan", new { area = "WorldMiniApp" })" class="pb-5">
@@ -33,7 +36,7 @@
                                 <i class="bi bi-egg-fried"></i>
                             </div>
                             <div class="text-content">
-                                <span class="d-block fw-bold title">Alles erlaubt</span>
+                                <span class="d-block fw-bold title">@SharedLocalizer["MealPlan.EverythingAllowed"]</span>
                                 <small class="desc">Fleisch, Fisch & Gemüse</small>
                             </div>
                             <i class="bi bi-check-circle-fill ms-auto check-icon"></i>
@@ -62,7 +65,7 @@
                             </div>
                             <div class="text-content">
                                 <span class="d-block fw-bold title">Vegan</span>
-                                <small class="desc">Rein pflanzlich</small>
+                                <small class="desc">@SharedLocalizer["MealPlan.PlantBased"]</small>
                             </div>
                             <i class="bi bi-check-circle-fill ms-auto check-icon"></i>
                         </div>
@@ -97,7 +100,7 @@
                 <div class="row g-3">
                     <div class="col-6">
                         <div class="counter-card p-3 rounded-4 shadow-sm text-center position-relative overflow-hidden">
-                            <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.65rem;">Tage</small>
+                            <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.65rem;">@SharedLocalizer["MealPlan.Days"]</small>
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 32px; height: 32px;" onclick="changeVal('dayCount', -1)">-</button>
                                 <input asp-for="DayCount" id="dayCount" min="1" max="7" class="form-control border-0 text-center p-0 fw-bold fs-4 bg-transparent" style="width: 40px;" readonly>
@@ -108,7 +111,7 @@
 
                     <div class="col-6">
                         <div class="counter-card p-3 rounded-4 shadow-sm text-center position-relative overflow-hidden">
-                            <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.65rem;">Personen</small>
+                            <small class="text-muted d-block mb-2 text-uppercase fw-bold" style="font-size: 0.65rem;">@SharedLocalizer["MealPlan.Persons"]</small>
                             <div class="d-flex align-items-center justify-content-center gap-2">
                                 <button type="button" class="btn btn-sm btn-light rounded-circle shadow-sm" style="width: 32px; height: 32px;" onclick="changeVal('personCount', -1)">-</button>
                                 <input asp-for="PersonCount" id="personCount" min="1" max="12" class="form-control border-0 text-center p-0 fw-bold fs-4 bg-transparent" style="width: 40px;" readonly>
@@ -121,7 +124,7 @@
 
             <div class="mt-4 mb-5">
                 <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">
-                    Name des Plans *
+                    @SharedLocalizer["MealPlan.PlanName"]
                 </label>
 
                 <div class="card border-0 shadow-sm p-1 rounded-4 position-relative overflow-hidden bg-white">
@@ -148,7 +151,7 @@
         <div class="fixed-bottom p-3" style="background: linear-gradient(to top, #f3e5f5 0%, transparent 100%);">
             <button type="submit" class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center text-white btn-hover-effect"
                     style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
-                <span class="fs-5">Plan erstellen</span>
+                <span class="fs-5">@SharedLocalizer["MealPlan.CreatePlan"]</span>
                 <i class="bi bi-magic ms-2 fs-5"></i>
             </button>
         </div>

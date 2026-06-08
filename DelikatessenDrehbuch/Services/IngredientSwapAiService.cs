@@ -308,6 +308,11 @@ namespace DelikatessenDrehbuch.Services
 
             var unitRule = IsLiquidUnit(originalUsage.DisplayUnit) ? "ml" : "g";
 
+            // Format quantities clearly without thousand separators to avoid AI confusion
+            var originalGrams = originalUsage.QuantityInGrams;
+            var displayQty = FormatDecimal(originalUsage.DisplayQuantity);
+            var gramsFormatted = FormatDecimal(originalGrams);
+
             var contextBlock = string.Empty;
             if (otherContextSwaps.Count > 0)
             {
@@ -321,24 +326,30 @@ namespace DelikatessenDrehbuch.Services
             return $@"Swap ingredient ""{GetIngredientName(original, language)}"" in recipe ""{recipe.Title}"".
 Goal: {goalInstruction}
 Original nutrition per 100g: {original.Calories_a_100g} kcal, protein {original.Protein_a_100g} g, carbs {original.Carbohydrates_a_100g} g, fat {original.Fat_a_100g} g.
-Amount used in this recipe: {FormatDecimal(originalUsage.DisplayQuantity)} {originalUsage.DisplayUnit} (about {FormatDecimal(originalUsage.QuantityInGrams)} g).
+Amount used in this recipe: {displayQty} {originalUsage.DisplayUnit} (= {gramsFormatted} grams total).
 {contextBlock}
 
 CRITICAL Rules - Follow Strictly:
 - Suggest at most {maxSuggestions} real alternatives from the available ingredient list.
-- ONLY suggest ingredients that serve the SAME CULINARY ROLE as the original ingredient.
-- Match the ingredient's PURPOSE in the recipe:
-  * Nuts → other nuts or seeds (NEVER grains, sweeteners, or vegetables)
-  * Proteins (meat/fish) → other proteins from same category
-  * Grains (rice/pasta) → other grains (NEVER proteins or sweeteners)
-  * Sweeteners (sugar/honey) → other sweeteners (NEVER savory ingredients)
-  * Vegetables → similar vegetables with similar texture
-  * Herbs/Spices → other herbs/spices with similar flavor profile
-  * Dairy → other dairy or appropriate plant-based alternatives
-- REJECT suggestions that would drastically change the dish type or flavor category.
-- Match texture and physical form: crunchy → crunchy, creamy → creamy, liquid → liquid.
-- Suggested quantity must realistically replace the FULL amount used ({FormatDecimal(originalUsage.QuantityInGrams)} g), not a generic 100 g default.
-- Use unit '{unitRule}' for quantity.
+- ONLY suggest ingredients that serve the EXACT SAME CULINARY ROLE as the original ingredient.
+- STRICT Category Matching - Do NOT cross categories:
+  * Vegetables → ONLY other vegetables (NEVER meat, grains, or dairy)
+  * Meat/Poultry → ONLY other meat/poultry (NEVER fish, vegetables, or grains)
+  * Fish/Seafood → ONLY other fish/seafood (NEVER meat or vegetables)
+  * Grains/Pasta/Rice → ONLY other grains (NEVER proteins, vegetables, or sweeteners)
+  * Dairy → ONLY other dairy or plant-based dairy alternatives
+  * Nuts/Seeds → ONLY other nuts or seeds (NEVER grains, sweeteners, or vegetables)
+  * Herbs/Spices → ONLY other herbs/spices with similar flavor profile
+  * Sweeteners (sugar/honey) → ONLY other sweeteners (NEVER savory ingredients)
+- Match texture and physical form: crunchy → crunchy, creamy → creamy, liquid → liquid, solid → solid.
+- QUANTITY RULE (MOST CRITICAL - READ CAREFULLY):
+  * Original ingredient amount: {gramsFormatted} grams (this is a NUMBER without thousand separators)
+  * Your suggested quantity must be a NUMERIC VALUE between {Math.Round(originalGrams * 0.7m)} and {Math.Round(originalGrams * 1.3m)} {unitRule}
+  * Example correct values for {gramsFormatted}g original: {Math.Round(originalGrams * 0.9m)}, {Math.Round(originalGrams)}, {Math.Round(originalGrams * 1.1m)}
+  * DO NOT multiply by portions (the amount is ALREADY for the full recipe)
+  * DO NOT use default values like 100, 200, or 500
+  * DO NOT add thousand separators (use 300 not 300.000 or 300,000)
+  * The quantity field in JSON must be a plain number: {Math.Round(originalGrams)}
 - Do not suggest the original ingredient itself.
 - Keep reasons short and concrete.
 - Write every natural-language field in {responseLanguage}.
@@ -407,22 +418,19 @@ Available ingredients:
             var isSeasoningGroup = await IsSeasoningGroupAsync(original.GroupId);
 
             // For vegan swaps, don't narrow too much; otherwise keep the pool close to the original.
-            // IMPORTANT: If FoodCategoryId is set, prefer it strongly (herbs/spices often share a food-category,
-            // while GroupId can be broad like "vegetables" and would leak weird options such as cauliflower for coriander).
+            // IMPORTANT: If FoodCategoryId is set, prefer it but don't make it exclusive to ensure enough variety.
+            // GroupId should be the primary filter, FoodCategoryId is secondary.
             if (!string.Equals(goal, "vegan", StringComparison.OrdinalIgnoreCase))
             {
-                if (!isSeasoningGroup && original.FoodCategoryId.HasValue)
-                {
-                    var strict = baseQuery.Where(i => i.FoodCategoryId == original.FoodCategoryId.Value);
-                    var strictCount = await strict.Take(25).CountAsync();
-                    baseQuery = strictCount >= 8
-                        ? strict
-                        : strict.Union(baseQuery.Where(i => i.GroupId == original.GroupId));
-                }
-                else if (original.GroupId.HasValue)
+                // Always filter by GroupId first (this is the most important category boundary)
+                if (original.GroupId.HasValue)
                 {
                     baseQuery = baseQuery.Where(i => i.GroupId == original.GroupId.Value);
                 }
+
+                // For seasoning groups, don't narrow further with FoodCategoryId
+                // For other groups, FoodCategoryId is used in scoring but not as hard filter
+                // This ensures we get more variety (e.g., different cuts of meat, not just chicken breast)
             }
 
             var unitLiquid = IsLiquidUnit(originalUnit);
@@ -560,12 +568,12 @@ Available ingredients:
                 .OrderByDescending(x => x.Score)
                 .ThenByDescending(x => x.Item.Protein)
                 .ThenBy(x => x.Item.Id)
-                .Take(90)
+                .Take(150) // Increased from 90 to get more variety, especially for meat/poultry
                 .Where(x => x.Score >= (IsLiquidUnit(originalUnit) ? 10m : -9999m))
                 .Select(x => x.Item)
                 .ToList();
 
-            var diversified = DiversifyCandidates(scored, maxTotal: 55, maxPerFoodCategory: 10);
+            var diversified = DiversifyCandidates(scored, maxTotal: 80, maxPerFoodCategory: 15); // Increased limits for more variety
 
             ingredientList = diversified
                 .Select(i => (
@@ -744,11 +752,35 @@ Available ingredients:
                     continue;
                 }
 
+                // Validate and correct quantity if AI suggested something unrealistic
+                var correctedQuantity = suggestion.Quantity;
+                var expectedQuantity = originalUsage.QuantityInGrams;
+
+                // If the suggestion is more than 3x or less than 0.3x the original, clamp it
+                if (expectedQuantity > 0)
+                {
+                    var ratio = correctedQuantity / expectedQuantity;
+                    if (ratio > 3.0m)
+                    {
+                        // AI suggested way too much - likely multiplied incorrectly
+                        correctedQuantity = expectedQuantity * 1.2m; // Use 20% more as reasonable alternative
+                        _logger.LogWarning("AI suggested unrealistic quantity {Suggested}g for {Original}g (ratio {Ratio}). Corrected to {Corrected}g.",
+                            suggestion.Quantity, expectedQuantity, ratio, correctedQuantity);
+                    }
+                    else if (ratio < 0.3m && correctedQuantity < 50m)
+                    {
+                        // AI suggested way too little (but allow small amounts for herbs/spices)
+                        correctedQuantity = expectedQuantity * 0.9m;
+                        _logger.LogWarning("AI suggested unrealistic quantity {Suggested}g for {Original}g (ratio {Ratio}). Corrected to {Corrected}g.",
+                            suggestion.Quantity, expectedQuantity, ratio, correctedQuantity);
+                    }
+                }
+
                 validated.Add(new IngredientSwapOption
                 {
                     IngredientId = suggestion.IngredientId,
                     Name = GetIngredientName(ingredient, language),
-                    Quantity = suggestion.Quantity,
+                    Quantity = correctedQuantity,
                     Unit = NormalizeSwapUnit(isLiquidSwap, suggestion.Unit),
                     Reason = string.IsNullOrWhiteSpace(suggestion.Reason) ? "Good culinary alternative for this recipe." : suggestion.Reason.Trim(),
                     CompatibilityScore = Math.Clamp(suggestion.CompatibilityScore, 0d, 1d),
@@ -756,7 +788,7 @@ Available ingredients:
                     TasteImpact = string.IsNullOrWhiteSpace(suggestion.TasteImpact) ? "Similar overall taste profile." : suggestion.TasteImpact.Trim(),
                     Pros = suggestion.Pros?.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().Take(4).ToList() ?? new List<string>(),
                     Cons = suggestion.Cons?.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().Take(4).ToList() ?? new List<string>(),
-                    Delta = CalculateActualDelta(originalUsage.QuantityInGrams, original, ingredient, suggestion.Quantity)
+                    Delta = CalculateActualDelta(originalUsage.QuantityInGrams, original, ingredient, correctedQuantity)
                 });
             }
 
