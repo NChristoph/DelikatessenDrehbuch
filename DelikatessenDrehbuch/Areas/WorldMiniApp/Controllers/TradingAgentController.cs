@@ -483,8 +483,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error refreshing balances for agent {AgentId}: {Message}", agentId, ex.Message);
-                return Json(new { success = false, error = $"Fehler beim Abrufen: {ex.Message}" });
+                _logger.LogError(ex, "Error refreshing balances for agent {AgentId}", agentId);
+                // Kein ex.Message an den Client – nur generische Meldung.
+                return Json(new { success = false, error = "Fehler beim Abrufen der Balances" });
             }
         }
 
@@ -545,8 +546,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading trade history: {Message}", ex.Message);
-                return Json(new { success = false, error = $"Fehler beim Laden: {ex.Message}" });
+                _logger.LogError(ex, "Error loading trade history");
+                // Kein ex.Message an den Client – nur generische Meldung.
+                return Json(new { success = false, error = "Fehler beim Laden der Trade-History" });
             }
         }
     }

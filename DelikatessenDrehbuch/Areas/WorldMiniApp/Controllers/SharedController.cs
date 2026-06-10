@@ -1322,5 +1322,52 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             return $"https://world.org/mini-app?app_id={WorldMiniAppId}&path={Uri.EscapeDataString(path)}";
         }
+
+        [HttpGet]
+        public IActionResult DebugLogs()
+        {
+            return View();
+        }
+
+        [HttpGet]
+        public IActionResult GetDebugLogs()
+        {
+            var logs = DebugLogger.GetLogs();
+            return Json(new { logs });
+        }
+
+        [HttpPost]
+        public IActionResult ClearDebugLogs()
+        {
+            DebugLogger.Clear();
+            return Ok();
+        }
+
+        [HttpPost]
+        [IgnoreAntiforgeryToken]
+        public IActionResult LogFromClient([FromBody] ClientLogRequest request)
+        {
+            if (string.IsNullOrWhiteSpace(request.Message))
+            {
+                return BadRequest();
+            }
+
+            var level = request.Level?.ToUpperInvariant() ?? "LOG";
+            var prefix = level switch
+            {
+                "ERROR" => "❌ [CLIENT ERROR]",
+                "WARN" => "⚠️ [CLIENT WARN]",
+                _ => "📱 [CLIENT]"
+            };
+
+            DebugLogger.Log($"{prefix} {request.Message}");
+            return Ok();
+        }
+
+        public class ClientLogRequest
+        {
+            public string Message { get; set; } = string.Empty;
+            public string? Level { get; set; }
+        }
     }
 }

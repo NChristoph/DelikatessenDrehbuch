@@ -1089,4 +1089,86 @@
   <data name="Day.SundayShort" xml:space="preserve">
     <value>Sön</value>
   </data>
+
+  <!-- Meal Plan Additional -->
+  <data name="MealPlan.LoadShoppingList" xml:space="preserve">
+    <value>Ladda Inköpslista</value>
+  </data>
+  <data name="MealPlan.TapToGenerate" xml:space="preserve">
+    <value>Tryck för att Generera</value>
+  </data>
+  <data name="MealPlan.Nutrition" xml:space="preserve">
+    <value>Näringsvärden</value>
+  </data>
+  <data name="MealPlan.ChooseRecipe" xml:space="preserve">
+    <value>Välj nu ett recept från feeden för att ersätta.</value>
+  </data>
+  <data name="MealPlan.ShoppingListError" xml:space="preserve">
+    <value>Inköpslistan kunde inte laddas.</value>
+  </data>
+  <data name="MealPlan.ShoppingListLoadFirst" xml:space="preserve">
+    <value>Vänligen ladda en inköpslista först.</value>
+  </data>
+  <data name="MealPlan.ShoppingListTitle" xml:space="preserve">
+    <value>Inköpslista</value>
+  </data>
+  <data name="MealPlan.ShoppingListShare" xml:space="preserve">
+    <value>Kolla in min inköpslista!</value>
+  </data>
+  <data name="MealPlan.NutritionError" xml:space="preserve">
+    <value>Näringsvärden kunde inte laddas.</value>
+  </data>
+
+  <!-- Day Names (Full) -->
+  <data name="Day.Monday" xml:space="preserve">
+    <value>Måndag</value>
+  </data>
+  <data name="Day.Tuesday" xml:space="preserve">
+    <value>Tisdag</value>
+  </data>
+  <data name="Day.Wednesday" xml:space="preserve">
+    <value>Onsdag</value>
+  </data>
+  <data name="Day.Thursday" xml:space="preserve">
+    <value>Torsdag</value>
+  </data>
+  <data name="Day.Friday" xml:space="preserve">
+    <value>Fredag</value>
+  </data>
+  <data name="Day.Saturday" xml:space="preserve">
+    <value>Lördag</value>
+  </data>
+  <data name="Day.Sunday" xml:space="preserve">
+    <value>Söndag</value>
+  </data>
+
+  <!-- Meal Types (Courses) -->
+  <data name="Meal.Starter" xml:space="preserve">
+    <value>Förrätt</value>
+  </data>
+  <data name="Meal.MainCourse" xml:space="preserve">
+    <value>Huvudrätt</value>
+  </data>
+  <data name="Meal.Dessert" xml:space="preserve">
+    <value>Efterrätt</value>
+  </data>
+
+  <!-- Meal Times -->
+  <data name="Meal.Breakfast" xml:space="preserve">
+    <value>🥐 Frukost</value>
+  </data>
+  <data name="Meal.Lunch" xml:space="preserve">
+    <value>🍱 Lunch</value>
+  </data>
+  <data name="Meal.Dinner" xml:space="preserve">
+    <value>🍝 Middag</value>
+  </data>
+
+  <!-- Common Actions -->
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Redigera</value>
+  </data>
+  <data name="Common.Replace" xml:space="preserve">
+    <value>Ersätt</value>
+  </data>
 </root>

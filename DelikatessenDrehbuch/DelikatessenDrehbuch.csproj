@@ -33,6 +33,8 @@
   <ItemGroup>
     <!-- Azure Storage -->
     <PackageReference Include="Azure.Storage.Blobs" Version="12.27.0" />
+    <!-- DataProtection-Keys persistent in SQL (überlebt Neustart / mehrere Instanzen) -->
+    <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.23" />
     <PackageReference Include="Azure.Storage.Queues" Version="12.25.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.2.0" />
     <PackageReference Include="Nethereum.Web3" Version="6.1.0" />

@@ -1,4 +1,11 @@
 import { MiniKit } from "https://cdn.jsdelivr.net/npm/@worldcoin/minikit-js@2.0.3/+esm";
+// World ID 4.0: verify wurde aus MiniKit entfernt und läuft jetzt über IDKit.
+// IDKit-Core ist die Vanilla-Variante (kein React nötig).
+// WICHTIG: über esm.sh laden, NICHT über jsDelivr "+esm" – idkit-core lädt zur
+// Laufzeit ein 827-KB-WASM-Modul, das jsDelivr "+esm" nicht korrekt ausliefert
+// ("failed to compile WebAssembly: HTTP status code is not ok"). esm.sh liefert
+// die .wasm samt Abhängigkeiten korrekt aus. Version exakt gepinnt (= Backend 4.1.8).
+import { IDKit, orbLegacy, deviceLegacy, proofOfHuman, isInWorldApp } from "https://esm.sh/@worldcoin/idkit-core@4.1.8";
 
 const APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
 const REMEMBER_LOGIN_KEY = "remember_login";
@@ -17,11 +24,101 @@ let loginModalOpening = false;
 
 function log(msg, error = false) {
     console.log(msg);
+    dbg(msg, error ? 'error' : 'info');
     const el = document.getElementById('login-status');
     if (el) {
         el.innerHTML = `<div style="color:${error ? 'red' : '#555'}">${msg}</div>`;
     }
 }
+
+// =====================================================================
+// DEBUG-OVERLAY für die World App (Webview hat keine DevTools).
+// Zeigt jeden Schritt + Fehler on-screen UND speichert sie in localStorage,
+// damit sie auch nach einem Schwarzbild/Reload beim Neuöffnen sichtbar sind.
+// Aufrufen über dbg(text, 'info'|'warn'|'error'). Sichtbar über den 🐞-Button
+// unten rechts. Komplett deaktivierbar: localStorage 'worldid_debug_off' = '1'.
+// =====================================================================
+const DBG_KEY = 'worldid_debug_log';
+function dbgPush(line) {
+    try {
+        const arr = JSON.parse(localStorage.getItem(DBG_KEY) || '[]');
+        arr.push(line);
+        while (arr.length > 400) arr.shift();
+        localStorage.setItem(DBG_KEY, JSON.stringify(arr));
+    } catch (_) { }
+}
+function dbgRender(line) {
+    const box = document.getElementById('worldid-debug-body');
+    if (!box) return;
+    const div = document.createElement('div');
+    div.textContent = line;
+    if (line.includes('ERROR')) div.style.color = '#ff6b6b';
+    else if (line.includes('WARN')) div.style.color = '#ffd166';
+    else div.style.color = '#9be39b';
+    box.appendChild(div);
+    box.scrollTop = box.scrollHeight;
+}
+function dbg(msg, level = 'info') {
+    let text;
+    if (typeof msg === 'string') text = msg;
+    else { try { text = JSON.stringify(msg); } catch (_) { text = String(msg); } }
+    const t = new Date().toISOString().substr(11, 12);
+    const line = `[${t}] ${String(level).toUpperCase()}: ${text}`;
+    dbgPush(line);
+    dbgRender(line);
+}
+function dbgInitOverlay() {
+    if (localStorage.getItem('worldid_debug_off') === '1') return;
+    if (document.getElementById('worldid-debug-panel')) return;
+    const btnCss = 'background:#333;color:#fff;border:none;border-radius:4px;padding:2px 8px;font:11px sans-serif';
+    const toggle = document.createElement('button');
+    toggle.textContent = '🐞';
+    toggle.style.cssText = 'position:fixed;right:8px;bottom:8px;z-index:2147483647;background:#222;color:#fff;border:none;border-radius:50%;width:42px;height:42px;font-size:18px;opacity:0.75';
+    const panel = document.createElement('div');
+    panel.id = 'worldid-debug-panel';
+    panel.style.cssText = 'position:fixed;left:0;right:0;bottom:0;height:48vh;background:rgba(0,0,0,0.93);z-index:2147483646;display:none;flex-direction:column';
+    panel.innerHTML =
+        '<div style="display:flex;gap:6px;align-items:center;padding:6px;background:#111">' +
+        '<strong style="color:#fff;flex:1;font:12px sans-serif">World ID Debug</strong>' +
+        '<button id="worldid-debug-copy" style="' + btnCss + '">Copy</button>' +
+        '<button id="worldid-debug-clear" style="' + btnCss + '">Clear</button>' +
+        '<button id="worldid-debug-close" style="' + btnCss + '">Schließen</button>' +
+        '</div>' +
+        '<div id="worldid-debug-body" style="flex:1;overflow:auto;padding:6px;font:11px monospace;color:#9be39b;white-space:pre-wrap;word-break:break-all"></div>';
+    document.body.appendChild(panel);
+    document.body.appendChild(toggle);
+    toggle.onclick = () => { panel.style.display = (panel.style.display === 'none' ? 'flex' : 'none'); };
+    document.getElementById('worldid-debug-close').onclick = () => { panel.style.display = 'none'; };
+    document.getElementById('worldid-debug-clear').onclick = () => {
+        localStorage.removeItem(DBG_KEY);
+        document.getElementById('worldid-debug-body').innerHTML = '';
+    };
+    document.getElementById('worldid-debug-copy').onclick = () => {
+        const txt = (JSON.parse(localStorage.getItem(DBG_KEY) || '[]')).join('\n');
+        if (navigator.clipboard) { navigator.clipboard.writeText(txt); }
+        const c = document.getElementById('worldid-debug-copy');
+        const old = c.textContent; c.textContent = 'kopiert!'; setTimeout(() => c.textContent = old, 1200);
+    };
+    // Bereits gespeicherte Logs (auch von vor einem Schwarzbild) anzeigen.
+    try { (JSON.parse(localStorage.getItem(DBG_KEY) || '[]')).forEach(dbgRender); } catch (_) { }
+    // Umgebungs-Diagnose beim Start.
+    dbg('=== Overlay bereit ===');
+    dbg('URL: ' + location.href);
+    dbg('UA: ' + navigator.userAgent);
+    dbg('MiniKit geladen: ' + (typeof MiniKit !== 'undefined'));
+    try { dbg('MiniKit.isInstalled: ' + (typeof MiniKit !== 'undefined' && typeof MiniKit.isInstalled === 'function' ? MiniKit.isInstalled() : 'n/a')); } catch (e) { dbg('isInstalled Fehler: ' + e.message, 'error'); }
+    try { dbg('IDKit geladen: ' + (typeof IDKit !== 'undefined')); } catch (e) { dbg('IDKit Fehler: ' + e.message, 'error'); }
+    try { dbg('isInWorldApp(): ' + (typeof isInWorldApp === 'function' ? isInWorldApp() : 'n/a')); } catch (e) { dbg('isInWorldApp Fehler: ' + e.message, 'error'); }
+}
+// Globale, sonst unsichtbare Fehler einfangen.
+window.addEventListener('error', (e) => {
+    dbg('window.error: ' + (e.message || (e.error && e.error.message) || 'unbekannt') + ' @ ' + (e.filename || '') + ':' + (e.lineno || ''), 'error');
+});
+window.addEventListener('unhandledrejection', (e) => {
+    const r = e.reason;
+    dbg('unhandledRejection: ' + (r && r.message ? r.message : String(r)) + (r && r.stack ? ' | ' + r.stack : ''), 'error');
+});
+document.addEventListener('DOMContentLoaded', dbgInitOverlay);
 
 function getStoredUserHash() {
     return sessionStorage.getItem("UserToken") || localStorage.getItem("UserToken");
@@ -42,78 +139,157 @@ async function diagnoseEnvironment() {
     return { miniKitExists, isLocalhost };
 }
 
+// MiniKit v2 (@worldcoin/minikit-js@2.x): Befehle werden DIREKT top-level aufgerufen
+// (await MiniKit.<command>(...)). Die frühere Namespace-API MiniKit.commandsAsync.*
+// wurde in v2 ENTFERNT. ACHTUNG: Der World-ID-`verify`-Befehl wurde in v2 ebenfalls
+// entfernt und ist nach IDKit (@worldcoin/idkit) umgezogen – ein funktionierendes
+// MiniKit.verify gibt es hier also NICHT mehr. walletAuth/pay existieren weiterhin
+// top-level (Response-Form: { executedWith, data }).
+// Dieser Helper bevorzugt daher die Top-Level-API und fällt nur für alte SDKs auf
+// commandsAsync zurück.
+async function runMiniKitCommand(name, payload) {
+    if (MiniKit && typeof MiniKit[name] === 'function') {
+        return await MiniKit[name](payload);
+    }
+    if (MiniKit && MiniKit.commandsAsync && typeof MiniKit.commandsAsync[name] === 'function') {
+        return await MiniKit.commandsAsync[name](payload);
+    }
+    throw new Error(`MiniKit.${name} ist in dieser SDK-Version nicht verfügbar (verify wurde in v2 nach IDKit verschoben).`);
+}
+
+// World-ID-Login über IDKit 4.0 (ersetzt den entfernten MiniKit.verify-Befehl).
+// Ablauf: Request-Kontext + signiertes rp_context vom Server holen → IDKit-Request
+// bauen → in der World App verifizieren → Result serverseitig prüfen lassen.
 async function startLoginProcess() {
+    dbg('### LOGIN START ###');
     try {
-        const env = await diagnoseEnvironment();
-
         log("🌍 World ID Verifizierung wird gestartet...");
-        await new Promise(r => setTimeout(r, 600));
 
-        if (!env.miniKitExists) {
-            log("MiniKit nicht verfuegbar. Bitte in World App oeffnen!", true);
-            return;
-        }
-
+        // 0) World-App-Bridge initialisieren. idkit-core nutzt INNERHALB der World App
+        //    die MiniKit-Bridge für den Verifizierungs-Flow. Ohne MiniKit.install meldet
+        //    die World App "MiniKit-Version wird nicht unterstützt" (Schwarzbild).
         try {
+            dbg('Schritt 0: MiniKit.install({appId}) ...');
             MiniKit.install({ appId: APP_ID });
+            dbg('Schritt 0: MiniKit.install OK. isInstalled=' + (typeof MiniKit.isInstalled === 'function' ? MiniKit.isInstalled() : 'n/a'));
         } catch (e) {
-            console.warn("Install Note:", e);
+            dbg('Schritt 0: MiniKit.install Fehler: ' + (e && e.message ? e.message : e), 'warn');
+            console.warn("MiniKit.install:", e);
         }
 
-        if (typeof MiniKit.isInstalled === 'function' && !MiniKit.isInstalled()) {
-            log("❌ World App Kontext nicht erkannt. Bitte Mini App direkt in World App öffnen.", true);
-            const consentButton = document.getElementById('consentLoginButton');
-            if (consentButton) consentButton.disabled = false;
+        // 1) Request-Kontext inkl. backend-signiertem rp_context vom Server holen.
+        //    (Der RP-Signing-Key liegt nur serverseitig/im Node-Signer.)
+        dbg('Schritt 1: hole WorldIdRequestContext ...');
+        const ctxResponse = await fetch('/WorldMiniApp/Auth/WorldIdRequestContext', {
+            method: 'GET',
+            headers: { 'Accept': 'application/json' }
+        });
+        dbg('Schritt 1: HTTP ' + ctxResponse.status);
+        if (!ctxResponse.ok) {
+            log("❌ World ID ist nicht konfiguriert oder die Signierung schlug fehl.", true);
+            const cb = document.getElementById('consentLoginButton');
+            if (cb) cb.disabled = false;
+            return;
+        }
+        const ctx = await ctxResponse.json();
+        dbg('Schritt 1: ctx app_id=' + ctx.app_id + ' env=' + ctx.environment
+            + ' rp_id=' + (ctx.rp_context && ctx.rp_context.rp_id)
+            + ' created_at=' + (ctx.rp_context && ctx.rp_context.created_at)
+            + ' expires_at=' + (ctx.rp_context && ctx.rp_context.expires_at)
+            + ' hatSignatur=' + !!(ctx.rp_context && ctx.rp_context.signature));
+
+        // 2) IDKit-Request bauen. orbLegacy = Orb-Verifizierung (proof of personhood).
+        //    signal kann leer bleiben (am Login ist noch kein Nutzer gebunden).
+        log("Bitte World ID bestätigen...");
+        // Preset = deviceLegacy: Device-Level-Verifizierung (entspricht dem alten
+        // verification_level:'device'). Das hat praktisch jeder World-App-Nutzer.
+        // orbLegacy/proofOfHuman würden Orb verlangen und device-only-Nutzer mit
+        // "credential_unavailable" aussperren.
+        dbg('Schritt 2: IDKit.request(...).preset(deviceLegacy) bauen ...');
+        const request = await IDKit.request({
+            app_id: ctx.app_id,
+            action: ctx.action,
+            rp_context: ctx.rp_context,
+            allow_legacy_proofs: ctx.allow_legacy_proofs ?? true,
+            environment: ctx.environment || 'production'
+        }).preset(deviceLegacy({ signal: '' }));
+        dbg('Schritt 2: request gebaut. connectorURI=' + (request && request.connectorURI ? String(request.connectorURI).substring(0, 80) : 'KEINE'));
+
+        // 3) Verifizierungs-Flow auslösen.
+        //    - INNERHALB der World App: NICHT zur connectorURI navigieren! idkit-core
+        //      löst den nativen World-ID-Flow über die World-App-Bridge selbst aus.
+        //    - AUSSERHALB der World App (Browser/Desktop): connectorURI als Deep-Link.
+        let inWorldApp = false;
+        try { inWorldApp = (typeof isInWorldApp === 'function') ? isInWorldApp() : false; } catch (e) { dbg('isInWorldApp Fehler: ' + e.message, 'warn'); }
+        dbg('Schritt 3: isInWorldApp=' + inWorldApp);
+        if (!inWorldApp && request.connectorURI) {
+            dbg('Schritt 3: außerhalb World App -> navigiere zu connectorURI');
+            window.location.href = request.connectorURI;
+        }
+
+        // 4) Auf Abschluss warten; Result unverändert an den Server zur Verifizierung.
+        dbg('Schritt 4: pollUntilCompletion() ... (wartet auf Bestätigung)');
+        const result = await request.pollUntilCompletion();
+        dbg('Schritt 4: Result erhalten: ' + JSON.stringify(result).substring(0, 200));
+
+        // Bei explizitem Misserfolg NICHT an den Server schicken (sonst lehnt der
+        // v4-Verify den "success:false"-Body mit 400 ab und die Meldung ist nichtssagend).
+        if (result && result.success === false) {
+            const code = result.error || 'unknown';
+            dbg('Schritt 4: Verifizierung nicht erfolgreich: ' + code, 'error');
+            if (code === 'credential_unavailable') {
+                log('Für diese Anmeldung fehlt die passende World-ID-Verifizierung.', true);
+            } else if (code === 'user_rejected' || code === 'cancelled' || code === 'canceled') {
+                log('Anmeldung abgebrochen.', true);
+            } else {
+                log('World ID: ' + code, true);
+            }
+            const cb = document.getElementById('consentLoginButton');
+            if (cb) cb.disabled = false;
             return;
         }
 
-        log("Bitte World ID in der World App bestätigen...");
-
-        const { commandPayload, finalPayload } = await MiniKit.verify({
-            action: VERIFY_ACTION,
-            verification_level: 'device'
-        });
-
-        if (finalPayload?.status === 'success') {
-            await completeVerify(finalPayload);
-        } else {
-            const errorCode = finalPayload?.error_code || commandPayload?.error_code || '';
-            const errorMsg = finalPayload?.message || commandPayload?.message || '';
-            const details = errorCode || errorMsg || 'Verifizierung abgebrochen.';
-            log(`❌ World ID fehlgeschlagen: ${String(details).substring(0, 160)}`, true);
-            console.error('Verify error payload', { commandPayload, finalPayload });
-            const consentButton = document.getElementById('consentLoginButton');
-            if (consentButton) consentButton.disabled = false;
-        }
+        await completeVerify(result);
     } catch (error) {
+        dbg('LOGIN FEHLER: ' + (error && error.message ? error.message : error) + (error && error.stack ? ' | STACK: ' + error.stack : ''), 'error');
         console.error("Login Error:", error);
         log(`Fehler: ${error.message || 'Unbekannt'}`, true);
+        const cb = document.getElementById('consentLoginButton');
+        if (cb) cb.disabled = false;
     }
 }
 
-async function completeVerify(payload) {
+// Schickt das IDKit-Result an den Server (v4-Verify) und schließt den Login ab.
+async function completeVerify(result) {
     try {
         log("📤 Prüfe Server...");
         const rememberLogin = getRememberLoginValue();
 
-        const response = await fetch('/WorldMiniApp/Auth/VerifyAction', {
+        // Der eigentliche Proof steckt verschachtelt: { success:true, result:{...} }.
+        // An den v4-Verify gehört NUR der innere Proof (protocol_version, nonce,
+        // action, responses), NICHT der success/result-Wrapper.
+        const proof = (result && result.result) ? result.result : result;
+        dbg('completeVerify: Proof pv=' + (proof && proof.protocol_version)
+            + ' resp0=' + (proof && proof.responses && proof.responses[0] && proof.responses[0].identifier));
+
+        dbg('completeVerify: POST /VerifyWorldId ...');
+        const response = await fetch(`/WorldMiniApp/Auth/VerifyWorldId?rememberLogin=${rememberLogin ? 'true' : 'false'}`, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({
-                payload,
-                action: VERIFY_ACTION,
-                signal: '',
-                rememberLogin
-            })
+            headers: { 'Content-Type': 'application/json' },
+            // Nur den inneren Proof weiterleiten ("forward as-is").
+            body: JSON.stringify(proof)
         });
+        dbg('completeVerify: HTTP ' + response.status);
 
         if (!response.ok) {
             let backendMessage = '';
             try {
                 const errJson = await response.json();
                 backendMessage = errJson?.message || '';
+                // v4-Detail (Debug) sichtbar machen.
+                if (errJson && (errJson.v4status || errJson.v4body)) {
+                    dbg('v4 verify -> status=' + errJson.v4status + ' body=' + errJson.v4body, 'error');
+                }
             } catch (_) {
                 backendMessage = await response.text();
             }
@@ -121,18 +297,16 @@ async function completeVerify(payload) {
             return;
         }
 
+        const data = await response.json();
         log("🎉 Erfolgreich!");
         sessionStorage.setItem("user_verified", "true");
-        await new Promise(r => setTimeout(r, 600));
 
-        const nullifierHash = payload.nullifier_hash;
+        // Identität liegt jetzt serverseitig im Auth-Cookie. UserToken wird nur noch
+        // kosmetisch für bestehenden Frontend-Code gehalten.
+        const userHash = data?.userHash || '';
         const storage = rememberLogin ? localStorage : sessionStorage;
-        storage.setItem("UserToken", nullifierHash);
-
-        if (!rememberLogin) {
-            localStorage.removeItem("UserToken");
-        }
-
+        if (userHash) storage.setItem("UserToken", userHash);
+        if (!rememberLogin) localStorage.removeItem("UserToken");
         localStorage.setItem(REMEMBER_LOGIN_KEY, rememberLogin ? "true" : "false");
 
         if (currentConfig.redirectUrl) {
@@ -147,9 +321,22 @@ async function completeVerify(payload) {
 
 function openModal(modalId = 'loginModal') {
     const el = document.getElementById(modalId);
-    if (el) {
+    if (!el) {
+        console.error(`[MiniKit] Modal element #${modalId} not found`);
+        return;
+    }
+
+    if (typeof bootstrap === 'undefined') {
+        console.error('[MiniKit] Bootstrap not loaded');
+        return;
+    }
+
+    try {
         const modal = bootstrap.Offcanvas.getOrCreateInstance(el, { backdrop: true });
+        console.log('[MiniKit] Opening login modal');
         modal.show();
+    } catch (error) {
+        console.error('[MiniKit] Error opening modal:', error);
     }
 }
 
@@ -221,17 +408,19 @@ function updateStoredLoginInfo(userHash, verifyLevel) {
 }
 
 window.triggerLogin = async (level, redirectUrl) => {
-    console.log(`Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
+    console.log(`[MiniKit] Trigger Login: Level=${level}, Ziel=${redirectUrl}`);
 
     const activeHash = await resolveActiveUserHash();
 
     // Security: userHash wird nicht mehr als URL-Parameter gesendet.
     // Die Identitaet kommt ausschliesslich aus der serverseitigen Session.
     if (activeHash) {
+        console.log('[MiniKit] User already logged in, redirecting');
         window.location.href = redirectUrl;
         return;
     }
 
+    console.log('[MiniKit] No active session, showing login modal');
     currentConfig.level = level;
     currentConfig.redirectUrl = redirectUrl;
 
@@ -239,16 +428,26 @@ window.triggerLogin = async (level, redirectUrl) => {
 };
 
 function showLoginModalWithFallback() {
+    console.log('[MiniKit] showLoginModalWithFallback called');
     const loginModal = document.getElementById('loginModal');
     if (!loginModal) {
+        console.error('[MiniKit] loginModal element not found in DOM');
         return;
     }
 
-    if (loginModal.classList.contains('show') || loginModalOpening) {
+    if (loginModal.classList.contains('show')) {
+        console.log('[MiniKit] Modal already showing');
         bindConsentButton();
         return;
     }
 
+    if (loginModalOpening) {
+        console.log('[MiniKit] Modal already opening');
+        bindConsentButton();
+        return;
+    }
+
+    console.log('[MiniKit] Opening login modal');
     loginModalOpening = true;
     openModal('loginModal');
     bindConsentButton();
@@ -261,6 +460,7 @@ function showLoginModalWithFallback() {
         loginModalRetryTimer = null;
         loginModalOpening = false;
         if (!loginModal.classList.contains('show')) {
+            console.log('[MiniKit] Modal did not open, retrying');
             openModal('loginModal');
             bindConsentButton();
         }

@@ -11,8 +11,12 @@ using DelikatessenDrehbuch.Services;
 using DelikatessenDrehbuch.Services.Interfaces;
 using DelikatessenDrehbuch.ShoppingList.Services.Interfaces;
 using DelikatessenDrehbuch.StaticScripts;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
@@ -224,6 +228,50 @@ builder.Services.AddDefaultIdentity<IdentityUser>(options =>
     .AddRoles<IdentityRole>()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
+// ================================================================================
+// Data Protection: Schlüssel persistent in der SQL-Datenbank (Tabelle
+// DataProtectionKeys via EF Core) speichern.
+// Diese Keys signieren/verschlüsseln u.a. die Auth-Cookies. Ohne persistente,
+// geteilte Keys generiert jede Instanz (und jeder Neustart) neue Keys → alle
+// bestehenden Cookies werden ungültig und alle Nutzer fliegen raus.
+// Mit gemeinsamem App-Namen + DB-Store teilen sich alle Instanzen denselben
+// Schlüsselring; Cookies bleiben über Neustarts/Scale-out hinweg gültig.
+// ================================================================================
+builder.Services.AddDataProtection()
+    .SetApplicationName("DelikatessenDrehbuch")
+    .PersistKeysToDbContext<ApplicationDbContext>();
+
+// WorldMiniApp: eigenständiges, signiertes+verschlüsseltes Auth-Cookie.
+// Zusätzliches Scheme NEBEN der Default-Identity der Haupt-App (ändert das
+// Default-Scheme NICHT). Identität der Mini-App wird ausschließlich hieraus gelesen.
+builder.Services.AddAuthentication()
+    .AddCookie(WorldMiniAppUserHashHelper.AuthScheme, options =>
+    {
+        options.Cookie.Name = ".WorldMiniApp.Auth";
+        options.Cookie.HttpOnly = true;
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+        options.Cookie.IsEssential = true;
+        options.ExpireTimeSpan = TimeSpan.FromDays(30);
+        options.SlidingExpiration = true;
+
+        // Die Mini-App spricht überwiegend per JSON/XHR: kein Login-Redirect,
+        // sondern saubere Statuscodes.
+        options.Events = new Microsoft.AspNetCore.Authentication.Cookies.CookieAuthenticationEvents
+        {
+            OnRedirectToLogin = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            },
+            OnRedirectToAccessDenied = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            }
+        };
+    });
+
 // Add MVC with View Localization and Data Annotations Localization
 builder.Services.AddControllersWithViews()
     .AddViewLocalization(Microsoft.AspNetCore.Mvc.Razor.LanguageViewLocationExpanderFormat.Suffix)
@@ -402,6 +450,25 @@ app.UseStaticFiles(staticFileOptions);
 app.UseRouting();
 
 app.UseAuthentication();
+
+// WorldMiniApp-Identität aus ihrem eigenen Cookie-Scheme in den aktuellen
+// ClaimsPrincipal einhängen, damit WorldMiniAppUserHashHelper.Resolve() sie
+// synchron lesen kann (UseAuthentication füllt nur das Default-Scheme).
+// Bewusst NUR für WorldMiniApp-Pfade, damit ein Mini-App-Login nicht die
+// [Authorize]-Prüfung der Identity-Haupt-App beeinflusst (keine Cross-Contamination).
+app.Use(async (context, next) =>
+{
+    if (context.Request.Path.StartsWithSegments("/WorldMiniApp", StringComparison.OrdinalIgnoreCase))
+    {
+        var result = await context.AuthenticateAsync(WorldMiniAppUserHashHelper.AuthScheme);
+        if (result?.Succeeded == true && result.Principal != null)
+        {
+            context.User.AddIdentities(result.Principal.Identities);
+        }
+    }
+    await next();
+});
+
 app.UseAuthorization();
 
 app.MapControllerRoute(

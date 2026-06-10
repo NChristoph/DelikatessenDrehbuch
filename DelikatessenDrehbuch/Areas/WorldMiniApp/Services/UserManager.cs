@@ -102,6 +102,48 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
             await _context.SaveChangesAsync();
         }
+
+        // World ID 4.0 / IDKit: Identität ist der RP-scoped `nullifier` aus dem Proof.
+        // verificationLevel z.B. "orb" (aus dem gewählten Preset abgeleitet).
+        public async Task CreateOrUpdateWorldIdUserAsync(string nullifier, string verificationLevel, bool rememberLogin)
+        {
+            var normalizedHash = nullifier?.Trim();
+            if (string.IsNullOrWhiteSpace(normalizedHash))
+            {
+                return;
+            }
+
+            // Login läuft device-level -> Default "device" (nicht "orb"!), falls das
+            // Result keinen identifier liefert. Orb wird nur für Upload/Creator gebraucht.
+            var level = string.IsNullOrWhiteSpace(verificationLevel) ? "device" : verificationLevel.Trim();
+
+            var user = await _context.WorldAppUser.FirstOrDefaultAsync(x => x.UserHash == normalizedHash);
+
+            if (user != null)
+            {
+                user.Lastlogin = DateTime.Now;
+                // Eine bereits vorhandene Orb-Verifizierung NICHT durch ein Device-Login
+                // herabstufen (Orb-Status wird für Upload/Creator benötigt).
+                if (!string.Equals(user.IsVerified, "orb", StringComparison.OrdinalIgnoreCase))
+                {
+                    user.IsVerified = level;
+                }
+                user.RememberLogin = rememberLogin;
+            }
+            else
+            {
+                user = new WorldAppUser
+                {
+                    UserHash = normalizedHash,
+                    IsVerified = level,
+                    Lastlogin = DateTime.Now,
+                    RememberLogin = rememberLogin
+                };
+                _context.WorldAppUser.Add(user);
+            }
+
+            await _context.SaveChangesAsync();
+        }
     }
 }
 

@@ -1228,7 +1228,8 @@ END;
             catch (Exception ex)
             {
                 _logger.LogError(ex, "❌ Failed to save recipe with translation");
-                return StatusCode(500, new { success = false, message = "Fehler beim Speichern: " + ex.Message });
+                // ex.Message nicht an den Client – Details stehen im Log.
+                return StatusCode(500, new { success = false, message = "Fehler beim Speichern." });
             }
         }
 

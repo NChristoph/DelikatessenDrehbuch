@@ -1,0 +1,7 @@
+node_modules/
+dist/
+bin/
+obj/
+# Lokale Secrets niemals committen:
+local.settings.json
+.env

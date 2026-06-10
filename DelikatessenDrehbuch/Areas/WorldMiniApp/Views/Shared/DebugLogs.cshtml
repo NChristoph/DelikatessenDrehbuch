@@ -1,0 +1,265 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Debug Logs - Live</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Consolas', 'Monaco', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+        .header {
+            position: sticky;
+            top: 0;
+            background: #252526;
+            border-bottom: 2px solid #3c3c3c;
+            padding: 15px 20px;
+            margin: -20px -20px 20px;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        h1 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #ffffff;
+        }
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            background: #0e639c;
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            font-family: inherit;
+            transition: background 0.2s;
+        }
+        .btn:hover {
+            background: #1177bb;
+        }
+        .btn-danger {
+            background: #d73a4a;
+        }
+        .btn-danger:hover {
+            background: #e04555;
+        }
+        .status {
+            padding: 8px 16px;
+            background: #2d2d30;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #8b949e;
+        }
+        .status.live {
+            color: #3fb950;
+        }
+        .status.live::before {
+            content: '●';
+            margin-right: 6px;
+            animation: pulse 2s infinite;
+        }
+        @@keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+        .logs-container {
+            background: #1e1e1e;
+            border: 1px solid #3c3c3c;
+            border-radius: 6px;
+            padding: 15px;
+            max-height: calc(100vh - 150px);
+            overflow-y: auto;
+        }
+        .log-entry {
+            padding: 6px 10px;
+            margin-bottom: 2px;
+            border-left: 3px solid transparent;
+            border-radius: 2px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .log-entry:hover {
+            background: #2a2a2a;
+        }
+        .log-entry.minikit {
+            border-left-color: #3fb950;
+            background: rgba(63, 185, 80, 0.05);
+        }
+        .log-entry.error {
+            border-left-color: #f85149;
+            background: rgba(248, 81, 73, 0.05);
+        }
+        .log-entry.warn {
+            border-left-color: #d29922;
+            background: rgba(210, 153, 34, 0.05);
+        }
+        .timestamp {
+            color: #6e7681;
+            margin-right: 12px;
+        }
+        .empty {
+            text-align: center;
+            color: #6e7681;
+            padding: 40px 20px;
+            font-style: italic;
+        }
+        ::-webkit-scrollbar {
+            width: 12px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #1e1e1e;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #3c3c3c;
+            border-radius: 6px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4c4c4c;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <div>
+            <h1>🐛 Debug Logs - Live Monitor</h1>
+        </div>
+        <div class="controls">
+            <div class="status live" id="status">Live</div>
+            <button class="btn" onclick="toggleAutoRefresh()">
+                <span id="refreshBtnText">⏸ Pause</span>
+            </button>
+            <button class="btn btn-danger" onclick="clearLogs()">🗑 Clear</button>
+        </div>
+    </div>
+
+    <div class="logs-container" id="logsContainer">
+        <div class="empty">Waiting for logs...</div>
+    </div>
+
+    <script>
+        let autoRefresh = true;
+        let lastLogCount = 0;
+
+        async function fetchLogs() {
+            try {
+                const response = await fetch('/WorldMiniApp/Shared/GetDebugLogs');
+                const data = await response.json();
+                renderLogs(data.logs || []);
+            } catch (error) {
+                console.error('Failed to fetch logs:', error);
+            }
+        }
+
+        function renderLogs(logs) {
+            const container = document.getElementById('logsContainer');
+
+            if (logs.length === 0) {
+                container.innerHTML = '<div class="empty">No logs yet. Logs will appear here automatically.</div>';
+                return;
+            }
+
+            // Only update if logs changed
+            if (logs.length === lastLogCount) {
+                return;
+            }
+
+            const shouldScroll = container.scrollHeight - container.scrollTop - container.clientHeight < 100;
+
+            container.innerHTML = logs.map(log => {
+                let className = 'log-entry';
+                if (log.includes('[MiniKit]')) className += ' minikit';
+                if (log.includes('ERROR') || log.includes('Error')) className += ' error';
+                if (log.includes('WARN') || log.includes('Warning')) className += ' warn';
+
+                return `<div class="${className}">${escapeHtml(log)}</div>`;
+            }).join('');
+
+            if (shouldScroll) {
+                container.scrollTop = container.scrollHeight;
+            }
+
+            lastLogCount = logs.length;
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function clearLogs() {
+            if (!confirm('Clear all logs?')) return;
+
+            try {
+                await fetch('/WorldMiniApp/Shared/ClearDebugLogs', { method: 'POST' });
+                lastLogCount = 0;
+                document.getElementById('logsContainer').innerHTML = '<div class="empty">Logs cleared. Waiting for new logs...</div>';
+            } catch (error) {
+                console.error('Failed to clear logs:', error);
+            }
+        }
+
+        function toggleAutoRefresh() {
+            autoRefresh = !autoRefresh;
+            const status = document.getElementById('status');
+            const btnText = document.getElementById('refreshBtnText');
+
+            if (autoRefresh) {
+                status.classList.add('live');
+                status.textContent = 'Live';
+                btnText.textContent = '⏸ Pause';
+                startPolling();
+            } else {
+                status.classList.remove('live');
+                status.textContent = 'Paused';
+                btnText.textContent = '▶ Resume';
+            }
+        }
+
+        function startPolling() {
+            if (!autoRefresh) return;
+
+            fetchLogs();
+            setTimeout(startPolling, 500); // Update every 500ms
+        }
+
+        // Start on load
+        startPolling();
+
+        // Log JavaScript console to server
+        const originalConsoleLog = console.log;
+        const originalConsoleError = console.error;
+        const originalConsoleWarn = console.warn;
+
+        console.log = function(...args) {
+            originalConsoleLog.apply(console, args);
+            // Can be extended to send to server if needed
+        };
+
+        console.error = function(...args) {
+            originalConsoleError.apply(console, args);
+            // Can be extended to send to server if needed
+        };
+
+        console.warn = function(...args) {
+            originalConsoleWarn.apply(console, args);
+            // Can be extended to send to server if needed
+        };
+    </script>
+</body>
+</html>

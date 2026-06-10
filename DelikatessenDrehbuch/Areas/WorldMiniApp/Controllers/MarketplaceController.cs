@@ -353,9 +353,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (DbUpdateException ex)
             {
+                // Vollständige DB-Fehlermeldung NUR ins Log (kann Schema-/Constraint-
+                // Interna enthalten), dem Client nur eine generische Meldung.
                 _logger.LogError(ex, "CreateListing DbUpdateException. MealPlanId={MealPlanId}, UserHash={UserHash}", mealPlanId, userHash);
-                var dbMessage = ex.GetBaseException().Message;
-                return Json(new { success = false, error = $"Datenbankfehler beim Erstellen des Angebots: {dbMessage}" });
+                return Json(new { success = false, error = "Datenbankfehler beim Erstellen des Angebots." });
             }
             catch (Exception ex)
             {
@@ -454,9 +455,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (DbUpdateException ex)
             {
+                // Vollständige DB-Fehlermeldung NUR ins Log, dem Client nur generisch.
                 _logger.LogError(ex, "FinalizeWorldChainPurchase DbUpdateException. ListingId={ListingId}, UserHash={UserHash}", request.ListingId, userHash);
-                var dbMessage = ex.GetBaseException().Message;
-                return Json(new { success = false, error = $"Datenbankfehler beim Finalisieren: {dbMessage}" });
+                return Json(new { success = false, error = "Datenbankfehler beim Finalisieren." });
             }
             catch (Exception ex)
             {

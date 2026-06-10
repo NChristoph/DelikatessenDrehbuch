@@ -1198,4 +1198,86 @@
   <data name="Day.SundayShort" xml:space="preserve">
     <value>Min</value>
   </data>
+
+  <!-- Meal Plan Additional -->
+  <data name="MealPlan.LoadShoppingList" xml:space="preserve">
+    <value>Muat Daftar Belanja</value>
+  </data>
+  <data name="MealPlan.TapToGenerate" xml:space="preserve">
+    <value>Ketuk untuk Generate</value>
+  </data>
+  <data name="MealPlan.Nutrition" xml:space="preserve">
+    <value>Nutrisi</value>
+  </data>
+  <data name="MealPlan.ChooseRecipe" xml:space="preserve">
+    <value>Sekarang pilih resep dari feed untuk mengganti.</value>
+  </data>
+  <data name="MealPlan.ShoppingListError" xml:space="preserve">
+    <value>Daftar belanja tidak dapat dimuat.</value>
+  </data>
+  <data name="MealPlan.ShoppingListLoadFirst" xml:space="preserve">
+    <value>Silakan muat daftar belanja terlebih dahulu.</value>
+  </data>
+  <data name="MealPlan.ShoppingListTitle" xml:space="preserve">
+    <value>Daftar Belanja</value>
+  </data>
+  <data name="MealPlan.ShoppingListShare" xml:space="preserve">
+    <value>Lihat daftar belanja saya!</value>
+  </data>
+  <data name="MealPlan.NutritionError" xml:space="preserve">
+    <value>Nilai nutrisi tidak dapat dimuat.</value>
+  </data>
+
+  <!-- Day Names (Full) -->
+  <data name="Day.Monday" xml:space="preserve">
+    <value>Senin</value>
+  </data>
+  <data name="Day.Tuesday" xml:space="preserve">
+    <value>Selasa</value>
+  </data>
+  <data name="Day.Wednesday" xml:space="preserve">
+    <value>Rabu</value>
+  </data>
+  <data name="Day.Thursday" xml:space="preserve">
+    <value>Kamis</value>
+  </data>
+  <data name="Day.Friday" xml:space="preserve">
+    <value>Jumat</value>
+  </data>
+  <data name="Day.Saturday" xml:space="preserve">
+    <value>Sabtu</value>
+  </data>
+  <data name="Day.Sunday" xml:space="preserve">
+    <value>Minggu</value>
+  </data>
+
+  <!-- Meal Types (Courses) -->
+  <data name="Meal.Starter" xml:space="preserve">
+    <value>Hidangan Pembuka</value>
+  </data>
+  <data name="Meal.MainCourse" xml:space="preserve">
+    <value>Hidangan Utama</value>
+  </data>
+  <data name="Meal.Dessert" xml:space="preserve">
+    <value>Pencuci Mulut</value>
+  </data>
+
+  <!-- Meal Times -->
+  <data name="Meal.Breakfast" xml:space="preserve">
+    <value>🥐 Sarapan</value>
+  </data>
+  <data name="Meal.Lunch" xml:space="preserve">
+    <value>🍱 Makan Siang</value>
+  </data>
+  <data name="Meal.Dinner" xml:space="preserve">
+    <value>🍝 Makan Malam</value>
+  </data>
+
+  <!-- Common Actions -->
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
+  <data name="Common.Replace" xml:space="preserve">
+    <value>Ganti</value>
+  </data>
 </root>

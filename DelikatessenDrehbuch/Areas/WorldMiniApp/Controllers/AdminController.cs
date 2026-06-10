@@ -22,7 +22,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         private string? GetCurrentUserHash()
         {
-            return Request.Cookies["WorldMiniAppUserHash"];
+            // Identität aus dem signierten Auth-Cookie (Claim), NICHT aus dem
+            // client-kontrollierten Anzeige-Cookie.
+            var resolved = WorldMiniApp.Services.WorldMiniAppUserHashHelper.Resolve(HttpContext);
+            return string.IsNullOrWhiteSpace(resolved) ? null : resolved;
         }
 
         private bool IsAdmin()
@@ -226,7 +229,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fehler beim Erstellen des Creators {UserName}", userName);
-                TempData["Error"] = $"Fehler beim Erstellen: {ex.Message}";
+                // Keine rohe ex.Message in der UI – Details nur im Log.
+                TempData["Error"] = "Fehler beim Erstellen des Creators.";
             }
 
             return RedirectToAction(nameof(CreatorManager));
@@ -235,7 +239,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         // POST: Admin/LoginAsCreator
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult LoginAsCreator(string targetHash)
+        public async Task<IActionResult> LoginAsCreator(string targetHash)
         {
             if (!IsAdminAuthenticated())
             {
@@ -257,8 +261,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 MaxAge = TimeSpan.FromHours(24)
             });
 
-            // Setze den Creator-Hash als aktuellen User (Session + Cookie)
-            WorldMiniApp.Services.WorldMiniAppUserHashHelper.Persist(HttpContext, targetHash, false);
+            // Setze den Creator-Hash als aktuellen User (signiertes Auth-Cookie)
+            await WorldMiniApp.Services.WorldMiniAppUserHashHelper.SignInAsync(HttpContext, targetHash, isPersistent: false);
 
             TempData["Success"] = $"Du bist jetzt als Creator {targetHash.Substring(0, 10)}... angemeldet!";
             _logger.LogInformation("Admin logged in as creator: {Hash}", targetHash);
@@ -269,14 +273,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         // POST: Admin/ReturnToAdmin
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult ReturnToAdmin()
+        public async Task<IActionResult> ReturnToAdmin()
         {
             var originalHash = Request.Cookies["AdminOriginalHash"];
 
             if (!string.IsNullOrWhiteSpace(originalHash))
             {
-                // Setze Admin-Hash zurück (Session + Cookie)
-                WorldMiniApp.Services.WorldMiniAppUserHashHelper.Persist(HttpContext, originalHash, false);
+                // Setze Admin-Hash zurück (signiertes Auth-Cookie)
+                await WorldMiniApp.Services.WorldMiniAppUserHashHelper.SignInAsync(HttpContext, originalHash, isPersistent: false);
 
                 Response.Cookies.Delete("AdminOriginalHash");
 
@@ -314,7 +318,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fehler beim Löschen des Creators {UserHash}", userHash);
-                TempData["Error"] = $"Fehler beim Löschen: {ex.Message}";
+                // Keine rohe ex.Message in der UI – Details nur im Log.
+                TempData["Error"] = "Fehler beim Löschen des Creators.";
             }
 
             return RedirectToAction(nameof(CreatorManager));
@@ -418,7 +423,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fehler beim Review des Reports {ReportId}", reportId);
-                TempData["Error"] = $"Fehler: {ex.Message}";
+                // Keine rohe ex.Message in der UI – Details nur im Log.
+                TempData["Error"] = "Fehler beim Bearbeiten des Reports.";
             }
 
             return RedirectToAction(nameof(ReportedContent));
@@ -452,7 +458,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Fehler beim Löschen des Postings {PostingId}", postingId);
-                TempData["Error"] = $"Fehler beim Löschen: {ex.Message}";
+                // Keine rohe ex.Message in der UI – Details nur im Log.
+                TempData["Error"] = "Fehler beim Löschen des Postings.";
             }
 
             return RedirectToAction(nameof(ReportedContent));
@@ -581,7 +588,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting recipe {RecipeId}", recipeId);
-                return Json(new { success = false, error = ex.Message });
+                // Kein ex.Message an den Client – Details nur im Log.
+                return Json(new { success = false, error = "Fehler beim Löschen des Rezepts." });
             }
         }
     }

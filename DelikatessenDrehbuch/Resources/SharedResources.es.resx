@@ -1198,4 +1198,86 @@
   <data name="Day.SundayShort" xml:space="preserve">
     <value>Dom</value>
   </data>
+
+  <!-- Meal Plan Additional -->
+  <data name="MealPlan.LoadShoppingList" xml:space="preserve">
+    <value>Cargar Lista de Compras</value>
+  </data>
+  <data name="MealPlan.TapToGenerate" xml:space="preserve">
+    <value>Toca para Generar</value>
+  </data>
+  <data name="MealPlan.Nutrition" xml:space="preserve">
+    <value>Nutrición</value>
+  </data>
+  <data name="MealPlan.ChooseRecipe" xml:space="preserve">
+    <value>Ahora elige una receta del feed para reemplazar.</value>
+  </data>
+  <data name="MealPlan.ShoppingListError" xml:space="preserve">
+    <value>No se pudo cargar la lista de compras.</value>
+  </data>
+  <data name="MealPlan.ShoppingListLoadFirst" xml:space="preserve">
+    <value>Por favor carga primero una lista de compras.</value>
+  </data>
+  <data name="MealPlan.ShoppingListTitle" xml:space="preserve">
+    <value>Lista de Compras</value>
+  </data>
+  <data name="MealPlan.ShoppingListShare" xml:space="preserve">
+    <value>¡Mira mi lista de compras!</value>
+  </data>
+  <data name="MealPlan.NutritionError" xml:space="preserve">
+    <value>No se pudieron cargar los valores nutricionales.</value>
+  </data>
+
+  <!-- Day Names (Full) -->
+  <data name="Day.Monday" xml:space="preserve">
+    <value>Lunes</value>
+  </data>
+  <data name="Day.Tuesday" xml:space="preserve">
+    <value>Martes</value>
+  </data>
+  <data name="Day.Wednesday" xml:space="preserve">
+    <value>Miércoles</value>
+  </data>
+  <data name="Day.Thursday" xml:space="preserve">
+    <value>Jueves</value>
+  </data>
+  <data name="Day.Friday" xml:space="preserve">
+    <value>Viernes</value>
+  </data>
+  <data name="Day.Saturday" xml:space="preserve">
+    <value>Sábado</value>
+  </data>
+  <data name="Day.Sunday" xml:space="preserve">
+    <value>Domingo</value>
+  </data>
+
+  <!-- Meal Types (Courses) -->
+  <data name="Meal.Starter" xml:space="preserve">
+    <value>Entrante</value>
+  </data>
+  <data name="Meal.MainCourse" xml:space="preserve">
+    <value>Plato Principal</value>
+  </data>
+  <data name="Meal.Dessert" xml:space="preserve">
+    <value>Postre</value>
+  </data>
+
+  <!-- Meal Times -->
+  <data name="Meal.Breakfast" xml:space="preserve">
+    <value>🥐 Desayuno</value>
+  </data>
+  <data name="Meal.Lunch" xml:space="preserve">
+    <value>🍱 Almuerzo</value>
+  </data>
+  <data name="Meal.Dinner" xml:space="preserve">
+    <value>🍝 Cena</value>
+  </data>
+
+  <!-- Common Actions -->
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Editar</value>
+  </data>
+  <data name="Common.Replace" xml:space="preserve">
+    <value>Reemplazar</value>
+  </data>
 </root>

@@ -10,6 +10,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private readonly IConfiguration _configuration;
         private readonly ILogger<DexService> _logger;
         private readonly BlockchainService _blockchainService;
+        // HttpClient über IHttpClientFactory statt `new HttpClient()` (Socket-Exhaustion vermeiden).
+        private readonly IHttpClientFactory _httpClientFactory;
 
         // Uniswap V3 Quoter ABI (for price quotes)
         private const string QUOTER_ABI = @"[
@@ -63,11 +65,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         public DexService(
             IConfiguration configuration,
             ILogger<DexService> logger,
-            BlockchainService blockchainService)
+            BlockchainService blockchainService,
+            IHttpClientFactory httpClientFactory)
         {
             _configuration = configuration;
             _logger = logger;
             _blockchainService = blockchainService;
+            _httpClientFactory = httpClientFactory;
         }
 
         /// <summary>
@@ -306,7 +310,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 _logger.LogInformation("🔍 Fetching real price from CoinGecko API");
 
-                using var httpClient = new HttpClient();
+                using var httpClient = _httpClientFactory.CreateClient();
                 httpClient.DefaultRequestHeaders.Add("User-Agent", "DelikatessenDrehbuch/1.0");
 
                 // WLD/ETH Preis berechnen

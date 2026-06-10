@@ -11,19 +11,23 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private readonly ILogger<TradingStrategyService> _logger;
         private readonly DexService _dexService;
         private readonly BlockchainService _blockchainService;
+        // HttpClient über IHttpClientFactory statt `new HttpClient()` (Socket-Exhaustion vermeiden).
+        private readonly IHttpClientFactory _httpClientFactory;
 
         public TradingStrategyService(
             ApplicationDbContext context,
             IConfiguration configuration,
             ILogger<TradingStrategyService> logger,
             DexService dexService,
-            BlockchainService blockchainService)
+            BlockchainService blockchainService,
+            IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _configuration = configuration;
             _logger = logger;
             _dexService = dexService;
             _blockchainService = blockchainService;
+            _httpClientFactory = httpClientFactory;
         }
 
         /// <summary>
@@ -391,7 +395,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var agentKitUrl = _configuration["AgentKit:ServiceUrl"] ?? "http://localhost:3000";
 
                 // 1. Initialize AgentKit with private key
-                using var httpClient = new HttpClient();
+                using var httpClient = _httpClientFactory.CreateClient();
                 httpClient.Timeout = TimeSpan.FromMinutes(2);
 
                 var initPayload = new

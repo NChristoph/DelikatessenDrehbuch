@@ -28,12 +28,46 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         }
 
         /// <summary>
+        /// Shared-Secret-Pruefung fuer den internen Node.js Trading-Agent-Service.
+        /// Wird nur erzwungen, wenn TradingAgent:InternalApiKey konfiguriert ist
+        /// (nicht-breaking fuer bestehende Deployments). Diese Endpunkte geben u.a.
+        /// verschluesselte Private Keys heraus und MUESSEN in Produktion abgesichert sein.
+        /// </summary>
+        private bool IsServiceAuthorized()
+        {
+            var configuredKey = _configuration["TradingAgent:InternalApiKey"];
+            if (string.IsNullOrWhiteSpace(configuredKey))
+            {
+                _logger.LogWarning(
+                    "AgentApi request not authenticated: TradingAgent:InternalApiKey is not configured. " +
+                    "These endpoints expose wallet key material and must be locked down.");
+                return true;
+            }
+
+            var providedKey = Request.Headers["X-Agent-Api-Key"].FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(providedKey))
+            {
+                return false;
+            }
+
+            var expected = Encoding.UTF8.GetBytes(configuredKey);
+            var actual = Encoding.UTF8.GetBytes(providedKey);
+            return expected.Length == actual.Length
+                && CryptographicOperations.FixedTimeEquals(expected, actual);
+        }
+
+        /// <summary>
         /// GET /api/agent/:agentId
         /// Get agent configuration for Node.js service
         /// </summary>
         [HttpGet("agent/{agentId}")]
         public async Task<IActionResult> GetAgent(int agentId)
         {
+            if (!IsServiceAuthorized())
+            {
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+
             try
             {
                 var agent = await _context.WorldTradingAgents.FindAsync(agentId);
@@ -59,7 +93,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get agent {AgentId}", agentId);
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -70,6 +104,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [HttpGet("prices/recent")]
         public async Task<IActionResult> GetRecentPrices([FromQuery] int limit = 24)
         {
+            if (!IsServiceAuthorized())
+            {
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+
             try
             {
                 var prices = await _context.WorldTokenPrices
@@ -88,7 +127,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get recent prices");
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -99,6 +138,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [HttpPost("prices")]
         public async Task<IActionResult> SavePrice([FromBody] SavePriceRequest request)
         {
+            if (!IsServiceAuthorized())
+            {
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+
             try
             {
                 var price = new Models.WorldTokenPrice
@@ -117,7 +161,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to save price");
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -128,6 +172,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [HttpPost("agent/{agentId}/signal")]
         public async Task<IActionResult> UpdateSignal(int agentId, [FromBody] UpdateSignalRequest request)
         {
+            if (!IsServiceAuthorized())
+            {
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+
             try
             {
                 var agent = await _context.WorldTradingAgents.FindAsync(agentId);
@@ -149,7 +198,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update signal for agent {AgentId}", agentId);
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -160,6 +209,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [HttpPost("agent/{agentId}/balances")]
         public async Task<IActionResult> UpdateBalances(int agentId, [FromBody] UpdateBalancesRequest request)
         {
+            if (!IsServiceAuthorized())
+            {
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+
             try
             {
                 var agent = await _context.WorldTradingAgents.FindAsync(agentId);
@@ -186,7 +240,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to update balances for agent {AgentId}", agentId);
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -197,6 +251,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [HttpPost("agent/{agentId}/trades")]
         public async Task<IActionResult> LogTrade(int agentId, [FromBody] LogTradeRequest request)
         {
+            if (!IsServiceAuthorized())
+            {
+                return Unauthorized(new { error = "Unauthorized" });
+            }
+
             try
             {
                 var agent = await _context.WorldTradingAgents.FindAsync(agentId);
@@ -243,7 +302,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to log trade for agent {AgentId}", agentId);
-                return StatusCode(500, new { error = ex.Message });
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
     }

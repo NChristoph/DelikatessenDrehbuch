@@ -1,0 +1,16 @@
+{
+  "name": "worldid-signer-function",
+  "version": "1.0.0",
+  "description": "Azure Function (Node) zum Signieren des World ID 4.0 rp_context (RP-Signatur). Hält den Signing-Key (aus Key Vault) und nutzt die offizielle signRequest-Funktion.",
+  "main": "src/functions/*.js",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "start": "func start"
+  },
+  "dependencies": {
+    "@azure/functions": "^4.5.0",
+    "@worldcoin/idkit-core": "^4.0.0"
+  }
+}

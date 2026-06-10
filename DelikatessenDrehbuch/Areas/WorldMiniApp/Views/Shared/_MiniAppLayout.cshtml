@@ -158,6 +158,56 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
 
+    <!-- Client-to-Server Debug Logging -->
+    <script>
+        (function() {
+            const originalLog = console.log;
+            const originalError = console.error;
+            const originalWarn = console.warn;
+
+            function formatArg(arg) {
+                if (typeof arg === 'object' && arg !== null) {
+                    try {
+                        return JSON.stringify(arg);
+                    } catch {
+                        return String(arg);
+                    }
+                }
+                return String(arg);
+            }
+
+            async function sendLogToServer(message, level) {
+                try {
+                    await fetch('/WorldMiniApp/Shared/LogFromClient', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ message, level })
+                    });
+                } catch {
+                    // Fail silently to avoid infinite loops
+                }
+            }
+
+            console.log = function(...args) {
+                originalLog.apply(console, args);
+                const msg = args.map(formatArg).join(' ');
+                sendLogToServer(msg, 'LOG');
+            };
+
+            console.error = function(...args) {
+                originalError.apply(console, args);
+                const msg = args.map(formatArg).join(' ');
+                sendLogToServer(msg, 'ERROR');
+            };
+
+            console.warn = function(...args) {
+                originalWarn.apply(console, args);
+                const msg = args.map(formatArg).join(' ');
+                sendLogToServer(msg, 'WARN');
+            };
+        })();
+    </script>
+
     <script src="~/js/worldminiapp-i18n.js"></script>
     <script src="~/js/CreateNewMealPlan.js"></script>
     <script>

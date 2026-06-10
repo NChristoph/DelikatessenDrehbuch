@@ -9,20 +9,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
     public class AuthService : IAuthService
     {
         private readonly ILogger<AuthService> _logger;
+        // HttpClient über IHttpClientFactory beziehen statt `new HttpClient()`:
+        // verhindert Socket-Exhaustion und veraltete DNS-Einträge (gepoolter Handler).
+        private readonly IHttpClientFactory _httpClientFactory;
         // TODO: Secret noch entfernen — APP_ID in Konfiguration auslagern
         private const string APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
         // ✅ RICHTIGE URL!
         private const string VERIFY_URL = "https://developer.worldcoin.org/api/v2/verify/"+APP_ID;
-        public AuthService(ILogger<AuthService> logger)
+        public AuthService(ILogger<AuthService> logger, IHttpClientFactory httpClientFactory)
         {
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<WorldcoinVerifyResponse> VerifyProofWithWorldcoin(VerifyRequestDto data)
         {
             try
             {
-                using var client = new HttpClient();
+                // Client aus der Factory (gepoolter Handler); das `using` ist hier ok,
+                // da nur der leichte Client-Wrapper, nicht der Handler, entsorgt wird.
+                using var client = _httpClientFactory.CreateClient();
 
                 // Headers setzen
                 client.DefaultRequestHeaders.Add("User-Agent", "DelikatessenDrehbuch/1.0");

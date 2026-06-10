@@ -1,12 +1,16 @@
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using Microsoft.AspNetCore.DataProtection.EntityFrameworkCore;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace DelikatessenDrehbuch.Data
 {
-    public class ApplicationDbContext : IdentityDbContext
+    public class ApplicationDbContext : IdentityDbContext, IDataProtectionKeyContext
     {
+        // Persistente DataProtection-Keys (signieren/verschlüsseln u.a. die Auth-Cookies).
+        public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
+
         public DbSet<Recipes> Recipes { get; set; }
         public DbSet<Recession> Recessions { get; set; }
         public DbSet<Like> Likes { get; set; }
@@ -91,6 +95,11 @@ namespace DelikatessenDrehbuch.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
+
+            // DataProtectionKeys wird per Hand-SQL-Skript verwaltet (Azure, keine
+            // Migrationen) -> aus EF-Migrationen ausschließen, damit künftige
+            // Migrationen nicht versuchen, die bereits existierende Tabelle anzulegen.
+            builder.Entity<DataProtectionKey>().ToTable("DataProtectionKeys", t => t.ExcludeFromMigrations());
 
             builder.Entity<RecipeBaseKeyword>()
                 .HasKey(link => new { link.RecipeBaseDataId, link.KeywordId });

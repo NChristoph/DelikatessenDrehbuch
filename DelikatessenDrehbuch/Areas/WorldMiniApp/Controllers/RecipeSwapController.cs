@@ -21,19 +21,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IRecipeSwapStepAiService _stepAiService;
         private readonly IRecipeVariantSummaryAiService _variantSummaryAiService;
         private readonly IMemoryCache _cache;
+        // Logger ergänzt, damit Fehlerdetails serverseitig protokolliert werden,
+        // statt sie (wie zuvor) per ex.Message an den Client zu leaken.
+        private readonly ILogger<RecipeSwapController> _logger;
 
         public RecipeSwapController(
             ApplicationDbContext context,
             IIngredientSwapAiService aiService,
             IRecipeSwapStepAiService stepAiService,
             IRecipeVariantSummaryAiService variantSummaryAiService,
-            IMemoryCache cache)
+            IMemoryCache cache,
+            ILogger<RecipeSwapController> logger)
         {
             _context = context;
             _aiService = aiService;
             _stepAiService = stepAiService;
             _variantSummaryAiService = variantSummaryAiService;
             _cache = cache;
+            _logger = logger;
         }
 
         [HttpPost("publish")]
@@ -174,7 +179,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                // Fehlerdetails nur serverseitig ins Log – dem Client nur eine
+                // generische Meldung zurückgeben (kein Leak von ex.Message/Interna).
+                _logger.LogError(ex, "RecipeSwap-Anfrage fehlgeschlagen.");
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -515,10 +523,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 if (request.SwapVariantId.HasValue && request.SwapVariantId.Value > 0)
                 {
                     var userHash = ResolveUserHash(string.Empty);
-                    if (string.IsNullOrWhiteSpace(userHash))
-                    {
-                        userHash = Request.Cookies["WorldMiniAppUserHash"] ?? string.Empty;
-                    }
 
                     if (!string.IsNullOrWhiteSpace(userHash))
                     {
@@ -750,7 +754,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                // Fehlerdetails nur serverseitig ins Log – dem Client nur eine
+                // generische Meldung zurückgeben (kein Leak von ex.Message/Interna).
+                _logger.LogError(ex, "RecipeSwap-Anfrage fehlgeschlagen.");
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -760,7 +767,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             try
             {
-                var userHash = Request.Cookies["WorldMiniAppUserHash"];
+                var userHash = ResolveUserHash(string.Empty);
                 if (string.IsNullOrEmpty(userHash))
                     return Unauthorized(new { error = "User not authenticated" });
 
@@ -833,14 +840,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"=== APPLY SWAP ERROR ===");
-                Console.WriteLine($"Message: {ex.Message}");
-                Console.WriteLine($"StackTrace: {ex.StackTrace}");
-                if (ex.InnerException != null)
-                {
-                    Console.WriteLine($"InnerException: {ex.InnerException.Message}");
-                }
-                return StatusCode(500, new { error = ex.Message, details = ex.StackTrace, inner = ex.InnerException?.Message });
+                // Vollständige Details (inkl. StackTrace/InnerException) NUR ins Log,
+                // nicht an den Client. Vorher wurden hier StackTrace + Inner-Message
+                // im HTTP-Response zurückgegeben (Info-Disclosure).
+                _logger.LogError(ex, "ApplySwap fehlgeschlagen.");
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -850,7 +854,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             try
             {
-                var userHash = Request.Cookies["WorldMiniAppUserHash"];
+                var userHash = ResolveUserHash(string.Empty);
                 if (string.IsNullOrEmpty(userHash))
                     return Unauthorized(new { error = "User not authenticated" });
 
@@ -929,7 +933,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                // Fehlerdetails nur serverseitig ins Log – dem Client nur eine
+                // generische Meldung zurückgeben (kein Leak von ex.Message/Interna).
+                _logger.LogError(ex, "RecipeSwap-Anfrage fehlgeschlagen.");
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -940,7 +947,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             try
             {
-                var userHash = Request.Cookies["WorldMiniAppUserHash"];
+                var userHash = ResolveUserHash(string.Empty);
                 if (string.IsNullOrEmpty(userHash))
                 {
                     return Unauthorized(new { error = "User not authenticated" });
@@ -1087,7 +1094,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                // Fehlerdetails nur serverseitig ins Log – dem Client nur eine
+                // generische Meldung zurückgeben (kein Leak von ex.Message/Interna).
+                _logger.LogError(ex, "RecipeSwap-Anfrage fehlgeschlagen.");
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 
@@ -1098,7 +1108,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             try
             {
-                var userHash = Request.Cookies["WorldMiniAppUserHash"];
+                var userHash = ResolveUserHash(string.Empty);
                 if (string.IsNullOrEmpty(userHash))
                 {
                     return Unauthorized(new { error = "User not authenticated" });
@@ -1176,7 +1186,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { error = ex.Message });
+                // Fehlerdetails nur serverseitig ins Log – dem Client nur eine
+                // generische Meldung zurückgeben (kein Leak von ex.Message/Interna).
+                _logger.LogError(ex, "RecipeSwap-Anfrage fehlgeschlagen.");
+                return StatusCode(500, new { error = "Internal server error" });
             }
         }
 

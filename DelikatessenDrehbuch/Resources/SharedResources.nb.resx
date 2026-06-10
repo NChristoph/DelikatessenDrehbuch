@@ -1089,4 +1089,86 @@
   <data name="Day.SundayShort" xml:space="preserve">
     <value>Søn</value>
   </data>
+
+  <!-- Meal Plan Additional -->
+  <data name="MealPlan.LoadShoppingList" xml:space="preserve">
+    <value>Last Handleliste</value>
+  </data>
+  <data name="MealPlan.TapToGenerate" xml:space="preserve">
+    <value>Trykk for aa Generere</value>
+  </data>
+  <data name="MealPlan.Nutrition" xml:space="preserve">
+    <value>Næringsverdier</value>
+  </data>
+  <data name="MealPlan.ChooseRecipe" xml:space="preserve">
+    <value>Velg naa en oppskrift fra feeden for aa erstatte.</value>
+  </data>
+  <data name="MealPlan.ShoppingListError" xml:space="preserve">
+    <value>Handlelisten kunne ikke lastes.</value>
+  </data>
+  <data name="MealPlan.ShoppingListLoadFirst" xml:space="preserve">
+    <value>Vennligst last en handleliste foerst.</value>
+  </data>
+  <data name="MealPlan.ShoppingListTitle" xml:space="preserve">
+    <value>Handleliste</value>
+  </data>
+  <data name="MealPlan.ShoppingListShare" xml:space="preserve">
+    <value>Sjekk ut min handleliste!</value>
+  </data>
+  <data name="MealPlan.NutritionError" xml:space="preserve">
+    <value>Næringsverdier kunne ikke lastes.</value>
+  </data>
+
+  <!-- Day Names (Full) -->
+  <data name="Day.Monday" xml:space="preserve">
+    <value>Mandag</value>
+  </data>
+  <data name="Day.Tuesday" xml:space="preserve">
+    <value>Tirsdag</value>
+  </data>
+  <data name="Day.Wednesday" xml:space="preserve">
+    <value>Onsdag</value>
+  </data>
+  <data name="Day.Thursday" xml:space="preserve">
+    <value>Torsdag</value>
+  </data>
+  <data name="Day.Friday" xml:space="preserve">
+    <value>Fredag</value>
+  </data>
+  <data name="Day.Saturday" xml:space="preserve">
+    <value>Lørdag</value>
+  </data>
+  <data name="Day.Sunday" xml:space="preserve">
+    <value>Søndag</value>
+  </data>
+
+  <!-- Meal Types (Courses) -->
+  <data name="Meal.Starter" xml:space="preserve">
+    <value>Forrett</value>
+  </data>
+  <data name="Meal.MainCourse" xml:space="preserve">
+    <value>Hovedrett</value>
+  </data>
+  <data name="Meal.Dessert" xml:space="preserve">
+    <value>Dessert</value>
+  </data>
+
+  <!-- Meal Times -->
+  <data name="Meal.Breakfast" xml:space="preserve">
+    <value>🥐 Frokost</value>
+  </data>
+  <data name="Meal.Lunch" xml:space="preserve">
+    <value>🍱 Lunsj</value>
+  </data>
+  <data name="Meal.Dinner" xml:space="preserve">
+    <value>🍝 Middag</value>
+  </data>
+
+  <!-- Common Actions -->
+  <data name="Common.Edit" xml:space="preserve">
+    <value>Rediger</value>
+  </data>
+  <data name="Common.Replace" xml:space="preserve">
+    <value>Erstatt</value>
+  </data>
 </root>

@@ -3645,8 +3645,8 @@
                                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18l-2 13H5L3 6zM8 6V4a4 4 0 0 1 8 0v2"/></svg>
                             </div>
                             <div class="v1-shopping-text">
-                                <div class="v1-shopping-title">Einkaufsliste laden</div>
-                                <div class="v1-shopping-sub">Tippen zum Generieren</div>
+                                <div class="v1-shopping-title">@SharedLocalizer["MealPlan.LoadShoppingList"]</div>
+                                <div class="v1-shopping-sub">@SharedLocalizer["MealPlan.TapToGenerate"]</div>
                             </div>
                             <button type="button" class="v1-shopping-go btn-reset">
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
@@ -3840,7 +3840,13 @@
 
         // Translations
         const i18n = {
-            creator: '@SharedLocalizer["Feed.Creator"]'
+            creator: '@SharedLocalizer["Feed.Creator"]',
+            chooseRecipe: '@SharedLocalizer["MealPlan.ChooseRecipe"]',
+            shoppingListError: '@SharedLocalizer["MealPlan.ShoppingListError"]',
+            shoppingListLoadFirst: '@SharedLocalizer["MealPlan.ShoppingListLoadFirst"]',
+            shoppingListTitle: '@SharedLocalizer["MealPlan.ShoppingListTitle"]',
+            shoppingListShare: '@SharedLocalizer["MealPlan.ShoppingListShare"]',
+            nutritionError: '@SharedLocalizer["MealPlan.NutritionError"]'
         };
 
         window.worldChainMarketplaceConfig = {
@@ -5260,9 +5266,25 @@
             root.style.setProperty('--plan-input-bg', rgbaFromHex(selected.background, 0.4));
         }
 
-        const days = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
-        const slotsGaenge = ["Vorspeise", "Hauptspeise", "Dessert"];
-        const slotsMahlzeiten = ["🥐 Frühstück", "🍱 Mittag", "🍝 Abend"];
+        const days = [@Html.Raw(string.Join(", ", new[] {
+            $"\"{SharedLocalizer["Day.Monday"]}\"",
+            $"\"{SharedLocalizer["Day.Tuesday"]}\"",
+            $"\"{SharedLocalizer["Day.Wednesday"]}\"",
+            $"\"{SharedLocalizer["Day.Thursday"]}\"",
+            $"\"{SharedLocalizer["Day.Friday"]}\"",
+            $"\"{SharedLocalizer["Day.Saturday"]}\"",
+            $"\"{SharedLocalizer["Day.Sunday"]}\""
+        }))];
+        const slotsGaenge = [@Html.Raw(string.Join(", ", new[] {
+            $"\"{SharedLocalizer["Meal.Starter"]}\"",
+            $"\"{SharedLocalizer["Meal.MainCourse"]}\"",
+            $"\"{SharedLocalizer["Meal.Dessert"]}\""
+        }))];
+        const slotsMahlzeiten = [@Html.Raw(string.Join(", ", new[] {
+            $"\"{SharedLocalizer["Meal.Breakfast"]}\"",
+            $"\"{SharedLocalizer["Meal.Lunch"]}\"",
+            $"\"{SharedLocalizer["Meal.Dinner"]}\""
+        }))];
 
         // Track meal mode per day (false = Gänge, true = Mahlzeiten)
         const dayMealModes = {};
@@ -5493,8 +5515,8 @@
                                 </div>
                             </div>
                             <div class="v1-meal-actions">
-                                <button type="button" class="v1-meal-act btn-reset" data-action="show-recipe" data-slot-key="${key}">${svgPencil} Bearbeiten</button>
-                                <button type="button" class="v1-meal-act btn-reset" data-action="edit-slot" data-slot-key="${key}">${svgSwap} Ersetzen</button>
+                                <button type="button" class="v1-meal-act btn-reset" data-action="show-recipe" data-slot-key="${key}">${svgPencil} @SharedLocalizer["Common.Edit"]</button>
+                                <button type="button" class="v1-meal-act btn-reset" data-action="edit-slot" data-slot-key="${key}">${svgSwap} @SharedLocalizer["Common.Replace"]</button>
                                 <button type="button" class="v1-meal-act v1-meal-act-danger btn-reset" data-action="delete-slot" data-slot-key="${key}" aria-label="Entfernen">${svgTrash}</button>
                             </div>
                         </div>`;
@@ -5515,7 +5537,7 @@
                 dayHtml += `</div>
                     <button type="button" class="v1-day-nutrition" data-action="toggle-day-nutrition" data-day-index="${dayIndex}">
                         <span class="v1-day-nutrition-kcal" id="dayNutritionKcalLabel-${dayIndex}">&#x2014; kcal</span>
-                        <span class="v1-day-nutrition-label">Nährwerte</span>
+                        <span class="v1-day-nutrition-label">@SharedLocalizer["MealPlan.Nutrition"]</span>
                         ${svgChevDown}
                     </button>
                     <div class="day-nutrition is-collapsed" data-day-index="${dayIndex}">
@@ -5615,7 +5637,7 @@
             const modalEl = document.getElementById('planModal');
             const modalInstance = bootstrap.Modal.getInstance(modalEl);
             if (modalInstance) modalInstance.hide();
-            showToast('Wähle jetzt im Feed ein Rezept zum Ersetzen.', 'info');
+            showToast(i18n.chooseRecipe, 'info');
         }
 
         function buildMealPlanPayload() {
@@ -6032,7 +6054,7 @@
             params.append('personCount', personCount);
 
             const response = await fetch(`/WorldMiniApp/MealPlan/GetShoppingListText?${params.toString()}`);
-            if (!response.ok) { showToast("Einkaufsliste konnte nicht geladen werden.", "error"); return; }
+            if (!response.ok) { showToast(i18n.shoppingListError, "error"); return; }
 
             const data = await response.json();
             const text = data.text || '';
@@ -6555,7 +6577,7 @@
                 setNutritionTotals(data);
                 if (statusEl) statusEl.textContent = 'Aktuell';
             } catch (error) {
-                console.error("Nährwerte konnten nicht geladen werden.", error);
+                console.error(i18n.nutritionError, error);
                 setNutritionTotals(null);
                 if (statusEl) statusEl.textContent = 'Fehler';
             }
@@ -6585,7 +6607,7 @@
 
         async function generateShareLink() {
             const text = (document.getElementById('shoppingListEditor')?.value || '').trim();
-            if (!text) { showToast("Bitte zuerst eine Einkaufsliste laden.", "warn"); return; }
+            if (!text) { showToast(i18n.shoppingListLoadFirst, "warn"); return; }
 
             try {
                 const items = parseShoppingListText(text);
@@ -6622,8 +6644,8 @@
                 if (navigator.share) {
                     try {
                         await navigator.share({
-                            title: 'Einkaufsliste',
-                            text: 'Schau dir meine Einkaufsliste an!',
+                            title: i18n.shoppingListTitle,
+                            text: i18n.shoppingListShare,
                             url: data.shareUrl
                         });
                         showToast("Link geteilt!", "success");
