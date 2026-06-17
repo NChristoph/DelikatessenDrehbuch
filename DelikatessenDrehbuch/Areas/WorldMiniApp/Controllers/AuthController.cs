@@ -367,10 +367,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     var body = await verifyResponse.Content.ReadAsStringAsync();
                     _logger.LogWarning("World ID v4 verify failed: {Status} {Body}", (int)verifyResponse.StatusCode, body);
-                    // TEMP/DEBUG: v4-Ablehnungsgrund an den Client durchreichen, damit er
-                    // im Debug-Overlay sichtbar wird. Später wieder entfernen.
-                    var snippet = string.IsNullOrEmpty(body) ? "" : body.Substring(0, Math.Min(400, body.Length));
-                    return BadRequest(new { status = "error", isValid = false, message = "Verifizierung fehlgeschlagen.", v4status = (int)verifyResponse.StatusCode, v4body = snippet });
+                    // Der v4-Ablehnungsgrund wird nur an den Client durchgereicht, wenn
+                    // WorldId:DebugVerify=true gesetzt ist (Debug-Schalter, Default aus).
+                    // Sonst nur generische Meldung (kein Info-Leak in Produktion).
+                    var debugVerify = string.Equals(_configuration["WorldId:DebugVerify"], "true", StringComparison.OrdinalIgnoreCase);
+                    if (debugVerify)
+                    {
+                        var snippet = string.IsNullOrEmpty(body) ? "" : body.Substring(0, Math.Min(400, body.Length));
+                        return BadRequest(new { status = "error", isValid = false, message = "Verifizierung fehlgeschlagen.", v4status = (int)verifyResponse.StatusCode, v4body = snippet });
+                    }
+                    return BadRequest(new { status = "error", isValid = false, message = "Verifizierung fehlgeschlagen." });
                 }
 
                 // 2) nullifier + Level aus dem IDKit-Result lesen (responses[0]).

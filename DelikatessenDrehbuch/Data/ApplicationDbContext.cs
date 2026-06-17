@@ -11,6 +11,9 @@ namespace DelikatessenDrehbuch.Data
         // Persistente DataProtection-Keys (signieren/verschlüsseln u.a. die Auth-Cookies).
         public DbSet<DataProtectionKey> DataProtectionKeys { get; set; }
 
+        // Marktplatz-Auszahlungsanträge (Modell B Cash-out). Per Hand-SQL verwaltet.
+        public DbSet<MarketplacePayoutRequest> MarketplacePayoutRequests { get; set; }
+
         public DbSet<Recipes> Recipes { get; set; }
         public DbSet<Recession> Recessions { get; set; }
         public DbSet<Like> Likes { get; set; }
@@ -100,6 +103,7 @@ namespace DelikatessenDrehbuch.Data
             // Migrationen) -> aus EF-Migrationen ausschließen, damit künftige
             // Migrationen nicht versuchen, die bereits existierende Tabelle anzulegen.
             builder.Entity<DataProtectionKey>().ToTable("DataProtectionKeys", t => t.ExcludeFromMigrations());
+            builder.Entity<MarketplacePayoutRequest>().ToTable("MarketplacePayoutRequests", t => t.ExcludeFromMigrations());
 
             builder.Entity<RecipeBaseKeyword>()
                 .HasKey(link => new { link.RecipeBaseDataId, link.KeywordId });

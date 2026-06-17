@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
     [Area("WorldMiniApp")]
-    public class AdPreferencesController : Controller
+    public class AdPreferencesController : WorldMiniAppBaseController
     {
                 private readonly IWorldAdPreferenceService _worldAdPreferenceService;
 
@@ -45,10 +45,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return RedirectToAction("UserDashboard", "Home", new { area = "WorldMiniApp" });
         }
 
-        private string ResolveUserHash()
-        {
-            return WorldMiniAppUserHashHelper.Resolve(HttpContext);
-        }
+        // ResolveUserHash() kommt jetzt aus WorldMiniAppBaseController.
     }
 }
 

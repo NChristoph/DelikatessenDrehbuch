@@ -22,10 +22,16 @@
             <h4 class="fw-bold mb-0">Meine Angebote</h4>
             <small class="text-muted">@Model.Count Angebote</small>
         </div>
-        <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
-           class="btn btn-dark btn-sm rounded-pill">
-            <i class="bi bi-plus-lg me-1"></i>Neues Angebot
-        </a>
+        <div class="d-flex gap-2">
+            <a href="@Url.Action("Payout", "Marketplace", new { area = "WorldMiniApp" })"
+               class="btn btn-outline-dark btn-sm rounded-pill">
+                <i class="bi bi-cash-coin me-1"></i>Guthaben
+            </a>
+            <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
+               class="btn btn-dark btn-sm rounded-pill">
+                <i class="bi bi-plus-lg me-1"></i>Neues Angebot
+            </a>
+        </div>
     </div>
 
     @if (!Model.Any())

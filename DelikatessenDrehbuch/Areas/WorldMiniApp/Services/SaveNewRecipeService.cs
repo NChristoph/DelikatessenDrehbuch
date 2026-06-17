@@ -34,9 +34,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
 
                 await ProcessIngredientsAsync(recipeBaseData, recipesModel);
 
-
                 await ProcessPreparationStepsAsync(recipeBaseData, recipesModel);
-                await ProcessSmartStepsAsync(recipeBaseData, recipesModel);
 
                 await ProcessRecipeImageAsync(recipeBaseData, recipesModel,wordUserImage);
 
@@ -227,15 +225,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
             }
             // SaveChanges wird von der Outer-Transaction gehandled
         }
-
-        private async Task ProcessSmartStepsAsync(RecipeBaseData recipe, SaveNewRecipeModel model)
-        {
-            // OLD SYSTEM - SmartSteps removed
-            // Do nothing
-            await Task.CompletedTask;
-        }
-
-        // OLD SYSTEM helper methods removed (NormalizeJson, ParseSmartStepMetadata, ResolvePreparationStepAsync)
 
         private async Task ProcessRecipeImageAsync(RecipeBaseData recipe, SaveNewRecipeModel model,bool wordlUserImage)
         {

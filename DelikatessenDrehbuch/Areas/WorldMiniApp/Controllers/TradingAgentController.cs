@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
     [Area("WorldMiniApp")]
-    public class TradingAgentController : Controller
+    public class TradingAgentController : WorldMiniAppBaseController
     {
         private readonly ApplicationDbContext _context;
         private readonly TradingAgentService _agentService;
@@ -22,10 +22,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _logger = logger;
         }
 
-        private string ResolveUserHash()
-        {
-            return WorldMiniAppUserHashHelper.Resolve(HttpContext);
-        }
+        // ResolveUserHash() kommt jetzt aus WorldMiniAppBaseController.
 
         /// <summary>
         /// GET: Agent Status für User

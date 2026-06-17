@@ -1,7 +1,10 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
 using DelikatessenDrehbuch.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -11,11 +14,42 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AgentPaymentController> _logger;
+        private readonly IConfiguration _configuration;
 
-        public AgentPaymentController(ApplicationDbContext context, ILogger<AgentPaymentController> logger)
+        public AgentPaymentController(ApplicationDbContext context, ILogger<AgentPaymentController> logger, IConfiguration configuration)
         {
             _context = context;
             _logger = logger;
+            _configuration = configuration;
+        }
+
+        /// <summary>
+        /// Shared-Secret-Prüfung für den internen Node.js Agent-Service (gleiches Muster
+        /// wie <c>AgentApiController</c>). Wird nur erzwungen, wenn TradingAgent:InternalApiKey
+        /// konfiguriert ist (nicht-breaking für bestehende Deployments). InitiatePayment legt
+        /// Auszahlungs-Aufträge an und MUSS in Produktion abgesichert sein.
+        /// </summary>
+        private bool IsServiceAuthorized()
+        {
+            var configuredKey = _configuration["TradingAgent:InternalApiKey"];
+            if (string.IsNullOrWhiteSpace(configuredKey))
+            {
+                _logger.LogWarning(
+                    "AgentPayment request not authenticated: TradingAgent:InternalApiKey is not configured. " +
+                    "InitiatePayment must be locked down in production.");
+                return true;
+            }
+
+            var providedKey = Request.Headers["X-Agent-Api-Key"].FirstOrDefault();
+            if (string.IsNullOrWhiteSpace(providedKey))
+            {
+                return false;
+            }
+
+            var expected = Encoding.UTF8.GetBytes(configuredKey);
+            var actual = Encoding.UTF8.GetBytes(providedKey);
+            return expected.Length == actual.Length
+                && CryptographicOperations.FixedTimeEquals(expected, actual);
         }
 
         /// <summary>
@@ -26,6 +60,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             try
             {
+                if (!IsServiceAuthorized())
+                {
+                    return Unauthorized(new { error = "Nicht autorisiert" });
+                }
+
                 if (!ModelState.IsValid)
                 {
                     return BadRequest(new { error = "Ungültige Request-Daten" });
@@ -124,12 +163,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             try
             {
+                var currentUserHash = WorldMiniAppUserHashHelper.Resolve(HttpContext);
+                if (string.IsNullOrWhiteSpace(currentUserHash))
+                {
+                    return Unauthorized(new { error = "Nicht angemeldet" });
+                }
+
                 var payment = await _context.AgentPaymentRequests
                     .FirstOrDefaultAsync(p => p.Reference == request.Reference);
 
                 if (payment == null)
                 {
                     return NotFound(new { error = "Payment nicht gefunden" });
+                }
+
+                // Nur der Empfänger darf seine eigene Zahlung bestätigen.
+                if (!string.Equals(payment.RecipientUserHash, currentUserHash, StringComparison.Ordinal))
+                {
+                    return Forbid();
                 }
 
                 if (payment.Status != "pending")
@@ -168,12 +219,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             try
             {
+                var currentUserHash = WorldMiniAppUserHashHelper.Resolve(HttpContext);
+                if (string.IsNullOrWhiteSpace(currentUserHash))
+                {
+                    return Unauthorized(new { error = "Nicht angemeldet" });
+                }
+
                 var payment = await _context.AgentPaymentRequests
                     .FirstOrDefaultAsync(p => p.Reference == request.Reference);
 
                 if (payment == null)
                 {
                     return NotFound(new { error = "Payment nicht gefunden" });
+                }
+
+                // Nur der Empfänger darf seine eigene Zahlung als fehlgeschlagen markieren.
+                if (!string.Equals(payment.RecipientUserHash, currentUserHash, StringComparison.Ordinal))
+                {
+                    return Forbid();
                 }
 
                 payment.Status = "failed";
@@ -194,13 +257,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         /// Ausstehende Payments für User abrufen
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetPendingPayments(string userHash)
+        public async Task<IActionResult> GetPendingPayments()
         {
             try
             {
+                var userHash = WorldMiniAppUserHashHelper.Resolve(HttpContext);
                 if (string.IsNullOrWhiteSpace(userHash))
                 {
-                    return BadRequest(new { error = "UserHash fehlt" });
+                    return Unauthorized(new { error = "Nicht angemeldet" });
                 }
 
                 var pendingPayments = await _context.AgentPaymentRequests
@@ -240,14 +304,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         /// Payment-Historie für User
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetPaymentHistory(string userHash, int take = 20)
+        public async Task<IActionResult> GetPaymentHistory(int take = 20)
         {
             try
             {
+                var userHash = WorldMiniAppUserHashHelper.Resolve(HttpContext);
                 if (string.IsNullOrWhiteSpace(userHash))
                 {
-                    return BadRequest(new { error = "UserHash fehlt" });
+                    return Unauthorized(new { error = "Nicht angemeldet" });
                 }
+
+                if (take < 1) take = 1;
+                if (take > 100) take = 100;
 
                 var history = await _context.AgentPaymentRequests
                     .AsNoTracking()

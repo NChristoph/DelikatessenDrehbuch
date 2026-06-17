@@ -29,82 +29,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IStringLocalizer<SharedResources> _sharedLocalizer;
         private readonly ILogger<HomeController> _logger;
 
-        private static readonly SemaphoreSlim EnsureNotificationsSchemaLock = new(1, 1);
-        private static volatile bool NotificationsSchemaEnsured = false;
-
-        // Azure-safe SQL (no GO). Creates the lightweight notifications table if missing.
-        private const string EnsureWorldUserNotificationsSchemaSql = @"
-IF OBJECT_ID(N'[dbo].[WorldUserNotifications]', N'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[WorldUserNotifications](
-        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_WorldUserNotifications] PRIMARY KEY,
-        [UserHash] NVARCHAR(256) NOT NULL,
-        [Icon] NVARCHAR(64) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Icon] DEFAULT (N'bi-bell'),
-        [Sender] NVARCHAR(128) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Sender] DEFAULT (N'system'),
-        [Description] NVARCHAR(1000) NOT NULL,
-        [Href] NVARCHAR(600) NULL,
-        [NotificationKey] NVARCHAR(300) NULL,
-        [EventType] NVARCHAR(64) NULL,
-        [LatestActorName] NVARCHAR(128) NULL,
-        [ContextText] NVARCHAR(400) NULL,
-        [AggregateCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_AggregateCount] DEFAULT (1),
-        [UnreadEventCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_UnreadEventCount] DEFAULT (1),
-        [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserNotifications_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
-        [IsSeen] BIT NOT NULL CONSTRAINT [DF_WorldUserNotifications_IsSeen] DEFAULT (0),
-        [SeenAtUtc] DATETIME2 NULL
-    );
-
-    CREATE INDEX [IX_WorldUserNotifications_UserHash_IsSeen_CreatedAtUtc]
-        ON [dbo].[WorldUserNotifications]([UserHash], [IsSeen], [CreatedAtUtc]);
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'NotificationKey') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [NotificationKey] NVARCHAR(300) NULL;
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'EventType') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [EventType] NVARCHAR(64) NULL;
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'LatestActorName') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [LatestActorName] NVARCHAR(128) NULL;
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'ContextText') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [ContextText] NVARCHAR(400) NULL;
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'AggregateCount') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [AggregateCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_AggregateCount_Legacy] DEFAULT (1);
-END;
-
-IF COL_LENGTH(N'[dbo].[WorldUserNotifications]', N'UnreadEventCount') IS NULL
-BEGIN
-    ALTER TABLE [dbo].[WorldUserNotifications]
-        ADD [UnreadEventCount] INT NOT NULL CONSTRAINT [DF_WorldUserNotifications_UnreadEventCount_Legacy] DEFAULT (1);
-END;
-
-IF NOT EXISTS (
-    SELECT 1
-    FROM sys.indexes
-    WHERE name = N'IX_WorldUserNotifications_UserHash_NotificationKey'
-      AND object_id = OBJECT_ID(N'[dbo].[WorldUserNotifications]')
-)
-BEGIN
-    CREATE INDEX [IX_WorldUserNotifications_UserHash_NotificationKey]
-        ON [dbo].[WorldUserNotifications]([UserHash], [NotificationKey]);
-END;
-";
+        // Hinweis: Das frühere Runtime-DDL für [dbo].[WorldUserNotifications]
+        // (eingebettetes CREATE/ALTER + SemaphoreSlim-Lock) wurde entfernt. Das Schema
+        // wird jetzt per Deploy-Skript Areas/WorldMiniApp/Sql/worlduser_notifications.sql
+        // angelegt — kein DDL mehr auf dem Request-Pfad.
 
         public HomeController(
             ApplicationDbContext context,
@@ -721,7 +649,8 @@ END;
             }
 
             take = Math.Clamp(take, 1, 100);
-            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+            // Schema wird per Deploy-Skript Sql/worlduser_notifications.sql angelegt
+            // (kein Runtime-DDL mehr).
 
             var query = _context.WorldUserNotifications.AsNoTracking().Where(x => x.UserHash == userHash);
             if (!includeSeen)
@@ -768,7 +697,8 @@ END;
                 return BadRequest(new { message = "Id fehlt." });
             }
 
-            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+            // Schema wird per Deploy-Skript Sql/worlduser_notifications.sql angelegt
+            // (kein Runtime-DDL mehr).
 
             var item = await _context.WorldUserNotifications.FirstOrDefaultAsync(x => x.Id == request.Id && x.UserHash == userHash, cancellationToken);
             if (item == null)
@@ -797,7 +727,8 @@ END;
                 return Unauthorized(new { message = "Nicht eingeloggt." });
             }
 
-            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+            // Schema wird per Deploy-Skript Sql/worlduser_notifications.sql angelegt
+            // (kein Runtime-DDL mehr).
 
             var items = await _context.WorldUserNotifications
                 .Where(x => x.UserHash == userHash && !x.IsSeen)
@@ -828,7 +759,8 @@ END;
                 return Unauthorized(new { message = "Nicht eingeloggt." });
             }
 
-            await EnsureWorldUserNotificationsSchemaAsync(cancellationToken);
+            // Schema wird per Deploy-Skript Sql/worlduser_notifications.sql angelegt
+            // (kein Runtime-DDL mehr).
 
             var items = await _context.WorldUserNotifications.Where(x => x.UserHash == userHash).ToListAsync(cancellationToken);
             if (items.Count > 0)
@@ -840,22 +772,9 @@ END;
             return Json(new { ok = true });
         }
 
-        private async Task EnsureWorldUserNotificationsSchemaAsync(CancellationToken cancellationToken)
-        {
-            if (NotificationsSchemaEnsured) return;
-
-            await EnsureNotificationsSchemaLock.WaitAsync(cancellationToken);
-            try
-            {
-                if (NotificationsSchemaEnsured) return;
-                await _context.Database.ExecuteSqlRawAsync(EnsureWorldUserNotificationsSchemaSql, cancellationToken);
-                NotificationsSchemaEnsured = true;
-            }
-            finally
-            {
-                EnsureNotificationsSchemaLock.Release();
-            }
-        }
+        // EnsureWorldUserNotificationsSchemaAsync entfernt: Das Schema wird jetzt per
+        // Deploy-Skript Areas/WorldMiniApp/Sql/worlduser_notifications.sql angelegt,
+        // nicht mehr zur Laufzeit (kein DDL auf dem Request-Pfad).
 
        
         private static int? ResolveMeasureIdFromLookup(string? rawMeasure, IReadOnlyDictionary<string, int> lookup)

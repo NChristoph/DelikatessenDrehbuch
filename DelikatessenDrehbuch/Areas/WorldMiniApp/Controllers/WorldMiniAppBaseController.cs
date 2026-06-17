@@ -18,6 +18,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return WorldMiniAppUserHashHelper.Resolve(HttpContext, userHash);
         }
 
+        // Parameterlose Variante für Controller, die keinen expliziten Hash übergeben.
+        // Identität kommt ohnehin nur aus dem Auth-Cookie (Claim).
+        protected string ResolveUserHash()
+        {
+            return WorldMiniAppUserHashHelper.Resolve(HttpContext);
+        }
+
         protected async Task<bool> IsCreatorAllowedAsync(ApplicationDbContext context, string userHash)
         {
             if (string.IsNullOrWhiteSpace(userHash))

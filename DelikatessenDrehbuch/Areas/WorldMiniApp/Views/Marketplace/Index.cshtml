@@ -665,9 +665,20 @@
         try {
             // MiniKit pay()
             if (window.startMiniKitPayment) {
+                // Modell B: Zahlung geht an die PLATTFORM-Wallet (nicht direkt an den Verkäufer).
+                // Der Verkäufer-Anteil (80%) wird serverseitig als Guthaben verbucht.
+                const platformWallet = (token === 'USDCE' || token === 'USDT')
+                    ? (window.MARKETPLACE_PLATFORM_WALLET_USDT || window.MARKETPLACE_PLATFORM_WALLET_WLD)
+                    : window.MARKETPLACE_PLATFORM_WALLET_WLD;
+                if (!platformWallet) {
+                    alert('Plattform-Wallet ist nicht konfiguriert. Kauf nicht möglich.');
+                    setBuyButtonLoading(listingId, false);
+                    return;
+                }
+
                 const reference = `listing-${listingId}-${Date.now()}`;
                 const payResult = await window.startMiniKitPayment({
-                    to: sellerWallet, tokenSymbol: token, amount: actualPrice,
+                    to: platformWallet, tokenSymbol: token, amount: actualPrice,
                     reference, description: `Essensplan: ${title}`
                 });
 
@@ -723,6 +734,9 @@
         marketplaceAddress: '@worldChainMarketplace',
         testMode: @(testMode ? "true" : "false")
     };
+    // Modell B: Käufe gehen an die Plattform-Wallet (nicht direkt an den Verkäufer).
+    window.MARKETPLACE_PLATFORM_WALLET_WLD = '@(ViewData["MarketplacePlatformWalletWld"])';
+    window.MARKETPLACE_PLATFORM_WALLET_USDT = '@(ViewData["MarketplacePlatformWalletUsdt"])';
 </script>
 <script src="https://cdn.jsdelivr.net/npm/ethers@6.13.2/dist/ethers.umd.min.js"></script>
 <script src="~/js/worldchain-marketplace.js"></script>

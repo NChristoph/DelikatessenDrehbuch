@@ -2,6 +2,7 @@ using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Data;
 using Microsoft.EntityFrameworkCore;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.RegularExpressions;
@@ -19,14 +20,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private readonly ApplicationDbContext _context;
         private readonly IConfiguration _configuration;
         private readonly ILogger<MarketplaceService> _logger;
+        private readonly IHttpClientFactory _httpClientFactory;
         private static readonly Regex TxHashRegex = new("^0x[a-fA-F0-9]{64}$", RegexOptions.Compiled);
         private const string WorldChainRpcUrl = "https://worldchain-mainnet.g.alchemy.com/public";
 
-        public MarketplaceService(ApplicationDbContext context, IConfiguration configuration, ILogger<MarketplaceService> logger)
+        public MarketplaceService(ApplicationDbContext context, IConfiguration configuration, ILogger<MarketplaceService> logger, IHttpClientFactory httpClientFactory)
         {
             _context = context;
             _configuration = configuration;
             _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
 
         // ---- Marketplace Listings ----
@@ -158,34 +161,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 return null;
             }
 
-            // On-Chain Verifizierung ist nicht-blockierend:
-            // MiniKit pay() bestaetigt die Zahlung bereits in der World App.
-            // Der Alchemy Public RPC kann die TX evtl. noch nicht liefern (Latenz/Rate-Limit).
-            // Wir loggen das Ergebnis, lassen den Kauf aber trotzdem durch.
-            // Duplikatschutz via UNIQUE Index auf ReferenceTxHash schuetzt vor Missbrauch.
-            var isOnChainTx = TxHashRegex.IsMatch(txHash);
-            if (isOnChainTx)
-            {
-                _ = Task.Run(async () =>
-                {
-                    try
-                    {
-                        var verified = await VerifyTransactionOnChainAsync(txHash);
-                        if (verified)
-                            _logger.LogInformation("On-Chain Verifizierung erfolgreich: {TxHash}", txHash);
-                        else
-                            _logger.LogWarning("On-Chain Verifizierung fehlgeschlagen (TX evtl. noch pending): {TxHash}", txHash);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "On-Chain Verifizierung Fehler fuer {TxHash}", txHash);
-                    }
-                });
-            }
-            else
-            {
-                _logger.LogInformation("FinalizeWorldChainPurchase: MiniKit Payment-Referenz: {TxRef}", txHash);
-            }
+            // SICHERHEIT: Die Zahlung wird jetzt BLOCKIEREND und fail-closed verifiziert
+            // (siehe unten, nach dem Laden des Listings). Früher lief die Prüfung als
+            // fire-and-forget und der Kauf wurde IMMER durchgelassen -> jeder eingeloggte
+            // Nutzer konnte mit einer erfundenen txHash Bezahlinhalte gratis bekommen.
 
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
@@ -201,6 +180,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 var existing = await _context.MealPlanPurchases
                     .FirstOrDefaultAsync(p => p.ReferenceTxHash == txHash);
                 if (existing != null) return existing;
+
+                // Modell B: Der Käufer zahlt den VOLLEN Preis in EINER Zahlung an die
+                // PLATTFORM-Wallet (atomar). Plattform-Wallet je nach Token bestimmen.
+                var isStableToken = (paymentToken ?? "WLD").Equals("USDT", StringComparison.OrdinalIgnoreCase)
+                    || (paymentToken ?? "WLD").Equals("USDCE", StringComparison.OrdinalIgnoreCase);
+                var platformWallet = isStableToken
+                    ? (_configuration["Marketplace:PlatformWalletAddressUsdt"] ?? _configuration["Marketplace:PlatformWalletAddress"])
+                    : _configuration["Marketplace:PlatformWalletAddress"];
+                if (string.IsNullOrWhiteSpace(platformWallet))
+                {
+                    _logger.LogError("Kauf abgelehnt: Marketplace:PlatformWalletAddress nicht konfiguriert (fail-closed).");
+                    return null;
+                }
+
+                // SICHERHEIT: Zahlung serverseitig verifizieren (fail-closed) — sie MUSS an die
+                // Plattform-Wallet gegangen sein. Schließt den "gratis via erfundener txHash"-Exploit.
+                var paymentVerified = await VerifyMiniKitPaymentAsync(txHash, listingId, platformWallet);
+                if (!paymentVerified)
+                {
+                    _logger.LogWarning("Kauf abgelehnt: Zahlung nicht verifiziert. Listing={Listing} Tx={Tx}", listingId, txHash);
+                    return null;
+                }
 
                 listing.SoldCount++;
 
@@ -241,6 +242,26 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 await _context.MealPlanPurchases.AddAsync(purchase);
                 await _context.SaveChangesAsync();
 
+                // Modell B: Die Plattform hat den vollen Betrag erhalten. Der Verkäufer-Anteil
+                // (80 %) wird als internes Guthaben (WildCoinBalance) gutgeschrieben; die echte
+                // Auszahlung erfolgt separat (manuell / späteres Cash-out-Feature). Der Token
+                // wird in ReferenceInfo vermerkt (Guthaben ist token-agnostisch, WLD-denominiert).
+                var seller = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == listing.SellerHash);
+                if (seller != null)
+                {
+                    seller.WildCoinBalance += creatorAmount;
+                    await _context.WildCoinTransactions.AddAsync(new WildCoinTransaction
+                    {
+                        UserHash = seller.UserHash,
+                        Amount = creatorAmount,
+                        BalanceAfter = seller.WildCoinBalance,
+                        Type = "sale_credit",
+                        ReferenceInfo = $"listing:{listingId};token:{paymentToken};tx:{txHash}",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                    await _context.SaveChangesAsync();
+                }
+
                 await transaction.CommitAsync();
                 return purchase;
             }
@@ -261,9 +282,230 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 .ToListAsync();
         }
 
+        // ---- Verkäufer-Auszahlung (Modell B Cash-out) ----
+
+        public async Task<decimal> GetAvailableBalanceAsync(string sellerHash)
+        {
+            var user = await _context.WorldAppUser.AsNoTracking().FirstOrDefaultAsync(u => u.UserHash == sellerHash);
+            return user?.WildCoinBalance ?? 0m;
+        }
+
+        public async Task<(bool success, string? error, MarketplacePayoutRequest? request)> RequestPayoutAsync(string sellerHash, decimal amount, string token, string walletAddress)
+        {
+            if (string.IsNullOrWhiteSpace(sellerHash)) return (false, "Nicht eingeloggt.", null);
+            if (string.IsNullOrWhiteSpace(walletAddress)) return (false, "Auszahlungs-Wallet fehlt.", null);
+            if (amount <= 0) return (false, "Betrag muss größer 0 sein.", null);
+
+            var normalizedToken = (token ?? "WLD").ToUpperInvariant();
+            if (normalizedToken == "USDT") normalizedToken = "USDCE";
+            if (normalizedToken != "WLD" && normalizedToken != "USDCE") return (false, "Unbekannter Token.", null);
+
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == sellerHash);
+                if (user == null) return (false, "Nutzer nicht gefunden.", null);
+                if (amount > user.WildCoinBalance) return (false, "Betrag übersteigt dein verfügbares Guthaben.", null);
+
+                // Guthaben sofort reservieren (vom verfügbaren Saldo abziehen).
+                user.WildCoinBalance -= amount;
+
+                var request = new MarketplacePayoutRequest
+                {
+                    SellerHash = sellerHash,
+                    Amount = amount,
+                    Token = normalizedToken,
+                    WalletAddress = walletAddress.Trim(),
+                    Status = "pending",
+                    RequestedAt = DateTime.UtcNow
+                };
+                await _context.MarketplacePayoutRequests.AddAsync(request);
+
+                await _context.WildCoinTransactions.AddAsync(new WildCoinTransaction
+                {
+                    UserHash = sellerHash,
+                    Amount = -amount,
+                    BalanceAfter = user.WildCoinBalance,
+                    Type = "payout_request",
+                    ReferenceInfo = $"token:{normalizedToken};wallet:{walletAddress.Trim()}",
+                    CreatedAt = DateTime.UtcNow
+                });
+
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+                return (true, null, request);
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        public async Task<List<MarketplacePayoutRequest>> GetPayoutsForSellerAsync(string sellerHash)
+        {
+            return await _context.MarketplacePayoutRequests.AsNoTracking()
+                .Where(p => p.SellerHash == sellerHash)
+                .OrderByDescending(p => p.RequestedAt)
+                .Take(100)
+                .ToListAsync();
+        }
+
+        public async Task<List<MarketplacePayoutRequest>> GetPendingPayoutsAsync()
+        {
+            return await _context.MarketplacePayoutRequests.AsNoTracking()
+                .Where(p => p.Status == "pending")
+                .OrderBy(p => p.RequestedAt)
+                .Take(200)
+                .ToListAsync();
+        }
+
+        public async Task<bool> MarkPayoutPaidAsync(int payoutId, string txHash, string adminHash)
+        {
+            var request = await _context.MarketplacePayoutRequests.FirstOrDefaultAsync(p => p.Id == payoutId && p.Status == "pending");
+            if (request == null) return false;
+
+            request.Status = "paid";
+            request.TxHash = txHash?.Trim();
+            request.ProcessedAt = DateTime.UtcNow;
+            request.ProcessedBy = adminHash;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> RejectPayoutAsync(int payoutId, string note, string adminHash)
+        {
+            using var tx = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var request = await _context.MarketplacePayoutRequests.FirstOrDefaultAsync(p => p.Id == payoutId && p.Status == "pending");
+                if (request == null) return false;
+
+                // Reserviertes Guthaben zurückbuchen.
+                var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == request.SellerHash);
+                if (user != null)
+                {
+                    user.WildCoinBalance += request.Amount;
+                    await _context.WildCoinTransactions.AddAsync(new WildCoinTransaction
+                    {
+                        UserHash = request.SellerHash,
+                        Amount = request.Amount,
+                        BalanceAfter = user.WildCoinBalance,
+                        Type = "payout_refund",
+                        ReferenceInfo = $"payout:{request.Id}",
+                        CreatedAt = DateTime.UtcNow
+                    });
+                }
+
+                request.Status = "rejected";
+                request.Note = note;
+                request.ProcessedAt = DateTime.UtcNow;
+                request.ProcessedBy = adminHash;
+                await _context.SaveChangesAsync();
+                await tx.CommitAsync();
+                return true;
+            }
+            catch
+            {
+                await tx.RollbackAsync();
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Verifiziert eine MiniKit-Zahlung serverseitig über die World-Payment-API
+        /// (https://developer.worldcoin.org/api/v2/minikit/transaction/{id}?app_id=…&type=payment).
+        /// FAIL-CLOSED: liefert nur true, wenn die Transaktion zu DIESER App gehört
+        /// (App-scoped API-Key), die reference zum Listing passt ("listing-{id}-…"),
+        /// die Zahlung nicht fehlgeschlagen ist und der Empfänger (falls geliefert) die
+        /// erwartete (Plattform-)Wallet ist. Schließt den "gratis via erfundener txHash"-Exploit.
+        /// Notfall-Schalter: Config Marketplace:VerifyPayments=false (NICHT in Produktion).
+        /// </summary>
+        private async Task<bool> VerifyMiniKitPaymentAsync(string transactionId, int listingId, string? expectedRecipient)
+        {
+            var verifyEnabled = !string.Equals(_configuration["Marketplace:VerifyPayments"], "false", StringComparison.OrdinalIgnoreCase);
+            if (!verifyEnabled)
+            {
+                _logger.LogWarning("Marketplace:VerifyPayments=false -> Zahlung NICHT verifiziert (unsicher!). Tx={Tx}", transactionId);
+                return true;
+            }
+
+            var appId = _configuration["WorldId:AppId"];
+            // Bestehender Azure-App-Setting-Name "WorldApiKey" wird bevorzugt;
+            // Fallback auf WorldId:DevPortalApiKey.
+            var apiKey = _configuration["WorldApiKey"] ?? _configuration["WorldId:DevPortalApiKey"];
+            if (string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(apiKey))
+            {
+                _logger.LogError("Zahlungsverifizierung nicht möglich: WorldId:AppId oder WorldApiKey fehlt -> fail-closed.");
+                return false;
+            }
+            if (string.IsNullOrWhiteSpace(transactionId))
+            {
+                return false;
+            }
+
+            try
+            {
+                var url = $"https://developer.worldcoin.org/api/v2/minikit/transaction/{Uri.EscapeDataString(transactionId)}?app_id={Uri.EscapeDataString(appId)}&type=payment";
+                var client = _httpClientFactory.CreateClient();
+                using var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                request.Headers.UserAgent.ParseAdd("DelikatessenDrehbuch/1.0");
+                request.Headers.Accept.ParseAdd("application/json");
+
+                var response = await client.SendAsync(request);
+                if (!response.IsSuccessStatusCode)
+                {
+                    // Nicht-2xx = TX gehört nicht zu dieser App / existiert nicht.
+                    _logger.LogWarning("World-Payment-API {Status} für Tx {Tx}", (int)response.StatusCode, transactionId);
+                    return false;
+                }
+
+                var json = await response.Content.ReadAsStringAsync();
+                using var doc = JsonDocument.Parse(json);
+                var root = doc.RootElement;
+
+                var status = root.TryGetProperty("transaction_status", out var st) ? st.GetString() : null;
+                var reference = root.TryGetProperty("reference", out var rf) ? rf.GetString() : null;
+                var to = root.TryGetProperty("to", out var toEl) ? toEl.GetString() : null;
+
+                // 1) Darf nicht fehlgeschlagen sein (pending/mined sind ok).
+                if (string.Equals(status, "failed", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Zahlung status=failed Tx={Tx}", transactionId);
+                    return false;
+                }
+
+                // 2) reference muss zu DIESEM Listing gehören (Frontend: "listing-{id}-{ts}").
+                if (string.IsNullOrWhiteSpace(reference) ||
+                    !reference.StartsWith($"listing-{listingId}-", StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Zahlungs-reference passt nicht zum Listing. ref={Ref} listing={Listing}", reference, listingId);
+                    return false;
+                }
+
+                // 3) Empfänger (falls von der API geliefert) muss die erwartete Wallet sein
+                //    (Modell B: die Plattform-Wallet). Verhindert Zahlungen an beliebige Adressen.
+                if (!string.IsNullOrWhiteSpace(to) && !string.IsNullOrWhiteSpace(expectedRecipient)
+                    && !string.Equals(to.Trim(), expectedRecipient.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    _logger.LogWarning("Zahlungs-Empfänger != erwartete Wallet. to={To}", to);
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Zahlungsverifizierung Fehler für Tx {Tx} -> fail-closed.", transactionId);
+                return false;
+            }
+        }
+
         /// <summary>
         /// Prueft via World Chain RPC ob die Transaktion existiert und erfolgreich war (status=0x1).
         /// Versucht bis zu 3x mit je 3s Wartezeit (TX koennte noch pending sein).
+        /// HINWEIS: Aktuell ungenutzt – die Zahlungsprüfung läuft über VerifyMiniKitPaymentAsync.
         /// </summary>
         private async Task<bool> VerifyTransactionOnChainAsync(string txHash)
         {

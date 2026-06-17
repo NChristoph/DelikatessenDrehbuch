@@ -1,0 +1,97 @@
+@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@{
+    ViewData["Title"] = "Auszahlung";
+    Layout = "_MiniAppLayout";
+    var balance = (decimal?)ViewData["Balance"] ?? 0m;
+    var payouts = ViewData["Payouts"] as List<MarketplacePayoutRequest> ?? new List<MarketplacePayoutRequest>();
+    var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
+    var walletUSDT = ViewData["WalletUSDT"]?.ToString() ?? "";
+}
+
+@Html.AntiForgeryToken()
+<div class="container py-3" style="max-width:560px">
+    <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small d-inline-block mb-3">
+        <i class="bi bi-arrow-left"></i> Zurück zu Meine Angebote
+    </a>
+    <h4 class="mb-3">Guthaben &amp; Auszahlung</h4>
+
+    <div class="card p-3 mb-3 shadow-sm">
+        <div class="text-muted small">Verfügbares Guthaben (Verkäufer-Anteil aus Verkäufen)</div>
+        <div style="font-size:1.8rem;font-weight:700">@balance.ToString("0.######") <span class="text-muted" style="font-size:1rem">WLD</span></div>
+    </div>
+
+    <form id="payoutForm" class="card p-3 mb-3 shadow-sm">
+        <label class="small mb-1">Betrag</label>
+        <input id="payoutAmount" type="number" step="0.000001" min="0" max="@balance.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control mb-2" required />
+        <label class="small mb-1">Token</label>
+        <select id="payoutToken" class="form-control mb-2">
+            <option value="WLD">WLD</option>
+            <option value="USDCE">USDC.e</option>
+        </select>
+        <label class="small mb-1">Auszahlungs-Wallet</label>
+        <input id="payoutWallet" type="text" class="form-control mb-2" value="@walletWLD" placeholder="0x…" required />
+        <button type="submit" class="btn btn-primary w-100">Auszahlung anfordern</button>
+        <div id="payoutMsg" class="small mt-2"></div>
+        <div class="text-muted small mt-2">Die Auszahlung wird nach Prüfung manuell überwiesen. Das Guthaben wird sofort reserviert.</div>
+    </form>
+
+    <h6>Verlauf</h6>
+    <table class="table table-sm">
+        <thead><tr><th>Datum</th><th>Betrag</th><th>Token</th><th>Status</th></tr></thead>
+        <tbody>
+            @if (payouts.Count == 0)
+            {
+                <tr><td colspan="4" class="text-muted">Noch keine Auszahlungen.</td></tr>
+            }
+            @foreach (var p in payouts)
+            {
+                <tr>
+                    <td>@p.RequestedAt.ToString("dd.MM.yy")</td>
+                    <td>@p.Amount.ToString("0.######")</td>
+                    <td>@p.Token</td>
+                    <td>
+                        @p.Status
+                        @if (!string.IsNullOrEmpty(p.TxHash)) { <span title="@p.TxHash">✓</span> }
+                        @if (p.Status == "rejected" && !string.IsNullOrEmpty(p.Note)) { <span class="text-muted small">(@p.Note)</span> }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script>
+    (function () {
+        var walletWld = '@walletWLD';
+        var walletUsdt = '@walletUSDT';
+        var form = document.getElementById('payoutForm');
+        document.getElementById('payoutToken').addEventListener('change', function (e) {
+            document.getElementById('payoutWallet').value = e.target.value === 'WLD' ? walletWld : walletUsdt;
+        });
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault();
+            var msg = document.getElementById('payoutMsg');
+            var tokenEl = document.querySelector('input[name="__RequestVerificationToken"]');
+            var body = new URLSearchParams();
+            body.append('amount', document.getElementById('payoutAmount').value);
+            body.append('token', document.getElementById('payoutToken').value);
+            body.append('walletAddress', document.getElementById('payoutWallet').value);
+            body.append('__RequestVerificationToken', tokenEl ? tokenEl.value : '');
+            try {
+                var res = await fetch('/WorldMiniApp/Marketplace/RequestPayout', { method: 'POST', body: body });
+                var data = await res.json();
+                if (data.success) {
+                    msg.style.color = 'green';
+                    msg.textContent = 'Antrag gestellt. Auszahlung folgt nach Prüfung.';
+                    setTimeout(function () { location.reload(); }, 1200);
+                } else {
+                    msg.style.color = 'red';
+                    msg.textContent = data.error || 'Fehler';
+                }
+            } catch (_) {
+                msg.style.color = 'red';
+                msg.textContent = 'Netzwerkfehler';
+            }
+        });
+    })();
+</script>

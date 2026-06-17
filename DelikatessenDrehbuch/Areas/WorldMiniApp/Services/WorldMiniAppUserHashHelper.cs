@@ -75,9 +75,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             var properties = new AuthenticationProperties
             {
                 IsPersistent = isPersistent,
-                AllowRefresh = true,
-                ExpiresUtc = DateTimeOffset.UtcNow.AddDays(isPersistent ? 30 : 1)
+                AllowRefresh = true
             };
+            if (isPersistent)
+            {
+                // Nur bei "Login merken" ein persistentes Cookie (überlebt App-Neustart).
+                properties.ExpiresUtc = DateTimeOffset.UtcNow.AddDays(30);
+            }
+            // Bei isPersistent=false: KEIN ExpiresUtc -> reines Session-Cookie. Es stirbt,
+            // wenn die World App geschlossen wird -> beim nächsten Start ist wieder Login
+            // nötig (das Login-Modal öffnet sich erneut).
 
             await httpContext.SignInAsync(AuthScheme, principal, properties);
 
@@ -85,7 +92,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             // im selben Request verfügbar machen.
             httpContext.User.AddIdentity(identity);
 
-            WriteDisplayCookie(httpContext, normalizedHash, isTestHash);
+            WriteDisplayCookie(httpContext, normalizedHash, isTestHash, isPersistent);
         }
 
         /// <summary>
@@ -115,16 +122,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             }
         }
 
-        private static void WriteDisplayCookie(HttpContext httpContext, string userHash, bool isTestHash)
+        private static void WriteDisplayCookie(HttpContext httpContext, string userHash, bool isTestHash, bool isPersistent)
         {
             var cookieOptions = new CookieOptions
             {
                 HttpOnly = false,
                 IsEssential = true,
                 SameSite = SameSiteMode.Lax,
-                Secure = httpContext.Request.IsHttps,
-                Expires = DateTimeOffset.UtcNow.AddDays(30)
+                Secure = httpContext.Request.IsHttps
             };
+            if (isPersistent)
+            {
+                // Nur bei "Login merken" persistent; sonst Session-Cookie (kein Expires),
+                // damit das Frontend nach App-Neustart keinen veralteten Login-Hinweis sieht.
+                cookieOptions.Expires = DateTimeOffset.UtcNow.AddDays(30);
+            }
 
             httpContext.Response.Cookies.Append(UserHashCookieKey, userHash, cookieOptions);
 

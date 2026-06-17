@@ -94,9 +94,9 @@
             }
         }
 
-        // Probability States: Object-based data model (wie Smart Step Creator)
+        // Probability States: Object-based data model
         const probabilityStates = {};  // Dictionary: masterId â†’ { masterId, templateRaw, values, _multiIngredients }
-        window.probabilityStates = probabilityStates;  // Export for use in CreatePostingSmartStepCreator.js
+        window.probabilityStates = probabilityStates;
 
         if (draftEngine && typeof draftEngine.getProbabilityStates === 'function') {
             Object.assign(probabilityStates, draftEngine.getProbabilityStates());
@@ -1018,7 +1018,6 @@
             return derivedName;
         }
 
-        // Export für SmartStepCreator
         window.adjustAdjectiveEndingForArticle = adjustAdjectiveEndingForArticle;
 
         function getStepVariableDisplayValue(stableReference, key) {
@@ -1620,7 +1619,6 @@
                 '.feed-shell',
                 '.creator-hero',
                 '.creator-card',
-                '.smart-step-creator',
                 '.upload-drop',
                 '.input-pill',
                 '.select-pill',
@@ -4614,8 +4612,6 @@
                 <input type="hidden" class="step-template-prt" value="${$('<div>').text(templatePrt).html()}" />
                 <input type="hidden" class="step-hidden-phase" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Phase" value="${normalizedStepData.phase}" />
                 <input type="hidden" class="step-hidden-equipment" name="RecipePreperationSteps[INDEX].RecipePreperationStep.Equipment" value="${normalizedStepData.equipment}" />
-                <input type="hidden" class="step-hidden-master-template-id" name="SmartStepReferences[INDEX].MasterStepKey" value="${$("<div>").text(normalizedStepData.stableReference?.master_step_key || normalizedStepData.masterTemplateId || "").html()}" />
-                <input type="hidden" class="step-hidden-reference-json" name="SmartStepReferences[INDEX].MetadataJson" value="${stepReferenceEncoded}" />
                 <div class="badge candy-purple rounded-pill me-3 step-badge">0</div>
                 <div class="small flex-grow-1 display-step-selected">
                     ${phaseBadge}
@@ -5576,7 +5572,6 @@
                 }
             }
 
-            // Export for use in CreatePostingSmartStepCreator.js
             window.renderProbabilityTemplate = renderProbabilityTemplate;
 
             function openProbabilityOverlayForVar(masterId, varKey, currentVal, tokenElement) {

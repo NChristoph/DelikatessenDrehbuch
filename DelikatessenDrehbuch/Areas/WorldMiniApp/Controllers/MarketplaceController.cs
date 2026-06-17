@@ -12,7 +12,7 @@ using Newtonsoft.Json;
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
     [Area("WorldMiniApp")]
-    public class MarketplaceController : Controller
+    public class MarketplaceController : WorldMiniAppBaseController
     {
                 private const string SessionWalletWLD = "WorldWallet_WLD";
         private const string SessionWalletUSDT = "WorldWallet_USDT";
@@ -43,6 +43,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 && allowSelfPurchase;
             ViewData["WorldChainTestMode"] =
                 bool.TryParse(_configuration["WorldChain:TestMode"], out var testMode) && testMode;
+
+            // Modell B: Käufe gehen an die Plattform-Wallet (nicht direkt an den Verkäufer).
+            var platformWalletWld = _configuration["Marketplace:PlatformWalletAddress"] ?? "";
+            ViewData["MarketplacePlatformWalletWld"] = platformWalletWld;
+            ViewData["MarketplacePlatformWalletUsdt"] =
+                _configuration["Marketplace:PlatformWalletAddressUsdt"] ?? platformWalletWld;
         }
 
         private bool IsSelfPurchaseAllowedForTesting()
@@ -54,9 +60,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         /// <summary>
         /// NullifierHash kommt ausschließlich aus der Login-Session.
         /// </summary>
+        // Delegiert an WorldMiniAppBaseController.ResolveUserHash() (zentralisierte,
+        // claim-basierte Identitätsauflösung).
         private string? GetUserHash()
         {
-            return WorldMiniAppUserHashHelper.Resolve(HttpContext);
+            return ResolveUserHash();
         }
 
         // GET: Marketplace overview
@@ -276,6 +284,37 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["WalletUSDT"] = HttpContext.Session.GetString(SessionWalletUSDT) ?? "";
             SetWorldChainConfig();
             return View(sellableMealPlans);
+        }
+
+        // GET: Auszahlung (Cash-out) – Guthaben + Verlauf + Formular
+        public async Task<IActionResult> Payout()
+        {
+            var userHash = GetUserHash();
+            if (string.IsNullOrWhiteSpace(userHash)) return RedirectToAction("Index");
+
+            ViewData["Balance"] = await _coinService.GetAvailableBalanceAsync(userHash);
+            ViewData["Payouts"] = await _coinService.GetPayoutsForSellerAsync(userHash);
+            ViewData["WalletWLD"] = HttpContext.Session.GetString(SessionWalletWLD) ?? "";
+            ViewData["WalletUSDT"] = HttpContext.Session.GetString(SessionWalletUSDT) ?? "";
+            ViewData["UserHash"] = userHash;
+            SetWorldChainConfig();
+            return View();
+        }
+
+        // POST: Auszahlung anfordern (Guthaben wird reserviert)
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RequestPayout(decimal amount, string token, string walletAddress)
+        {
+            var userHash = GetUserHash();
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { success = false, error = "Nicht eingeloggt." });
+
+            var (success, error, request) = await _coinService.RequestPayoutAsync(userHash, amount, token, walletAddress);
+            if (!success)
+                return Json(new { success = false, error });
+
+            return Json(new { success = true, payoutId = request!.Id, amount = request.Amount, token = request.Token });
         }
 
         // POST: Wallet-Adresse pro Coin in Session speichern (nach Wallet Auth)

@@ -22,63 +22,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         private readonly IBackgroundTaskQueue _queue;
         private readonly ILogger<RecipeAiVariantJobService> _logger;
 
-        private static readonly SemaphoreSlim EnsureSchemaLock = new(1, 1);
-        private static volatile bool SchemaEnsured = false;
-
-        private static readonly SemaphoreSlim EnsureNotificationsSchemaLock = new(1, 1);
-        private static volatile bool NotificationsSchemaEnsured = false;
-
-        // Keep this Azure-safe (no GO). This runs only when the table is missing (or once per process).
-        private const string EnsureSchemaSql = @"
-IF OBJECT_ID(N'[dbo].[RecipeAiVariantJobs]', N'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[RecipeAiVariantJobs](
-        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_RecipeAiVariantJobs] PRIMARY KEY,
-        [JobId] NVARCHAR(64) NOT NULL,
-        [BaseRecipeId] INT NOT NULL,
-        [VariantType] NVARCHAR(64) NOT NULL,
-        [Language] NVARCHAR(12) NOT NULL,
-        [AiProvider] NVARCHAR(32) NOT NULL,
-        [CreatedByUserHash] NVARCHAR(256) NULL,
-        [State] NVARCHAR(32) NOT NULL,
-        [Message] NVARCHAR(400) NULL,
-        [Title] NVARCHAR(256) NULL,
-        [RequestJson] NVARCHAR(MAX) NOT NULL,
-        [ResultJson] NVARCHAR(MAX) NULL,
-        [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_RecipeAiVariantJobs_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
-        [UpdatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_RecipeAiVariantJobs_UpdatedAtUtc] DEFAULT (SYSUTCDATETIME())
-    );
-
-    ALTER TABLE [dbo].[RecipeAiVariantJobs] WITH CHECK
-    ADD CONSTRAINT [FK_RecipeAiVariantJobs_RecipeBaseData_BaseRecipeId]
-        FOREIGN KEY([BaseRecipeId]) REFERENCES [dbo].[RecipeBaseData]([Id])
-        ON DELETE CASCADE;
-
-    CREATE UNIQUE INDEX [IX_RecipeAiVariantJobs_JobId] ON [dbo].[RecipeAiVariantJobs]([JobId]);
-    CREATE INDEX [IX_RecipeAiVariantJobs_BaseRecipeId_UpdatedAtUtc] ON [dbo].[RecipeAiVariantJobs]([BaseRecipeId], [UpdatedAtUtc]);
-END;
-";
-
-        // Lightweight notification table used by the feed bell overlay.
-        private const string EnsureNotificationsSchemaSql = @"
-IF OBJECT_ID(N'[dbo].[WorldUserNotifications]', N'U') IS NULL
-BEGIN
-    CREATE TABLE [dbo].[WorldUserNotifications](
-        [Id] INT IDENTITY(1,1) NOT NULL CONSTRAINT [PK_WorldUserNotifications] PRIMARY KEY,
-        [UserHash] NVARCHAR(256) NOT NULL,
-        [Icon] NVARCHAR(64) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Icon] DEFAULT (N'bi-bell'),
-        [Sender] NVARCHAR(128) NOT NULL CONSTRAINT [DF_WorldUserNotifications_Sender] DEFAULT (N'system'),
-        [Description] NVARCHAR(1000) NOT NULL,
-        [Href] NVARCHAR(600) NULL,
-        [CreatedAtUtc] DATETIME2 NOT NULL CONSTRAINT [DF_WorldUserNotifications_CreatedAtUtc] DEFAULT (SYSUTCDATETIME()),
-        [IsSeen] BIT NOT NULL CONSTRAINT [DF_WorldUserNotifications_IsSeen] DEFAULT (0),
-        [SeenAtUtc] DATETIME2 NULL
-    );
-
-    CREATE INDEX [IX_WorldUserNotifications_UserHash_IsSeen_CreatedAtUtc]
-        ON [dbo].[WorldUserNotifications]([UserHash], [IsSeen], [CreatedAtUtc]);
-END;
-";
+        // Hinweis: Das frühere Runtime-DDL (eingebettetes CREATE/ALTER + SemaphoreSlim-
+        // Locks) für [dbo].[RecipeAiVariantJobs] und [dbo].[WorldUserNotifications] wurde
+        // entfernt. Die Tabellen werden per Deploy-Skript angelegt:
+        //   Areas/WorldMiniApp/Sql/recipe_ai_variant_jobs.sql
+        //   Areas/WorldMiniApp/Sql/worlduser_notifications.sql
 
         public RecipeAiVariantJobService(
             IServiceScopeFactory scopeFactory,
@@ -108,8 +56,8 @@ END;
             using (var scope = _scopeFactory.CreateScope())
             {
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                await EnsureSchemaAsync(db, cancellationToken);
-                await EnsureNotificationsSchemaAsync(db, cancellationToken);
+                /* RecipeAiVariantJobs-Schema wird per Deploy-Skript Sql/recipe_ai_variant_jobs.sql angelegt (kein Runtime-DDL). */
+                /* WorldUserNotifications-Schema wird per Deploy-Skript Sql/worlduser_notifications.sql angelegt (kein Runtime-DDL). */
                 var recipeExists = await db.RecipeBaseData.AsNoTracking().AnyAsync(r => r.Id == request.RecipeId, cancellationToken);
                 if (!recipeExists)
                 {
@@ -139,7 +87,7 @@ END;
                 catch (Exception ex) when (LooksLikeMissingJobTable(ex))
                 {
                     // Attempt self-heal (e.g. Azure deploy without migrations), then retry once.
-                    await EnsureSchemaAsync(db, cancellationToken);
+                    /* RecipeAiVariantJobs-Schema wird per Deploy-Skript Sql/recipe_ai_variant_jobs.sql angelegt (kein Runtime-DDL). */
                     await db.RecipeAiVariantJobs.AddAsync(job, cancellationToken);
                     await db.SaveChangesAsync(cancellationToken);
                 }
@@ -158,7 +106,7 @@ END;
 
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            await EnsureSchemaAsync(db, cancellationToken);
+            /* RecipeAiVariantJobs-Schema wird per Deploy-Skript Sql/recipe_ai_variant_jobs.sql angelegt (kein Runtime-DDL). */
 
             try
             {
@@ -196,7 +144,7 @@ END;
 
             using var scope = _scopeFactory.CreateScope();
             var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            await EnsureSchemaAsync(db, cancellationToken);
+            /* RecipeAiVariantJobs-Schema wird per Deploy-Skript Sql/recipe_ai_variant_jobs.sql angelegt (kein Runtime-DDL). */
 
             try
             {
@@ -234,8 +182,8 @@ END;
             {
                 using var scope = _scopeFactory.CreateScope();
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                await EnsureSchemaAsync(db, cancellationToken);
-                await EnsureNotificationsSchemaAsync(db, cancellationToken);
+                /* RecipeAiVariantJobs-Schema wird per Deploy-Skript Sql/recipe_ai_variant_jobs.sql angelegt (kein Runtime-DDL). */
+                /* WorldUserNotifications-Schema wird per Deploy-Skript Sql/worlduser_notifications.sql angelegt (kein Runtime-DDL). */
                 var transform = scope.ServiceProvider.GetRequiredService<IRecipeAiTransformService>();
                 var nutrition = scope.ServiceProvider.GetRequiredService<IRecipeAiNutritionService>();
 
@@ -367,7 +315,7 @@ END;
                 {
                     using var scope = _scopeFactory.CreateScope();
                     var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-                    await EnsureNotificationsSchemaAsync(db, cancellationToken);
+                    /* WorldUserNotifications-Schema wird per Deploy-Skript Sql/worlduser_notifications.sql angelegt (kein Runtime-DDL). */
                     var job = await db.RecipeAiVariantJobs.FirstOrDefaultAsync(x => x.JobId == jobId, cancellationToken);
                     if (job != null)
                     {
@@ -442,38 +390,9 @@ END;
                     || text.Contains("Cannot find the object", StringComparison.OrdinalIgnoreCase));
         }
 
-        private static async Task EnsureSchemaAsync(ApplicationDbContext db, CancellationToken cancellationToken)
-        {
-            if (SchemaEnsured) return;
-
-            await EnsureSchemaLock.WaitAsync(cancellationToken);
-            try
-            {
-                if (SchemaEnsured) return;
-                await db.Database.ExecuteSqlRawAsync(EnsureSchemaSql, cancellationToken);
-                SchemaEnsured = true;
-            }
-            finally
-            {
-                EnsureSchemaLock.Release();
-            }
-        }
-
-        private static async Task EnsureNotificationsSchemaAsync(ApplicationDbContext db, CancellationToken cancellationToken)
-        {
-            if (NotificationsSchemaEnsured) return;
-
-            await EnsureNotificationsSchemaLock.WaitAsync(cancellationToken);
-            try
-            {
-                if (NotificationsSchemaEnsured) return;
-                await db.Database.ExecuteSqlRawAsync(EnsureNotificationsSchemaSql, cancellationToken);
-                NotificationsSchemaEnsured = true;
-            }
-            finally
-            {
-                EnsureNotificationsSchemaLock.Release();
-            }
-        }
+        // EnsureSchemaAsync / EnsureNotificationsSchemaAsync entfernt: Die Tabellen
+        // [dbo].[RecipeAiVariantJobs] und [dbo].[WorldUserNotifications] werden jetzt
+        // per Deploy-Skript angelegt (Areas/WorldMiniApp/Sql/recipe_ai_variant_jobs.sql
+        // bzw. worlduser_notifications.sql) — kein DDL mehr zur Laufzeit.
     }
 }

@@ -606,48 +606,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return result;
         }
 
-        private (string variablesJson, int? phase, string? equipment) ParseSmartStepMetadata(string? metadataJson)
-        {
-            if (string.IsNullOrWhiteSpace(metadataJson))
-                return ("{}", null, null);
-
-            try
-            {
-                using var document = JsonDocument.Parse(metadataJson);
-                var root = document.RootElement;
-
-                var variablesJson = root.TryGetProperty("variables", out var variablesElement)
-                    ? variablesElement.GetRawText()
-                    : "{}";
-
-                int? phase = null;
-                if (root.TryGetProperty("phase_key", out var phaseElement))
-                {
-                    var phaseRaw = phaseElement.ValueKind == JsonValueKind.String
-                        ? phaseElement.GetString()
-                        : phaseElement.GetRawText();
-                    if (int.TryParse(phaseRaw, out var parsedPhase))
-                        phase = parsedPhase;
-                }
-
-                string? equipment = null;
-                if (root.TryGetProperty("equipment_key", out var equipmentElement))
-                {
-                    equipment = equipmentElement.ValueKind == JsonValueKind.String
-                        ? equipmentElement.GetString()
-                        : equipmentElement.GetRawText();
-                    equipment = string.IsNullOrWhiteSpace(equipment) ? null : equipment.Trim();
-                }
-
-                return (variablesJson, phase, equipment);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Failed to parse smart step metadata JSON. Metadata: {MetadataJson}", metadataJson);
-                return ("{}", null, null);
-            }
-        }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateRecipeFromCreateForm(WorldUserPosting posting, string userHash)

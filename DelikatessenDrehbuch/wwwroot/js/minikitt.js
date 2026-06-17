@@ -67,8 +67,23 @@ function dbg(msg, level = 'info') {
     dbgPush(line);
     dbgRender(line);
 }
+// Ein-/Aus-Schalter für das Debug-Overlay.
+// Standard: AUS (produktionssicher). Umschalten ohne DevTools per URL-Parameter:
+//   ?wdebug=on   -> einschalten (bleibt über localStorage erhalten)
+//   ?wdebug=off  -> ausschalten
+function dbgApplyToggle() {
+    try {
+        const p = new URLSearchParams(window.location.search).get('wdebug');
+        if (p === 'on') localStorage.setItem('worldid_debug', 'on');
+        else if (p === 'off') localStorage.setItem('worldid_debug', 'off');
+    } catch (_) { }
+}
+function dbgEnabled() {
+    return localStorage.getItem('worldid_debug') === 'on';
+}
 function dbgInitOverlay() {
-    if (localStorage.getItem('worldid_debug_off') === '1') return;
+    dbgApplyToggle();
+    if (!dbgEnabled()) return;
     if (document.getElementById('worldid-debug-panel')) return;
     const btnCss = 'background:#333;color:#fff;border:none;border-radius:4px;padding:2px 8px;font:11px sans-serif';
     const toggle = document.createElement('button');
@@ -551,91 +566,61 @@ function normalizeNonce(rawNonce) {
 }
 
 // Check MiniKit capabilities
-const hasWalletAuth = typeof MiniKit !== 'undefined' && typeof MiniKit.walletAuth === 'function';
-const hasSignMessage = typeof MiniKit !== 'undefined' && typeof MiniKit.signMessage === 'function';
-
 async function startWalletAuth() {
+    dbg('### WALLET-AUTH START ###');
     const env = await diagnoseEnvironment();
 
     if (!env.miniKitExists) {
+        dbg('walletAuth: MiniKit nicht verfügbar', 'error');
         throw new Error('MiniKit nicht verfuegbar. Bitte in World App oeffnen.');
     }
 
+    // Wie beim Login: Bridge initialisieren, bevor MiniKit-Befehle laufen.
     try {
         MiniKit.install({ appId: APP_ID });
+        dbg('walletAuth: MiniKit.install OK');
     } catch (e) {
-        console.warn("Install Note:", e);
+        dbg('walletAuth: install-Hinweis: ' + (e && e.message ? e.message : e), 'warn');
     }
 
-    console.log('🟢 [startWalletAuth] Fetching nonce...');
     const nonce = normalizeNonce(await fetchNonce());
-    console.log('🟢 [startWalletAuth] Nonce:', nonce);
-
-    console.log('🟢 [startWalletAuth] Calling MiniKit.walletAuth with action: wallet-auth-marketplace');
+    dbg('walletAuth: nonce=' + nonce);
 
     let result;
     try {
-        // Versuche walletAuth ODER signMessage als Fallback
-        if (hasWalletAuth) {
-            console.log('🔵 Using MiniKit.walletAuth');
+        // Capability erst zur Laufzeit prüfen (nicht beim Modul-Load).
+        if (typeof MiniKit.walletAuth === 'function') {
+            dbg('walletAuth: MiniKit.walletAuth({nonce}) ...');
             result = await MiniKit.walletAuth({ nonce });
-        } else if (hasSignMessage) {
-            console.log('🔵 Using MiniKit.signMessage (Fallback)');
-            console.warn('⚠️ walletAuth nicht verfügbar, versuche signMessage...');
-            result = await MiniKit.signMessage({
-                message: `Wallet verbinden\nNonce: ${nonce}`
-            });
+        } else if (typeof MiniKit.signMessage === 'function') {
+            dbg('walletAuth: Fallback MiniKit.signMessage ...', 'warn');
+            result = await MiniKit.signMessage({ message: `Wallet verbinden\nNonce: ${nonce}` });
         } else {
             throw new Error('Weder walletAuth noch signMessage verfügbar!');
         }
     } catch (error) {
-        console.error(`❌ MiniKit Call hat einen Fehler geworfen:`, error);
+        dbg('walletAuth: MiniKit-Call Fehler: ' + (error && error.message ? error.message : error), 'error');
         throw error;
     }
 
-    console.log('🟢 [startWalletAuth] Raw result:', JSON.stringify(result, null, 2));
-
+    dbg('walletAuth: Result: ' + JSON.stringify(result).substring(0, 220));
     if (!result) {
-        alert(`❌ MiniKit.walletAuth() gab kein Ergebnis zurück!\n\nresult ist: ${result}\nTyp: ${typeof result}`);
+        dbg('walletAuth: leeres Result', 'error');
         throw new Error('MiniKit.walletAuth returned undefined');
     }
 
-    // Neue MiniKit API: result.data enthält die Daten
-    console.log('🔍 Result structure (startWalletAuth):', {
-        'result.data': result.data,
-        'result.executedWith': result.executedWith,
-        'full': result
-    });
+    // MiniKit v2: Nutzdaten unter result.data ({status, message, signature, address}).
+    // Defensiv: auch flaches Result akzeptieren.
     const payload = result.data || result;
 
-    console.log('🟢 [startWalletAuth] payload:', JSON.stringify(payload, null, 2));
-
-    // Check für Success und completeSiwe aufrufen
     if (payload?.address || result?.address) {
-        console.log('✅ [startWalletAuth] Success! Completing SIWE...');
+        dbg('walletAuth: address vorhanden -> completeSiwe');
         return await completeSiwe(payload, nonce);
     }
 
-    // Fehler
-    const errorDetails = {
-        status: payload?.status || result?.status,
-        error_code: payload?.error_code || result?.error_code,
-        message: payload?.message || result?.message
-    };
-    console.error('❌ [startWalletAuth] Error:', errorDetails);
-
-    const debugText = `❌ WALLET AUTH DEBUG (startWalletAuth)
-
-Status: ${errorDetails.status || 'undefined'}
-Error Code: ${errorDetails.error_code || 'none'}
-Message: ${errorDetails.message || 'none'}
-
---- Full Result ---
-${JSON.stringify(result, null, 2)}`;
-
-    alert(debugText);
-
-    throw new Error('WalletAuth fehlgeschlagen: Keine Address im Result');
+    const code = payload?.error_code || result?.error_code || payload?.status || result?.status || 'unbekannt';
+    dbg('walletAuth: keine address im Result, code=' + code, 'error');
+    throw new Error('WalletAuth fehlgeschlagen: ' + code);
 }
 
 async function completeSiwe(payload, nonce) {

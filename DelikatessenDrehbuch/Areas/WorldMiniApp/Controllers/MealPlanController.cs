@@ -272,10 +272,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             var recipe = await GetRandomRecipesByCategory(category, 1);
 
+            var first = recipe.FirstOrDefault();
+            if (first == null)
+            {
+                // Keine Rezepte für diese (ggf. ungültige) Kategorie -> kein 500, sondern leeres Ergebnis.
+                return NoContent();
+            }
+
             var model = new MealPlanerModel
             {
                 Index = dayIndex,
-                Recipes = recipe.First()
+                Recipes = first
             };
             model.Recipes.ImagePath = FrontendFunctions.GetSmallImagePath(model.Recipes.ImagePath);
             ViewData["DayIndex"] = dayIndex;
@@ -870,7 +877,16 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 throw new WorldMiniAppValidationException("User Hash nicht gefunden.");
             }
 
-            var indexIds = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(mealPlanJson) ?? new List<MealPlanHelperMobile>();
+            List<MealPlanHelperMobile> indexIds;
+            try
+            {
+                indexIds = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(mealPlanJson) ?? new List<MealPlanHelperMobile>();
+            }
+            catch (JsonException)
+            {
+                throw new WorldMiniAppValidationException("Meal plan hat ein ungültiges Format.");
+            }
+
             if (indexIds.Count == 0)
             {
                 throw new WorldMiniAppValidationException("Meal plan ist leer.");

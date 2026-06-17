@@ -7,7 +7,7 @@ using System.Globalization;
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
     [Area("WorldMiniApp")]
-    public class WatchAnalyticsController : Controller
+    public class WatchAnalyticsController : WorldMiniAppBaseController
     {
         private readonly IWorldClipWatchService _worldClipWatchService;
         private readonly ILogger<WatchAnalyticsController> _logger;
@@ -60,10 +60,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             });
         }
 
-        private string ResolveUserHash()
-        {
-            return WorldMiniAppUserHashHelper.Resolve(HttpContext);
-        }
+        // ResolveUserHash() kommt jetzt aus WorldMiniAppBaseController.
 
         private static decimal ParseWatchedSeconds(string rawWatchedSeconds, decimal fallback)
         {

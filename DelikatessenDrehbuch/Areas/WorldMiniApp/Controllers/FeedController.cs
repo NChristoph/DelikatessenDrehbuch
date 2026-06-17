@@ -15,7 +15,7 @@ using WorldMiniApp.Services;
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
     [Area("WorldMiniApp")]
-    public class FeedController : Controller
+    public class FeedController : WorldMiniAppBaseController
     {
         private const int CommentAutoHideReportThreshold = 3;
         private const string SessionWalletWLD = "WorldWallet_WLD";
@@ -40,7 +40,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IConfiguration _configuration;
         private readonly IFeedAlgorithmService _feedAlgorithmService;
 
-        private string SuperUserHash => _configuration["WorldMiniApp:SuperUserHash"] ?? string.Empty;
+        // SuperUserHash kommt jetzt aus WorldMiniAppBaseController.
 
         public FeedController(ApplicationDbContext context, ILogger<FeedController> logger, IWildCoinService coinService, IConfiguration configuration, IFeedAlgorithmService feedAlgorithmService)
         {
@@ -1591,10 +1591,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return Json(new { count });
         }
 
-        private string ResolveUserHash(string userHash)
-        {
-            return WorldMiniAppUserHashHelper.Resolve(HttpContext, userHash);
-        }
+        // ResolveUserHash(string) kommt jetzt aus WorldMiniAppBaseController.
 
         private async Task<bool> CanWriteCommentsAsync(string userHash, CancellationToken cancellationToken = default)
         {

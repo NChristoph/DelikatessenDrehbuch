@@ -12,7 +12,6 @@
 }
 
 <link rel="stylesheet" href="~/css/create-posting-avocado.css" asp-append-version="true" />
-<link rel="stylesheet" href="~/css/create-posting-step-filter.css" asp-append-version="true" />
 
 <div class="cp-screen">
     <div id="datatableLoadingOverlay" class="creator-loading d-none">
@@ -678,8 +677,7 @@ button, input, select, textarea { touch-action: manipulation; }
             editData: @Html.Raw(ViewData["EditData"] ?? "null"),
             ingredients: @Html.Raw(ViewData["EditIngredients"] ?? "[]"),
             keywordIds: @Html.Raw(ViewData["EditKeywordIds"] ?? "[]"),
-            steps: @Html.Raw(ViewData["EditSteps"] ?? "[]"),
-            smartSteps: @Html.Raw(ViewData["EditSmartSteps"] ?? "[]")
+            steps: @Html.Raw(ViewData["EditSteps"] ?? "[]")
         };
     </script>
 }
@@ -691,12 +689,8 @@ button, input, select, textarea { touch-action: manipulation; }
     <script src="~/js/create-posting-data-store.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-feedback.js" asp-append-version="true"></script>
     <script src="~/js/create-posting-page-data.js" asp-append-version="true"></script>
-    @* OLD SYSTEM - SmartStep scripts removed (not used in new RecipeSteps system) *@
     @* <script src="~/js/create-posting-template-builder.js" asp-append-version="true"></script> *@
-    @* <script src="~/js/create-posting-template-draft-engine.js" asp-append-version="true"></script> *@
-    @* <script src="~/js/create-posting-step-filter-ui.js" asp-append-version="true"></script> *@
     @* <script defer src="~/js/master-step-renderer.js" asp-append-version="true"></script> *@
-    @* <script defer src="~/js/CreatePostingSmartStepCreator.js" asp-append-version="true"></script> *@
     @* <script defer src="~/js/recipe-step-suggest.js" asp-append-version="true"></script> *@
     <script>
         window.CreatePostingPageConfig = {
@@ -720,8 +714,6 @@ button, input, select, textarea { touch-action: manipulation; }
             loadError: "@SharedLocalizer["Video.LoadError"]"
         };
     </script>
-    @* OLD SYSTEM - Probability script removed *@
-    @* <script defer src="~/js/create-posting-probability.js" asp-append-version="true"></script> *@
     <script defer src="~/js/CreatePostingPage.js" asp-append-version="true"></script>
     <script defer src="~/js/create-posting-publish-checklist.js" asp-append-version="true"></script>
 
@@ -1000,7 +992,6 @@ button, input, select, textarea { touch-action: manipulation; }
                 currentIndex = (currentIndex + 1) % supportedLangs.length;
                 const newLang = supportedLangs[currentIndex];
 
-                // Update HTML lang attribute (this triggers MutationObserver in SmartStepCreator)
                 document.documentElement.lang = newLang;
 
                 // Save language preference in cookie (expires in 1 year)

@@ -5267,23 +5267,23 @@
         }
 
         const days = [@Html.Raw(string.Join(", ", new[] {
-            $"\"{SharedLocalizer["Day.Monday"]}\"",
-            $"\"{SharedLocalizer["Day.Tuesday"]}\"",
-            $"\"{SharedLocalizer["Day.Wednesday"]}\"",
-            $"\"{SharedLocalizer["Day.Thursday"]}\"",
-            $"\"{SharedLocalizer["Day.Friday"]}\"",
-            $"\"{SharedLocalizer["Day.Saturday"]}\"",
-            $"\"{SharedLocalizer["Day.Sunday"]}\""
+            $"\"{SharedLocalizer["Day.Monday"].Value}\"",
+            $"\"{SharedLocalizer["Day.Tuesday"].Value}\"",
+            $"\"{SharedLocalizer["Day.Wednesday"].Value}\"",
+            $"\"{SharedLocalizer["Day.Thursday"].Value}\"",
+            $"\"{SharedLocalizer["Day.Friday"].Value}\"",
+            $"\"{SharedLocalizer["Day.Saturday"].Value}\"",
+            $"\"{SharedLocalizer["Day.Sunday"].Value}\""
         }))];
         const slotsGaenge = [@Html.Raw(string.Join(", ", new[] {
-            $"\"{SharedLocalizer["Meal.Starter"]}\"",
-            $"\"{SharedLocalizer["Meal.MainCourse"]}\"",
-            $"\"{SharedLocalizer["Meal.Dessert"]}\""
+            $"\"{SharedLocalizer["Meal.Starter"].Value}\"",
+            $"\"{SharedLocalizer["Meal.MainCourse"].Value}\"",
+            $"\"{SharedLocalizer["Meal.Dessert"].Value}\""
         }))];
         const slotsMahlzeiten = [@Html.Raw(string.Join(", ", new[] {
-            $"\"{SharedLocalizer["Meal.Breakfast"]}\"",
-            $"\"{SharedLocalizer["Meal.Lunch"]}\"",
-            $"\"{SharedLocalizer["Meal.Dinner"]}\""
+            $"\"{SharedLocalizer["Meal.Breakfast"].Value}\"",
+            $"\"{SharedLocalizer["Meal.Lunch"].Value}\"",
+            $"\"{SharedLocalizer["Meal.Dinner"].Value}\""
         }))];
 
         // Track meal mode per day (false = Gänge, true = Mahlzeiten)

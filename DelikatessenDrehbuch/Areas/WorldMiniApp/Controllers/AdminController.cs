@@ -13,11 +13,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AdminController> _logger;
+        private readonly WorldMiniApp.Services.IWildCoinService _coinService;
 
-        public AdminController(ApplicationDbContext context, ILogger<AdminController> logger)
+        public AdminController(ApplicationDbContext context, ILogger<AdminController> logger, WorldMiniApp.Services.IWildCoinService coinService)
         {
             _context = context;
             _logger = logger;
+            _coinService = coinService;
         }
 
         private string? GetCurrentUserHash()
@@ -463,6 +465,50 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return RedirectToAction(nameof(ReportedContent));
+        }
+
+        // GET: Admin/Payouts — offene Verkäufer-Auszahlungsanträge (Modell B Cash-out)
+        public async Task<IActionResult> Payouts()
+        {
+            if (!IsAdminAuthenticated())
+                return RedirectToAction(nameof(Login), new { returnUrl = Url.Action(nameof(Payouts)) });
+
+            ViewData["IsAdmin"] = true;
+            ViewData["CurrentUserHash"] = GetCurrentUserHash();
+            var pending = await _coinService.GetPendingPayoutsAsync();
+            return View(pending);
+        }
+
+        // POST: Admin/MarkPayoutPaid — nach manueller On-Chain-Auszahlung den TxHash eintragen
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> MarkPayoutPaid(int payoutId, string txHash)
+        {
+            if (!IsAdminAuthenticated())
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
+
+            if (string.IsNullOrWhiteSpace(txHash))
+            {
+                TempData["Error"] = "TxHash erforderlich.";
+                return RedirectToAction(nameof(Payouts));
+            }
+
+            var ok = await _coinService.MarkPayoutPaidAsync(payoutId, txHash, GetCurrentUserHash() ?? "admin");
+            TempData[ok ? "Success" : "Error"] = ok ? "Auszahlung als bezahlt markiert." : "Antrag nicht gefunden.";
+            return RedirectToAction(nameof(Payouts));
+        }
+
+        // POST: Admin/RejectPayout — ablehnen, reserviertes Guthaben wird zurückgebucht
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> RejectPayout(int payoutId, string? note)
+        {
+            if (!IsAdminAuthenticated())
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
+
+            var ok = await _coinService.RejectPayoutAsync(payoutId, note ?? "abgelehnt", GetCurrentUserHash() ?? "admin");
+            TempData[ok ? "Success" : "Error"] = ok ? "Auszahlung abgelehnt, Guthaben zurückgebucht." : "Antrag nicht gefunden.";
+            return RedirectToAction(nameof(Payouts));
         }
 
         private static string GenerateRandomHash()

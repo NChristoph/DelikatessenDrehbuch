@@ -408,9 +408,14 @@
     <div class="admin-header">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div class="admin-title">🎨 Creator Manager</div>
-            <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = Model.CurrentUserHash })" class="btn btn-light">
-                <i class="bi bi-person-circle"></i> Mein Profil
-            </a>
+            <div style="display:flex; gap:8px;">
+                <a href="@Url.Action("Payouts", "Admin", new { area = "WorldMiniApp" })" class="btn btn-primary">
+                    <i class="bi bi-cash-coin"></i> Auszahlungen
+                </a>
+                <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = Model.CurrentUserHash })" class="btn btn-light">
+                    <i class="bi bi-person-circle"></i> Mein Profil
+                </a>
+            </div>
         </div>
         <div class="admin-subtitle">Verwalte deine ersten 100 Creators und erstelle Content in ihrem Namen</div>
 

@@ -1,0 +1,66 @@
+@using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@model List<MarketplacePayoutRequest>
+@{
+    ViewData["Title"] = "Auszahlungen";
+    Layout = "_MiniAppLayout";
+}
+
+<div class="container py-3">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">Offene Auszahlungen (@Model.Count)</h4>
+        <a href="@Url.Action("CreatorManager", "Admin", new { area = "WorldMiniApp" })" class="btn btn-sm btn-light">
+            <i class="bi bi-arrow-left"></i> Admin
+        </a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger">@TempData["Error"]</div>
+    }
+
+    <div class="alert alert-info small">
+        Auszahlung manuell aus der Plattform-Wallet senden, dann hier den <strong>TxHash</strong> eintragen
+        und auf „Bezahlt" klicken. „Ablehnen" bucht das reservierte Guthaben zurück.
+    </div>
+
+    <table class="table table-sm align-middle">
+        <thead>
+            <tr><th>ID</th><th>Verkäufer</th><th>Betrag</th><th>Token</th><th>Wallet</th><th>Datum</th><th>Aktion</th></tr>
+        </thead>
+        <tbody>
+            @if (Model.Count == 0)
+            {
+                <tr><td colspan="7" class="text-muted">Keine offenen Auszahlungen.</td></tr>
+            }
+            @foreach (var p in Model)
+            {
+                <tr>
+                    <td>@p.Id</td>
+                    <td title="@p.SellerHash">@(p.SellerHash.Length > 12 ? p.SellerHash.Substring(0, 12) + "…" : p.SellerHash)</td>
+                    <td>@p.Amount.ToString("0.######")</td>
+                    <td>@p.Token</td>
+                    <td style="word-break:break-all;max-width:220px">@p.WalletAddress</td>
+                    <td>@p.RequestedAt.ToString("dd.MM.yy HH:mm")</td>
+                    <td>
+                        <form method="post" asp-action="MarkPayoutPaid" class="d-inline-flex gap-1 mb-1">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="payoutId" value="@p.Id" />
+                            <input type="text" name="txHash" placeholder="TxHash" class="form-control form-control-sm" style="width:160px" required />
+                            <button class="btn btn-sm btn-success">Bezahlt</button>
+                        </form>
+                        <form method="post" asp-action="RejectPayout" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="payoutId" value="@p.Id" />
+                            <input type="text" name="note" placeholder="Grund (optional)" class="form-control form-control-sm d-inline" style="width:140px" />
+                            <button class="btn btn-sm btn-outline-danger">Ablehnen</button>
+                        </form>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
