@@ -11,6 +11,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
     public class PlanCardViewModel
     {
         public int ListingId { get; set; }
+
+        // Angebotstyp (siehe MarketplaceListingType). Default MealPlan für Bestandsdaten.
+        public string ListingType { get; set; } = MarketplaceListingType.MealPlan;
+        public bool IsMealPlan => ListingType == MarketplaceListingType.MealPlan;
+        public string? CoverImageUrl { get; set; }
+        public int? StockQuantity { get; set; }
+        public bool RequiresShipping { get; set; }
+
         public string Title { get; set; } = string.Empty;
         public string TitleJsSafe { get; set; } = string.Empty;
         public string? Description { get; set; }
@@ -51,5 +59,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public decimal? PriceUsdce { get; set; }
 
         public string JourneyLabel => $"Teil der {CreatorName} Journey";
+
+        // Bildquelle: Essensplan nutzt Hero-Bilder aus den Rezepten, alle anderen Typen das CoverImage.
+        public string? PrimaryImageUrl => IsMealPlan
+            ? (HeroImageUrl ?? CoverImageUrl)
+            : (CoverImageUrl ?? HeroImageUrl);
+
+        public string TypeLabel => ListingType switch
+        {
+            MarketplaceListingType.PhysicalObject => "Objekt",
+            MarketplaceListingType.DigitalProduct => "Digital",
+            MarketplaceListingType.SingleRecipe => "Rezept",
+            MarketplaceListingType.Service => "Dienstleistung",
+            _ => "Essensplan"
+        };
     }
 }

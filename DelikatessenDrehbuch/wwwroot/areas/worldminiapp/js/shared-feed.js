@@ -137,7 +137,7 @@
                 const html = plans.map(plan => {
                     const createdDate = new Date(plan.createdAt).toLocaleDateString('de-DE');
                     return `
-                        <div class="s-import-item" onclick="importMealPlan(${plan.id}, '${escapeHtml(plan.title)}')">
+                        <div class="s-import-item" onclick="importMealPlan(${plan.id})">
                             <div class="s-import-title">${escapeHtml(plan.title)}</div>
                             <div class="s-import-meta">
                                 <span><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg> ${plan.personCount} Pers.</span>
@@ -166,7 +166,7 @@
     }
 
     // Import Meal Plan
-    window.importMealPlan = function(mealPlanId, title) {
+    window.importMealPlan = function(mealPlanId) {
         const container = document.getElementById('importMealPlanList');
         const feedIdEl = document.querySelector('[data-feed-id]');
         const feedId = feedIdEl ? parseInt(feedIdEl.dataset.feedId) : 0;
@@ -370,8 +370,8 @@
             div.dataset.todoId = todo.id;
 
             const metaText = todo.isCompleted && todo.completedByName
-                ? `${todo.completedByName} · Erledigt`
-                : todo.createdByName;
+                ? `${escapeHtml(todo.completedByName)} · Erledigt`
+                : escapeHtml(todo.createdByName || '');
 
             const checkIcon = todo.isCompleted
                 ? '<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>'

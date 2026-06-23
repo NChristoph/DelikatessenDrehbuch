@@ -1,12 +1,16 @@
 # Marktplatz — Dokumentation (WorldMiniApp)
 
-Vollständige Referenz für den **Essensplan-Marktplatz**: Verkaufen, Kaufen, Wallets/Token,
+Vollständige Referenz für den **Marktplatz**: Verkaufen, Kaufen, Wallets/Token,
 Zahlungsverifizierung, Erlösverteilung, Listing-Verwaltung und Sicherheit.
+
+Der Marktplatz unterstützt **mehrere Angebotstypen** (jedes Angebot ist genau **ein** Typ):
+**Essensplan**, **Einzelrezept**, **physisches Objekt**, **digitales Produkt**, **Dienstleistung**
+(siehe §14). Die Bezahllogik (Modell B, 80/20, Zahlungsverifizierung) ist für alle Typen gleich.
 
 > Verwandt: Zahlungs-/Identitäts-Hintergrund im `World-Integration-Handbuch.md` (§5/§6),
 > DB-Schema in §14 dort. Diese Datei beschreibt den Marktplatz **fachlich vollständig**.
 
-Stand: 2026-06-12
+Stand: 2026-06-23
 
 ---
 
@@ -24,6 +28,7 @@ Stand: 2026-06-12
 11. [Konfiguration](#11-konfiguration)
 12. [Sicherheits-Regeln (Zusammenfassung)](#12-sicherheits-regeln-zusammenfassung)
 13. [Bekannte Schwächen / Platzhalter / TODO](#13-bekannte-schwächen--platzhalter--todo)
+14. [Angebotstypen & Profil-Store-Link (Erweiterung)](#14-angebotstypen--profil-store-link-erweiterung)
 
 ---
 
@@ -52,13 +57,23 @@ POST CreateListing                          MiniKit.pay(to=PLATTFORM-Wallet, ref
 
 ## 2. Datenmodell
 
-- **`MealPlanListing`** — Angebot: `SellerHash`, `SellerName`, `SellerWalletAddress`,
-  `SellerUsdtWalletAddress`, `MealPlanId` (→ `WorldUserMealPlan`), `Title`, `Description`, `Price`,
-  `DayCount`, `RecipeCount`, `IsActive`, `SoldCount`, `CreatedAt`.
+- **`MealPlanListing`** — Angebot (typ-übergreifend): `SellerHash`, `SellerName`, `SellerWalletAddress`,
+  `SellerUsdtWalletAddress`, **`ListingType`** (Discriminator), `MealPlanId?` (→ `WorldUserMealPlan`),
+  `RecipeId?`, `DigitalFileUrl?`, `StockQuantity?`, `RequiresShipping`, `CoverImageUrl?`, `ImagesJson?`,
+  `Title`, `Description`, `Price`, `DayCount`, `RecipeCount`, `IsActive`, `SoldCount`, `CreatedAt`.
+  (`MealPlanId` ist jetzt **nullable** — nur Essensplan-Angebote setzen ihn.)
 - **`MealPlanPurchase`** — Kauf: `BuyerHash`, `BuyerWalletAddress`, `SellerHash`, `SellerWalletAddress`,
-  `ListingId`, `CreatedMealPlanId` (die Käufer-Kopie), `PricePaid`, `CreatorAmount`, `PlatformFee`,
+  `ListingId`, `CreatedMealPlanId?` (Käufer-Kopie bei Essensplan/Einzelrezept), **`ListingType?`**,
+  **`BuyerShippingAddress?`** (nur Objekt), `PricePaid`, `CreatorAmount`, `PlatformFee`,
   `ReferenceTxHash` (**UNIQUE**), `PaymentToken`, `PurchasedAt`.
-- **`WorldUserMealPlan`** — der Plan selbst (Verkäufer-Original + Käufer-Kopie).
+- **`WorldUserMealPlan`** — der Plan selbst (Verkäufer-Original + Käufer-Kopie; bei Einzelrezept ein 1-Rezept-Plan).
+- **`MarketplaceListingType`** (Konstanten) — `MealPlan`, `SingleRecipe`, `PhysicalObject`, `DigitalProduct`, `Service`.
+- **`WorldAppUser.StoreUrl?`** — optionaler externer Store-Link des Creators (Profil).
+
+> **Schema/SQL:** Neue Spalten werden **nicht** per EF-Migration, sondern per idempotentem SQL
+> ergänzt: `Sql/marketplace_listing_types.sql` (MealPlanListings + WorldMealplanPurcase) und
+> `Sql/marketplace_store_url.sql` (WorldAppUser.StoreUrl). ⚠️ Beim nächsten EF-Migration-Scaffold
+> müssen diese Spalten berücksichtigt werden (sonst „column already exists").
 
 (Spalten/Typen vollständig im Handbuch §14.)
 
@@ -233,10 +248,11 @@ Alle unter `/WorldMiniApp/Marketplace/…`, Controller `MarketplaceController`.
 | GET | `Sell` | Verkaufs-Formular (verkaufbare Pläne) |
 | POST | `SaveWalletAddress(walletAddress, token)` | Wallet pro Token in Session speichern |
 | GET | `GetWalletAddress(token)` | Wallet aus Session lesen |
-| POST | `CreateListing(mealPlanId, title, description, price, sellerWalletAddress, sellerUsdtWalletAddress)` | Angebot erstellen |
+| POST | `CreateListing(CreateListingRequest)` | Angebot erstellen (typ-übergreifend: `ListingType` + typ-spezifische Felder) |
 | POST | `DeactivateListing(listingId)` | Angebot deaktivieren (Owner) |
 | POST | `ActivateListing(listingId)` | Angebot aktivieren (Owner) |
-| POST | `FinalizeWorldChainPurchase(request)` | Kauf nach Zahlung finalisieren |
+| POST | `FinalizeWorldChainPurchase(request)` | Kauf nach Zahlung finalisieren (inkl. `ShippingAddress` bei Objekt) |
+| GET | `DownloadDigitalProduct(listingId)` | Digital-Download (nur nach Kauf, fail-closed) → Redirect auf `DigitalFileUrl` |
 | GET | `Payout` | Cash-out-Seite (Guthaben, Verlauf, Formular) |
 | POST | `RequestPayout(amount, token, walletAddress)` | Auszahlung anfordern (Guthaben reservieren) |
 
@@ -299,6 +315,60 @@ Alle unter `/WorldMiniApp/Marketplace/…`, Controller `MarketplaceController`.
   (clientseitig) — Kursquelle/Abweichungen beachten.
 - **Feldnamen der World-Payment-API** beim ersten echten Kauf verifizieren (Log `ref=/status=/to=`),
   ggf. in `VerifyMiniKitPaymentAsync` anpassen.
+
+---
+
+## 14. Angebotstypen & Profil-Store-Link (Erweiterung)
+
+Stand 2026-06-23. Der Marktplatz unterstützt fünf Angebotstypen. **Jedes Angebot ist genau ein Typ**
+(`MealPlanListing.ListingType`, Discriminator als String — kein EF-TPH). Erstellt wird typ-übergreifend
+über `MarketplaceService.CreateTypedListingAsync(sellerHash, CreateListingInput)`; die alte
+`CreateListingAsync(...)` delegiert für Abwärtskompatibilität auf den Typ `MealPlan`.
+
+### 14.1 Typen, Pflichtfelder & Lieferung
+
+| Typ (`ListingType`) | Pflichtfelder bei Erstellung | Eigentums-/Validierungsregel | Lieferung beim Kauf |
+|---|---|---|---|
+| `MealPlan` | `MealPlanId` | Plan gehört dem Verkäufer; **nur eigene Rezepte** | Plan wird beim Käufer kopiert (`CreatedMealPlanId`) |
+| `SingleRecipe` | `RecipeId` | Rezept gehört dem Verkäufer (`WorldUserPosting.CreatorId`) | 1-Rezept-Plan beim Käufer (`CreatedMealPlanId`) |
+| `PhysicalObject` | `CoverImageUrl` **oder** `ImagesJson` (≥1 Bild) | `StockQuantity` ≥ 0 (optional, `null`=unbegrenzt) | `BuyerShippingAddress` gespeichert, `StockQuantity−−` (clamp 0), Verkäufer-Notification |
+| `DigitalProduct` | `DigitalFileUrl` (gültige http/https) | URL-Validierung (`NormalizeOptionalUrl`) | Zugriff via `DownloadDigitalProduct` (nur nach Kauf) |
+| `Service` | — (nur Titel/Beschreibung) | — | Kauf erfasst, Verkäufer-Notification (Kontaktaufnahme) |
+
+Gemeinsam für alle Typen: Preis 1–1000 WLD, mind. eine Verkäufer-Wallet, 80/20-Gutschrift,
+serverseitige Zahlungsverifizierung (Modell B). Bilder/Dateien werden in Phase 1 **als URL** angegeben
+(kein eigener Upload-Pfad).
+
+### 14.2 Kauf-Flow je Typ (Frontend)
+
+`Views/Marketplace/Index.cshtml` → `buyListing(listingId, title, priceWld, sellerWallet, listingType, requiresShipping)`:
+- **Objekt mit `RequiresShipping`**: vor der Zahlung wird die **Lieferadresse** erfragt und als
+  `ShippingAddress` an `FinalizeWorldChainPurchase` gesendet.
+- **Digital**: nach erfolgreichem Kauf liefert das Finalize-Ergebnis eine `downloadUrl` →
+  Frontend leitet zum geschützten `DownloadDigitalProduct`-Endpunkt weiter.
+- Übrige Typen: wie bisher (`location.reload`).
+
+Das Erstellungs-Formular (`Views/Marketplace/Sell.cshtml`) zeigt eine **Typ-Auswahl** und blendet die
+typ-spezifischen Felder dynamisch ein (Plan-Liste / Rezept-Dropdown / Bild-URL+Bestand+Versand /
+Download-URL / nur Beschreibung).
+
+### 14.3 `DownloadDigitalProduct(int listingId)` (GET)
+Fail-closed: nur eingeloggte Nutzer, die das Listing **gekauft** haben
+(`IWildCoinService.HasPurchasedAsync`) — oder der Verkäufer selbst — bekommen einen Redirect auf
+`DigitalFileUrl`. Sonst `NotFound`/`Forbid`.
+
+### 14.4 Profil-Store-Link (externer Shop)
+`WorldAppUser.StoreUrl` (nullable). Setzen/Entfernen im Profil über `FeedController.UpdateProfile`
+(zusätzlicher Parameter `storeUrl`, http/https-validiert, ≤1024 Zeichen; leer = löschen). Anzeige als
+Quick-Link „Mein Store" auf `MyProfile` (`target="_blank" rel="noopener nofollow"`). Reiner Link —
+**keine** bezahlte Werbung/Hervorhebung.
+
+### 14.5 Offene Punkte / Grenzen
+- **Bestand bei Objekt**: Da on-chain *vor* dem Finalize bezahlt wird, kann bei limitierter Stückzahl
+  theoretisch übers Limit verkauft werden (Race). Aktuell wird `StockQuantity` nur auf 0 geclamped und
+  der Verkäufer benachrichtigt; manuelle Abwicklung/Erstattung. Bei Bedarf: Reservierung vor Zahlung.
+- **Medien**: nur per URL (kein Foto-Upload). Direkter Upload = möglicher Folgeschritt.
+- **Dienstleistung**: keine Termin-/Buchungslogik — nur Notification an den Verkäufer.
 
 ---
 

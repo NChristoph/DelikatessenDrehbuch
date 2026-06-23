@@ -1303,7 +1303,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(string userHash, string userName)
+        public async Task<IActionResult> UpdateProfile(string userHash, string userName, string? storeUrl = null)
         {
             userHash = ResolveUserHash(userHash);
             if (string.IsNullOrWhiteSpace(userHash))
@@ -1317,9 +1317,34 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return NotFound();
             }
 
+            var changed = false;
+
             if (!string.IsNullOrWhiteSpace(userName))
             {
                 user.UserName = userName.Trim();
+                changed = true;
+            }
+
+            // Store-URL: leer = löschen; sonst nur gültige http/https-URLs (max. 1024 Zeichen).
+            if (storeUrl != null)
+            {
+                var trimmed = storeUrl.Trim();
+                if (trimmed.Length == 0)
+                {
+                    user.StoreUrl = null;
+                    changed = true;
+                }
+                else if (trimmed.Length <= 1024
+                         && Uri.TryCreate(trimmed, UriKind.Absolute, out var u)
+                         && (u.Scheme == Uri.UriSchemeHttp || u.Scheme == Uri.UriSchemeHttps))
+                {
+                    user.StoreUrl = trimmed;
+                    changed = true;
+                }
+            }
+
+            if (changed)
+            {
                 await _context.SaveChangesAsync();
             }
 

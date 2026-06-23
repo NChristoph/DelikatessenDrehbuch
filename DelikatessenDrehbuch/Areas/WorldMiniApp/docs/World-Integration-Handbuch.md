@@ -156,8 +156,13 @@ Frontend: `Views/Marketplace/Index.cshtml` → `buyListing()`; Backend: `Marketp
    Verkäufer-Anteil 80 % wird serverseitig als Guthaben verbucht. Details: `Marktplatz-Dokumentation.md`.)
 3. Frontend ruft `POST /WorldMiniApp/Marketplace/FinalizeWorldChainPurchase`
    mit `listingId`, `txHash` (= `transaction_id`), `walletAddress`, `paymentToken`.
-4. **Backend verifiziert die Zahlung BLOCKIEREND (fail-closed)**, bevor der Plan vergeben wird.
-5. Bei Erfolg: Essensplan wird dem Käufer kopiert, `MealPlanPurchase`-Eintrag erstellt, `SoldCount++`.
+4. **Backend verifiziert die Zahlung BLOCKIEREND (fail-closed)**, bevor geliefert wird.
+5. Bei Erfolg: typ-abhängige Lieferung (Essensplan/Einzelrezept → Plan-Kopie; Objekt → Lieferadresse+Bestand;
+   Digital → Download-Freigabe; Dienstleistung → Verkäufer-Notification), `MealPlanPurchase`-Eintrag, `SoldCount++`.
+
+> **Angebotstypen:** Der Marktplatz verkauft fünf Typen (Essensplan, Einzelrezept, Objekt, Digital,
+> Dienstleistung). Zahlungs-/Verifizierungslogik ist für alle gleich; die Unterschiede (Pflichtfelder,
+> Lieferung, Download/Versand) stehen in `Marktplatz-Dokumentation.md` §14.
 
 ### 5.2 Zahlungsverifizierung (`VerifyMiniKitPaymentAsync`)
 Ruft die **World-Payment-API**:
@@ -392,6 +397,7 @@ WorldAppUser (UserHash) ───< WorldUserPosting        (CreatorId = UserHash
 | `WildCoinBalance` | decimal | internes Guthaben |
 | `Bio` | nvarchar null | |
 | `WalletAddress` | nvarchar null | verknüpfte Wallet (für Auszahlungen) |
+| `StoreUrl` | nvarchar(1024) null | optionaler externer Store-Link (Profil). SQL: `Sql/marketplace_store_url.sql` |
 | `CreatedAt` | datetime null | |
 
 ### 14.3 Inhalte & Social
@@ -428,7 +434,7 @@ WorldAppUser (UserHash) ───< WorldUserPosting        (CreatorId = UserHash
 | `Title` | nvarchar null | |
 | `CreationTime` | datetime | |
 
-**`MealPlanListing`** — Marktplatz-Angebot.
+**`MealPlanListing`** — Marktplatz-Angebot (typ-übergreifend; SQL: `Sql/marketplace_listing_types.sql`).
 | Spalte | Typ | Bemerkung |
 |---|---|---|
 | `Id` | int, PK | |
@@ -436,7 +442,14 @@ WorldAppUser (UserHash) ───< WorldUserPosting        (CreatorId = UserHash
 | `SellerName` | string | |
 | `SellerWalletAddress` | nvarchar null | WLD-Empfänger |
 | `SellerUsdtWalletAddress` | nvarchar null | USDT/USDC-Empfänger |
-| `MealPlanId` | int (FK) | → `WorldUserMealPlan` |
+| `ListingType` | nvarchar(32) | `MealPlan`/`SingleRecipe`/`PhysicalObject`/`DigitalProduct`/`Service` (Default `MealPlan`) |
+| `MealPlanId` | int **null** (FK) | → `WorldUserMealPlan` (nur Essensplan) |
+| `RecipeId` | int null | nur Einzelrezept |
+| `DigitalFileUrl` | nvarchar null | nur Digital (Download-Ziel) |
+| `StockQuantity` | int null | nur Objekt (`null`=unbegrenzt) |
+| `RequiresShipping` | bit | nur Objekt |
+| `CoverImageUrl` | nvarchar null | Titelbild (Nicht-Essensplan) |
+| `ImagesJson` | nvarchar(max) null | Bildergalerie (Objekt) |
 | `Title` / `Description` | nvarchar | |
 | `Price` | decimal | Preis (WLD) |
 | `DayCount` / `RecipeCount` | int | |
@@ -453,7 +466,9 @@ WorldAppUser (UserHash) ───< WorldUserPosting        (CreatorId = UserHash
 | `SellerHash` | string | |
 | `SellerWalletAddress` | nvarchar null | |
 | `ListingId` | int (FK) | → `MealPlanListing` |
-| `CreatedMealPlanId` | int | dem Käufer kopierter Plan (`WorldUserMealPlan`) |
+| `CreatedMealPlanId` | int **null** | kopierter Plan (`WorldUserMealPlan`) — nur Essensplan/Einzelrezept |
+| `ListingType` | nvarchar(32) null | Snapshot des Angebotstyps |
+| `BuyerShippingAddress` | nvarchar(max) null | Lieferadresse (nur Objekt) |
 | `PricePaid` | decimal | |
 | `CreatorAmount` | decimal | 80 % Verkäufer-Anteil (Modell B: als WildCoinBalance-Guthaben gutgeschrieben) |
 | `PlatformFee` | decimal | Differenz |

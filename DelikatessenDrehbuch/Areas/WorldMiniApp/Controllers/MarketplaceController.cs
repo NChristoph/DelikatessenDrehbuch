@@ -112,6 +112,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return new PlanCardViewModel
                 {
                     ListingId = listing.Id,
+                    ListingType = listing.ListingType,
+                    CoverImageUrl = listing.CoverImageUrl,
+                    StockQuantity = listing.StockQuantity,
+                    RequiresShipping = listing.RequiresShipping,
                     Title = listing.Title,
                     TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
                     Description = listing.Description,
@@ -178,6 +182,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return new PlanCardViewModel
                 {
                     ListingId = listing.Id,
+                    ListingType = listing.ListingType,
+                    CoverImageUrl = listing.CoverImageUrl,
+                    StockQuantity = listing.StockQuantity,
+                    RequiresShipping = listing.RequiresShipping,
                     Title = listing.Title,
                     TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
                     Description = listing.Description,
@@ -229,6 +237,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return new PlanCardViewModel
                 {
                     ListingId = listing.Id,
+                    ListingType = listing.ListingType,
+                    CoverImageUrl = listing.CoverImageUrl,
+                    StockQuantity = listing.StockQuantity,
+                    RequiresShipping = listing.RequiresShipping,
                     Title = listing.Title,
                     TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
                     Description = listing.Description,
@@ -276,6 +288,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var sellableMealPlans = planChecks
                 .Where(x => x.CanSell)
                 .Select(x => x.Plan)
+                .ToList();
+
+            // Eigene Rezepte (für Angebotstyp "Einzelrezept").
+            var myRecipes = await _context.WorldUserPosting
+                .AsNoTracking()
+                .Where(p => p.CreatorId == userHash && p.Recipe != null)
+                .OrderByDescending(p => p.CreationTime)
+                .Select(p => new { Id = p.Recipe.Id, Title = p.Recipe.Title })
+                .ToListAsync();
+
+            ViewData["MyRecipes"] = myRecipes
+                .GroupBy(r => r.Id)
+                .Select(g => new RecipeOption { Id = g.Key, Title = g.First().Title ?? $"Rezept #{g.Key}" })
                 .ToList();
 
             ViewData["BlockedMealPlanCount"] = planChecks.Count(x => !x.CanSell);
@@ -357,17 +382,49 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return Json(new { walletAddress = address, token });
         }
 
-        // POST: Listing erstellen
+        public class RecipeOption
+        {
+            public int Id { get; set; }
+            public string Title { get; set; } = string.Empty;
+        }
+
+        public class CreateListingRequest
+        {
+            public string? ListingType { get; set; }
+            public int? MealPlanId { get; set; }
+            public int? RecipeId { get; set; }
+            public string? DigitalFileUrl { get; set; }
+            public int? StockQuantity { get; set; }
+            public bool RequiresShipping { get; set; }
+            public string? CoverImageUrl { get; set; }
+            public string? ImagesJson { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string? Description { get; set; }
+            public decimal Price { get; set; }
+            public string? SellerWalletAddress { get; set; }
+            public string? SellerUsdtWalletAddress { get; set; }
+        }
+
+        // POST: Listing erstellen (typ-übergreifend)
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> CreateListing(int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress, string? sellerUsdtWalletAddress)
+        public async Task<IActionResult> CreateListing([FromForm] CreateListingRequest request)
         {
             var userHash = GetUserHash();
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, error = "Nicht eingeloggt." });
 
-            if (price < 1 || price > 1000)
+            var listingType = string.IsNullOrWhiteSpace(request.ListingType)
+                ? MarketplaceListingType.MealPlan
+                : request.ListingType;
+            if (!MarketplaceListingType.IsValid(listingType))
+                return Json(new { success = false, error = "Unbekannter Angebotstyp." });
+
+            if (request.Price < 1 || request.Price > 1000)
                 return Json(new { success = false, error = "Preis muss zwischen 1 und 1000 WLD liegen." });
+
+            var sellerWalletAddress = request.SellerWalletAddress;
+            var sellerUsdtWalletAddress = request.SellerUsdtWalletAddress;
 
             if (string.IsNullOrWhiteSpace(sellerWalletAddress) && string.IsNullOrWhiteSpace(sellerUsdtWalletAddress))
                 return Json(new { success = false, error = "Bitte verbinde zuerst mindestens eine Wallet (WLD oder USDT), damit du Zahlungen empfangen kannst." });
@@ -383,7 +440,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             try
             {
-                var listing = await _coinService.CreateListingAsync(userHash, mealPlanId, title, description, price, sellerWalletAddress, sellerUsdtWalletAddress);
+                var listing = await _coinService.CreateTypedListingAsync(userHash, new CreateListingInput
+                {
+                    ListingType = listingType,
+                    MealPlanId = request.MealPlanId,
+                    RecipeId = request.RecipeId,
+                    DigitalFileUrl = request.DigitalFileUrl,
+                    StockQuantity = request.StockQuantity,
+                    RequiresShipping = request.RequiresShipping,
+                    CoverImageUrl = request.CoverImageUrl,
+                    ImagesJson = request.ImagesJson,
+                    Title = request.Title,
+                    Description = request.Description,
+                    Price = request.Price,
+                    SellerWalletAddress = sellerWalletAddress,
+                    SellerUsdtWalletAddress = sellerUsdtWalletAddress
+                });
                 return Json(new { success = true, listingId = listing.Id });
             }
             catch (WorldMiniAppException ex)
@@ -394,12 +466,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             {
                 // Vollständige DB-Fehlermeldung NUR ins Log (kann Schema-/Constraint-
                 // Interna enthalten), dem Client nur eine generische Meldung.
-                _logger.LogError(ex, "CreateListing DbUpdateException. MealPlanId={MealPlanId}, UserHash={UserHash}", mealPlanId, userHash);
+                _logger.LogError(ex, "CreateListing DbUpdateException. Type={Type}, MealPlanId={MealPlanId}, UserHash={UserHash}", listingType, request.MealPlanId, userHash);
                 return Json(new { success = false, error = "Datenbankfehler beim Erstellen des Angebots." });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "CreateListing failed. MealPlanId={MealPlanId}, UserHash={UserHash}", mealPlanId, userHash);
+                _logger.LogError(ex, "CreateListing failed. Type={Type}, MealPlanId={MealPlanId}, UserHash={UserHash}", listingType, request.MealPlanId, userHash);
                 return Json(new { success = false, error = "Interner Fehler beim Erstellen des Angebots." });
             }
         }
@@ -436,6 +508,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             public string TxHash { get; set; } = string.Empty;
             public string WalletAddress { get; set; } = string.Empty;
             public string PaymentToken { get; set; } = "WLD";
+            // Nur bei physischem Objekt relevant.
+            public string? ShippingAddress { get; set; }
         }
 
         // POST: World Chain Kauf finalisieren (nach erfolgreicher On-Chain TX)
@@ -482,11 +556,20 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     request.TxHash,
                     buyerSessionWallet,
                     IsSelfPurchaseAllowedForTesting(),
-                    paymentToken);
+                    paymentToken,
+                    request.ShippingAddress);
                 if (purchase == null)
                     return Json(new { success = false, error = "Kauf konnte nicht finalisiert werden." });
 
-                return Json(new { success = true, mealPlanId = purchase.CreatedMealPlanId });
+                return Json(new
+                {
+                    success = true,
+                    mealPlanId = purchase.CreatedMealPlanId,
+                    listingType = purchase.ListingType,
+                    downloadUrl = purchase.ListingType == MarketplaceListingType.DigitalProduct
+                        ? Url.Action("DownloadDigitalProduct", "Marketplace", new { area = "WorldMiniApp", listingId = purchase.ListingId })
+                        : null
+                });
             }
             catch (WorldMiniAppException ex)
             {
@@ -503,6 +586,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 _logger.LogError(ex, "FinalizeWorldChainPurchase failed. ListingId={ListingId}, UserHash={UserHash}", request.ListingId, userHash);
                 return Json(new { success = false, error = "Interner Fehler beim Finalisieren. Bitte erneut versuchen." });
             }
+        }
+
+        // GET: Digitales Produkt herunterladen (nur nach Kauf, fail-closed)
+        [HttpGet]
+        public async Task<IActionResult> DownloadDigitalProduct(int listingId)
+        {
+            var userHash = GetUserHash();
+            if (string.IsNullOrWhiteSpace(userHash))
+                return RedirectToAction("Index");
+
+            var listing = await _context.MealPlanListings
+                .AsNoTracking()
+                .FirstOrDefaultAsync(l => l.Id == listingId);
+
+            if (listing == null
+                || listing.ListingType != MarketplaceListingType.DigitalProduct
+                || string.IsNullOrWhiteSpace(listing.DigitalFileUrl))
+                return NotFound();
+
+            // Zugriff nur, wenn der eingeloggte Nutzer dieses Listing gekauft hat
+            // (oder selbst der Verkäufer ist).
+            var isSeller = string.Equals(listing.SellerHash, userHash, StringComparison.Ordinal);
+            if (!isSeller && !await _coinService.HasPurchasedAsync(userHash, listingId))
+                return Forbid();
+
+            return Redirect(listing.DigitalFileUrl);
         }
 
         // GET: Plan-Vorschau (Gerichte + Nährwerte) für ein Listing

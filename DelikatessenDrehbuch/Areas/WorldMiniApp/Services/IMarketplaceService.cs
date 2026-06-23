@@ -11,6 +11,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
     {
         // Marketplace Listings
         Task<MealPlanListing> CreateListingAsync(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null, string? sellerUsdtWalletAddress = null);
+        Task<MealPlanListing> CreateTypedListingAsync(string sellerHash, CreateListingInput input);
         Task<List<MealPlanListing>> GetActiveListingsAsync(int skip = 0, int take = 20);
         Task<List<MealPlanListing>> GetMyListingsAsync(string userHash);
         Task<MealPlanListing?> GetListingByIdAsync(int id);
@@ -18,7 +19,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
         Task<bool> ActivateListingAsync(string userHash, int listingId);
 
         // Marketplace Purchases (Blockchain)
-        Task<MealPlanPurchase?> FinalizeWorldChainPurchaseAsync(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD");
+        Task<MealPlanPurchase?> FinalizeWorldChainPurchaseAsync(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD", string? shippingAddress = null);
+        Task<bool> HasPurchasedAsync(string buyerHash, int listingId);
         Task<List<MealPlanPurchase>> GetPurchasesByBuyerAsync(string buyerHash);
     }
 }

@@ -20,7 +20,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public string? SellerWalletAddress { get; set; }
         public int ListingId { get; set; }
         public MealPlanListing Listing { get; set; }
-        public int CreatedMealPlanId { get; set; }
+        // Nur bei MealPlan/SingleRecipe gesetzt (kopierter Plan beim Käufer). Bei
+        // Digital/Objekt/Dienstleistung null.
+        public int? CreatedMealPlanId { get; set; }
+        // Snapshot des Angebotstyps zum Kaufzeitpunkt (siehe MarketplaceListingType).
+        public string? ListingType { get; set; }
+        // Lieferadresse des Käufers (nur bei physischem Objekt).
+        public string? BuyerShippingAddress { get; set; }
         public decimal PricePaid { get; set; }
         public decimal CreatorAmount { get; set; }
         public decimal PlatformFee { get; set; }

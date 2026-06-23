@@ -135,8 +135,8 @@ Registriert als `IBlobUploadService` (`Program.cs`). HttpClient `"BunnyStorage"`
   3. Liefert `UploadContentResult { SourceUrl, ThumbnailUrl, VideoGuid }`.
 - **Fallback** (Stream nicht konfiguriert): Upload nach Bunny **Storage** als `video/mp4` (kein automatisches Processing, kein `VideoGuid`).
 
-> Hinweis: Es existiert noch ein **Ã¤lterer `BlobUploadService`** (Azure Blob + Azure-Queue-FFmpeg-Processor).
-> Der ist **nicht** registriert (Dead Code) â€” aktiv ist `BunnyUploadService`.
+> Hinweis: Der frÃ¼here `BlobUploadService` (Azure Blob + Azure-Queue-FFmpeg-Processor) wurde
+> **entfernt** (war Dead Code) â€” aktiv ist ausschlieÃŸlich `BunnyUploadService` (siehe Abschnitt 14).
 
 ---
 

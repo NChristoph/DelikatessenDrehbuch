@@ -34,58 +34,131 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         // ---- Marketplace Listings ----
 
+        // Bestehende Essensplan-Signatur bleibt erhalten -> delegiert an die typ-übergreifende Variante.
         public async Task<MealPlanListing> CreateListingAsync(string sellerHash, int mealPlanId, string title, string? description, decimal price, string? sellerWalletAddress = null, string? sellerUsdtWalletAddress = null)
+        {
+            return await CreateTypedListingAsync(sellerHash, new CreateListingInput
+            {
+                ListingType = MarketplaceListingType.MealPlan,
+                MealPlanId = mealPlanId,
+                Title = title,
+                Description = description,
+                Price = price,
+                SellerWalletAddress = sellerWalletAddress,
+                SellerUsdtWalletAddress = sellerUsdtWalletAddress
+            });
+        }
+
+        public async Task<MealPlanListing> CreateTypedListingAsync(string sellerHash, CreateListingInput input)
         {
             var user = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == sellerHash);
             if (user == null) throw new WorldMiniAppNotFoundException("User nicht gefunden.");
 
-            var mealPlan = await _context.WorldUserMealPlan.FirstOrDefaultAsync(m => m.Id == mealPlanId && m.UserHash == sellerHash);
-            if (mealPlan == null) throw new WorldMiniAppNotFoundException("Essensplan nicht gefunden oder gehört nicht dir.");
+            var type = input.ListingType;
+            if (!MarketplaceListingType.IsValid(type))
+                throw new WorldMiniAppValidationException("Unbekannter Angebotstyp.");
 
-            var mealPlanDays = ExtractMealPlanDays(mealPlan.MealPlan);
-            var recipeIds = mealPlanDays
-                .Values
-                .SelectMany(v => v)
-                .Where(id => id > 0)
-                .Distinct()
-                .ToList();
-
-            if (recipeIds.Count > 0)
-            {
-                var ownedRecipeIds = await _context.WorldUserPosting
-                    .Where(p => p.CreatorId == sellerHash && p.Recipe != null && recipeIds.Contains(p.Recipe.Id))
-                    .Select(p => p.Recipe.Id)
-                    .Distinct()
-                    .ToListAsync();
-
-                if (recipeIds.Except(ownedRecipeIds).Any())
-                {
-                    throw new WorldMiniAppValidationException("Du kannst nur Essenspläne verkaufen, die ausschließlich deine eigenen Rezepte enthalten.");
-                }
-            }
-
-            // Rezeptanzahl und Tage aus dem MealPlan JSON berechnen
-            int dayCount = mealPlanDays.Count;
-            int recipeCount = recipeIds.Count;
+            if (string.IsNullOrWhiteSpace(input.Title))
+                throw new WorldMiniAppValidationException("Bitte gib einen Titel an.");
 
             var listing = new MealPlanListing
             {
                 SellerHash = sellerHash,
                 SellerName = user.UserName ?? "Anonym",
-                SellerWalletAddress = sellerWalletAddress,
-                SellerUsdtWalletAddress = sellerUsdtWalletAddress,
-                MealPlanId = mealPlanId,
-                MealPlan = mealPlan,
-                Title = title,
-                Description = description,
-                Price = price,
-                DayCount = dayCount,
-                RecipeCount = recipeCount
+                SellerWalletAddress = input.SellerWalletAddress,
+                SellerUsdtWalletAddress = input.SellerUsdtWalletAddress,
+                ListingType = type,
+                Title = input.Title.Trim(),
+                Description = input.Description,
+                Price = input.Price,
+                CoverImageUrl = NormalizeOptionalUrl(input.CoverImageUrl),
+                ImagesJson = input.ImagesJson
             };
+
+            switch (type)
+            {
+                case MarketplaceListingType.MealPlan:
+                {
+                    if (input.MealPlanId is not int mealPlanId)
+                        throw new WorldMiniAppValidationException("Bitte wähle einen Essensplan.");
+
+                    var mealPlan = await _context.WorldUserMealPlan.FirstOrDefaultAsync(m => m.Id == mealPlanId && m.UserHash == sellerHash);
+                    if (mealPlan == null) throw new WorldMiniAppNotFoundException("Essensplan nicht gefunden oder gehört nicht dir.");
+
+                    var mealPlanDays = ExtractMealPlanDays(mealPlan.MealPlan);
+                    var recipeIds = mealPlanDays.Values.SelectMany(v => v).Where(id => id > 0).Distinct().ToList();
+
+                    if (recipeIds.Count > 0)
+                    {
+                        var ownedRecipeIds = await _context.WorldUserPosting
+                            .Where(p => p.CreatorId == sellerHash && p.Recipe != null && recipeIds.Contains(p.Recipe.Id))
+                            .Select(p => p.Recipe.Id)
+                            .Distinct()
+                            .ToListAsync();
+
+                        if (recipeIds.Except(ownedRecipeIds).Any())
+                            throw new WorldMiniAppValidationException("Du kannst nur Essenspläne verkaufen, die ausschließlich deine eigenen Rezepte enthalten.");
+                    }
+
+                    listing.MealPlanId = mealPlanId;
+                    listing.MealPlan = mealPlan;
+                    listing.DayCount = mealPlanDays.Count;
+                    listing.RecipeCount = recipeIds.Count;
+                    break;
+                }
+                case MarketplaceListingType.SingleRecipe:
+                {
+                    if (input.RecipeId is not int recipeId)
+                        throw new WorldMiniAppValidationException("Bitte wähle ein Rezept.");
+
+                    var owns = await _context.WorldUserPosting
+                        .AnyAsync(p => p.CreatorId == sellerHash && p.Recipe != null && p.Recipe.Id == recipeId);
+                    if (!owns)
+                        throw new WorldMiniAppValidationException("Du kannst nur deine eigenen Rezepte verkaufen.");
+
+                    listing.RecipeId = recipeId;
+                    listing.RecipeCount = 1;
+                    break;
+                }
+                case MarketplaceListingType.DigitalProduct:
+                {
+                    var url = NormalizeOptionalUrl(input.DigitalFileUrl);
+                    if (string.IsNullOrWhiteSpace(url))
+                        throw new WorldMiniAppValidationException("Bitte gib eine gültige Download-/Datei-URL (https) an.");
+                    listing.DigitalFileUrl = url;
+                    break;
+                }
+                case MarketplaceListingType.PhysicalObject:
+                {
+                    if (string.IsNullOrWhiteSpace(listing.CoverImageUrl) && string.IsNullOrWhiteSpace(listing.ImagesJson))
+                        throw new WorldMiniAppValidationException("Bitte gib mindestens ein Produktbild an (Bild-URL).");
+                    if (input.StockQuantity is int stock && stock < 0)
+                        throw new WorldMiniAppValidationException("Bestand darf nicht negativ sein.");
+                    listing.StockQuantity = input.StockQuantity;
+                    listing.RequiresShipping = input.RequiresShipping;
+                    break;
+                }
+                case MarketplaceListingType.Service:
+                {
+                    // Dienstleistung: nur Titel/Beschreibung erforderlich.
+                    break;
+                }
+            }
 
             await _context.MealPlanListings.AddAsync(listing);
             await _context.SaveChangesAsync();
             return listing;
+        }
+
+        // Validiert eine optionale URL (http/https). Liefert null bei leer/ungültig.
+        private static string? NormalizeOptionalUrl(string? url)
+        {
+            if (string.IsNullOrWhiteSpace(url)) return null;
+            url = url.Trim();
+            return Uri.TryCreate(url, UriKind.Absolute, out var u)
+                   && (u.Scheme == Uri.UriSchemeHttp || u.Scheme == Uri.UriSchemeHttps)
+                ? url
+                : null;
         }
 
         private static Dictionary<int, List<int>> ExtractMealPlanDays(string? mealPlanJson)
@@ -153,7 +226,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
         // ---- Marketplace Purchases (Blockchain) ----
 
-        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchaseAsync(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD")
+        public async Task<MealPlanPurchase?> FinalizeWorldChainPurchaseAsync(string buyerHash, int listingId, string txHash, string walletAddress, bool allowSelfPurchase = false, string paymentToken = "WLD", string? shippingAddress = null)
         {
             if (string.IsNullOrWhiteSpace(txHash))
             {
@@ -205,16 +278,76 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
                 listing.SoldCount++;
 
-                var copiedPlan = new WorldUserMealPlan
+                // Typ-spezifische Lieferung: Essensplan/Einzelrezept legen einen Plan beim
+                // Käufer an; Objekt verringert Bestand; Digital/Dienstleistung liefern über
+                // Kaufnachweis bzw. Verkäufer-Benachrichtigung. 80/20-Gutschrift unten ist gemeinsam.
+                int? createdMealPlanId = null;
+
+                switch (listing.ListingType)
                 {
-                    UserHash = buyerHash,
-                    Settings = listing.MealPlan?.Settings,
-                    MealPlan = listing.MealPlan?.MealPlan,
-                    Title = listing.Title,
-                    CreationTime = DateTime.Now
-                };
-                await _context.WorldUserMealPlan.AddAsync(copiedPlan);
-                await _context.SaveChangesAsync();
+                    case MarketplaceListingType.MealPlan:
+                    {
+                        var copiedPlan = new WorldUserMealPlan
+                        {
+                            UserHash = buyerHash,
+                            Settings = listing.MealPlan?.Settings,
+                            MealPlan = listing.MealPlan?.MealPlan,
+                            Title = listing.Title,
+                            CreationTime = DateTime.Now
+                        };
+                        await _context.WorldUserMealPlan.AddAsync(copiedPlan);
+                        await _context.SaveChangesAsync();
+                        createdMealPlanId = copiedPlan.Id;
+                        break;
+                    }
+                    case MarketplaceListingType.SingleRecipe:
+                    {
+                        // Einzelrezept als 1-Rezept-"Plan" (Tag 0 -> [recipeId]) beim Käufer ablegen.
+                        if (listing.RecipeId is int rid)
+                        {
+                            var singlePlan = new WorldUserMealPlan
+                            {
+                                UserHash = buyerHash,
+                                MealPlan = JsonSerializer.Serialize(new Dictionary<int, List<int>> { { 0, new List<int> { rid } } }),
+                                Title = listing.Title,
+                                CreationTime = DateTime.Now
+                            };
+                            await _context.WorldUserMealPlan.AddAsync(singlePlan);
+                            await _context.SaveChangesAsync();
+                            createdMealPlanId = singlePlan.Id;
+                        }
+                        break;
+                    }
+                    case MarketplaceListingType.PhysicalObject:
+                    {
+                        // Bestand verringern (clamp bei 0). Versand erfolgt manuell durch den Verkäufer.
+                        if (listing.StockQuantity is int stock)
+                            listing.StockQuantity = Math.Max(0, stock - 1);
+                        break;
+                    }
+                    // DigitalProduct & Service: kein kopierter Plan.
+                }
+
+                // Verkäufer bei Objekt/Dienstleistung benachrichtigen (manuelle Abwicklung).
+                if (listing.ListingType == MarketplaceListingType.PhysicalObject
+                    || listing.ListingType == MarketplaceListingType.Service)
+                {
+                    await _context.WorldUserNotifications.AddAsync(new WorldUserNotification
+                    {
+                        UserHash = listing.SellerHash,
+                        Icon = "bi-bag-check",
+                        Sender = "marketplace",
+                        Description = listing.ListingType == MarketplaceListingType.PhysicalObject
+                            ? $"Neue Bestellung: {listing.Title}"
+                            : $"Neue Buchung: {listing.Title}",
+                        Href = "/WorldMiniApp/Marketplace/MyListings",
+                        EventType = "marketplace-sale",
+                        ContextText = listing.ListingType == MarketplaceListingType.PhysicalObject
+                            ? shippingAddress
+                            : null,
+                        CreatedAtUtc = DateTime.UtcNow
+                    });
+                }
 
                 var creatorAmount = Math.Round(listing.Price * 0.80m, 6);
                 var platformFee = listing.Price - creatorAmount;
@@ -232,7 +365,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     SellerWalletAddress = sellerWalletForPurchase,
                     ListingId = listing.Id,
                     Listing = listing,
-                    CreatedMealPlanId = copiedPlan.Id,
+                    CreatedMealPlanId = createdMealPlanId,
+                    ListingType = listing.ListingType,
+                    BuyerShippingAddress = listing.ListingType == MarketplaceListingType.PhysicalObject
+                        ? shippingAddress
+                        : null,
                     PricePaid = listing.Price,
                     CreatorAmount = creatorAmount,
                     PlatformFee = platformFee,
@@ -270,6 +407,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 await transaction.RollbackAsync();
                 throw;
             }
+        }
+
+        public async Task<bool> HasPurchasedAsync(string buyerHash, int listingId)
+        {
+            if (string.IsNullOrWhiteSpace(buyerHash)) return false;
+            return await _context.MealPlanPurchases
+                .AsNoTracking()
+                .AnyAsync(p => p.BuyerHash == buyerHash && p.ListingId == listingId);
         }
 
         public async Task<List<MealPlanPurchase>> GetPurchasesByBuyerAsync(string buyerHash)

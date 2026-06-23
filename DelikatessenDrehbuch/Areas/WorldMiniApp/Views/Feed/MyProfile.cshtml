@@ -730,15 +730,27 @@
                     <input type="hidden" name="userHash" value="@Model.User.UserHash" />
 
                     <label class="form-label small fw-bold">@SharedLocalizer["MyProfile.DisplayName"]</label>
-                    <div class="input-group">
+                    <div class="input-group mb-2">
                         <input class="form-control rounded-3" name="userName" maxlength="80" value="@Model.User.UserName" />
-                        <button class="btn btn-dark" type="submit">@SharedLocalizer["MyProfile.Save"]</button>
                     </div>
+
+                    <label class="form-label small fw-bold">Eigener Store (Link)</label>
+                    <input class="form-control rounded-3 mb-2" type="url" name="storeUrl" maxlength="1024"
+                           placeholder="https://dein-shop.de" value="@Model.User.StoreUrl" />
+                    <div class="form-text small mb-2">Optionaler Link zu deinem externen Shop. Leer lassen zum Entfernen.</div>
+
+                    <button class="btn btn-dark w-100" type="submit">@SharedLocalizer["MyProfile.Save"]</button>
                 </form>
             </div>
         </div>
 
         <div class="quick-links">
+            @if (!string.IsNullOrWhiteSpace(Model.User.StoreUrl))
+            {
+                <a class="quick-link" href="@Model.User.StoreUrl" target="_blank" rel="noopener nofollow">
+                    <i class="bi bi-box-arrow-up-right"></i> Mein Store
+                </a>
+            }
             <a class="quick-link" href="@Url.Action("FeedLight", "Shared", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
                 <i class="bi bi-send-check"></i> Geteilte Inhalte
             </a>

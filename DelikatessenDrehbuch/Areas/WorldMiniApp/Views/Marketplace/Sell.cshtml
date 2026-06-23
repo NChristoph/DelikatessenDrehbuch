@@ -12,6 +12,8 @@
     var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
     var testMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
     var blockedMealPlanCount = (int?)ViewData["BlockedMealPlanCount"] ?? 0;
+    var myRecipes = ViewData["MyRecipes"] as List<DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers.MarketplaceController.RecipeOption>
+        ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers.MarketplaceController.RecipeOption>();
 }
 
 <style>
@@ -67,6 +69,24 @@
         padding: .75rem 1rem;
         font-size: .85rem;
     }
+    .type-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: .5rem;
+    }
+    .type-option {
+        border: 2px solid transparent;
+        border-radius: .75rem;
+        padding: .75rem .5rem;
+        text-align: center;
+        cursor: pointer;
+        background: rgba(0,0,0,.02);
+        transition: border-color .15s, background .15s;
+    }
+    .type-option:hover { background: rgba(0,0,0,.04); }
+    .type-option.selected { border-color: #f59e0b; background: rgba(245,158,11,.06); }
+    .type-option i { display: block; font-size: 1.4rem; color: #14391f; margin-bottom: .25rem; }
+    .type-option span { font-size: .78rem; font-weight: 600; color: #14391f; }
 </style>
 
 <div class="container py-4" style="max-width:720px;">
@@ -75,8 +95,8 @@
     </a>
 
     <div class="sell-card p-4 mb-3">
-        <h4 class="fw-bold mb-1">Essensplan verkaufen</h4>
-        <p class="text-muted small mb-0">Wähle einen deiner Pläne und leg einen Preis in WLD fest. Optional kannst du zusätzlich eine USDT/USDC-Auszahlungsadresse speichern.</p>
+        <h4 class="fw-bold mb-1">Angebot erstellen</h4>
+        <p class="text-muted small mb-0">Wähle einen Angebotstyp, beschreibe ihn und leg einen Preis in WLD fest. Optional kannst du zusätzlich eine USDT/USDC-Auszahlungsadresse speichern.</p>
     </div>
 
     <!-- Wallet-Verbindung (Pflicht zum Verkaufen) -->
@@ -133,67 +153,117 @@
         20% gehen als Plattform-Gebühr an uns.
     </div>
 
-    @if (blockedMealPlanCount > 0)
-    {
-        <div class="alert alert-warning border-0 rounded-4 mb-3" role="alert">
-            Nur Essenspläne mit ausschließlich eigenen Rezepten können verkauft werden. @blockedMealPlanCount Plan/Pläne sind deshalb hier ausgeblendet.
+    <div class="sell-card p-4">
+        <!-- 1. Angebotstyp -->
+        <label class="fw-semibold mb-2 d-block">1. Was möchtest du anbieten?</label>
+        <div class="type-grid mb-4" id="typeGrid">
+            <div class="type-option selected" data-type="MealPlan" onclick="selectType(this,'MealPlan')"><i class="bi bi-calendar-week"></i><span>Essensplan</span></div>
+            <div class="type-option" data-type="SingleRecipe" onclick="selectType(this,'SingleRecipe')"><i class="bi bi-card-text"></i><span>Einzelrezept</span></div>
+            <div class="type-option" data-type="PhysicalObject" onclick="selectType(this,'PhysicalObject')"><i class="bi bi-box-seam"></i><span>Objekt</span></div>
+            <div class="type-option" data-type="DigitalProduct" onclick="selectType(this,'DigitalProduct')"><i class="bi bi-cloud-download"></i><span>Digital</span></div>
+            <div class="type-option" data-type="Service" onclick="selectType(this,'Service')"><i class="bi bi-person-workspace"></i><span>Dienstleistung</span></div>
         </div>
-    }
-    @if (!Model.Any())
-    {
-        <div class="text-center py-5">
-            <i class="bi bi-journal-x fs-1 text-muted"></i>
+
+        <!-- Essensplan -->
+        <div class="type-section" data-section="MealPlan">
+            <label class="fw-semibold mb-2 d-block">Plan auswählen</label>
             @if (blockedMealPlanCount > 0)
             {
-                <p class="text-muted mt-2">Du hast aktuell keine verkaufbaren Essenspläne.</p>
+                <div class="alert alert-warning border-0 rounded-4 mb-3 small" role="alert">
+                    Nur Essenspläne mit ausschließlich eigenen Rezepten können verkauft werden. @blockedMealPlanCount Plan/Pläne sind ausgeblendet.
+                </div>
+            }
+            @if (!Model.Any())
+            {
+                <div class="text-center py-3">
+                    <i class="bi bi-journal-x fs-3 text-muted"></i>
+                    <p class="text-muted small mt-2 mb-2">Du hast aktuell keine verkaufbaren Essenspläne.</p>
+                    <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="btn btn-outline-dark btn-sm rounded-pill">Plan erstellen</a>
+                </div>
             }
             else
             {
-                <p class="text-muted mt-2">Du hast noch keine Essenspläne.</p>
+                <div class="d-flex flex-column gap-2 mb-2" id="planList">
+                    @foreach (var plan in Model)
+                    {
+                        <div class="plan-option" data-plan-id="@plan.Id" onclick="selectPlan(this, @plan.Id, '@(plan.Title?.Replace("'", "\\'") ?? "Essensplan")')">
+                            <div class="fw-bold">@(plan.Title ?? "Essensplan")</div>
+                            <div class="text-muted small">Erstellt: @plan.CreationTime.ToString("dd.MM.yyyy")</div>
+                        </div>
+                    }
+                </div>
             }
-            <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="btn btn-outline-dark btn-sm rounded-pill">Plan erstellen</a>
         </div>
-    }
-    else
-    {
-        <div class="sell-card p-4">
-            <!-- Plan auswählen -->
-            <label class="fw-semibold mb-2 d-block">1. Plan auswählen</label>
-            <div class="d-flex flex-column gap-2 mb-4" id="planList">
-                @foreach (var plan in Model)
-                {
-                    <div class="plan-option" data-plan-id="@plan.Id" onclick="selectPlan(this, @plan.Id, '@(plan.Title?.Replace("'", "\\'") ?? "Essensplan")')">
-                        <div class="fw-bold">@(plan.Title ?? "Essensplan")</div>
-                        <div class="text-muted small">Erstellt: @plan.CreationTime.ToString("dd.MM.yyyy")</div>
-                    </div>
-                }
-            </div>
 
-            <!-- Titel & Beschreibung -->
-            <label class="fw-semibold mb-2 d-block">2. Angebot beschreiben</label>
-            <div class="mb-2">
-                <input type="text" id="listingTitle" class="form-control rounded-3" placeholder="Titel für dein Angebot" maxlength="100" />
-            </div>
-            <div class="mb-4">
-                <textarea id="listingDescription" class="form-control rounded-3" rows="2" placeholder="Kurze Beschreibung (optional)" maxlength="300"></textarea>
-            </div>
-
-            <!-- Preis -->
-            <label class="fw-semibold mb-2 d-block">3. Preis festlegen</label>
-            <div class="d-flex align-items-center gap-2 mb-2">
-                <input type="number" id="listingPrice" class="form-control price-input" min="1" max="1000" value="10" step="1" oninput="updateSplitPreview()" />
-                <span class="fw-bold text-muted">WLD</span>
-            </div>
-            <div class="small text-muted mb-4" id="splitPreview">
-                Du bekommst: <strong>8.00 WLD</strong> (80%) — Plattform: 2.00 WLD (20%)
-            </div>
-
-            <!-- Submit -->
-            <button class="sell-btn w-100" id="btnSell" onclick="createListing()" disabled>
-                <i class="bi bi-tag me-2"></i>Jetzt verkaufen
-            </button>
+        <!-- Einzelrezept -->
+        <div class="type-section d-none" data-section="SingleRecipe">
+            <label class="fw-semibold mb-2 d-block">Rezept auswählen</label>
+            @if (myRecipes.Any())
+            {
+                <select id="recipeSelect" class="form-select rounded-3 mb-2" onchange="onRecipeSelected()">
+                    <option value="">– Rezept wählen –</option>
+                    @foreach (var r in myRecipes)
+                    {
+                        <option value="@r.Id">@r.Title</option>
+                    }
+                </select>
+            }
+            else
+            {
+                <div class="text-muted small">Du hast noch keine eigenen Rezepte zum Verkaufen.</div>
+            }
         </div>
-    }
+
+        <!-- Objekt -->
+        <div class="type-section d-none" data-section="PhysicalObject">
+            <label class="fw-semibold mb-2 d-block">Produktdetails</label>
+            <input type="url" id="objImageUrl" class="form-control rounded-3 mb-2" placeholder="Bild-URL (https://...)" maxlength="1000" oninput="updateSellButtonState()" />
+            <input type="number" id="objStock" class="form-control rounded-3 mb-2" min="0" placeholder="Bestand (leer = unbegrenzt)" />
+            <div class="form-check mb-2">
+                <input class="form-check-input" type="checkbox" id="objShipping" checked />
+                <label class="form-check-label small" for="objShipping">Versand nötig (Lieferadresse vom Käufer abfragen)</label>
+            </div>
+        </div>
+
+        <!-- Digital -->
+        <div class="type-section d-none" data-section="DigitalProduct">
+            <label class="fw-semibold mb-2 d-block">Digitales Produkt</label>
+            <input type="url" id="digitalUrl" class="form-control rounded-3 mb-2" placeholder="Download-/Datei-URL (https://...)" maxlength="1000" oninput="updateSellButtonState()" />
+            <input type="url" id="digitalCover" class="form-control rounded-3 mb-2" placeholder="Titelbild-URL (optional)" maxlength="1000" />
+            <div class="text-muted small">Der Link wird erst nach dem Kauf freigeschaltet.</div>
+        </div>
+
+        <!-- Dienstleistung -->
+        <div class="type-section d-none" data-section="Service">
+            <label class="fw-semibold mb-2 d-block">Dienstleistung</label>
+            <input type="url" id="serviceCover" class="form-control rounded-3 mb-2" placeholder="Titelbild-URL (optional)" maxlength="1000" />
+            <div class="text-muted small">Beschreibe deine Dienstleistung unten. Nach dem Kauf wirst du benachrichtigt, um Kontakt aufzunehmen.</div>
+        </div>
+
+        <!-- Titel & Beschreibung -->
+        <label class="fw-semibold mb-2 mt-4 d-block">2. Angebot beschreiben</label>
+        <div class="mb-2">
+            <input type="text" id="listingTitle" class="form-control rounded-3" placeholder="Titel für dein Angebot" maxlength="100" />
+        </div>
+        <div class="mb-4">
+            <textarea id="listingDescription" class="form-control rounded-3" rows="2" placeholder="Kurze Beschreibung (optional)" maxlength="300"></textarea>
+        </div>
+
+        <!-- Preis -->
+        <label class="fw-semibold mb-2 d-block">3. Preis festlegen</label>
+        <div class="d-flex align-items-center gap-2 mb-2">
+            <input type="number" id="listingPrice" class="form-control price-input" min="1" max="1000" value="10" step="1" oninput="updateSplitPreview()" />
+            <span class="fw-bold text-muted">WLD</span>
+        </div>
+        <div class="small text-muted mb-4" id="splitPreview">
+            Du bekommst: <strong>8.00 WLD</strong> (80%) — Plattform: 2.00 WLD (20%)
+        </div>
+
+        <!-- Submit -->
+        <button class="sell-btn w-100" id="btnSell" onclick="createListing()" disabled>
+            <i class="bi bi-tag me-2"></i>Jetzt verkaufen
+        </button>
+    </div>
 </div>
 
 @section Scripts {
@@ -211,10 +281,42 @@
 <script type="module" src="~/js/minikitt.js" asp-append-version="true"></script>
 <script>
     let selectedPlanId = null;
+    let selectedRecipeId = null;
+    let selectedType = 'MealPlan';
     let sellerWalletAddress = '@walletWLD';
     let sellerUsdtWalletAddress = '@walletUSDT';
 
     const USER_HASH = '@userHash';
+
+    function selectType(el, type) {
+        selectedType = type;
+        document.querySelectorAll('.type-option').forEach(o => o.classList.toggle('selected', o === el));
+        document.querySelectorAll('.type-section').forEach(s => {
+            s.classList.toggle('d-none', s.dataset.section !== type);
+        });
+        updateSellButtonState();
+    }
+
+    function onRecipeSelected() {
+        const sel = document.getElementById('recipeSelect');
+        selectedRecipeId = sel && sel.value ? parseInt(sel.value, 10) : null;
+        const titleInput = document.getElementById('listingTitle');
+        if (sel && sel.value && titleInput && !titleInput.value.trim()) {
+            titleInput.value = sel.options[sel.selectedIndex].text;
+        }
+        updateSellButtonState();
+    }
+
+    function typeRequirementMet() {
+        switch (selectedType) {
+            case 'MealPlan': return !!selectedPlanId;
+            case 'SingleRecipe': return !!selectedRecipeId;
+            case 'DigitalProduct': return !!(document.getElementById('digitalUrl')?.value.trim());
+            case 'PhysicalObject': return !!(document.getElementById('objImageUrl')?.value.trim());
+            case 'Service': return true;
+            default: return false;
+        }
+    }
 
     function getAntiForgeryToken() {
         return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
@@ -250,7 +352,7 @@
 
     function updateSellButtonState() {
         const btn = document.getElementById('btnSell');
-        btn.disabled = !selectedPlanId || (!sellerWalletAddress && !sellerUsdtWalletAddress);
+        btn.disabled = !typeRequirementMet() || (!sellerWalletAddress && !sellerUsdtWalletAddress);
     }
 
     async function connectSellerWallet() {
@@ -379,7 +481,10 @@
     }
 
     async function createListing() {
-        if (!selectedPlanId) return;
+        if (!typeRequirementMet()) {
+            alert('Bitte vervollständige die Angaben für den gewählten Angebotstyp.');
+            return;
+        }
 
         if (!sellerWalletAddress && !sellerUsdtWalletAddress) {
             alert('Bitte verbinde zuerst mindestens eine Wallet (WLD oder USDT/USDC), damit du Zahlungen empfangen kannst.');
@@ -394,12 +499,29 @@
         if (price < 1 || price > 1000) { alert('Preis muss zwischen 1 und 1000 WLD liegen.'); return; }
 
         const form = new FormData();
-        form.append('mealPlanId', selectedPlanId);
-        form.append('title', title);
-        form.append('description', description);
-        form.append('price', price);
-        form.append('sellerWalletAddress', sellerWalletAddress);
-        form.append('sellerUsdtWalletAddress', sellerUsdtWalletAddress);
+        form.append('ListingType', selectedType);
+        form.append('Title', title);
+        form.append('Description', description);
+        form.append('Price', price);
+        form.append('SellerWalletAddress', sellerWalletAddress);
+        form.append('SellerUsdtWalletAddress', sellerUsdtWalletAddress);
+
+        if (selectedType === 'MealPlan') {
+            form.append('MealPlanId', selectedPlanId);
+        } else if (selectedType === 'SingleRecipe') {
+            form.append('RecipeId', selectedRecipeId);
+        } else if (selectedType === 'DigitalProduct') {
+            form.append('DigitalFileUrl', document.getElementById('digitalUrl').value.trim());
+            form.append('CoverImageUrl', document.getElementById('digitalCover').value.trim());
+        } else if (selectedType === 'PhysicalObject') {
+            form.append('CoverImageUrl', document.getElementById('objImageUrl').value.trim());
+            const stock = document.getElementById('objStock').value.trim();
+            if (stock !== '') form.append('StockQuantity', stock);
+            form.append('RequiresShipping', document.getElementById('objShipping').checked ? 'true' : 'false');
+        } else if (selectedType === 'Service') {
+            form.append('CoverImageUrl', document.getElementById('serviceCover').value.trim());
+        }
+
         form.append('__RequestVerificationToken', getAntiForgeryToken());
 
         const btn = document.getElementById('btnSell');

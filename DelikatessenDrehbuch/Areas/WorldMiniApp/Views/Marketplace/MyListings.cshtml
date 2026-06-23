@@ -96,6 +96,10 @@
                                 </div>
                             </div>
                         }
+                        else if (!string.IsNullOrWhiteSpace(card.CoverImageUrl))
+                        {
+                            <img src="@card.CoverImageUrl" alt="@card.Title" class="cs-hero-img" loading="lazy" />
+                        }
                         else
                         {
                             <div class="cs-hero-fallback" aria-hidden="true"></div>
@@ -118,7 +122,14 @@
 
                         <div class="cs-hero-text">
                             <h3 class="cs-title">@card.Title</h3>
-                            <p class="cs-subline mb-0">@card.DayCount Tage · @card.RecipeCount Rezepte · @card.CreatedDateLabel</p>
+                            @if (card.IsMealPlan)
+                            {
+                                <p class="cs-subline mb-0">@card.DayCount Tage · @card.RecipeCount Rezepte · @card.CreatedDateLabel</p>
+                            }
+                            else
+                            {
+                                <p class="cs-subline mb-0">@card.TypeLabel@(card.ListingType == MarketplaceListingType.PhysicalObject && card.StockQuantity.HasValue ? $" · {card.StockQuantity.Value} auf Lager" : "") · @card.CreatedDateLabel</p>
+                            }
                         </div>
                     </div>
 

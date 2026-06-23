@@ -25,6 +25,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         // statt sie (wie zuvor) per ex.Message an den Client zu leaken.
         private readonly ILogger<RecipeSwapController> _logger;
 
+        // --- Rate-Limits für teure KI-Aufrufe (pro User, Sliding-Window via MemoryCache) ---
+        // Schützt vor Kosten-/DoS-Missbrauch durch wiederholte LLM-Calls. Greift NUR vor
+        // einem echten AI-Aufruf (Community-/Cache-Treffer verbrauchen kein Kontingent).
+        private static readonly TimeSpan AiRateWindow = TimeSpan.FromMinutes(10);
+        private const int SuggestRateLimit = 30;
+        private const int RewriteStepsRateLimit = 20;
+        private const int GenerateMetaRateLimit = 20;
+        private const int PublishMetaRateLimit = 15;
+
         public RecipeSwapController(
             ApplicationDbContext context,
             IIngredientSwapAiService aiService,
@@ -110,6 +119,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 if (string.IsNullOrWhiteSpace(title) || string.IsNullOrWhiteSpace(summary))
                 {
+                    if (!TryConsumeAiSlot("publish-meta", userHash, PublishMetaRateLimit, out var publishRetry))
+                    {
+                        return RateLimited(publishRetry, "Limit erreicht: zu viele KI-Anfragen. Bitte etwas später erneut veröffentlichen.");
+                    }
+
                     var meta = await _variantSummaryAiService.GenerateTitleAndSummaryAsync(recipe, swaps, language, cancellationToken);
                     if (meta.HasValue)
                     {
@@ -480,6 +494,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             try
             {
+                // Auth-Pflicht (konsistent mit den übrigen KI-Endpunkten) – verhindert
+                // anonymen Missbrauch des teuren KI-Vorschlags-Endpunkts.
+                var userHash = ResolveUserHash(string.Empty);
+                if (string.IsNullOrWhiteSpace(userHash))
+                {
+                    return Unauthorized(new { error = "User not authenticated" });
+                }
+
                 // 1. Get original ingredient
                 var original = await _context.IngredientsAndNutrients
                     .FirstOrDefaultAsync(i => i.Id == request.OriginalIngredientId);
@@ -522,8 +544,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 if (request.SwapVariantId.HasValue && request.SwapVariantId.Value > 0)
                 {
-                    var userHash = ResolveUserHash(string.Empty);
-
                     if (!string.IsNullOrWhiteSpace(userHash))
                     {
                         var variant = await _context.RecipeUserVariants
@@ -697,6 +717,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
                 if (remainingSlots > 0)
                 {
+                    if (!TryConsumeAiSlot("suggest", userHash, SuggestRateLimit, out var suggestRetry))
+                    {
+                        return RateLimited(suggestRetry, "Limit erreicht: zu viele KI-Vorschläge. Bitte etwas später erneut versuchen.");
+                    }
+
                     var result = await _aiService.GetSwapSuggestionsAsync(
                         original,
                         recipe,
@@ -1076,6 +1101,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     .Where(x => !string.IsNullOrWhiteSpace(x.Name))
                     .ToList();
 
+                if (!TryConsumeAiSlot("rewrite-steps", userHash, RewriteStepsRateLimit, out var rewriteRetry))
+                {
+                    return RateLimited(rewriteRetry, "Limit erreicht: zu viele KI-Schrittumschreibungen. Bitte etwas später erneut versuchen.");
+                }
+
                 var steps = await _stepAiService.RewriteStepsForSwapsAsync(
                     recipeTitle: recipe.Title,
                     language: language,
@@ -1163,6 +1193,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     return NotFound(new { error = "Recipe not found" });
                 }
 
+                if (!TryConsumeAiSlot("generate-meta", userHash, GenerateMetaRateLimit, out var metaRetry))
+                {
+                    return RateLimited(metaRetry, "Limit erreicht: zu viele KI-Anfragen. Bitte etwas später erneut versuchen.");
+                }
+
                 var meta = await _variantSummaryAiService.GenerateTitleAndSummaryAsync(recipe, swaps, language, cancellationToken);
                 if (!meta.HasValue || string.IsNullOrWhiteSpace(meta.Value.title) || string.IsNullOrWhiteSpace(meta.Value.summary))
                 {
@@ -1191,6 +1226,57 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 _logger.LogError(ex, "RecipeSwap-Anfrage fehlgeschlagen.");
                 return StatusCode(500, new { error = "Internal server error" });
             }
+        }
+
+        // Verbraucht ein Kontingent für einen KI-Aufruf des angegebenen Users. Gibt false
+        // zurück, wenn das Limit im aktuellen Fenster erreicht ist (dann retryAfter gesetzt).
+        private bool TryConsumeAiSlot(string action, string userHash, int limit, out TimeSpan? retryAfter)
+        {
+            retryAfter = null;
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return false;
+            }
+
+            var cacheKey = $"worldminiapp:recipe-swap:{action}:{userHash}";
+            var now = DateTimeOffset.UtcNow;
+            var state = _cache.Get<AiRateState>(cacheKey);
+
+            if (state == null)
+            {
+                _cache.Set(cacheKey, new AiRateState { Count = 1, WindowStart = now },
+                    new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = AiRateWindow });
+                return true;
+            }
+
+            if (state.Count >= limit)
+            {
+                retryAfter = (state.WindowStart + AiRateWindow) - now;
+                _logger.LogWarning("RecipeSwap KI-Limit '{Action}' überschritten für User {UserHash}.", action, userHash);
+                return false;
+            }
+
+            state.Count += 1;
+            _cache.Set(cacheKey, state,
+                new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = AiRateWindow });
+            return true;
+        }
+
+        // 429 mit Retry-After-Header (Sekunden, mind. 1) und generischer Meldung.
+        private ActionResult RateLimited(TimeSpan? retryAfter, string message)
+        {
+            if (retryAfter.HasValue)
+            {
+                var seconds = Math.Max(1, Math.Ceiling(retryAfter.Value.TotalSeconds));
+                Response.Headers["Retry-After"] = seconds.ToString(CultureInfo.InvariantCulture);
+            }
+            return StatusCode(StatusCodes.Status429TooManyRequests, new { error = message });
+        }
+
+        private sealed class AiRateState
+        {
+            public int Count { get; set; }
+            public DateTimeOffset WindowStart { get; set; }
         }
 
         private string GetIngredientName(IngredientsAndNutrients ingredient, string language)

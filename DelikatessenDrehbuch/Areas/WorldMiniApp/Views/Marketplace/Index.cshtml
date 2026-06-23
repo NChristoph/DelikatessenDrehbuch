@@ -227,7 +227,7 @@
             </a>
             <div>
                 <h5>Marktplatz</h5>
-                <div class="mp-page-subtitle">Pläne kaufen &amp; verkaufen</div>
+                <div class="mp-page-subtitle">Kaufen &amp; verkaufen</div>
             </div>
         </div>
     </div>
@@ -265,7 +265,7 @@
     <!-- Verkaufen CTA -->
     <div class="text-center mb-3">
         <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="mp-sell-btn" style="display: inline-block;">
-            <span class="plus">+</span> Eigenen Plan verkaufen
+            <span class="plus">+</span> Angebot erstellen
         </a>
     </div>
 
@@ -600,6 +600,7 @@
         form.append('TxHash', txHash);
         form.append('WalletAddress', walletAddress || '');
         form.append('PaymentToken', paymentToken || 'WLD');
+        form.append('ShippingAddress', window._pendingShippingAddress || '');
         form.append('__RequestVerificationToken', getAntiForgeryToken());
 
         const resp = await fetch('@Url.Action("FinalizeWorldChainPurchase", "Marketplace", new { area = "WorldMiniApp" })', {
@@ -631,6 +632,20 @@
         return data;
     }
 
+    // Nach erfolgreichem Kauf: digitales Produkt -> Download öffnen, sonst Seite neu laden.
+    function handlePurchaseSuccess(data) {
+        window._pendingShippingAddress = '';
+        if (data && data.downloadUrl) {
+            alert('Kauf erfolgreich! Dein Download wird geöffnet.');
+            window.location.href = data.downloadUrl;
+            return;
+        }
+        if (data && data.listingType && data.listingType !== 'MealPlan' && data.listingType !== 'SingleRecipe') {
+            alert('Kauf erfolgreich! Der Verkäufer wurde benachrichtigt.');
+        }
+        location.reload();
+    }
+
     function setBuyButtonLoading(listingId, loading) {
         const btn = document.getElementById(`buyBtn-${listingId}`);
         if (!btn) return;
@@ -643,13 +658,14 @@
         return showPreview(listingId);
     }
 
-    function buyFeedListing(listingId, title, priceWld, sellerWallet) {
-        return buyListing(listingId, title, priceWld, sellerWallet);
+    function buyFeedListing(listingId, title, priceWld, sellerWallet, listingType, requiresShipping) {
+        return buyListing(listingId, title, priceWld, sellerWallet, listingType, requiresShipping);
     }
 
     // ── Buy Flow ──
-    async function buyListing(listingId, title, priceWld, sellerWalletOverride) {
+    async function buyListing(listingId, title, priceWld, sellerWalletOverride, listingType, requiresShipping) {
         const token = getSelectedToken();
+        listingType = listingType || 'MealPlan';
 
         if (!USER_HASH) { alert('Bitte zuerst mit World ID einloggen.'); return; }
 
@@ -657,10 +673,18 @@
         const sellerWallet = sellerWalletOverride || buyBtn?.dataset?.sellerWallet || '';
         if (!sellerWallet) { alert('Verkäufer hat keine Wallet hinterlegt. Kauf nicht möglich.'); return; }
 
+        // Bei physischem Objekt mit Versand vor der Zahlung die Lieferadresse erfragen.
+        let shippingAddress = '';
+        if (listingType === 'PhysicalObject' && requiresShipping) {
+            shippingAddress = (prompt('Bitte gib deine Lieferadresse ein (Name, Straße, PLZ, Ort, Land):') || '').trim();
+            if (!shippingAddress) { alert('Ohne Lieferadresse kann das Objekt nicht versendet werden.'); return; }
+        }
+
         const actualPrice = getActualPrice(priceWld, token);
         if (token === 'USDCE' && !wldPriceUsd) { alert('WLD/USD Kurs nicht verfügbar. Bitte Seite neu laden.'); return; }
 
         setBuyButtonLoading(listingId, true);
+        window._pendingShippingAddress = shippingAddress;
 
         try {
             // MiniKit pay()
@@ -679,7 +703,7 @@
                 const reference = `listing-${listingId}-${Date.now()}`;
                 const payResult = await window.startMiniKitPayment({
                     to: platformWallet, tokenSymbol: token, amount: actualPrice,
-                    reference, description: `Essensplan: ${title}`
+                    reference, description: `Marktplatz: ${title}`
                 });
 
                 console.log('[Marketplace] MiniKit payResult:', JSON.stringify(payResult));
@@ -690,7 +714,7 @@
                     const buyerWallet = await ensureBuyerWalletForToken(token);
                     const data = await finalizeOnBackend(listingId, txRef, buyerWallet, token);
                     console.log('[Marketplace] Finalize response:', JSON.stringify(data));
-                    if (data.success) { location.reload(); }
+                    if (data.success) { handlePurchaseSuccess(data); }
                     else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
                     return;
                 } else if (payResult?.status === 'success') {
@@ -698,7 +722,7 @@
                     const fallbackRef = `minikit-${listingId}-${Date.now()}`;
                     const buyerWallet = await ensureBuyerWalletForToken(token);
                     const data = await finalizeOnBackend(listingId, fallbackRef, buyerWallet, token);
-                    if (data.success) { location.reload(); }
+                    if (data.success) { handlePurchaseSuccess(data); }
                     else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
                     return;
                 }
@@ -712,7 +736,7 @@
                         listingId, price: actualPrice, buyerHash: USER_HASH, paymentToken: token
                     });
                     const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
-                    if (data.success) { location.reload(); }
+                    if (data.success) { handlePurchaseSuccess(data); }
                     else { alert(data.error || 'Kauf-Validierung fehlgeschlagen.'); setBuyButtonLoading(listingId, false); }
                     return;
                 }

@@ -317,6 +317,10 @@ namespace DelikatessenDrehbuch.Data
             builder.Entity<MealPlanListing>()
                 .HasIndex(x => x.SellerHash);
 
+            // MealPlanListings — aktive Listings nach Angebotstyp (Marktplatz-Filter)
+            builder.Entity<MealPlanListing>()
+                .HasIndex(x => new { x.ListingType, x.IsActive, x.CreatedAt });
+
             // WildCoinTransaction — User-History
             builder.Entity<WildCoinTransaction>()
                 .HasIndex(x => new { x.UserHash, x.CreatedAt });

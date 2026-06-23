@@ -13,15 +13,32 @@
     var proteinPct = Model.ProteinGrams.HasValue ? Math.Min(100, Math.Round((double)Model.ProteinGrams.Value / 250.0 * 100.0)) : 0;
     var fatPct = Model.FatGrams.HasValue ? Math.Min(100, Math.Round((double)Model.FatGrams.Value / 250.0 * 100.0)) : 0;
     var carbsPct = Model.CarbsGrams.HasValue ? Math.Min(100, Math.Round((double)Model.CarbsGrams.Value / 250.0 * 100.0)) : 0;
+
+    var isMealPlan = Model.IsMealPlan;
+    // Hero-Bild: Essensplan nutzt Rezept-Slides, andere Typen das CoverImage.
+    var heroImageUrl = heroSlides.Any() ? heroSlides[0].ImageUrl : Model.CoverImageUrl;
+    // Untertitel in der Creator-Zeile je Typ.
+    var creatorSubtitle = Model.ListingType switch
+    {
+        DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.PhysicalObject
+            => Model.StockQuantity.HasValue ? $"{Model.StockQuantity.Value} auf Lager" : "Auf Lager",
+        DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.DigitalProduct
+            => "Sofort-Download",
+        DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.SingleRecipe
+            => "Einzelrezept",
+        DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.Service
+            => "Dienstleistung",
+        _ => $"{Model.DayCount} Tage"
+    };
 }
 
 <article class="cs-card" data-listing-id="@Model.ListingId">
 
     <!-- ═══ HERO (4:3) ═══ -->
     <div class="cs-hero">
-        @if (heroSlides.Any())
+        @if (!string.IsNullOrWhiteSpace(heroImageUrl))
         {
-            <img src="@heroSlides[0].ImageUrl"
+            <img src="@heroImageUrl"
                  alt="@Model.Title"
                  class="cs-hero-img"
                  id="heroImg-@Model.ListingId"
@@ -34,13 +51,20 @@
 
         <div class="cs-hero-overlay"></div>
 
-        <!-- Premium badge -->
-        <span class="cs-premium-badge">
-            <svg width="10" height="10" viewBox="0 0 24 24" fill="#c8a45c">
-                <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/>
-            </svg>
-            Premium
-        </span>
+        <!-- Typ-/Premium-Badge -->
+        @if (isMealPlan)
+        {
+            <span class="cs-premium-badge">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="#c8a45c">
+                    <path d="M12 2l2.4 7.4H22l-6.2 4.5 2.4 7.4L12 16.8l-6.2 4.5 2.4-7.4L2 9.4h7.6z"/>
+                </svg>
+                Premium
+            </span>
+        }
+        else
+        {
+            <span class="cs-premium-badge">@Model.TypeLabel</span>
+        }
 
         <!-- Like button -->
         <button class="cs-like-btn" aria-label="Merken">
@@ -67,23 +91,40 @@
                 <span class="cs-creator-avatar">@creatorInitial</span>
                 <span class="cs-creator-name">@Model.CreatorName</span>
                 <span class="cs-creator-sep">&middot;</span>
-                <span class="cs-creator-duration">@Model.DayCount Tage</span>
+                <span class="cs-creator-duration">@creatorSubtitle</span>
             </div>
         </div>
     </div>
 
     <!-- ═══ STATS STRIP ══��� -->
     <div class="cs-stats-strip">
-        <div class="cs-stat-cell">
-            <div class="cs-stat-value">@Model.RecipeCount</div>
-            <div class="cs-stat-label">Rezepte</div>
-        </div>
-        @if (kcalPerDay.HasValue)
+        @if (isMealPlan)
         {
             <div class="cs-stat-cell">
-                <div class="cs-stat-value">@(kcalPerDay.Value >= 1000 ? $"{(kcalPerDay.Value / 1000m):0.#}k" : Math.Round(kcalPerDay.Value).ToString())</div>
-                <div class="cs-stat-label">kcal/Tag</div>
+                <div class="cs-stat-value">@Model.RecipeCount</div>
+                <div class="cs-stat-label">Rezepte</div>
             </div>
+            @if (kcalPerDay.HasValue)
+            {
+                <div class="cs-stat-cell">
+                    <div class="cs-stat-value">@(kcalPerDay.Value >= 1000 ? $"{(kcalPerDay.Value / 1000m):0.#}k" : Math.Round(kcalPerDay.Value).ToString())</div>
+                    <div class="cs-stat-label">kcal/Tag</div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="cs-stat-cell">
+                <div class="cs-stat-value">@Model.TypeLabel</div>
+                <div class="cs-stat-label">Typ</div>
+            </div>
+            @if (Model.ListingType == DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.PhysicalObject && Model.StockQuantity.HasValue)
+            {
+                <div class="cs-stat-cell">
+                    <div class="cs-stat-value">@Model.StockQuantity.Value</div>
+                    <div class="cs-stat-label">auf Lager</div>
+                </div>
+            }
         }
         <div class="cs-stat-cell">
             <div class="cs-stat-value">
@@ -202,15 +243,20 @@
             <button class="cs-currency-opt js-cs-currency" data-token="USDCE" data-listing-id="@Model.ListingId">USDCE</button>
         </div>
         <div class="cs-footer-actions">
-            <button class="cs-btn-preview js-cs-preview" data-listing-id="@Model.ListingId"
-                    aria-label="Vorschau f&uuml;r @Model.Title">
-                Vorschau
-            </button>
+            @if (isMealPlan)
+            {
+                <button class="cs-btn-preview js-cs-preview" data-listing-id="@Model.ListingId"
+                        aria-label="Vorschau f&uuml;r @Model.Title">
+                    Vorschau
+                </button>
+            }
             <button class="cs-btn-buy js-cs-buy"
                     id="buyBtn-@Model.ListingId"
                     data-listing-id="@Model.ListingId"
                     data-price-wld="@priceInvariant"
                     data-title="@Model.TitleJsSafe"
+                    data-listing-type="@Model.ListingType"
+                    data-requires-shipping="@(Model.RequiresShipping ? "true" : "false")"
                     data-seller-wallet="@(Model.SellerWalletAddress ?? "")">
                 <span class="cs-btn-buy-price" id="feedPrice-@Model.ListingId" data-price-wld="@priceInvariant">@priceInvariant WLD</span>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5">
@@ -325,8 +371,10 @@ if (!window._csCardInitDone) {
             var bTitle = buyBtn.dataset.title;
             var bPrice = parseFloat(buyBtn.dataset.priceWld);
             var bWallet = buyBtn.dataset.sellerWallet;
-            if (typeof buyFeedListing === 'function') buyFeedListing(bLid, bTitle, bPrice, bWallet);
-            else if (typeof buyListing === 'function') buyListing(bLid, bTitle, bPrice, bWallet);
+            var bType = buyBtn.dataset.listingType || 'MealPlan';
+            var bShip = buyBtn.dataset.requiresShipping === 'true';
+            if (typeof buyFeedListing === 'function') buyFeedListing(bLid, bTitle, bPrice, bWallet, bType, bShip);
+            else if (typeof buyListing === 'function') buyListing(bLid, bTitle, bPrice, bWallet, bType, bShip);
             return;
         }
     });

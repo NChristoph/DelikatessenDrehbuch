@@ -13,6 +13,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         public decimal WildCoinBalance { get; set; }
         public string? Bio { get; set; }
         public string? WalletAddress { get; set; }
+        // Optionaler Link zum eigenen externen Store des Creators (nur Anzeige, keine bezahlte Werbung).
+        public string? StoreUrl { get; set; }
         public DateTime? CreatedAt { get; set; }
     }
 }
