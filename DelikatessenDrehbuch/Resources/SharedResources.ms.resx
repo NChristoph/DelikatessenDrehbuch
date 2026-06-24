@@ -1171,4 +1171,58 @@
   <data name="Common.Replace" xml:space="preserve">
     <value>Ganti</value>
   </data>
+  <data name="CreatePosting.Visibility" xml:space="preserve">
+    <value>Keterlihatan</value>
+  </data>
+  <data name="CreatePosting.VisibilitySubtitle" xml:space="preserve">
+    <value>Peribadi = tidak dipaparkan dalam suapan, hanya untuk anda – cth. untuk perancang menu.</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMe" xml:space="preserve">
+    <value>Hanya untuk saya (peribadi)</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMeHint" xml:space="preserve">
+    <value>Resipi tidak akan muncul dalam suapan atau pada profil awam anda. Anda boleh menggunakannya dalam perancang menu dan kemudian menjadikannya pelan jualan.</value>
+  </data>
+  <data name="Notify.Title" xml:space="preserve">
+    <value>Pemberitahuan</value>
+  </data>
+  <data name="Notify.Subtitle" xml:space="preserve">
+    <value>Pratonton AI &amp; info penting</value>
+  </data>
+  <data name="Notify.MarkAllRead" xml:space="preserve">
+    <value>Tanda semua dibaca</value>
+  </data>
+  <data name="Notify.Clear" xml:space="preserve">
+    <value>Kosongkan</value>
+  </data>
+  <data name="Notify.OpenPlan" xml:space="preserve">
+    <value>Buka pelan</value>
+  </data>
+  <data name="Notify.FilterAll" xml:space="preserve">
+    <value>Semua</value>
+  </data>
+  <data name="Notify.FilterAi" xml:space="preserve">
+    <value>AI sahaja</value>
+  </data>
+  <data name="Notify.Group" xml:space="preserve">
+    <value>Kumpulkan</value>
+  </data>
+  <data name="Notify.Today" xml:space="preserve">
+    <value>HARI INI</value>
+  </data>
+  <data name="Notify.Earlier" xml:space="preserve">
+    <value>SEBELUMNYA</value>
+  </data>
+  <data name="Notify.Empty" xml:space="preserve">
+    <value>Tiada pemberitahuan.</value>
+  </data>
+  <data name="Notify.Yesterday" xml:space="preserve">
+    <value>Semalam</value>
+  </data>
+  <data name="Notify.DaysAgo" xml:space="preserve">
+    <value>{0} hari lalu</value>
+  </data>
+  <data name="Notify.Open" xml:space="preserve">
+    <value>Buka</value>
+  </data>
 </root>

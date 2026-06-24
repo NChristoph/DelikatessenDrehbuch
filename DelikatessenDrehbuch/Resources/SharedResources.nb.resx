@@ -1171,4 +1171,58 @@
   <data name="Common.Replace" xml:space="preserve">
     <value>Erstatt</value>
   </data>
+  <data name="CreatePosting.Visibility" xml:space="preserve">
+    <value>Synlighet</value>
+  </data>
+  <data name="CreatePosting.VisibilitySubtitle" xml:space="preserve">
+    <value>Privat = vises ikke i feeden, bare for deg – f.eks. til måltidsplanlegging.</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMe" xml:space="preserve">
+    <value>Bare for meg (privat)</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMeHint" xml:space="preserve">
+    <value>Oppskriften vises ikke i feeden eller på den offentlige profilen din. Du kan bruke den i måltidsplanleggeren og senere lage en salgsplan av den.</value>
+  </data>
+  <data name="Notify.Title" xml:space="preserve">
+    <value>Varsler</value>
+  </data>
+  <data name="Notify.Subtitle" xml:space="preserve">
+    <value>AI-forhåndsvisninger &amp; viktig info</value>
+  </data>
+  <data name="Notify.MarkAllRead" xml:space="preserve">
+    <value>Merk alle som lest</value>
+  </data>
+  <data name="Notify.Clear" xml:space="preserve">
+    <value>Tøm</value>
+  </data>
+  <data name="Notify.OpenPlan" xml:space="preserve">
+    <value>Åpne plan</value>
+  </data>
+  <data name="Notify.FilterAll" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="Notify.FilterAi" xml:space="preserve">
+    <value>Bare AI</value>
+  </data>
+  <data name="Notify.Group" xml:space="preserve">
+    <value>Grupper</value>
+  </data>
+  <data name="Notify.Today" xml:space="preserve">
+    <value>I DAG</value>
+  </data>
+  <data name="Notify.Earlier" xml:space="preserve">
+    <value>TIDLIGERE</value>
+  </data>
+  <data name="Notify.Empty" xml:space="preserve">
+    <value>Ingen varsler.</value>
+  </data>
+  <data name="Notify.Yesterday" xml:space="preserve">
+    <value>I går</value>
+  </data>
+  <data name="Notify.DaysAgo" xml:space="preserve">
+    <value>For {0} dager siden</value>
+  </data>
+  <data name="Notify.Open" xml:space="preserve">
+    <value>Åpne</value>
+  </data>
 </root>

@@ -235,6 +235,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var recipeIds = marketplaceListings
                 .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
+                .Concat(marketplaceListings.Where(l => l.RecipeId.HasValue).Select(l => l.RecipeId!.Value))
                 .Distinct()
                 .ToList();
             var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
@@ -265,6 +266,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return new PlanCardViewModel
                 {
                     ListingId = listing.Id,
+                    ListingType = listing.ListingType,
+                    CoverImageUrl = ResolveListingCoverImage(listing, recipeMediaMap),
+                    StockQuantity = listing.StockQuantity,
+                    RequiresShipping = listing.RequiresShipping,
                     Title = listing.Title,
                     TitleJsSafe = (listing.Title ?? string.Empty).Replace("'", "\\'"),
                     Description = listing.Description,
@@ -301,6 +306,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["WorldChainTestMode"] = bool.TryParse(HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:TestMode"], out var testMode) && testMode;
 
             return View(model);
+        }
+
+        // Titelbild eines Listings: explizites CoverImage hat Vorrang; für Einzelrezepte
+        // wird das Bild des Rezepts aus der Media-Map verwendet (analog MarketplaceController).
+        private static string? ResolveListingCoverImage(MealPlanListing listing, Dictionary<int, (string ImageUrl, string RecipeTitle)> media)
+        {
+            if (!string.IsNullOrWhiteSpace(listing.CoverImageUrl)) return listing.CoverImageUrl;
+            if (listing.ListingType == MarketplaceListingType.SingleRecipe
+                && listing.RecipeId is int rid
+                && media.TryGetValue(rid, out var m)
+                && !string.IsNullOrWhiteSpace(m.ImageUrl))
+                return m.ImageUrl;
+            return listing.CoverImageUrl;
         }
 
         private static List<int> ExtractRecipeIdsFromMealPlanJson(string? mealPlanJson)

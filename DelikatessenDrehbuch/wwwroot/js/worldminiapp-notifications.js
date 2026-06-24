@@ -339,8 +339,8 @@
         const diffMs = now - d;
         const diffDays = Math.floor(diffMs / 86400000);
         if (diffDays <= 0) return d.toLocaleTimeString("de-AT", { hour: "2-digit", minute: "2-digit" });
-        if (diffDays === 1) return "Gestern";
-        return "Vor " + diffDays + " Tagen";
+        if (diffDays === 1) return (window.WM_NOTIFY_I18N && window.WM_NOTIFY_I18N.yesterday) || "Gestern";
+        return ((window.WM_NOTIFY_I18N && window.WM_NOTIFY_I18N.daysAgo) || "Vor {0} Tagen").replace("{0}", diffDays);
       } catch { return ""; }
     }
 
@@ -370,8 +370,8 @@
         else earlier.push(it);
       });
       const result = [];
-      if (today.length) result.push({ key: "today", label: "HEUTE", items: today });
-      if (earlier.length) result.push({ key: "earlier", label: "FR\u00dcHER", items: earlier });
+      if (today.length) result.push({ key: "today", label: (window.WM_NOTIFY_I18N && window.WM_NOTIFY_I18N.today) || "HEUTE", items: today });
+      if (earlier.length) result.push({ key: "earlier", label: (window.WM_NOTIFY_I18N && window.WM_NOTIFY_I18N.earlier) || "FR\u00dcHER", items: earlier });
       if (!result.length && filtered.length) result.push({ key: "", label: "", items: filtered });
       return result;
     }
@@ -440,7 +440,7 @@
         + '<div style="display:flex;align-items:center;gap:7px;">'
         + kcalPill
         + '<button type="button" style="margin-left:auto;background:linear-gradient(135deg,#ff9a3c,#ff7849);border:none;border-radius:9px;padding:5px 12px;font-size:10px;font-weight:700;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:4px;box-shadow:0 2px 6px rgba(255,120,73,0.3);" data-wm-act="' + escapeHtml(it.id) + '">'
-        + '\u00d6ffnen <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'
+        + escapeHtml((window.WM_NOTIFY_I18N && window.WM_NOTIFY_I18N.open) || "\u00d6ffnen") + ' <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg>'
         + '</button>'
         + '</div>'
         + '</div>'
@@ -463,10 +463,11 @@
       await updateBadge();
 
       // Update filter pill count
-      if (filterAllBtn) filterAllBtn.textContent = "Alle \u00b7 " + items.length;
+      if (filterAllBtn) filterAllBtn.textContent = ((window.WM_NOTIFY_I18N && window.WM_NOTIFY_I18N.filterAll) || "Alle") + " \u00b7 " + items.length;
 
       if (items.length === 0) {
-        listEl.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#6b7868;font-size:13px;">Keine Benachrichtigungen.</div>';
+        const emptyText = (window.WM_NOTIFY_I18N && window.WM_NOTIFY_I18N.empty) || "Keine Benachrichtigungen.";
+        listEl.innerHTML = '<div style="text-align:center;padding:40px 20px;color:#6b7868;font-size:13px;">' + emptyText + '</div>';
         return;
       }
 

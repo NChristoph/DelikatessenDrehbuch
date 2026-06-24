@@ -13,32 +13,41 @@
 }
 
 <div class="container py-4" style="max-width:720px;">
-    <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small d-inline-block mb-3">
-        <i class="bi bi-arrow-left"></i> Zurück zum Marketplace
+    <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="ml-back-link d-inline-block mb-3">
+        <i class="bi bi-arrow-left"></i> Zurück zum Marktplatz
     </a>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h4 class="fw-bold mb-0">Meine Angebote</h4>
-            <small class="text-muted">@Model.Count Angebote</small>
+            <h4 class="ml-page-title mb-0">Meine Angebote</h4>
+            <small class="ml-page-subtitle">@Model.Count @(Model.Count == 1 ? "Angebot" : "Angebote")</small>
         </div>
         <div class="d-flex gap-2">
             <a href="@Url.Action("Payout", "Marketplace", new { area = "WorldMiniApp" })"
-               class="btn btn-outline-dark btn-sm rounded-pill">
+               class="ml-pill ml-pill-outline">
                 <i class="bi bi-cash-coin me-1"></i>Guthaben
             </a>
             <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
-               class="btn btn-dark btn-sm rounded-pill">
-                <i class="bi bi-plus-lg me-1"></i>Neues Angebot
+               class="ml-pill ml-pill-solid">
+                <span class="ml-pill-plus">+</span> Neues Angebot
             </a>
         </div>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="text-center py-5">
-            <i class="bi bi-tag fs-1 text-muted"></i>
-            <p class="text-muted mt-2">Du hast noch keine Angebote erstellt.</p>
+        <div class="ml-empty text-center py-5">
+            <div class="ml-empty-icon mb-3">
+                <svg width="58" height="58" viewBox="0 0 24 24" fill="none" stroke="#6b7868" stroke-width="1.4" opacity=".55">
+                    <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                    <line x1="7" y1="7" x2="7.01" y2="7"/>
+                </svg>
+            </div>
+            <p class="ml-empty-title mb-1">Noch keine Angebote</p>
+            <p class="text-muted small mb-3">Erstelle dein erstes Angebot – Essensplan, Rezept, Objekt, digitales Produkt oder Dienstleistung.</p>
+            <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="ml-pill ml-pill-solid">
+                <span class="ml-pill-plus">+</span> Angebot erstellen
+            </a>
         </div>
     }
     else
@@ -199,6 +208,53 @@
 </div>
 
 <style>
+    /* Avocado-/Marktplatz-Design (abgestimmt auf Marketplace/Index) */
+    body { background: #f5efe1 !important; }
+
+    .ml-back-link {
+        color: #14391f;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .ml-back-link:hover { color: #14391f; opacity: .8; }
+
+    .ml-page-title {
+        font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+        font-weight: 600;
+        letter-spacing: -.02em;
+        color: #14391f;
+    }
+    .ml-page-subtitle { font-size: 12px; color: #6b7868; }
+
+    .ml-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: 999px;
+        padding: 8px 14px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: filter .15s, background .15s;
+        white-space: nowrap;
+    }
+    .ml-pill-solid { background: #14391f; color: #fff; border: 1px solid #14391f; }
+    .ml-pill-solid:hover { filter: brightness(1.12); color: #fff; }
+    .ml-pill-solid .ml-pill-plus { color: #f5b942; font-size: 14px; margin-right: 2px; }
+    .ml-pill-outline { background: #fff; color: #14391f; border: 1px solid rgba(20,57,31,.18); }
+    .ml-pill-outline:hover { background: #faf6ec; color: #14391f; }
+
+    .ml-empty-title {
+        font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+        font-weight: 600;
+        font-size: 18px;
+        color: #14391f;
+    }
+
     .ml-card-inactive {
         opacity: 0.65;
         filter: grayscale(0.3);

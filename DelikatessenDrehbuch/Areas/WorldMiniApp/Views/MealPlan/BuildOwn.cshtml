@@ -1,0 +1,416 @@
+@model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers.MealPlanController.OwnRecipeItem>
+@{
+    ViewData["Title"] = "Verkaufsplan erstellen";
+    Layout = "_MiniAppLayout";
+    var userHash = ViewData["UserHash"]?.ToString() ?? "";
+}
+
+<style>
+    body { background: #f5efe1 !important; }
+
+    .bo-back-link { color:#14391f; text-decoration:none; font-size:13px; font-weight:500; display:inline-flex; align-items:center; gap:4px; }
+    .bo-back-link:hover { color:#14391f; opacity:.8; }
+
+    .bo-card { background:#fff; border:none; border-radius:18px; box-shadow:0 2px 14px rgba(20,57,31,.06); }
+    .bo-title { font-family:'Fraunces','Playfair Display',Georgia,serif; font-weight:600; letter-spacing:-.02em; color:#14391f; }
+    .bo-label { font-size:13px; font-weight:700; color:#14391f; }
+
+    .bo-input { border:2px solid rgba(20,57,31,.12); border-radius:12px; color:#14391f; }
+    .bo-input:focus { border-color:#14391f; box-shadow:0 0 0 3px rgba(20,57,31,.1); outline:none; }
+
+    /* Tage + Mahlzeiten-Slots */
+    .bo-day { border:2px solid rgba(20,57,31,.1); border-radius:14px; padding:.6rem .75rem; background:#fff; }
+    .bo-day-name { font-weight:700; color:#14391f; font-size:14px; margin-bottom:.35rem; }
+    .bo-slot { border:1.5px solid rgba(20,57,31,.08); border-radius:10px; padding:.4rem .55rem; margin-top:.4rem; cursor:pointer; transition:border-color .15s, background .15s; }
+    .bo-slot.active { border-color:#14391f; background:rgba(20,57,31,.05); }
+    .bo-slot-head { display:flex; align-items:center; justify-content:space-between; }
+    .bo-slot-name { font-size:12px; font-weight:700; color:#14391f; }
+    .bo-slot-name .bo-slot-icon { color:#9c8f6f; margin-right:5px; }
+    .bo-slot-hint { font-size:11px; color:#bcae93; }
+    .bo-chip { display:inline-flex; align-items:center; gap:6px; background:#faf6ec; border:1px solid rgba(20,57,31,.12); border-radius:999px; padding:3px 6px 3px 8px; font-size:12px; color:#14391f; margin:4px 4px 0 0; }
+    .bo-chip img { width:20px; height:20px; border-radius:50%; object-fit:cover; }
+    .bo-chip-x { border:none; background:rgba(20,57,31,.1); color:#14391f; border-radius:50%; width:18px; height:18px; line-height:16px; font-size:12px; cursor:pointer; }
+
+    /* Palette */
+    .bo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:.6rem; }
+    .bo-recipe { border:2px solid transparent; border-radius:14px; overflow:hidden; background:#fff; box-shadow:0 1px 8px rgba(20,57,31,.06); cursor:pointer; transition:transform .1s; }
+    .bo-recipe:active { transform:scale(.97); }
+    .bo-recipe-img { width:100%; aspect-ratio:1/1; object-fit:cover; background:#faf6ec; display:block; }
+    .bo-recipe-img.placeholder { display:flex; align-items:center; justify-content:center; color:#bcae93; font-size:1.6rem; }
+    .bo-recipe-title { font-size:11.5px; font-weight:600; color:#14391f; padding:6px 8px; line-height:1.2; }
+
+    /* Nährwerte */
+    .bo-nutri-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:.4rem; }
+    .bo-nutri-item { text-align:center; background:#faf6ec; border-radius:10px; padding:.5rem .25rem; }
+    .bo-nutri-val { font-family:'Fraunces',serif; font-weight:700; font-size:1rem; color:#14391f; }
+    .bo-nutri-lbl { font-size:10px; color:#6b7868; text-transform:uppercase; font-weight:600; }
+
+    /* Segmented Toggle Gesamt / Pro Portion */
+    .bo-seg { display:inline-flex; background:#faf6ec; border:1px solid rgba(20,57,31,.12); border-radius:999px; padding:2px; }
+    .bo-seg-btn { border:none; background:transparent; color:#6b7868; font-size:11px; font-weight:600; padding:4px 10px; border-radius:999px; cursor:pointer; }
+    .bo-seg-btn.active { background:#14391f; color:#fff; }
+
+    .bo-day-nutri { font-size:11px; font-weight:600; color:#6b7868; }
+
+    .bo-savebar { position:sticky; bottom:0; background:linear-gradient(180deg, rgba(245,239,225,0), #f5efe1 30%); padding:14px 0 6px; }
+    .bo-save-btn { width:100%; background:#14391f; color:#fff; border:none; border-radius:999px; padding:.8rem 1.5rem; font-weight:600; }
+    .bo-save-btn:hover { filter:brightness(1.12); color:#fff; }
+    .bo-save-btn:disabled { opacity:.45; }
+    .bo-active-hint { font-size:12px; color:#6b7868; }
+</style>
+
+<div class="container py-3" style="max-width:720px;">
+    <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash })" class="bo-back-link d-inline-block mb-3">
+        <i class="bi bi-arrow-left"></i> Zurück zum Profil
+    </a>
+
+    <div class="bo-card p-4 mb-3">
+        <h4 class="bo-title mb-1">Verkaufsplan erstellen</h4>
+        <p class="text-muted small mb-0">Baue einen Essensplan ausschließlich aus deinen eigenen Rezepten – inklusive privater. Den fertigen Plan kannst du anschließend im Marktplatz verkaufen.</p>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="bo-card p-5 text-center">
+            <i class="bi bi-journal-plus" style="font-size:2.2rem;color:#bcae93;"></i>
+            <p class="bo-title mt-3 mb-1" style="font-size:18px;">Noch keine eigenen Rezepte</p>
+            <p class="text-muted small mb-3">Lade zuerst Rezepte hoch (gern als „nur für mich"), dann kannst du hier deinen Plan zusammenstellen.</p>
+            <a href="@Url.Action("Upload", "Recipe", new { area = "WorldMiniApp" })" class="bo-save-btn d-inline-block" style="width:auto;padding:.6rem 1.4rem;text-decoration:none;">
+                <i class="bi bi-plus-lg me-1"></i>Rezept hochladen
+            </a>
+        </div>
+    }
+    else
+    {
+        <!-- Einstellungen -->
+        <div class="bo-card p-3 mb-3">
+            <label class="bo-label mb-1 d-block">Titel des Plans</label>
+            <input type="text" id="planTitleInput" class="form-control bo-input mb-3" maxlength="100" placeholder="z. B. Meine High-Protein-Woche" />
+
+            <div class="row g-2">
+                <div class="col-6">
+                    <label class="bo-label mb-1 d-block">Personen</label>
+                    <input type="number" id="planPersonCount" class="form-control bo-input" min="1" max="20" value="2" onchange="updateNutrition()" />
+                </div>
+                <div class="col-6">
+                    <label class="bo-label mb-1 d-block">Tage</label>
+                    <input type="number" id="dayCount" class="form-control bo-input" min="1" max="14" value="7" onchange="renderDays(); updateNutrition()" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Live-Nährwerte -->
+        <div class="bo-card p-3 mb-3">
+            <div class="d-flex align-items-center justify-content-between mb-2">
+                <span class="bo-label" id="nutriTitle">Nährwerte – Gesamt</span>
+                <div class="bo-seg" id="nutriToggle">
+                    <button type="button" class="bo-seg-btn active" data-mode="total" onclick="setNutriMode('total')">Gesamt</button>
+                    <button type="button" class="bo-seg-btn" data-mode="portion" onclick="setNutriMode('portion')">Pro Portion</button>
+                </div>
+            </div>
+            <div class="bo-nutri-grid">
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nKcal">–</div><div class="bo-nutri-lbl">kcal</div></div>
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nProtein">–</div><div class="bo-nutri-lbl">Protein</div></div>
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nFat">–</div><div class="bo-nutri-lbl">Fett</div></div>
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nCarbs">–</div><div class="bo-nutri-lbl">KH</div></div>
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nFiber">–</div><div class="bo-nutri-lbl">Ballast.</div></div>
+            </div>
+            <div class="bo-active-hint mt-2" id="nutriStatus">Keine Rezepte</div>
+        </div>
+
+        <!-- Tage -->
+        <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="bo-label">Tage &amp; Mahlzeiten füllen</span>
+            <span class="bo-active-hint" id="activeHint"></span>
+        </div>
+        <div class="d-flex flex-column gap-2 mb-3" id="daysContainer"></div>
+
+        <!-- Rezept-Palette -->
+        <div class="bo-label mb-2">Deine Rezepte – tippen fügt zur aktiven Mahlzeit hinzu</div>
+        <div class="bo-grid mb-3" id="recipeGrid">
+            @foreach (var r in Model)
+            {
+                <div class="bo-recipe" data-id="@r.RecipeId" data-title="@r.Title" onclick="addRecipe(@r.RecipeId)">
+                    @if (!string.IsNullOrWhiteSpace(r.ImageUrl))
+                    {
+                        <img src="@r.ImageUrl" alt="@r.Title" class="bo-recipe-img" loading="lazy" />
+                    }
+                    else
+                    {
+                        <div class="bo-recipe-img placeholder"><i class="bi bi-egg-fried"></i></div>
+                    }
+                    <div class="bo-recipe-title">@r.Title</div>
+                </div>
+            }
+        </div>
+
+        <div class="bo-savebar">
+            <button class="bo-save-btn" id="btnSavePlan" onclick="savePlan()">
+                <i class="bi bi-bag-check me-1"></i>Plan speichern
+            </button>
+        </div>
+    }
+</div>
+
+@Html.AntiForgeryToken()
+
+@section Scripts {
+<script>
+    const USER_HASH = '@userHash';
+
+    // Mahlzeiten-Slots pro Tag.
+    const SLOTS = [
+        { key: 0, name: 'Vorspeise', icon: 'bi-cup-hot' },
+        { key: 1, name: 'Hauptgang', icon: 'bi-egg-fried' },
+        { key: 2, name: 'Dessert',   icon: 'bi-cake2' }
+    ];
+
+    // Rezept-Lookup (Titel/Bild) aus der Palette aufbauen.
+    const RECIPES = {};
+    document.querySelectorAll('#recipeGrid .bo-recipe').forEach(el => {
+        const id = parseInt(el.dataset.id, 10);
+        const img = el.querySelector('img');
+        RECIPES[id] = { title: el.dataset.title || ('Rezept #' + id), img: img ? img.src : '' };
+    });
+
+    // plan[day][slot] = [recipeId, ...]
+    const plan = {};
+    let activeDay = 0;
+    let activeSlot = 1; // Hauptgang als Standard
+
+    function getDayCount() {
+        return Math.min(14, Math.max(1, parseInt(document.getElementById('dayCount').value || '7', 10) || 7));
+    }
+
+    function ensureDay(d) {
+        if (!plan[d]) plan[d] = { 0: [], 1: [], 2: [] };
+        return plan[d];
+    }
+
+    function renderDays() {
+        const dayCount = getDayCount();
+        if (activeDay >= dayCount) activeDay = dayCount - 1;
+        const container = document.getElementById('daysContainer');
+        container.innerHTML = '';
+
+        for (let d = 0; d < dayCount; d++) {
+            const day = ensureDay(d);
+            const dayEl = document.createElement('div');
+            dayEl.className = 'bo-day';
+
+            let slotsHtml = '';
+            SLOTS.forEach(s => {
+                const ids = day[s.key] || [];
+                const isActive = (d === activeDay && s.key === activeSlot);
+                let chips = '';
+                ids.forEach((rid, idx) => {
+                    const r = RECIPES[rid] || { title: 'Rezept #' + rid, img: '' };
+                    const imgTag = r.img ? `<img src="${r.img}" alt="">` : '';
+                    chips += `<span class="bo-chip">${imgTag}${escapeHtml(r.title)}<button class="bo-chip-x" onclick="removeRecipe(${d}, ${s.key}, ${idx})" aria-label="Entfernen">&times;</button></span>`;
+                });
+                slotsHtml +=
+                    `<div class="bo-slot${isActive ? ' active' : ''}" onclick="setActive(${d}, ${s.key}, event)">` +
+                        `<div class="bo-slot-head"><span class="bo-slot-name"><i class="bi ${s.icon} bo-slot-icon"></i>${s.name}</span>` +
+                        `<span class="bo-slot-hint">${ids.length ? ids.length + ' Rezept' + (ids.length === 1 ? '' : 'e') : 'tippen zum Aktivieren'}</span></div>` +
+                        `<div>${chips}</div>` +
+                    `</div>`;
+            });
+
+            dayEl.innerHTML = `<div class="bo-day-name d-flex justify-content-between align-items-center">Tag ${d + 1}<span class="bo-day-nutri" id="dayNutri-${d}"></span></div>${slotsHtml}`;
+            container.appendChild(dayEl);
+        }
+
+        const slotName = SLOTS.find(s => s.key === activeSlot)?.name || '';
+        document.getElementById('activeHint').textContent = `Aktiv: Tag ${activeDay + 1} · ${slotName}`;
+        updateSaveState();
+        paintNutrition();
+    }
+
+    function setActive(d, slot, e) {
+        if (e && e.target.closest('.bo-chip-x')) return;
+        activeDay = d; activeSlot = slot; renderDays();
+    }
+
+    function addRecipe(recipeId) {
+        ensureDay(activeDay)[activeSlot].push(recipeId);
+        renderDays();
+        updateNutrition();
+    }
+
+    function removeRecipe(day, slot, idx) {
+        if (plan[day] && plan[day][slot]) { plan[day][slot].splice(idx, 1); renderDays(); updateNutrition(); }
+    }
+
+    function buildPayload() {
+        const payload = [];
+        const dayCount = getDayCount();
+        for (let d = 0; d < dayCount; d++) {
+            const day = plan[d];
+            if (!day) continue;
+            SLOTS.forEach(s => {
+                (day[s.key] || []).forEach(rid => payload.push({ DayIndex: d, RecipeId: rid, SlotIndex: s.key }));
+            });
+        }
+        return payload;
+    }
+
+    function getAllRecipeIds() {
+        return buildPayload().map(p => p.RecipeId);
+    }
+
+    function updateSaveState() {
+        const btn = document.getElementById('btnSavePlan');
+        if (btn) btn.disabled = getAllRecipeIds().length === 0;
+    }
+
+    // ── Live-Nährwerte (debounced, Cache, pro Tag, Gesamt/Pro Portion) ──
+    let nutriMode = 'total';   // 'total' | 'portion'
+    let nutriTimer = null;
+    let nutriReqToken = 0;
+    let cacheWhole = null;
+    let cacheDays = {};         // dayIndex -> totals
+
+    function effectivePersonCount() {
+        if (nutriMode === 'portion') return 1;
+        return parseInt(document.getElementById('planPersonCount').value || '2', 10) || 2;
+    }
+
+    function setNutriMode(mode) {
+        nutriMode = mode === 'portion' ? 'portion' : 'total';
+        document.querySelectorAll('#nutriToggle .bo-seg-btn').forEach(b =>
+            b.classList.toggle('active', b.dataset.mode === nutriMode));
+        document.getElementById('nutriTitle').textContent =
+            nutriMode === 'portion' ? 'Nährwerte – Pro Portion' : 'Nährwerte – Gesamt';
+        updateNutrition();
+    }
+
+    function fmtG(v) { return (Math.round((v || 0) * 10) / 10) + 'g'; }
+
+    function paintWhole(d) {
+        document.getElementById('nKcal').textContent = d ? Math.round(d.calories || 0) : '–';
+        document.getElementById('nProtein').textContent = d ? fmtG(d.protein) : '–';
+        document.getElementById('nFat').textContent = d ? fmtG(d.fat) : '–';
+        document.getElementById('nCarbs').textContent = d ? fmtG(d.carbohydrates) : '–';
+        document.getElementById('nFiber').textContent = d ? fmtG(d.fiber) : '–';
+    }
+
+    function paintNutrition() {
+        paintWhole(cacheWhole);
+        const dayCount = getDayCount();
+        for (let d = 0; d < dayCount; d++) {
+            const span = document.getElementById('dayNutri-' + d);
+            if (!span) continue;
+            const t = cacheDays[d];
+            span.textContent = t ? `${Math.round(t.calories || 0)} kcal · ${fmtG(t.protein)} P` : '';
+        }
+    }
+
+    function updateNutrition() {
+        clearTimeout(nutriTimer);
+        nutriTimer = setTimeout(fetchNutrition, 250);
+    }
+
+    function dayRecipeIds(d) {
+        return plan[d] ? SLOTS.flatMap(s => plan[d][s.key] || []) : [];
+    }
+
+    async function fetchTotals(ids, personCount) {
+        if (!ids.length) return null;
+        const params = new URLSearchParams();
+        ids.forEach(id => params.append('recipeIds', id));
+        params.append('personCount', personCount);
+        const resp = await fetch('/WorldMiniApp/MealPlan/GetMealPlanNutritionTotals?' + params.toString());
+        if (!resp.ok) throw new Error('Fehler');
+        return await resp.json();
+    }
+
+    async function fetchNutrition() {
+        const status = document.getElementById('nutriStatus');
+        const personCount = effectivePersonCount();
+        const dayCount = getDayCount();
+        const wholeIds = getAllRecipeIds();
+
+        if (wholeIds.length === 0) {
+            cacheWhole = null; cacheDays = {};
+            paintNutrition();
+            status.textContent = 'Keine Rezepte';
+            return;
+        }
+
+        status.textContent = 'Lädt…';
+        const token = ++nutriReqToken;
+
+        try {
+            const wholePromise = fetchTotals(wholeIds, personCount);
+            const dayPromises = [];
+            for (let d = 0; d < dayCount; d++) {
+                const ids = dayRecipeIds(d);
+                dayPromises.push(ids.length
+                    ? fetchTotals(ids, personCount).then(r => ({ d, r }))
+                    : Promise.resolve({ d, r: null }));
+            }
+            const [whole, dayResults] = await Promise.all([wholePromise, Promise.all(dayPromises)]);
+            if (token !== nutriReqToken) return; // veraltete Antwort verwerfen
+
+            cacheWhole = whole;
+            cacheDays = {};
+            dayResults.forEach(x => { cacheDays[x.d] = x.r; });
+            paintNutrition();
+            status.textContent = nutriMode === 'portion' ? 'Aktuell · pro Portion' : `Aktuell · ${personCount} Pers.`;
+        } catch {
+            if (token !== nutriReqToken) return;
+            cacheWhole = null; cacheDays = {};
+            paintNutrition();
+            status.textContent = 'Fehler';
+        }
+    }
+
+    function escapeHtml(s) {
+        const t = document.createElement('div');
+        t.textContent = s == null ? '' : String(s);
+        return t.innerHTML;
+    }
+
+    async function savePlan() {
+        if (!USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
+        const payload = buildPayload();
+        if (payload.length === 0) { alert('Bitte mindestens ein Rezept einplanen.'); return; }
+
+        const title = (document.getElementById('planTitleInput').value || '').trim() || 'Mein Verkaufsplan';
+        const personCount = parseInt(document.getElementById('planPersonCount').value || '2', 10) || 2;
+        const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+        const btn = document.getElementById('btnSavePlan');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Speichere...';
+
+        try {
+            const resp = await fetch('/WorldMiniApp/MealPlan/SaveMealPlanFromLayout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'RequestVerificationToken': token } : {})
+                },
+                body: JSON.stringify({
+                    mealPlanJson: JSON.stringify(payload),
+                    personCount: personCount,
+                    title: title,
+                    userHash: USER_HASH
+                })
+            });
+            if (!resp.ok) {
+                const txt = await resp.text();
+                throw new Error(txt || 'Plan konnte nicht gespeichert werden.');
+            }
+            const data = await resp.json();
+            window.location.href = data?.redirectUrl || '/WorldMiniApp/Feed/MyProfile?tab=mealplans';
+        } catch (e) {
+            alert(e?.message || 'Fehler beim Speichern.');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="bi bi-bag-check me-1"></i>Plan speichern';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { renderDays(); });
+</script>
+}

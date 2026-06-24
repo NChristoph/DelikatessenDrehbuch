@@ -760,6 +760,9 @@
             <a class="quick-link" href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
                 <i class="bi bi-bag-check"></i> @SharedLocalizer["MyProfile.MyListings"]
             </a>
+            <a class="quick-link" href="@Url.Action("BuildOwn", "MealPlan", new { area = "WorldMiniApp" })">
+                <i class="bi bi-journal-plus"></i> Verkaufsplan erstellen
+            </a>
             @if (isAdmin)
             {
                 <a class="quick-link" href="@Url.Action("CommentModeration", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">

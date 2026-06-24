@@ -1171,4 +1171,58 @@
   <data name="Common.Replace" xml:space="preserve">
     <value>Vervangen</value>
   </data>
+  <data name="CreatePosting.Visibility" xml:space="preserve">
+    <value>Zichtbaarheid</value>
+  </data>
+  <data name="CreatePosting.VisibilitySubtitle" xml:space="preserve">
+    <value>Privé = niet zichtbaar in de feed, alleen voor jou – bijv. om in te plannen.</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMe" xml:space="preserve">
+    <value>Alleen voor mij (privé)</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMeHint" xml:space="preserve">
+    <value>Het recept verschijnt niet in de feed of op je openbare profiel. Je kunt het in de maaltijdplanner gebruiken en er later een verkoopplan van maken.</value>
+  </data>
+  <data name="Notify.Title" xml:space="preserve">
+    <value>Meldingen</value>
+  </data>
+  <data name="Notify.Subtitle" xml:space="preserve">
+    <value>AI-voorbeelden &amp; belangrijke info</value>
+  </data>
+  <data name="Notify.MarkAllRead" xml:space="preserve">
+    <value>Alles gelezen</value>
+  </data>
+  <data name="Notify.Clear" xml:space="preserve">
+    <value>Wissen</value>
+  </data>
+  <data name="Notify.OpenPlan" xml:space="preserve">
+    <value>Plan openen</value>
+  </data>
+  <data name="Notify.FilterAll" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="Notify.FilterAi" xml:space="preserve">
+    <value>Alleen AI</value>
+  </data>
+  <data name="Notify.Group" xml:space="preserve">
+    <value>Groeperen</value>
+  </data>
+  <data name="Notify.Today" xml:space="preserve">
+    <value>VANDAAG</value>
+  </data>
+  <data name="Notify.Earlier" xml:space="preserve">
+    <value>EERDER</value>
+  </data>
+  <data name="Notify.Empty" xml:space="preserve">
+    <value>Geen meldingen.</value>
+  </data>
+  <data name="Notify.Yesterday" xml:space="preserve">
+    <value>Gisteren</value>
+  </data>
+  <data name="Notify.DaysAgo" xml:space="preserve">
+    <value>{0} dagen geleden</value>
+  </data>
+  <data name="Notify.Open" xml:space="preserve">
+    <value>Openen</value>
+  </data>
 </root>

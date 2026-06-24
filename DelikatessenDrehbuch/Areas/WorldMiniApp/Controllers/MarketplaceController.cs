@@ -81,6 +81,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var recipeIds = listings
                 .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
+                .Concat(listings.Where(l => l.RecipeId.HasValue).Select(l => l.RecipeId!.Value))
                 .Distinct()
                 .ToList();
             var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
@@ -113,7 +114,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     ListingId = listing.Id,
                     ListingType = listing.ListingType,
-                    CoverImageUrl = listing.CoverImageUrl,
+                    CoverImageUrl = ResolveListingCoverImage(listing, recipeMediaMap),
                     StockQuantity = listing.StockQuantity,
                     RequiresShipping = listing.RequiresShipping,
                     Title = listing.Title,
@@ -166,6 +167,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var recipeIds = listings
                 .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
+                .Concat(listings.Where(l => l.RecipeId.HasValue).Select(l => l.RecipeId!.Value))
                 .Distinct()
                 .ToList();
             var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
@@ -183,7 +185,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     ListingId = listing.Id,
                     ListingType = listing.ListingType,
-                    CoverImageUrl = listing.CoverImageUrl,
+                    CoverImageUrl = ResolveListingCoverImage(listing, recipeMediaMap),
                     StockQuantity = listing.StockQuantity,
                     RequiresShipping = listing.RequiresShipping,
                     Title = listing.Title,
@@ -221,6 +223,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var recipeIds = listings
                 .SelectMany(l => ExtractRecipeIdsFromMealPlanJson(l.MealPlan?.MealPlan))
+                .Concat(listings.Where(l => l.RecipeId.HasValue).Select(l => l.RecipeId!.Value))
                 .Distinct()
                 .ToList();
             var recipeMediaMap = await BuildRecipeMediaMapAsync(recipeIds);
@@ -238,7 +241,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     ListingId = listing.Id,
                     ListingType = listing.ListingType,
-                    CoverImageUrl = listing.CoverImageUrl,
+                    CoverImageUrl = ResolveListingCoverImage(listing, recipeMediaMap),
                     StockQuantity = listing.StockQuantity,
                     RequiresShipping = listing.RequiresShipping,
                     Title = listing.Title,
@@ -732,6 +735,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 .ToListAsync();
 
             return recipeIds.All(ownedRecipeIds.Contains);
+        }
+
+        // Titelbild eines Listings: explizites CoverImage hat Vorrang; für Einzelrezepte
+        // wird das Bild des Rezepts aus der Media-Map verwendet.
+        private static string? ResolveListingCoverImage(MealPlanListing listing, Dictionary<int, (string ImageUrl, string RecipeTitle)> media)
+        {
+            if (!string.IsNullOrWhiteSpace(listing.CoverImageUrl)) return listing.CoverImageUrl;
+            if (listing.ListingType == MarketplaceListingType.SingleRecipe
+                && listing.RecipeId is int rid
+                && media.TryGetValue(rid, out var m)
+                && !string.IsNullOrWhiteSpace(m.ImageUrl))
+                return m.ImageUrl;
+            return listing.CoverImageUrl;
         }
 
         private static List<int> ExtractRecipeIdsFromMealPlanJson(string? mealPlanJson)

@@ -1047,4 +1047,58 @@
   <data name="Common.Replace" xml:space="preserve">
     <value>Ersetzen</value>
   </data>
+  <data name="CreatePosting.Visibility" xml:space="preserve">
+    <value>Visibility</value>
+  </data>
+  <data name="CreatePosting.VisibilitySubtitle" xml:space="preserve">
+    <value>Private = not shown in the feed, only for you – e.g. for meal planning.</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMe" xml:space="preserve">
+    <value>Only for me (private)</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMeHint" xml:space="preserve">
+    <value>The recipe won't appear in the feed or on your public profile. You can use it in the meal planner and later turn it into a sales plan.</value>
+  </data>
+  <data name="Notify.Title" xml:space="preserve">
+    <value>Notifications</value>
+  </data>
+  <data name="Notify.Subtitle" xml:space="preserve">
+    <value>AI previews &amp; important info</value>
+  </data>
+  <data name="Notify.MarkAllRead" xml:space="preserve">
+    <value>Mark all read</value>
+  </data>
+  <data name="Notify.Clear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="Notify.OpenPlan" xml:space="preserve">
+    <value>Open plan</value>
+  </data>
+  <data name="Notify.FilterAll" xml:space="preserve">
+    <value>All</value>
+  </data>
+  <data name="Notify.FilterAi" xml:space="preserve">
+    <value>AI only</value>
+  </data>
+  <data name="Notify.Group" xml:space="preserve">
+    <value>Group</value>
+  </data>
+  <data name="Notify.Today" xml:space="preserve">
+    <value>TODAY</value>
+  </data>
+  <data name="Notify.Earlier" xml:space="preserve">
+    <value>EARLIER</value>
+  </data>
+  <data name="Notify.Empty" xml:space="preserve">
+    <value>No notifications.</value>
+  </data>
+  <data name="Notify.Yesterday" xml:space="preserve">
+    <value>Yesterday</value>
+  </data>
+  <data name="Notify.DaysAgo" xml:space="preserve">
+    <value>{0} days ago</value>
+  </data>
+  <data name="Notify.Open" xml:space="preserve">
+    <value>Open</value>
+  </data>
 </root>

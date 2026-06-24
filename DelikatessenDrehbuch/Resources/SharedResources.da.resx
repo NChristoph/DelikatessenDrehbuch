@@ -1278,4 +1278,58 @@
   <data name="Common.Replace" xml:space="preserve">
     <value>Erstat</value>
   </data>
+  <data name="CreatePosting.Visibility" xml:space="preserve">
+    <value>Synlighed</value>
+  </data>
+  <data name="CreatePosting.VisibilitySubtitle" xml:space="preserve">
+    <value>Privat = vises ikke i feedet, kun for dig – f.eks. til madplanlægning.</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMe" xml:space="preserve">
+    <value>Kun for mig (privat)</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMeHint" xml:space="preserve">
+    <value>Opskriften vises ikke i feedet eller på din offentlige profil. Du kan bruge den i madplanlæggeren og senere lave en salgsplan ud af den.</value>
+  </data>
+  <data name="Notify.Title" xml:space="preserve">
+    <value>Notifikationer</value>
+  </data>
+  <data name="Notify.Subtitle" xml:space="preserve">
+    <value>AI-forhåndsvisninger &amp; vigtig info</value>
+  </data>
+  <data name="Notify.MarkAllRead" xml:space="preserve">
+    <value>Markér alle som læst</value>
+  </data>
+  <data name="Notify.Clear" xml:space="preserve">
+    <value>Ryd</value>
+  </data>
+  <data name="Notify.OpenPlan" xml:space="preserve">
+    <value>Åbn plan</value>
+  </data>
+  <data name="Notify.FilterAll" xml:space="preserve">
+    <value>Alle</value>
+  </data>
+  <data name="Notify.FilterAi" xml:space="preserve">
+    <value>Kun AI</value>
+  </data>
+  <data name="Notify.Group" xml:space="preserve">
+    <value>Gruppér</value>
+  </data>
+  <data name="Notify.Today" xml:space="preserve">
+    <value>I DAG</value>
+  </data>
+  <data name="Notify.Earlier" xml:space="preserve">
+    <value>TIDLIGERE</value>
+  </data>
+  <data name="Notify.Empty" xml:space="preserve">
+    <value>Ingen notifikationer.</value>
+  </data>
+  <data name="Notify.Yesterday" xml:space="preserve">
+    <value>I går</value>
+  </data>
+  <data name="Notify.DaysAgo" xml:space="preserve">
+    <value>For {0} dage siden</value>
+  </data>
+  <data name="Notify.Open" xml:space="preserve">
+    <value>Åbn</value>
+  </data>
 </root>

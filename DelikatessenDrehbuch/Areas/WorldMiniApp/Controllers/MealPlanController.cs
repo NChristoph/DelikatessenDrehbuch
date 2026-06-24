@@ -38,6 +38,60 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View("~/Areas/WorldMiniApp/Views/Home/Generator.cshtml", new MiniAppSetupModel());
         }
 
+        /// <summary>Auswahlobjekt für den "eigene Rezepte"-Plan-Builder.</summary>
+        public class OwnRecipeItem
+        {
+            public int RecipeId { get; set; }
+            public string Title { get; set; } = string.Empty;
+            public string Category { get; set; } = string.Empty;
+            public string ImageUrl { get; set; } = string.Empty;
+        }
+
+        // GET: Verkaufsplan-Builder — Essensplan ausschließlich aus EIGENEN Rezepten
+        // (inkl. privater/offline Rezepte). Ergebnis ist über den Marktplatz verkaufbar.
+        [HttpGet]
+        public async Task<IActionResult> BuildOwn()
+        {
+            var userHash = ResolveUserHash();
+            if (string.IsNullOrWhiteSpace(userHash))
+                return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
+
+            var postings = await _context.WorldUserPosting
+                .AsNoTracking()
+                .Include(p => p.Recipe).ThenInclude(r => r.Images)
+                .Where(p => p.CreatorId == userHash && p.Recipe != null)
+                .OrderByDescending(p => p.CreationTime)
+                .ToListAsync();
+
+            var items = postings
+                .Where(p => p.Recipe.Id > 0)
+                .GroupBy(p => p.Recipe.Id)
+                .Select(g =>
+                {
+                    var p = g.First();
+                    var img = p.ThumbnailUrl;
+                    if (string.IsNullOrWhiteSpace(img))
+                    {
+                        var recipeImg = p.Recipe.Images?.FirstOrDefault()?.Image;
+                        img = !string.IsNullOrWhiteSpace(recipeImg)
+                            ? FrontendFunctions.GetSmallImagePath(recipeImg)
+                            : p.Source;
+                    }
+
+                    return new OwnRecipeItem
+                    {
+                        RecipeId = p.Recipe.Id,
+                        Title = p.Recipe.Title ?? p.Title ?? $"Rezept #{p.Recipe.Id}",
+                        Category = p.Recipe.Category ?? string.Empty,
+                        ImageUrl = img ?? string.Empty
+                    };
+                })
+                .ToList();
+
+            ViewData["UserHash"] = userHash;
+            return View("~/Areas/WorldMiniApp/Views/MealPlan/BuildOwn.cshtml", items);
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Generated(MiniAppSetupModel model, string userHash, string title)

@@ -1171,4 +1171,58 @@
   <data name="Common.Replace" xml:space="preserve">
     <value>Ersätt</value>
   </data>
+  <data name="CreatePosting.Visibility" xml:space="preserve">
+    <value>Synlighet</value>
+  </data>
+  <data name="CreatePosting.VisibilitySubtitle" xml:space="preserve">
+    <value>Privat = visas inte i flödet, bara för dig – t.ex. för måltidsplanering.</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMe" xml:space="preserve">
+    <value>Endast för mig (privat)</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMeHint" xml:space="preserve">
+    <value>Receptet visas inte i flödet eller på din offentliga profil. Du kan använda det i måltidsplaneraren och senare göra en säljplan av det.</value>
+  </data>
+  <data name="Notify.Title" xml:space="preserve">
+    <value>Aviseringar</value>
+  </data>
+  <data name="Notify.Subtitle" xml:space="preserve">
+    <value>AI-förhandsvisningar &amp; viktig info</value>
+  </data>
+  <data name="Notify.MarkAllRead" xml:space="preserve">
+    <value>Markera alla lästa</value>
+  </data>
+  <data name="Notify.Clear" xml:space="preserve">
+    <value>Rensa</value>
+  </data>
+  <data name="Notify.OpenPlan" xml:space="preserve">
+    <value>Öppna plan</value>
+  </data>
+  <data name="Notify.FilterAll" xml:space="preserve">
+    <value>Alla</value>
+  </data>
+  <data name="Notify.FilterAi" xml:space="preserve">
+    <value>Bara AI</value>
+  </data>
+  <data name="Notify.Group" xml:space="preserve">
+    <value>Gruppera</value>
+  </data>
+  <data name="Notify.Today" xml:space="preserve">
+    <value>IDAG</value>
+  </data>
+  <data name="Notify.Earlier" xml:space="preserve">
+    <value>TIDIGARE</value>
+  </data>
+  <data name="Notify.Empty" xml:space="preserve">
+    <value>Inga aviseringar.</value>
+  </data>
+  <data name="Notify.Yesterday" xml:space="preserve">
+    <value>Igår</value>
+  </data>
+  <data name="Notify.DaysAgo" xml:space="preserve">
+    <value>{0} dagar sedan</value>
+  </data>
+  <data name="Notify.Open" xml:space="preserve">
+    <value>Öppna</value>
+  </data>
 </root>

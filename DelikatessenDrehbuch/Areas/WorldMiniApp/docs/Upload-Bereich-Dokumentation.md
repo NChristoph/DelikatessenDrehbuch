@@ -118,6 +118,30 @@ Weil Video-Upload + Transcoding 3â€“4 Minuten dauern kÃ¶nnen, wird **nich
 
 ---
 
+## 5a. Privat-Upload („nur für mich")
+
+Beim Upload kann ein Rezept als **privat** markiert werden (Checkbox `name="IsOffline"` in
+`Views/Home/CreatePosting.cshtml`, Sektion „Sichtbarkeit"). Es nutzt das bestehende Feld
+`WorldUserPosting.IsOffline` (bit) — **keine neue Spalte/Migration**.
+
+Wirkung (komplett privat):
+- **Feed** zeigt es nicht (`FeedController.Index` filtert `!IsOffline`).
+- **Öffentliche Creator-Ansicht** zeigt es nicht (`FeedController` Creator-Postings filtert `!IsOffline`).
+- **Eigenes Profil** (`MyProfile`, claim-basiert = immer der eigene Nutzer) zeigt es mit „offline"-Badge.
+- **Essensplaner-Builder** (`MealPlan/BuildOwn`) bietet es zur Auswahl an → so lassen sich private
+  Rezepte einplanen und als Verkaufsplan bündeln.
+
+Verdrahtung:
+- **Bild-Pfad:** das gebundene `posting` wird direkt gespeichert → `IsOffline` greift automatisch.
+- **Video-Pfad:** `IsOffline` wird über das `uploadData`-Objekt in `ProcessVideoUploadInBackgroundAsync`
+  durchgereicht und am erzeugten `WorldUserPosting` gesetzt.
+- Das Upload-Formular sendet via `new FormData(form)` (`wwwroot/js/CreatePostingPage.js`) → Checkbox automatisch dabei.
+
+> Hinweis: Der Schutz greift für Feed/Profil. Direktzugriff auf einzelne Rezepte (`Home/ShowRecipe`)
+> ist davon unberührt — bei Bedarf separat absichern.
+
+---
+
 ## 6. Speicher-Service: `BunnyUploadService`
 
 Registriert als `IBlobUploadService` (`Program.cs`). HttpClient `"BunnyStorage"` via Factory.

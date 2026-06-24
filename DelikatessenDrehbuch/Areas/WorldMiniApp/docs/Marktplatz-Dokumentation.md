@@ -363,7 +363,24 @@ Fail-closed: nur eingeloggte Nutzer, die das Listing **gekauft** haben
 Quick-Link „Mein Store" auf `MyProfile` (`target="_blank" rel="noopener nofollow"`). Reiner Link —
 **keine** bezahlte Werbung/Hervorhebung.
 
-### 14.5 Offene Punkte / Grenzen
+### 14.5 Verkaufsplan-Builder (eigene Rezepte)
+`GET MealPlan/BuildOwn` (Einstieg: Quick-Link „Verkaufsplan erstellen" in `MyProfile`) bietet einen
+Essensplan-Builder, der **ausschließlich die eigenen Rezepte** des Nutzers zur Auswahl zeigt
+(inkl. privater/offline Rezepte). Tage werden mit eigenen Rezepten gefüllt; gespeichert wird über den
+bestehenden `MealPlanController.SaveMealPlanFromLayout` (Format: Array `{DayIndex, RecipeId, SlotIndex}`)
+als `WorldUserMealPlan`. Da nur eigene Rezepte enthalten sind, ist der Plan direkt über
+`Marketplace/Sell` (Typ Essensplan) verkaufbar (`CanSellMealPlanAsync` ✓).
+
+Der Builder bietet pro Tag **drei Mahlzeiten-Slots** (Vorspeise/Hauptgang/Dessert → `SlotIndex` 0/1/2)
+und zeigt **Live-Nährwerte** über den vorhandenen `GetMealPlanNutritionTotals`:
+- **Gesamtplan** (oben) **und pro Tag** (kcal + Protein je Tageskarte).
+- **Umschaltung „Gesamt / Pro Portion"**: „Gesamt" rechnet mit der gewählten Personenzahl, „Pro Portion"
+  mit `personCount=1` (eine Portion je Rezept).
+- Berechnung gecacht + debounced; veraltete Antworten werden per Request-Token verworfen.
+
+Der `SlotIndex` ist nur UI-Struktur — gespeichert wird wie gehabt pro Tag (`DayIndex`).
+
+### 14.6 Offene Punkte / Grenzen
 - **Bestand bei Objekt**: Da on-chain *vor* dem Finalize bezahlt wird, kann bei limitierter Stückzahl
   theoretisch übers Limit verkauft werden (Race). Aktuell wird `StockQuantity` nur auf 0 geclamped und
   der Verkäufer benachrichtigt; manuelle Abwicklung/Erstattung. Bei Bedarf: Reservierung vor Zahlung.

@@ -3444,10 +3444,10 @@
         <div style="padding:8px 20px 14px;display:flex;align-items:flex-start;gap:10px;flex-shrink:0;">
             <div style="flex:1;">
                 <div style="display:flex;align-items:center;gap:8px;">
-                    <h2 id="wmNotifyCanvasLabel" style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;letter-spacing:-0.02em;margin:0;color:#14391f;line-height:1.1;">Benachrichtigungen</h2>
+                    <h2 id="wmNotifyCanvasLabel" style="font-family:'Fraunces',serif;font-size:22px;font-weight:600;letter-spacing:-0.02em;margin:0;color:#14391f;line-height:1.1;">@SharedLocalizer["Notify.Title"]</h2>
                     <span id="wmNotifyUnreadPill" style="display:none;background:linear-gradient(135deg,#ff9a3c,#ff7849);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;"></span>
                 </div>
-                <div style="font-size:11px;color:#6b7868;margin-top:3px;">AI Vorschauen &amp; wichtige Hinweise</div>
+                <div style="font-size:11px;color:#6b7868;margin-top:3px;">@SharedLocalizer["Notify.Subtitle"]</div>
             </div>
             <button type="button" data-bs-dismiss="offcanvas" aria-label="Schliessen" style="width:28px;height:28px;border-radius:50%;background:rgba(20,57,31,0.06);border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;">
                 <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#14391f" stroke-width="2.4"><path d="M18 6L6 18M6 6l12 12"/></svg>
@@ -3457,28 +3457,28 @@
         <div style="margin:0 16px 10px;display:flex;align-items:center;gap:8px;flex-shrink:0;">
             <button type="button" id="wmNotifyMarkAll" class="wm-notify-action-btn" style="background:#fff;border:1px solid rgba(20,57,31,0.12);border-radius:10px;padding:7px 11px;font-size:11px;font-weight:600;color:#14391f;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg>
-                Alles gelesen
+                @SharedLocalizer["Notify.MarkAllRead"]
             </button>
             <button type="button" id="wmNotifyClear" class="wm-notify-action-btn" style="background:#fff;border:1px solid rgba(255,120,73,0.28);border-radius:10px;padding:7px 11px;font-size:11px;font-weight:600;color:#ff7849;cursor:pointer;display:inline-flex;align-items:center;gap:5px;">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2m3 0v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6"/></svg>
-                Leeren
+                @SharedLocalizer["Notify.Clear"]
             </button>
             <button type="button" id="wmNotifyOpenPlanBtn" style="margin-left:auto;background:linear-gradient(135deg,#ff9a3c,#ff7849);border:none;border-radius:10px;padding:7px 12px;font-size:11px;font-weight:700;color:#fff;cursor:pointer;display:inline-flex;align-items:center;gap:5px;box-shadow:0 3px 10px rgba(255,120,73,0.3);">
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-                Plan &ouml;ffnen
+                @SharedLocalizer["Notify.OpenPlan"]
             </button>
         </div>
         <!-- Filter / Group Row -->
         <div style="margin:0 16px 10px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;">
             <div style="display:inline-flex;background:rgba(20,57,31,0.06);border:1px solid rgba(20,57,31,0.1);border-radius:999px;padding:3px;gap:2px;">
-                <button type="button" id="wmNotifyFilterAll" class="wm-notify-filter-pill active" style="background:#14391f;color:#fff;border:none;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;">Alle</button>
-                <button type="button" id="wmNotifyFilterAi" class="wm-notify-filter-pill" style="background:transparent;color:#14391f;border:none;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;">Nur AI</button>
+                <button type="button" id="wmNotifyFilterAll" class="wm-notify-filter-pill active" style="background:#14391f;color:#fff;border:none;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;">@SharedLocalizer["Notify.FilterAll"]</button>
+                <button type="button" id="wmNotifyFilterAi" class="wm-notify-filter-pill" style="background:transparent;color:#14391f;border:none;border-radius:999px;padding:5px 11px;font-size:11px;font-weight:600;cursor:pointer;transition:all .2s;">@SharedLocalizer["Notify.FilterAi"]</button>
             </div>
             <button type="button" id="wmNotifyGroupToggleBtn" style="background:transparent;border:none;display:inline-flex;align-items:center;gap:7px;cursor:pointer;color:#14391f;font-size:11px;font-weight:600;">
                 <span id="wmNotifyGroupTrack" style="width:28px;height:16px;border-radius:999px;background:#14391f;position:relative;display:inline-block;transition:background .2s;">
                     <span id="wmNotifyGroupKnob" style="position:absolute;top:2px;left:14px;width:12px;height:12px;border-radius:50%;background:#fff;transition:left .2s;box-shadow:0 1px 3px rgba(0,0,0,0.15);"></span>
                 </span>
-                Gruppieren
+                @SharedLocalizer["Notify.Group"]
             </button>
             <input type="checkbox" id="wmNotifyGroupBySender" checked style="display:none;">
         </div>
@@ -3823,6 +3823,18 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Lokalisierte Strings für die client-seitige Benachrichtigungsliste (resx via SharedLocalizer).
+        window.WM_NOTIFY_I18N = {
+            today: "@SharedLocalizer["Notify.Today"]",
+            earlier: "@SharedLocalizer["Notify.Earlier"]",
+            empty: "@SharedLocalizer["Notify.Empty"]",
+            yesterday: "@SharedLocalizer["Notify.Yesterday"]",
+            daysAgo: "@SharedLocalizer["Notify.DaysAgo"]",
+            open: "@SharedLocalizer["Notify.Open"]",
+            filterAll: "@SharedLocalizer["Notify.FilterAll"]"
+        };
+    </script>
     <script src="~/js/worldminiapp-notifications.js"></script>
     <form id="wmAntiForgeryForm" style="display:none;">@Html.AntiForgeryToken()</form>
 

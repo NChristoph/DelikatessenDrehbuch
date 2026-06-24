@@ -1280,4 +1280,58 @@
   <data name="Common.Replace" xml:space="preserve">
     <value>Substituir</value>
   </data>
+  <data name="CreatePosting.Visibility" xml:space="preserve">
+    <value>Visibilidade</value>
+  </data>
+  <data name="CreatePosting.VisibilitySubtitle" xml:space="preserve">
+    <value>Privado = não aparece no feed, só para você – ex. para planejar refeições.</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMe" xml:space="preserve">
+    <value>Apenas para mim (privado)</value>
+  </data>
+  <data name="CreatePosting.PrivateOnlyMeHint" xml:space="preserve">
+    <value>A receita não aparecerá no feed nem no seu perfil público. Você pode usá-la no planejador de refeições e depois transformá-la em um plano de venda.</value>
+  </data>
+  <data name="Notify.Title" xml:space="preserve">
+    <value>Notificações</value>
+  </data>
+  <data name="Notify.Subtitle" xml:space="preserve">
+    <value>Prévias de IA e avisos importantes</value>
+  </data>
+  <data name="Notify.MarkAllRead" xml:space="preserve">
+    <value>Marcar tudo como lido</value>
+  </data>
+  <data name="Notify.Clear" xml:space="preserve">
+    <value>Limpar</value>
+  </data>
+  <data name="Notify.OpenPlan" xml:space="preserve">
+    <value>Abrir plano</value>
+  </data>
+  <data name="Notify.FilterAll" xml:space="preserve">
+    <value>Todas</value>
+  </data>
+  <data name="Notify.FilterAi" xml:space="preserve">
+    <value>Só IA</value>
+  </data>
+  <data name="Notify.Group" xml:space="preserve">
+    <value>Agrupar</value>
+  </data>
+  <data name="Notify.Today" xml:space="preserve">
+    <value>HOJE</value>
+  </data>
+  <data name="Notify.Earlier" xml:space="preserve">
+    <value>ANTERIOR</value>
+  </data>
+  <data name="Notify.Empty" xml:space="preserve">
+    <value>Sem notificações.</value>
+  </data>
+  <data name="Notify.Yesterday" xml:space="preserve">
+    <value>Ontem</value>
+  </data>
+  <data name="Notify.DaysAgo" xml:space="preserve">
+    <value>Há {0} dias</value>
+  </data>
+  <data name="Notify.Open" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
 </root>

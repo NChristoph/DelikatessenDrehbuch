@@ -17,85 +17,129 @@
 }
 
 <style>
+    /* Avocado-/Marktplatz-Design (abgestimmt auf Marketplace/Index) */
+    body { background: #f5efe1 !important; }
+
+    .sell-back-link {
+        color: #14391f;
+        text-decoration: none;
+        font-size: 13px;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .sell-back-link:hover { color: #14391f; opacity: .8; }
+
     .sell-card {
         background: #fff;
         border: none;
-        border-radius: 1rem;
-        box-shadow: 0 2px 12px rgba(0,0,0,.06);
+        border-radius: 18px;
+        box-shadow: 0 2px 14px rgba(20,57,31,.06);
     }
+    .sell-title {
+        font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+        font-weight: 600;
+        letter-spacing: -.02em;
+        color: #14391f;
+    }
+    .sell-section-label {
+        font-size: 13px;
+        font-weight: 700;
+        color: #14391f;
+    }
+
     .plan-option {
-        border: 2px solid transparent;
-        border-radius: .75rem;
+        border: 2px solid rgba(20,57,31,.1);
+        border-radius: 12px;
         padding: .75rem;
         cursor: pointer;
         transition: border-color .15s, background .15s;
-        background: rgba(0,0,0,.02);
+        background: #fff;
     }
-    .plan-option:hover { background: rgba(0,0,0,.04); }
+    .plan-option:hover { background: #faf6ec; }
     .plan-option.selected {
-        border-color: #f59e0b;
-        background: rgba(245,158,11,.06);
+        border-color: #14391f;
+        background: rgba(20,57,31,.05);
     }
+
     .sell-btn {
-        background: linear-gradient(135deg, #f59e0b, #d97706);
+        background: #14391f;
         border: none;
         color: #fff;
-        font-weight: 700;
-        border-radius: .75rem;
-        padding: .6rem 1.5rem;
+        font-weight: 600;
+        border-radius: 999px;
+        padding: .7rem 1.5rem;
+        transition: filter .15s;
     }
-    .sell-btn:hover { filter: brightness(1.1); color: #fff; }
-    .sell-btn:disabled { opacity: .5; }
+    .sell-btn:hover { filter: brightness(1.12); color: #fff; }
+    .sell-btn:disabled { opacity: .45; }
+
     .price-input {
         font-size: 1.5rem;
         font-weight: 700;
         text-align: center;
-        border: 2px solid #e5e7eb;
-        border-radius: .75rem;
+        border: 2px solid rgba(20,57,31,.12);
+        border-radius: 12px;
         max-width: 140px;
+        color: #14391f;
     }
-    .price-input:focus { border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,.15); outline: none; }
+    .price-input:focus { border-color: #14391f; box-shadow: 0 0 0 3px rgba(20,57,31,.12); outline: none; }
+
+    .form-control:focus, .form-select:focus {
+        border-color: #14391f;
+        box-shadow: 0 0 0 3px rgba(20,57,31,.1);
+    }
+    .form-check-input:checked { background-color: #14391f; border-color: #14391f; }
+
+    /* Wallet-Leiste — dunkelgrün wie auf der Übersicht */
     .wallet-bar-sell {
-        background: linear-gradient(135deg, #1e293b, #334155);
+        background: linear-gradient(135deg, #1a3a23, #0e2415);
         color: #fff;
-        border-radius: 1rem;
-        padding: .75rem 1.25rem;
+        border-radius: 16px;
+        padding: .85rem 1.25rem;
     }
-    .wallet-connected { color: #34d399; }
+    .wallet-bar-sell .btn-outline-light { border-radius: 999px; }
+    .wallet-connected { color: #5fd0a0; }
+
     .split-info {
-        background: rgba(245,158,11,.08);
-        border: 1px solid rgba(245,158,11,.2);
-        border-radius: .75rem;
+        background: rgba(245,185,66,.12);
+        border: 1px solid rgba(245,185,66,.35);
+        border-radius: 12px;
         padding: .75rem 1rem;
         font-size: .85rem;
+        color: #14391f;
     }
+    .split-info strong { color: #14391f; }
+
     .type-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         gap: .5rem;
     }
     .type-option {
-        border: 2px solid transparent;
-        border-radius: .75rem;
-        padding: .75rem .5rem;
+        border: 2px solid rgba(20,57,31,.1);
+        border-radius: 14px;
+        padding: .8rem .5rem;
         text-align: center;
         cursor: pointer;
-        background: rgba(0,0,0,.02);
-        transition: border-color .15s, background .15s;
+        background: #fff;
+        transition: border-color .15s, background .15s, transform .1s;
     }
-    .type-option:hover { background: rgba(0,0,0,.04); }
-    .type-option.selected { border-color: #f59e0b; background: rgba(245,158,11,.06); }
+    .type-option:hover { background: #faf6ec; }
+    .type-option:active { transform: scale(.97); }
+    .type-option.selected { border-color: #14391f; background: rgba(20,57,31,.05); }
     .type-option i { display: block; font-size: 1.4rem; color: #14391f; margin-bottom: .25rem; }
     .type-option span { font-size: .78rem; font-weight: 600; color: #14391f; }
 </style>
 
 <div class="container py-4" style="max-width:720px;">
-    <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small d-inline-block mb-3">
-        <i class="bi bi-arrow-left"></i> Zurück zum Marketplace
+    <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="sell-back-link d-inline-block mb-3">
+        <i class="bi bi-arrow-left"></i> Zurück zum Marktplatz
     </a>
 
     <div class="sell-card p-4 mb-3">
-        <h4 class="fw-bold mb-1">Angebot erstellen</h4>
+        <h4 class="sell-title mb-1">Angebot erstellen</h4>
         <p class="text-muted small mb-0">Wähle einen Angebotstyp, beschreibe ihn und leg einen Preis in WLD fest. Optional kannst du zusätzlich eine USDT/USDC-Auszahlungsadresse speichern.</p>
     </div>
 
@@ -155,7 +199,7 @@
 
     <div class="sell-card p-4">
         <!-- 1. Angebotstyp -->
-        <label class="fw-semibold mb-2 d-block">1. Was möchtest du anbieten?</label>
+        <label class="sell-section-label mb-2 d-block">1. Was möchtest du anbieten?</label>
         <div class="type-grid mb-4" id="typeGrid">
             <div class="type-option selected" data-type="MealPlan" onclick="selectType(this,'MealPlan')"><i class="bi bi-calendar-week"></i><span>Essensplan</span></div>
             <div class="type-option" data-type="SingleRecipe" onclick="selectType(this,'SingleRecipe')"><i class="bi bi-card-text"></i><span>Einzelrezept</span></div>
@@ -166,7 +210,7 @@
 
         <!-- Essensplan -->
         <div class="type-section" data-section="MealPlan">
-            <label class="fw-semibold mb-2 d-block">Plan auswählen</label>
+            <label class="sell-section-label mb-2 d-block">Plan auswählen</label>
             @if (blockedMealPlanCount > 0)
             {
                 <div class="alert alert-warning border-0 rounded-4 mb-3 small" role="alert">
@@ -197,7 +241,7 @@
 
         <!-- Einzelrezept -->
         <div class="type-section d-none" data-section="SingleRecipe">
-            <label class="fw-semibold mb-2 d-block">Rezept auswählen</label>
+            <label class="sell-section-label mb-2 d-block">Rezept auswählen</label>
             @if (myRecipes.Any())
             {
                 <select id="recipeSelect" class="form-select rounded-3 mb-2" onchange="onRecipeSelected()">
@@ -216,7 +260,7 @@
 
         <!-- Objekt -->
         <div class="type-section d-none" data-section="PhysicalObject">
-            <label class="fw-semibold mb-2 d-block">Produktdetails</label>
+            <label class="sell-section-label mb-2 d-block">Produktdetails</label>
             <input type="url" id="objImageUrl" class="form-control rounded-3 mb-2" placeholder="Bild-URL (https://...)" maxlength="1000" oninput="updateSellButtonState()" />
             <input type="number" id="objStock" class="form-control rounded-3 mb-2" min="0" placeholder="Bestand (leer = unbegrenzt)" />
             <div class="form-check mb-2">
@@ -227,7 +271,7 @@
 
         <!-- Digital -->
         <div class="type-section d-none" data-section="DigitalProduct">
-            <label class="fw-semibold mb-2 d-block">Digitales Produkt</label>
+            <label class="sell-section-label mb-2 d-block">Digitales Produkt</label>
             <input type="url" id="digitalUrl" class="form-control rounded-3 mb-2" placeholder="Download-/Datei-URL (https://...)" maxlength="1000" oninput="updateSellButtonState()" />
             <input type="url" id="digitalCover" class="form-control rounded-3 mb-2" placeholder="Titelbild-URL (optional)" maxlength="1000" />
             <div class="text-muted small">Der Link wird erst nach dem Kauf freigeschaltet.</div>
@@ -235,13 +279,13 @@
 
         <!-- Dienstleistung -->
         <div class="type-section d-none" data-section="Service">
-            <label class="fw-semibold mb-2 d-block">Dienstleistung</label>
+            <label class="sell-section-label mb-2 d-block">Dienstleistung</label>
             <input type="url" id="serviceCover" class="form-control rounded-3 mb-2" placeholder="Titelbild-URL (optional)" maxlength="1000" />
             <div class="text-muted small">Beschreibe deine Dienstleistung unten. Nach dem Kauf wirst du benachrichtigt, um Kontakt aufzunehmen.</div>
         </div>
 
         <!-- Titel & Beschreibung -->
-        <label class="fw-semibold mb-2 mt-4 d-block">2. Angebot beschreiben</label>
+        <label class="sell-section-label mb-2 mt-4 d-block">2. Angebot beschreiben</label>
         <div class="mb-2">
             <input type="text" id="listingTitle" class="form-control rounded-3" placeholder="Titel für dein Angebot" maxlength="100" />
         </div>
@@ -250,7 +294,7 @@
         </div>
 
         <!-- Preis -->
-        <label class="fw-semibold mb-2 d-block">3. Preis festlegen</label>
+        <label class="sell-section-label mb-2 d-block">3. Preis festlegen</label>
         <div class="d-flex align-items-center gap-2 mb-2">
             <input type="number" id="listingPrice" class="form-control price-input" min="1" max="1000" value="10" step="1" oninput="updateSplitPreview()" />
             <span class="fw-bold text-muted">WLD</span>

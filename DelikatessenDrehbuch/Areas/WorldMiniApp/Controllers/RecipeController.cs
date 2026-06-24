@@ -148,6 +148,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     IngredientData = ingredientData,
                     SelectedKeywordIds = posting.SelectedKeywordIds,
                     StepsText = Request.Form["StepsText"].FirstOrDefault() ?? "",
+                    IsOffline = posting.IsOffline,
                     VideoBytes = videoBytes,
                     FileName = posting.Content.FileName,
                     ContentType = posting.Content.ContentType
@@ -1357,6 +1358,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             int personCount = uploadData.PersonCount;
             int preparationTime = uploadData.PreparationTime;
             string preferences = uploadData.Preferences;
+            bool isOffline = uploadData.IsOffline;
             var ingredientData = uploadData.IngredientData as IEnumerable<dynamic>;
             List<int> selectedKeywordIds = uploadData.SelectedKeywordIds;
 
@@ -1479,6 +1481,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 Title = title,
                 Source = uploadResult.SourceUrl,
                 ThumbnailUrl = uploadResult.ThumbnailUrl,
+                IsOffline = isOffline,
                 Recipe = recipe
             };
 
