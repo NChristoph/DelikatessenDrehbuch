@@ -1,6 +1,7 @@
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Exceptions;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Services;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.StaticScripts;
@@ -22,14 +23,54 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly IConfiguration _configuration;
         private readonly ILogger<MarketplaceController> _logger;
         private readonly IMarketplaceRankingService _rankingService;
+        private readonly IBlobUploadService _blobUpload;
 
-        public MarketplaceController(IWildCoinService coinService, ApplicationDbContext context, IConfiguration configuration, ILogger<MarketplaceController> logger, IMarketplaceRankingService rankingService)
+        public MarketplaceController(IWildCoinService coinService, ApplicationDbContext context, IConfiguration configuration, ILogger<MarketplaceController> logger, IMarketplaceRankingService rankingService, IBlobUploadService blobUpload)
         {
             _coinService = coinService;
             _context = context;
             _configuration = configuration;
             _logger = logger;
             _rankingService = rankingService;
+            _blobUpload = blobUpload;
+        }
+
+        // POST: Angebots-Foto zu Bunny.net hochladen (statt externer Links – CDN/Caching).
+        // Liefert die CDN-URL zurück, die dann als CoverImageUrl/ImagesJson gespeichert wird.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        [RequestSizeLimit(20_000_000)]
+        public async Task<IActionResult> UploadOfferImage(IFormFile file)
+        {
+            var userHash = GetUserHash();
+            if (string.IsNullOrWhiteSpace(userHash))
+                return Json(new { success = false, error = "Nicht eingeloggt." });
+
+            if (file == null || file.Length == 0)
+                return Json(new { success = false, error = "Keine Datei ausgewählt." });
+
+            var contentType = (file.ContentType ?? string.Empty).ToLowerInvariant();
+            if (!contentType.StartsWith("image/"))
+                return Json(new { success = false, error = "Nur Bilder sind erlaubt." });
+
+            if (file.Length > 15_000_000)
+                return Json(new { success = false, error = "Bild ist zu groß (max. 15 MB)." });
+
+            try
+            {
+                // Bild wird zu WEBP konvertiert und nach Bunny Storage geladen (CDN).
+                var result = await _blobUpload.UploadContentToBlob(file);
+                var url = !string.IsNullOrWhiteSpace(result.SourceUrl) ? result.SourceUrl : result.ThumbnailUrl;
+                if (string.IsNullOrWhiteSpace(url))
+                    return Json(new { success = false, error = "Upload fehlgeschlagen." });
+
+                return Json(new { success = true, url });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "UploadOfferImage failed for {UserHash}.", userHash);
+                return Json(new { success = false, error = "Upload fehlgeschlagen." });
+            }
         }
 
         private void SetWorldChainConfig()

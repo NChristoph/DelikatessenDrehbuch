@@ -51,6 +51,7 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<WorldSharedFeedMember> WorldSharedFeedMembers { get; set; }
         public DbSet<WorldSharedFeedItem> WorldSharedFeedItems { get; set; }
         public DbSet<WorldSharedFeedMessage> WorldSharedFeedMessages { get; set; }
+        public DbSet<WorldSharedFeedItemLike> WorldSharedFeedItemLikes { get; set; }
         public DbSet<WorldSharedFeedTodo> WorldSharedFeedTodos { get; set; }
         public DbSet<WorldUserLike> WorldUserLike { get; set; }
         public DbSet<WorldUserAbo> WorldUserAbo { get; set; }
@@ -401,6 +402,23 @@ namespace DelikatessenDrehbuch.Data
                 .WithMany(x => x.Items)
                 .HasForeignKey(x => x.WorldSharedFeedId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Feed-Item-Likes: ein Like pro (Item, User).
+            builder.Entity<WorldSharedFeedItemLike>()
+                .HasIndex(x => new { x.WorldSharedFeedItemId, x.UserHash })
+                .IsUnique();
+            builder.Entity<WorldSharedFeedItemLike>()
+                .Property(x => x.UserHash)
+                .HasMaxLength(256);
+            builder.Entity<WorldSharedFeedItemLike>()
+                .HasOne(x => x.Item)
+                .WithMany()
+                .HasForeignKey(x => x.WorldSharedFeedItemId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Private DMs: schneller Thread-Zugriff.
+            builder.Entity<WorldSharedFeedMessage>()
+                .HasIndex(x => new { x.WorldSharedFeedId, x.UserHash, x.RecipientUserHash, x.CreatedAtUtc });
 
             builder.Entity<WorldUserNotification>()
                 .ToTable("WorldUserNotifications");

@@ -1,6 +1,7 @@
 @model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.WorldUserMealPlan>
+@inject Microsoft.Extensions.Localization.IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
-    ViewData["Title"] = "Plan verkaufen";
+    ViewData["Title"] = SharedLocalizer["Offer.Title"];
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
     var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
@@ -11,302 +12,270 @@
     var worldChainUsdtToken = ViewData["WorldChainUsdtToken"]?.ToString() ?? "";
     var worldChainMarketplace = ViewData["WorldChainMarketplace"]?.ToString() ?? "";
     var testMode = (bool?)ViewData["WorldChainTestMode"] ?? false;
-    var blockedMealPlanCount = (int?)ViewData["BlockedMealPlanCount"] ?? 0;
     var myRecipes = ViewData["MyRecipes"] as List<DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers.MarketplaceController.RecipeOption>
         ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers.MarketplaceController.RecipeOption>();
 }
 
 <style>
-    /* Avocado-/Marktplatz-Design (abgestimmt auf Marketplace/Index) */
     body { background: #f5efe1 !important; }
+    .c2-root { max-width: 720px; margin: 0 auto; }
 
-    .sell-back-link {
-        color: #14391f;
-        text-decoration: none;
-        font-size: 13px;
-        font-weight: 500;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-    }
-    .sell-back-link:hover { color: #14391f; opacity: .8; }
+    /* Top bar */
+    .c2-bar { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; justify-content: space-between;
+        padding: 10px 12px 10px 10px; background: #f5efe1; border-bottom: 1px solid rgba(20,57,31,.10); }
+    .c2-bar-icon { width: 38px; height: 38px; border-radius: 50%; border: none; background: transparent; color: #14391f;
+        display: flex; align-items: center; justify-content: center; cursor: pointer; text-decoration: none; }
+    .c2-bar-icon:hover { background: rgba(20,57,31,.06); }
+    .c2-bar-title { position: absolute; left: 50%; transform: translateX(-50%); font-size: 15.5px; font-weight: 700; color: #14391f; }
+    .c2-share { border: none; border-radius: 999px; padding: 9px 18px; font-size: 14px; font-weight: 700; color: #fff;
+        background: linear-gradient(135deg,#1a3a23,#0e2415); box-shadow: 0 4px 12px rgba(20,57,31,.22); cursor: pointer; }
+    .c2-share.off { background: #c2cdba; box-shadow: none; cursor: not-allowed; }
 
-    .sell-card {
-        background: #fff;
-        border: none;
-        border-radius: 18px;
-        box-shadow: 0 2px 14px rgba(20,57,31,.06);
-    }
-    .sell-title {
-        font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
-        font-weight: 600;
-        letter-spacing: -.02em;
-        color: #14391f;
-    }
-    .sell-section-label {
-        font-size: 13px;
-        font-weight: 700;
-        color: #14391f;
-    }
+    .c2-scroll { padding: 14px 16px 32px; display: flex; flex-direction: column; gap: 16px; }
 
-    .plan-option {
-        border: 2px solid rgba(20,57,31,.1);
-        border-radius: 12px;
-        padding: .75rem;
-        cursor: pointer;
-        transition: border-color .15s, background .15s;
-        background: #fff;
-    }
-    .plan-option:hover { background: #faf6ec; }
-    .plan-option.selected {
-        border-color: #14391f;
-        background: rgba(20,57,31,.05);
-    }
+    /* Media upload */
+    .c2-drop { width: 100%; aspect-ratio: 4/3; background: #faf6ec; border: 2px dashed rgba(20,57,31,.22); border-radius: 22px;
+        display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px; cursor: pointer; }
+    .c2-drop:hover { border-color: #5fa052; background: #fff; }
+    .c2-drop-ico { width: 60px; height: 60px; border-radius: 50%; background: #14391f; color: #fff; display: flex; align-items: center; justify-content: center; }
+    .c2-drop-title { font-size: 15px; font-weight: 700; color: #14391f; }
+    .c2-drop-sub { font-size: 12.5px; color: #6b7868; }
+    .c2-media-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+    .c2-thumb { position: relative; aspect-ratio: 1; border-radius: 14px; background-size: cover; background-position: center; }
+    .c2-thumb.cover { grid-column: span 2; grid-row: span 2; border-radius: 18px; }
+    .c2-cover-badge { position: absolute; left: 8px; bottom: 8px; background: rgba(14,36,21,.7); color: #fff; font-size: 10px; font-weight: 700; padding: 3px 8px; border-radius: 999px; }
+    .c2-thumb-x { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; border: none;
+        background: rgba(14,36,21,.6); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .c2-add { border: 2px dashed rgba(20,57,31,.25); background: #faf6ec; color: #14391f; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+    .c2-add:hover { border-color: #5fa052; }
+    .c2-uploading { display:flex; align-items:center; justify-content:center; }
 
-    .sell-btn {
-        background: #14391f;
-        border: none;
-        color: #fff;
-        font-weight: 600;
-        border-radius: 999px;
-        padding: .7rem 1.5rem;
-        transition: filter .15s;
-    }
-    .sell-btn:hover { filter: brightness(1.12); color: #fff; }
-    .sell-btn:disabled { opacity: .45; }
+    /* Type menu (grid) */
+    .c2-typewrap { background: #fff; border-radius: 22px; padding: 16px 16px 18px; box-shadow: 0 2px 10px rgba(20,57,31,.06); }
+    .c2-type-head { font-size: 14px; font-weight: 700; color: #14391f; margin-bottom: 13px; }
+    .c2-types { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; }
+    .c2-type { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 9px;
+        padding: 15px 6px 12px; background: #faf6ec; border: 1.5px solid rgba(20,57,31,.12); border-radius: 16px;
+        color: #2a4a32; cursor: pointer; transition: all .15s; }
+    .c2-type:hover { border-color: rgba(20,57,31,.28); }
+    .c2-type.on { border-color: #14391f; border-width: 2px; background: #fff; box-shadow: 0 2px 10px rgba(20,57,31,.06); }
+    .c2-type-ico { width: 44px; height: 44px; border-radius: 13px; display: flex; align-items: center; justify-content: center;
+        background: rgba(20,57,31,.06); color: #14391f; }
+    .c2-type-ico svg { width: 22px; height: 22px; }
+    .c2-type.on .c2-type-ico { background: #14391f; color: #fff; }
+    .c2-type-label { font-size: 12.5px; font-weight: 600; color: #14391f; }
 
-    .price-input {
-        font-size: 1.5rem;
-        font-weight: 700;
-        text-align: center;
-        border: 2px solid rgba(20,57,31,.12);
-        border-radius: 12px;
-        max-width: 140px;
-        color: #14391f;
-    }
-    .price-input:focus { border-color: #14391f; box-shadow: 0 0 0 3px rgba(20,57,31,.12); outline: none; }
+    /* Detail / cards */
+    .c2-detail, .c2-field, .c2-price { background: #fff; border-radius: 18px; box-shadow: 0 2px 10px rgba(20,57,31,.06); }
+    .c2-detail { padding: 16px; }
+    .c2-detail-label { font-size: 14px; font-weight: 700; color: #14391f; margin-bottom: 10px; }
+    .c2-detail-hint { font-size: 12px; color: #6b7868; margin-top: 8px; }
+    .c2-inp, .c2-select { width: 100%; background: #faf6ec; border: 1.5px solid rgba(20,57,31,.12); border-radius: 12px; padding: 11px 12px; font-size: 14px; color: #14391f; outline: none; }
+    .c2-inp:focus, .c2-select:focus { border-color: #5fa052; box-shadow: 0 0 0 3px rgba(95,160,82,.15); }
+    .c2-inp + .c2-inp { margin-top: 10px; }
+    .c2-select-wrap { position: relative; }
+    .c2-select { appearance: none; }
+    .c2-select-chev { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color: #6b7868; pointer-events: none; }
+    .c2-plans { display: flex; flex-direction: column; gap: 8px; }
+    .c2-plan { position: relative; text-align: left; background: #faf6ec; border: 2px solid transparent; border-radius: 12px; padding: 11px 12px; cursor: pointer; }
+    .c2-plan.sel { border-color: #14391f; background: rgba(20,57,31,.05); }
+    .c2-plan-name { display: block; font-weight: 700; color: #14391f; font-size: 14px; }
+    .c2-plan-meta { display: block; font-size: 12px; color: #6b7868; margin-top: 2px; }
+    .c2-plan-check { position: absolute; right: 12px; top: 12px; width: 22px; height: 22px; border-radius: 50%; background: #14391f; color: #fff; display: flex; align-items: center; justify-content: center; }
+    .c2-check { display: inline-flex; align-items: center; gap: 8px; background: none; border: none; cursor: pointer; margin-top: 10px; color: #14391f; font-size: 14px; }
+    .c2-box { width: 22px; height: 22px; border-radius: 7px; border: 2px solid rgba(20,57,31,.25); display: flex; align-items: center; justify-content: center; color: #fff; }
+    .c2-box.on { background: #14391f; border-color: #14391f; }
 
-    .form-control:focus, .form-select:focus {
-        border-color: #14391f;
-        box-shadow: 0 0 0 3px rgba(20,57,31,.1);
-    }
-    .form-check-input:checked { background-color: #14391f; border-color: #14391f; }
+    /* Title + caption */
+    .c2-field { padding: 4px 16px; }
+    .c2-title-input { width: 100%; border: none; outline: none; background: transparent; font-family: 'Fraunces','Playfair Display',Georgia,serif;
+        font-weight: 600; font-size: 20px; letter-spacing: -.02em; color: #14391f; padding: 15px 0 13px; }
+    .c2-title-input::placeholder { color: #b3bbac; }
+    .c2-divider { height: 1px; background: rgba(20,57,31,.10); }
+    .c2-caption { width: 100%; border: none; outline: none; resize: none; background: transparent; font-size: 14px; line-height: 1.55; color: #22301f; padding: 13px 0; font-family: inherit; }
+    .c2-caption::placeholder { color: #b3bbac; }
 
-    /* Wallet-Leiste — dunkelgrün wie auf der Übersicht */
-    .wallet-bar-sell {
-        background: linear-gradient(135deg, #1a3a23, #0e2415);
-        color: #fff;
-        border-radius: 16px;
-        padding: .85rem 1.25rem;
-    }
-    .wallet-bar-sell .btn-outline-light { border-radius: 999px; }
-    .wallet-connected { color: #5fd0a0; }
+    /* Price */
+    .c2-price { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; }
+    .c2-price-label { font-size: 15px; font-weight: 700; color: #14391f; }
+    .c2-price-right { display: flex; align-items: center; gap: 6px; }
+    .c2-price-input { width: 96px; border: none; outline: none; background: transparent; text-align: right;
+        font-family: 'Fraunces','Playfair Display',Georgia,serif; font-weight: 600; font-size: 26px; color: #14391f; }
+    .c2-price-input::placeholder { color: #c4cbbc; }
+    .c2-price-cur { font-size: 15px; font-weight: 700; color: #6b7868; }
+    .c2-split { font-size: 12.5px; color: #6b7868; margin-top: -8px; }
+    .c2-split b { color: #14391f; }
 
-    .split-info {
-        background: rgba(245,185,66,.12);
-        border: 1px solid rgba(245,185,66,.35);
-        border-radius: 12px;
-        padding: .75rem 1rem;
-        font-size: .85rem;
-        color: #14391f;
-    }
-    .split-info strong { color: #14391f; }
+    /* Wallet strip */
+    .c2-wallet { width: 100%; display: flex; align-items: center; gap: 12px; text-align: left; border: none; cursor: pointer;
+        background: linear-gradient(135deg,#1f4329,#0e2415); border-radius: 18px; padding: 14px 16px; box-shadow: 0 6px 20px rgba(14,36,21,.18); color: #fff; }
+    .c2-wallet-ico { width: 36px; height: 36px; border-radius: 11px; background: rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .c2-wallet.on .c2-wallet-ico { background: rgba(95,160,82,.30); }
+    .c2-wallet-text { flex: 1; display: flex; flex-direction: column; }
+    .c2-wallet-title { font-size: 13.5px; font-weight: 600; }
+    .c2-wallet-sub { font-size: 12px; color: rgba(255,255,255,.6); margin-top: 1px; }
+    .c2-wallet.on .c2-wallet-sub { color: #8bbf7d; }
+    .c2-wallet-state { font-size: 12px; font-weight: 700; padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.25); }
+    .c2-wallet.on .c2-wallet-state { background: rgba(95,160,82,.30); border-color: rgba(95,160,82,.5); }
 
-    .type-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: .5rem;
-    }
-    .type-option {
-        border: 2px solid rgba(20,57,31,.1);
-        border-radius: 14px;
-        padding: .8rem .5rem;
-        text-align: center;
-        cursor: pointer;
-        background: #fff;
-        transition: border-color .15s, background .15s, transform .1s;
-    }
-    .type-option:hover { background: #faf6ec; }
-    .type-option:active { transform: scale(.97); }
-    .type-option.selected { border-color: #14391f; background: rgba(20,57,31,.05); }
-    .type-option i { display: block; font-size: 1.4rem; color: #14391f; margin-bottom: .25rem; }
-    .type-option span { font-size: .78rem; font-weight: 600; color: #14391f; }
+    /* Preview */
+    .c2-preview-head { display: flex; align-items: baseline; gap: 8px; }
+    .c2-preview-head > span:first-child { font-size: 13px; font-weight: 700; color: #14391f; text-transform: uppercase; letter-spacing: .08em; }
+    .c2-preview-hint { font-size: 12px; color: #6b7868; }
+    .c2-preview { background: #fff; border-radius: 18px; box-shadow: 0 6px 20px rgba(14,36,21,.18); overflow: hidden; }
+    .c2-preview-media { aspect-ratio: 16/10; background: #e8e1d0; background-size: cover; background-position: center; position: relative; display: flex; align-items: center; justify-content: center; color: #b3a98f; }
+    .c2-preview-type { position: absolute; left: 10px; top: 10px; background: rgba(255,255,255,.92); color: #14391f; font-size: 11px; font-weight: 700; padding: 4px 9px; border-radius: 999px; }
+    .c2-preview-body { padding: 13px 15px 15px; }
+    .c2-preview-seller { display: flex; align-items: center; gap: 7px; font-size: 12px; font-weight: 600; color: #6b7868; }
+    .c2-avatar { width: 20px; height: 20px; border-radius: 50%; background: #14391f; color: #fff; font-size: 11px; display: flex; align-items: center; justify-content: center; }
+    .c2-preview-title { font-family: 'Fraunces','Playfair Display',Georgia,serif; font-weight: 600; font-size: 18px; color: #14391f; margin: 8px 0; }
+    .c2-preview-foot { display: flex; align-items: center; justify-content: space-between; }
+    .c2-preview-price { font-family: 'Fraunces',serif; font-weight: 600; font-size: 18px; color: #14391f; }
+    .c2-preview-buy { background: #14391f; color: #fff; font-size: 12.5px; font-weight: 700; padding: 7px 14px; border-radius: 999px; }
 </style>
 
-<div class="container py-4" style="max-width:720px;">
-    <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="sell-back-link d-inline-block mb-3">
-        <i class="bi bi-arrow-left"></i> Zurück zum Marktplatz
-    </a>
-
-    <div class="sell-card p-4 mb-3">
-        <h4 class="sell-title mb-1">Angebot erstellen</h4>
-        <p class="text-muted small mb-0">Wähle einen Angebotstyp, beschreibe ihn und leg einen Preis in WLD fest. Optional kannst du zusätzlich eine USDT/USDC-Auszahlungsadresse speichern.</p>
+<div class="c2-root">
+    <!-- Top bar -->
+    <div class="c2-bar">
+        <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="c2-bar-icon" aria-label="@SharedLocalizer["Offer.Close"]">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </a>
+        <span class="c2-bar-title">@SharedLocalizer["Offer.Title"]</span>
+        <button type="button" class="c2-share off" id="shareBtn" disabled onclick="createListing()">@SharedLocalizer["Offer.Share"]</button>
     </div>
 
-    <!-- Wallet-Verbindung (Pflicht zum Verkaufen) -->
-    <div class="wallet-bar-sell mb-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <div class="small opacity-75">Deine Auszahlungs-Wallet (WLD)</div>
-                <div class="small mt-1" id="sellerWalletStatus">
-                    @if (!string.IsNullOrWhiteSpace(walletWLD))
-                    {
-                        <span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>@walletWLD.Substring(0, Math.Min(6, walletWLD.Length))...@walletWLD.Substring(Math.Max(0, walletWLD.Length - 4))</span>
-                    }
-                    else
-                    {
-                        <span class="text-warning">Nicht verbunden - Wallet wird für Auszahlung benötigt</span>
-                    }
-                </div>
-                <div class="small mt-1" id="sellerWalletBalance" style="display:none;">
-                    <span class="badge bg-success">💰 <span id="wldBalance">--</span> WLD</span>
-                </div>
+    <div class="c2-scroll">
+        <!-- Media upload -->
+        <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="onPhotoSelected(event)" />
+        <button type="button" class="c2-drop" id="dropZone" onclick="document.getElementById('photoInput').click()">
+            <span class="c2-drop-ico"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5A2.5 2.5 0 015.5 6h1.2a2 2 0 001.7-1l.5-.8a2 2 0 011.7-1h2.8a2 2 0 011.7 1l.5.8a2 2 0 001.7 1h1.2A2.5 2.5 0 0121 8.5V17a2.5 2.5 0 01-2.5 2.5h-13A2.5 2.5 0 013 17z"/><circle cx="12" cy="12.5" r="3.2"/></svg></span>
+            <span class="c2-drop-title">@SharedLocalizer["Offer.AddPhotos"]</span>
+            <span class="c2-drop-sub">@SharedLocalizer["Offer.AddPhotosSub"]</span>
+        </button>
+        <div class="c2-media-grid" id="mediaGrid" style="display:none;"></div>
+
+        <!-- Type menu (grid) -->
+        <div class="c2-typewrap">
+            <div class="c2-type-head">@SharedLocalizer["Offer.WhatOffer"]</div>
+            <div class="c2-types" id="typePills">
+                <button type="button" class="c2-type" data-type="MealPlan" onclick="selectType('MealPlan')"><span class="c2-type-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4.5" width="18" height="16" rx="2.5"/><path d="M3 9h18M8 2.5v4M16 2.5v4"/></svg></span><span class="c2-type-label">@SharedLocalizer["Offer.TypeMealPlan"]</span></button>
+                <button type="button" class="c2-type" data-type="SingleRecipe" onclick="selectType('SingleRecipe')"><span class="c2-type-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="3" width="16" height="18" rx="2.5"/><path d="M8 8h8M8 12h8M8 16h5"/></svg></span><span class="c2-type-label">@SharedLocalizer["Offer.TypeRecipe"]</span></button>
+                <button type="button" class="c2-type on" data-type="PhysicalObject" onclick="selectType('PhysicalObject')"><span class="c2-type-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 7.5l-9-5-9 5 9 5 9-5z"/><path d="M3 7.5v9l9 5 9-5v-9M12 12.5v9"/></svg></span><span class="c2-type-label">@SharedLocalizer["Offer.TypeObject"]</span></button>
+                <button type="button" class="c2-type" data-type="DigitalProduct" onclick="selectType('DigitalProduct')"><span class="c2-type-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M19 16.5A4 4 0 0017.5 9h-1.3A6 6 0 104 14.5"/><path d="M12 11v8M8.5 15.5L12 19l3.5-3.5"/></svg></span><span class="c2-type-label">@SharedLocalizer["Offer.TypeDigital"]</span></button>
+                <button type="button" class="c2-type" data-type="Service" onclick="selectType('Service')"><span class="c2-type-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="12" cy="10" r="2.4"/><path d="M8 16.5a4 4 0 018 0"/></svg></span><span class="c2-type-label">@SharedLocalizer["Offer.TypeService"]</span></button>
             </div>
-            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectSellerWalletBtn" onclick="connectSellerWallet()">
-                <i class="bi bi-wallet2 me-1"></i>@(string.IsNullOrWhiteSpace(walletWLD) ? "Verbinden" : "Verbunden")
-            </button>
-        </div>
-    </div>
-
-
-    <div class="wallet-bar-sell mb-3">
-        <div class="d-flex justify-content-between align-items-center">
-            <div>
-                <div class="small opacity-75">Deine Auszahlungs-Wallet (USDT/USDC)</div>
-                <div class="small mt-1" id="sellerUsdtWalletStatus">
-                    @if (!string.IsNullOrWhiteSpace(walletUSDT))
-                    {
-                        <span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>@walletUSDT.Substring(0, Math.Min(6, walletUSDT.Length))...@walletUSDT.Substring(Math.Max(0, walletUSDT.Length - 4))</span>
-                    }
-                    else
-                    {
-                        <span class="text-warning">Nicht verbunden - optional für USDT/USDC-Auszahlungen</span>
-                    }
-                </div>
-            </div>
-            <button type="button" class="btn btn-outline-light btn-sm rounded-pill" id="connectSellerUsdtWalletBtn" onclick="connectSellerUsdtWallet()">
-                <i class="bi bi-wallet2 me-1"></i>@(string.IsNullOrWhiteSpace(walletUSDT) ? "Verbinden" : "Verbunden")
-            </button>
-        </div>
-    </div>
-
-    <!-- Revenue Split Info -->
-    <div class="split-info mb-3">
-        <i class="bi bi-info-circle me-1"></i>
-        <strong>80% für dich</strong> — Bei jedem Verkauf bekommst du automatisch 80% des Preises direkt auf deine Wallet.
-        20% gehen als Plattform-Gebühr an uns.
-    </div>
-
-    <div class="sell-card p-4">
-        <!-- 1. Angebotstyp -->
-        <label class="sell-section-label mb-2 d-block">1. Was möchtest du anbieten?</label>
-        <div class="type-grid mb-4" id="typeGrid">
-            <div class="type-option selected" data-type="MealPlan" onclick="selectType(this,'MealPlan')"><i class="bi bi-calendar-week"></i><span>Essensplan</span></div>
-            <div class="type-option" data-type="SingleRecipe" onclick="selectType(this,'SingleRecipe')"><i class="bi bi-card-text"></i><span>Einzelrezept</span></div>
-            <div class="type-option" data-type="PhysicalObject" onclick="selectType(this,'PhysicalObject')"><i class="bi bi-box-seam"></i><span>Objekt</span></div>
-            <div class="type-option" data-type="DigitalProduct" onclick="selectType(this,'DigitalProduct')"><i class="bi bi-cloud-download"></i><span>Digital</span></div>
-            <div class="type-option" data-type="Service" onclick="selectType(this,'Service')"><i class="bi bi-person-workspace"></i><span>Dienstleistung</span></div>
         </div>
 
-        <!-- Essensplan -->
-        <div class="type-section" data-section="MealPlan">
-            <label class="sell-section-label mb-2 d-block">Plan auswählen</label>
-            @if (blockedMealPlanCount > 0)
+        <!-- Per-type details -->
+        <div class="c2-detail" data-detail="MealPlan" style="display:none;">
+            <div class="c2-detail-label">@SharedLocalizer["Offer.WhichPlan"]</div>
+            @if (Model.Any())
             {
-                <div class="alert alert-warning border-0 rounded-4 mb-3 small" role="alert">
-                    Nur Essenspläne mit ausschließlich eigenen Rezepten können verkauft werden. @blockedMealPlanCount Plan/Pläne sind ausgeblendet.
-                </div>
-            }
-            @if (!Model.Any())
-            {
-                <div class="text-center py-3">
-                    <i class="bi bi-journal-x fs-3 text-muted"></i>
-                    <p class="text-muted small mt-2 mb-2">Du hast aktuell keine verkaufbaren Essenspläne.</p>
-                    <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="btn btn-outline-dark btn-sm rounded-pill">Plan erstellen</a>
-                </div>
-            }
-            else
-            {
-                <div class="d-flex flex-column gap-2 mb-2" id="planList">
+                <div class="c2-plans">
                     @foreach (var plan in Model)
                     {
-                        <div class="plan-option" data-plan-id="@plan.Id" onclick="selectPlan(this, @plan.Id, '@(plan.Title?.Replace("'", "\\'") ?? "Essensplan")')">
-                            <div class="fw-bold">@(plan.Title ?? "Essensplan")</div>
-                            <div class="text-muted small">Erstellt: @plan.CreationTime.ToString("dd.MM.yyyy")</div>
-                        </div>
+                        <button type="button" class="c2-plan" data-plan-id="@plan.Id" onclick="selectPlan(this, @plan.Id)">
+                            <span class="c2-plan-name">@(plan.Title ?? SharedLocalizer["Offer.TypeMealPlan"].Value)</span>
+                            <span class="c2-plan-meta">@SharedLocalizer["Offer.Created"] @plan.CreationTime.ToString("dd.MM.yyyy")</span>
+                        </button>
                     }
                 </div>
             }
+            else
+            {
+                <div class="c2-detail-hint">@SharedLocalizer["Offer.NoPlans"]</div>
+            }
         </div>
 
-        <!-- Einzelrezept -->
-        <div class="type-section d-none" data-section="SingleRecipe">
-            <label class="sell-section-label mb-2 d-block">Rezept auswählen</label>
+        <div class="c2-detail" data-detail="SingleRecipe" style="display:none;">
+            <div class="c2-detail-label">@SharedLocalizer["Offer.WhichRecipe"]</div>
             @if (myRecipes.Any())
             {
-                <select id="recipeSelect" class="form-select rounded-3 mb-2" onchange="onRecipeSelected()">
-                    <option value="">– Rezept wählen –</option>
-                    @foreach (var r in myRecipes)
-                    {
-                        <option value="@r.Id">@r.Title</option>
-                    }
-                </select>
+                <div class="c2-select-wrap">
+                    <select id="recipeSelect" class="c2-select" onchange="onRecipeSelected()">
+                        <option value="">@SharedLocalizer["Offer.PickRecipe"]</option>
+                        @foreach (var r in myRecipes)
+                        {
+                            <option value="@r.Id">@r.Title</option>
+                        }
+                    </select>
+                    <span class="c2-select-chev"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg></span>
+                </div>
             }
             else
             {
-                <div class="text-muted small">Du hast noch keine eigenen Rezepte zum Verkaufen.</div>
+                <div class="c2-detail-hint">@SharedLocalizer["Offer.NoRecipes"]</div>
             }
         </div>
 
-        <!-- Objekt -->
-        <div class="type-section d-none" data-section="PhysicalObject">
-            <label class="sell-section-label mb-2 d-block">Produktdetails</label>
-            <input type="url" id="objImageUrl" class="form-control rounded-3 mb-2" placeholder="Bild-URL (https://...)" maxlength="1000" oninput="updateSellButtonState()" />
-            <input type="number" id="objStock" class="form-control rounded-3 mb-2" min="0" placeholder="Bestand (leer = unbegrenzt)" />
-            <div class="form-check mb-2">
-                <input class="form-check-input" type="checkbox" id="objShipping" checked />
-                <label class="form-check-label small" for="objShipping">Versand nötig (Lieferadresse vom Käufer abfragen)</label>
+        <div class="c2-detail" data-detail="PhysicalObject">
+            <div class="c2-detail-label">@SharedLocalizer["Offer.ProductDetails"]</div>
+            <input type="number" id="objStock" class="c2-inp" min="0" placeholder="@SharedLocalizer["Offer.StockPlaceholder"]" />
+            <button type="button" class="c2-check" id="objShippingBtn" onclick="toggleShipping()">
+                <span class="c2-box on" id="objShippingBox"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg></span>
+                <span>@SharedLocalizer["Offer.ShippingNeeded"]</span>
+            </button>
+            <div class="c2-detail-hint">@SharedLocalizer["Offer.ShippingHint"]</div>
+        </div>
+
+        <div class="c2-detail" data-detail="DigitalProduct" style="display:none;">
+            <div class="c2-detail-label">@SharedLocalizer["Offer.DigitalTitle"]</div>
+            <input type="url" id="digitalUrl" class="c2-inp" placeholder="@SharedLocalizer["Offer.DigitalUrlPlaceholder"]" maxlength="1000" oninput="updateValidity()" />
+            <div class="c2-detail-hint">@SharedLocalizer["Offer.DigitalHint"]</div>
+        </div>
+
+        <div class="c2-detail" data-detail="Service" style="display:none;">
+            <div class="c2-detail-label">@SharedLocalizer["Offer.ServiceTitle"]</div>
+            <input type="text" id="serviceAvail" class="c2-inp" placeholder="@SharedLocalizer["Offer.ServiceAvailPlaceholder"]" maxlength="200" />
+            <div class="c2-detail-hint">@SharedLocalizer["Offer.ServiceHint"]</div>
+        </div>
+
+        <!-- Title + caption -->
+        <div class="c2-field">
+            <input type="text" id="listingTitle" class="c2-title-input" placeholder="@SharedLocalizer["Offer.TitlePlaceholder"]" maxlength="100" oninput="updatePreview(); updateValidity();" />
+            <div class="c2-divider"></div>
+            <textarea id="listingDescription" class="c2-caption" rows="3" maxlength="300" placeholder="@SharedLocalizer["Offer.CaptionPlaceholder"]"></textarea>
+        </div>
+
+        <!-- Price -->
+        <div class="c2-price">
+            <span class="c2-price-label">@SharedLocalizer["Offer.Price"]</span>
+            <div class="c2-price-right">
+                <input type="text" id="listingPrice" class="c2-price-input" inputmode="decimal" placeholder="0" oninput="onPriceInput()" />
+                <span class="c2-price-cur">WLD</span>
             </div>
         </div>
+        <div class="c2-split" id="splitLine" style="display:none;"></div>
 
-        <!-- Digital -->
-        <div class="type-section d-none" data-section="DigitalProduct">
-            <label class="sell-section-label mb-2 d-block">Digitales Produkt</label>
-            <input type="url" id="digitalUrl" class="form-control rounded-3 mb-2" placeholder="Download-/Datei-URL (https://...)" maxlength="1000" oninput="updateSellButtonState()" />
-            <input type="url" id="digitalCover" class="form-control rounded-3 mb-2" placeholder="Titelbild-URL (optional)" maxlength="1000" />
-            <div class="text-muted small">Der Link wird erst nach dem Kauf freigeschaltet.</div>
-        </div>
-
-        <!-- Dienstleistung -->
-        <div class="type-section d-none" data-section="Service">
-            <label class="sell-section-label mb-2 d-block">Dienstleistung</label>
-            <input type="url" id="serviceCover" class="form-control rounded-3 mb-2" placeholder="Titelbild-URL (optional)" maxlength="1000" />
-            <div class="text-muted small">Beschreibe deine Dienstleistung unten. Nach dem Kauf wirst du benachrichtigt, um Kontakt aufzunehmen.</div>
-        </div>
-
-        <!-- Titel & Beschreibung -->
-        <label class="sell-section-label mb-2 mt-4 d-block">2. Angebot beschreiben</label>
-        <div class="mb-2">
-            <input type="text" id="listingTitle" class="form-control rounded-3" placeholder="Titel für dein Angebot" maxlength="100" />
-        </div>
-        <div class="mb-4">
-            <textarea id="listingDescription" class="form-control rounded-3" rows="2" placeholder="Kurze Beschreibung (optional)" maxlength="300"></textarea>
-        </div>
-
-        <!-- Preis -->
-        <label class="sell-section-label mb-2 d-block">3. Preis festlegen</label>
-        <div class="d-flex align-items-center gap-2 mb-2">
-            <input type="number" id="listingPrice" class="form-control price-input" min="1" max="1000" value="10" step="1" oninput="updateSplitPreview()" />
-            <span class="fw-bold text-muted">WLD</span>
-        </div>
-        <div class="small text-muted mb-4" id="splitPreview">
-            Du bekommst: <strong>8.00 WLD</strong> (80%) — Plattform: 2.00 WLD (20%)
-        </div>
-
-        <!-- Submit -->
-        <button class="sell-btn w-100" id="btnSell" onclick="createListing()" disabled>
-            <i class="bi bi-tag me-2"></i>Jetzt verkaufen
+        <!-- Wallet strip -->
+        <button type="button" class="c2-wallet" id="walletStrip" onclick="connectSellerWallet()">
+            <span class="c2-wallet-ico"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 012-2h12a2 2 0 012 2v1"/><path d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2v-6a2 2 0 00-2-2H5"/><circle cx="16" cy="13" r="1.2" fill="currentColor" stroke="none"/></svg></span>
+            <span class="c2-wallet-text">
+                <span class="c2-wallet-title">@SharedLocalizer["Offer.WalletTitle"]</span>
+                <span class="c2-wallet-sub" id="walletSub">@SharedLocalizer["Offer.WalletConnectHint"]</span>
+            </span>
+            <span class="c2-wallet-state" id="walletState">@SharedLocalizer["Offer.WalletConnect"]</span>
         </button>
+
+        <!-- Live preview -->
+        <div class="c2-preview-head">
+            <span>@SharedLocalizer["Offer.PreviewHead"]</span>
+            <span class="c2-preview-hint">@SharedLocalizer["Offer.PreviewHint"]</span>
+        </div>
+        <div class="c2-preview">
+            <div class="c2-preview-media" id="previewMedia">
+                <svg id="previewGlyph" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="8.5" cy="9.5" r="1.6"/><path d="M4 17l5-4 4 3 3-2.5 4 3.5"/></svg>
+                <span class="c2-preview-type" id="previewType">@SharedLocalizer["Offer.TypeObject"]</span>
+            </div>
+            <div class="c2-preview-body">
+                <div class="c2-preview-seller"><span class="c2-avatar">@(string.IsNullOrEmpty(userHash) ? "?" : userHash.Substring(0, 1).ToUpper())</span> @SharedLocalizer["Offer.You"]</div>
+                <div class="c2-preview-title" id="previewTitle">@SharedLocalizer["Offer.PreviewTitleFallback"]</div>
+                <div class="c2-preview-foot">
+                    <span class="c2-preview-price" id="previewPrice">— WLD</span>
+                    <span class="c2-preview-buy">@SharedLocalizer["Offer.Buy"]</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -324,223 +293,185 @@
 <script src="~/js/worldchain-marketplace.js" asp-append-version="true"></script>
 <script type="module" src="~/js/minikitt.js" asp-append-version="true"></script>
 <script>
+    const USER_HASH = '@userHash';
+    const OFFER_I18N = {
+        share: "@SharedLocalizer["Offer.Share"]",
+        sharing: "@SharedLocalizer["Offer.Sharing"]",
+        connected: "@SharedLocalizer["Offer.WalletConnected"]",
+        connectedWith: "@SharedLocalizer["Offer.ConnectedWith"]",
+        split: "@SharedLocalizer["Offer.SplitInfo"]",
+        cover: "@SharedLocalizer["Offer.Cover"]",
+        errFill: "@SharedLocalizer["Offer.ErrFillRequired"]",
+        errUpload: "@SharedLocalizer["Offer.ErrUpload"]",
+        errImages: "@SharedLocalizer["Offer.ErrImagesOnly"]",
+        errWallet: "@SharedLocalizer["Offer.ErrWallet"]",
+        errGeneric: "@SharedLocalizer["Offer.ErrGeneric"]"
+    };
+    const TYPE_LABELS = { PhysicalObject: "@SharedLocalizer["Offer.TypeObject"]", MealPlan: "@SharedLocalizer["Offer.TypeMealPlan"]", SingleRecipe: "@SharedLocalizer["Offer.TypeRecipe"]", DigitalProduct: "@SharedLocalizer["Offer.TypeDigital"]", Service: "@SharedLocalizer["Offer.TypeService"]" };
+
+    let photos = [];                 // hochgeladene Bunny-URLs ([0] = Cover)
+    let selectedType = 'PhysicalObject';
     let selectedPlanId = null;
     let selectedRecipeId = null;
-    let selectedType = 'MealPlan';
+    let objShipping = true;
     let sellerWalletAddress = '@walletWLD';
     let sellerUsdtWalletAddress = '@walletUSDT';
 
-    const USER_HASH = '@userHash';
+    function getToken() { return document.querySelector('input[name="__RequestVerificationToken"]')?.value || ''; }
 
-    function selectType(el, type) {
-        selectedType = type;
-        document.querySelectorAll('.type-option').forEach(o => o.classList.toggle('selected', o === el));
-        document.querySelectorAll('.type-section').forEach(s => {
-            s.classList.toggle('d-none', s.dataset.section !== type);
+    // ── Foto-Upload zu Bunny ──
+    async function onPhotoSelected(e) {
+        const file = e.target.files && e.target.files[0];
+        e.target.value = '';
+        if (!file) return;
+        if (photos.length >= 4) return;
+        if (!file.type.startsWith('image/')) { alert(OFFER_I18N.errImages); return; }
+
+        renderMedia(true); // Lade-Status
+        const form = new FormData();
+        form.append('file', file);
+        form.append('__RequestVerificationToken', getToken());
+        try {
+            const resp = await fetch('@Url.Action("UploadOfferImage", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
+            const data = await resp.json();
+            if (data.success && data.url) { photos.push(data.url); }
+            else { alert(data.error || OFFER_I18N.errUpload); }
+        } catch { alert(OFFER_I18N.errUpload); }
+        renderMedia();
+        updatePreview(); updateValidity();
+    }
+
+    function removePhoto(i) { photos.splice(i, 1); renderMedia(); updatePreview(); updateValidity(); }
+
+    function renderMedia(uploading) {
+        const drop = document.getElementById('dropZone');
+        const grid = document.getElementById('mediaGrid');
+        if (photos.length === 0 && !uploading) { drop.style.display = ''; grid.style.display = 'none'; grid.innerHTML = ''; return; }
+        drop.style.display = 'none';
+        grid.style.display = 'grid';
+        let html = '';
+        photos.forEach((url, i) => {
+            html += `<div class="c2-thumb ${i === 0 ? 'cover' : ''}" style="background-image:url('${url}')">
+                ${i === 0 ? '<span class="c2-cover-badge">' + OFFER_I18N.cover + '</span>' : ''}
+                <button type="button" class="c2-thumb-x" onclick="removePhoto(${i})"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg></button>
+            </div>`;
         });
-        updateSellButtonState();
+        if (uploading) html += `<div class="c2-thumb c2-add c2-uploading"><span class="spinner-border spinner-border-sm"></span></div>`;
+        else if (photos.length < 4) html += `<button type="button" class="c2-thumb c2-add" onclick="document.getElementById('photoInput').click()"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`;
+        grid.innerHTML = html;
+    }
+
+    // ── Typ ──
+    function selectType(type) {
+        selectedType = type;
+        document.querySelectorAll('.c2-type').forEach(b => b.classList.toggle('on', b.dataset.type === type));
+        document.querySelectorAll('[data-detail]').forEach(d => d.style.display = (d.dataset.detail === type) ? '' : 'none');
+        document.getElementById('previewType').textContent = TYPE_LABELS[type] || 'Angebot';
+        updateValidity();
+    }
+
+    function selectPlan(el, id) {
+        selectedPlanId = id;
+        document.querySelectorAll('.c2-plan').forEach(p => p.classList.toggle('sel', p === el));
+        document.querySelectorAll('.c2-plan').forEach(p => {
+            const has = p.querySelector('.c2-plan-check');
+            if (p === el && !has) { const s = document.createElement('span'); s.className = 'c2-plan-check'; s.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>'; p.appendChild(s); }
+            else if (p !== el && has) { has.remove(); }
+        });
+        updateValidity();
     }
 
     function onRecipeSelected() {
         const sel = document.getElementById('recipeSelect');
         selectedRecipeId = sel && sel.value ? parseInt(sel.value, 10) : null;
-        const titleInput = document.getElementById('listingTitle');
-        if (sel && sel.value && titleInput && !titleInput.value.trim()) {
-            titleInput.value = sel.options[sel.selectedIndex].text;
-        }
-        updateSellButtonState();
+        const t = document.getElementById('listingTitle');
+        if (sel && sel.value && !t.value.trim()) { t.value = sel.options[sel.selectedIndex].text; updatePreview(); }
+        updateValidity();
+    }
+
+    function toggleShipping() {
+        objShipping = !objShipping;
+        document.getElementById('objShippingBox').classList.toggle('on', objShipping);
+        document.getElementById('objShippingBox').innerHTML = objShipping ? '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>' : '';
+    }
+
+    // ── Preis / Vorschau / Validität ──
+    function onPriceInput() {
+        const el = document.getElementById('listingPrice');
+        el.value = el.value.replace(/[^0-9.]/g, '');
+        const p = parseFloat(el.value) || 0;
+        const split = document.getElementById('splitLine');
+        if (p > 0) { split.style.display = ''; split.innerHTML = OFFER_I18N.split.replace('{0}', `<b>${(p * 0.8).toFixed(2)} WLD</b>`); }
+        else { split.style.display = 'none'; }
+        updatePreview(); updateValidity();
+    }
+
+    function updatePreview() {
+        const title = document.getElementById('listingTitle').value.trim();
+        document.getElementById('previewTitle').textContent = title || 'Dein Angebotstitel';
+        const p = parseFloat(document.getElementById('listingPrice').value) || 0;
+        document.getElementById('previewPrice').textContent = p > 0 ? `${p} WLD` : '— WLD';
+        const media = document.getElementById('previewMedia');
+        const glyph = document.getElementById('previewGlyph');
+        if (photos.length) { media.style.backgroundImage = `url('${photos[0]}')`; if (glyph) glyph.style.display = 'none'; }
+        else { media.style.backgroundImage = ''; if (glyph) glyph.style.display = ''; }
     }
 
     function typeRequirementMet() {
-        switch (selectedType) {
-            case 'MealPlan': return !!selectedPlanId;
-            case 'SingleRecipe': return !!selectedRecipeId;
-            case 'DigitalProduct': return !!(document.getElementById('digitalUrl')?.value.trim());
-            case 'PhysicalObject': return !!(document.getElementById('objImageUrl')?.value.trim());
-            case 'Service': return true;
-            default: return false;
-        }
+        if (selectedType === 'MealPlan') return !!selectedPlanId;
+        if (selectedType === 'SingleRecipe') return !!selectedRecipeId;
+        if (selectedType === 'DigitalProduct') return !!document.getElementById('digitalUrl')?.value.trim();
+        return true;
     }
 
-    function getAntiForgeryToken() {
-        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
-    }
-
-    function shortWallet(address) {
-        if (!address || address.length < 10) return address || '';
-        return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    }
-
-    function updateSplitPreview() {
+    function isValid() {
+        const title = document.getElementById('listingTitle').value.trim();
         const price = parseFloat(document.getElementById('listingPrice').value) || 0;
-        const creatorAmount = (price * 0.8).toFixed(2);
-        const platformAmount = (price * 0.2).toFixed(2);
-        const el = document.getElementById('splitPreview');
-        if (el) {
-            el.innerHTML = `Du bekommst: <strong>${creatorAmount} WLD</strong> (80%) — Plattform: ${platformAmount} WLD (20%)`;
-        }
+        const walletOk = !!(sellerWalletAddress || sellerUsdtWalletAddress);
+        return walletOk && title && price >= 1 && price <= 1000 && photos.length > 0 && typeRequirementMet();
     }
 
-    function selectPlan(el, planId, planTitle) {
-        document.querySelectorAll('.plan-option').forEach(p => p.classList.remove('selected'));
-        el.classList.add('selected');
-        selectedPlanId = planId;
-
-        const titleInput = document.getElementById('listingTitle');
-        if (!titleInput.value.trim()) {
-            titleInput.value = planTitle;
-        }
-
-        updateSellButtonState();
+    function updateValidity() {
+        const btn = document.getElementById('shareBtn');
+        const ok = isValid();
+        btn.disabled = !ok;
+        btn.classList.toggle('off', !ok);
     }
 
-    function updateSellButtonState() {
-        const btn = document.getElementById('btnSell');
-        btn.disabled = !typeRequirementMet() || (!sellerWalletAddress && !sellerUsdtWalletAddress);
+    // ── Wallet ──
+    function shortWallet(a) { return (!a || a.length < 10) ? (a || '') : `${a.slice(0,6)}…${a.slice(-4)}`; }
+
+    function setWalletConnected(addr) {
+        sellerWalletAddress = addr;
+        const strip = document.getElementById('walletStrip');
+        strip.classList.add('on');
+        document.getElementById('walletSub').textContent = OFFER_I18N.connectedWith.replace('{0}', shortWallet(addr));
+        document.getElementById('walletState').textContent = OFFER_I18N.connected;
+        updateValidity();
     }
 
     async function connectSellerWallet() {
-        const btn = document.getElementById('connectSellerWalletBtn');
+        if (sellerWalletAddress) return;
         try {
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
-
             let address = '';
-
-            // 1. Versuch: EIP-1193 Provider (Desktop-Browser)
-            if (window.worldChainMarketplace?.connectWallet) {
-                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.();
-                if (ethereumProvider) {
-                    try {
-                        address = await window.worldChainMarketplace.connectWallet();
-                    } catch (e) {
-                        console.warn('EIP-1193 connectWallet fehlgeschlagen:', e.message);
-                    }
-                }
-            }
-
-            // 2. Fallback: MiniKit walletAuth (World App)
-            if (!address && window.connectWalletOnly) {
-                address = await window.connectWalletOnly();
-            }
-
-            if (!address) {
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
-                alert('Wallet-Verbindung fehlgeschlagen.');
-                return;
-            }
-
-            sellerWalletAddress = address;
-
-            // Wallet in Session speichern
-            const form = new FormData();
-            form.append('walletAddress', address);
-            form.append('token', 'WLD');
-            form.append('__RequestVerificationToken', getAntiForgeryToken());
-            await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', {
-                method: 'POST',
-                body: form
-            });
-
-            // UI aktualisieren
-            const statusEl = document.getElementById('sellerWalletStatus');
-            if (statusEl) {
-                statusEl.innerHTML = `<span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>${shortWallet(address)}</span>`;
-            }
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
-
-            // Balance abrufen und anzeigen
-            if (window.worldChainMarketplace?.getWalletBalances) {
-                try {
-                    const balances = await window.worldChainMarketplace.getWalletBalances(address);
-                    const balanceDiv = document.getElementById('sellerWalletBalance');
-                    const wldBalanceSpan = document.getElementById('wldBalance');
-
-                    if (balances.wld !== null && wldBalanceSpan && balanceDiv) {
-                        wldBalanceSpan.textContent = balances.wld;
-                        balanceDiv.style.display = 'block';
-                    }
-                } catch (e) {
-                    console.error('Balance-Abfrage fehlgeschlagen:', e);
-                }
-            }
-
-            updateSellButtonState();
-        } catch (error) {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
-            alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
-        }
-    }
-
-
-    async function connectSellerUsdtWallet() {
-        const btn = document.getElementById('connectSellerUsdtWalletBtn');
-        try {
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
-
-            let address = '';
-
-            if (window.worldChainMarketplace?.connectWallet) {
-                const ethereumProvider = window.worldChainMarketplace.getEthereumProvider?.();
-                if (ethereumProvider) {
-                    try {
-                        address = await window.worldChainMarketplace.connectWallet();
-                    } catch (e) {
-                        console.warn('EIP-1193 connectWallet fehlgeschlagen:', e.message);
-                    }
-                }
-            }
-
-            if (!address && window.connectWalletOnly) {
-                address = await window.connectWalletOnly();
-            }
-
-            if (!address) {
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
-                alert('USDT/USDC-Wallet-Verbindung fehlgeschlagen.');
-                return;
-            }
-
-            sellerUsdtWalletAddress = address;
+            const ethereumProvider = window.worldChainMarketplace?.getEthereumProvider?.();
+            if (ethereumProvider) { try { address = await window.worldChainMarketplace.connectWallet(); } catch {} }
+            if (!address && window.connectWalletOnly) address = await window.connectWalletOnly();
+            if (!address) { alert(OFFER_I18N.errWallet); return; }
 
             const form = new FormData();
-            form.append('walletAddress', address);
-            form.append('token', 'USDT');
-            form.append('__RequestVerificationToken', getAntiForgeryToken());
-            await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', {
-                method: 'POST',
-                body: form
-            });
-
-            const statusEl = document.getElementById('sellerUsdtWalletStatus');
-            if (statusEl) {
-                statusEl.innerHTML = `<span class="wallet-connected"><i class="bi bi-check-circle me-1"></i>${shortWallet(address)}</span>`;
-            }
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
-
-            updateSellButtonState();
-        } catch (error) {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
-            alert(error?.message || 'USDT/USDC-Wallet-Verbindung fehlgeschlagen.');
-        }
+            form.append('walletAddress', address); form.append('token', 'WLD'); form.append('__RequestVerificationToken', getToken());
+            await fetch('@Url.Action("SaveWalletAddress", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
+            setWalletConnected(address);
+        } catch (e) { alert(e?.message || OFFER_I18N.errWallet); }
     }
 
+    // ── Veröffentlichen ──
     async function createListing() {
-        if (!typeRequirementMet()) {
-            alert('Bitte vervollständige die Angaben für den gewählten Angebotstyp.');
-            return;
-        }
-
-        if (!sellerWalletAddress && !sellerUsdtWalletAddress) {
-            alert('Bitte verbinde zuerst mindestens eine Wallet (WLD oder USDT/USDC), damit du Zahlungen empfangen kannst.');
-            return;
-        }
-
+        if (!isValid()) { alert(OFFER_I18N.errFill); return; }
         const title = document.getElementById('listingTitle').value.trim();
         const description = document.getElementById('listingDescription').value.trim();
         const price = parseFloat(document.getElementById('listingPrice').value) || 0;
-
-        if (!title) { alert('Bitte gib einen Titel ein.'); return; }
-        if (price < 1 || price > 1000) { alert('Preis muss zwischen 1 und 1000 WLD liegen.'); return; }
 
         const form = new FormData();
         form.append('ListingType', selectedType);
@@ -549,84 +480,34 @@
         form.append('Price', price);
         form.append('SellerWalletAddress', sellerWalletAddress);
         form.append('SellerUsdtWalletAddress', sellerUsdtWalletAddress);
+        form.append('CoverImageUrl', photos[0] || '');
+        form.append('ImagesJson', JSON.stringify(photos));
 
-        if (selectedType === 'MealPlan') {
-            form.append('MealPlanId', selectedPlanId);
-        } else if (selectedType === 'SingleRecipe') {
-            form.append('RecipeId', selectedRecipeId);
-        } else if (selectedType === 'DigitalProduct') {
-            form.append('DigitalFileUrl', document.getElementById('digitalUrl').value.trim());
-            form.append('CoverImageUrl', document.getElementById('digitalCover').value.trim());
-        } else if (selectedType === 'PhysicalObject') {
-            form.append('CoverImageUrl', document.getElementById('objImageUrl').value.trim());
+        if (selectedType === 'MealPlan') form.append('MealPlanId', selectedPlanId);
+        else if (selectedType === 'SingleRecipe') form.append('RecipeId', selectedRecipeId);
+        else if (selectedType === 'DigitalProduct') form.append('DigitalFileUrl', document.getElementById('digitalUrl').value.trim());
+        else if (selectedType === 'PhysicalObject') {
             const stock = document.getElementById('objStock').value.trim();
             if (stock !== '') form.append('StockQuantity', stock);
-            form.append('RequiresShipping', document.getElementById('objShipping').checked ? 'true' : 'false');
-        } else if (selectedType === 'Service') {
-            form.append('CoverImageUrl', document.getElementById('serviceCover').value.trim());
+            form.append('RequiresShipping', objShipping ? 'true' : 'false');
         }
+        form.append('__RequestVerificationToken', getToken());
 
-        form.append('__RequestVerificationToken', getAntiForgeryToken());
-
-        const btn = document.getElementById('btnSell');
-        btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Wird erstellt...';
-
+        const btn = document.getElementById('shareBtn');
+        btn.disabled = true; btn.textContent = OFFER_I18N.sharing;
         try {
-            const resp = await fetch('@Url.Action("CreateListing", "Marketplace", new { area = "WorldMiniApp" })', {
-                method: 'POST',
-                body: form
-            });
+            const resp = await fetch('@Url.Action("CreateListing", "Marketplace", new { area = "WorldMiniApp" })', { method: 'POST', body: form });
             const data = await resp.json();
-            if (data.success) {
-                alert('Angebot erstellt! Bei jedem Kauf bekommst du 80% direkt auf deine Wallet.');
-                window.location.href = '@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })';
-            } else {
-                alert(data.error || 'Fehler beim Erstellen.');
-                btn.disabled = false;
-                btn.innerHTML = '<i class="bi bi-tag me-2"></i>Jetzt verkaufen';
-            }
-        } catch {
-            alert('Netzwerkfehler.');
-            btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-tag me-2"></i>Jetzt verkaufen';
-        }
+            if (data.success) { window.location.href = '@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })'; }
+            else { alert(data.error || OFFER_I18N.errGeneric); btn.disabled = false; btn.textContent = OFFER_I18N.share; updateValidity(); }
+        } catch { alert(OFFER_I18N.errGeneric); btn.disabled = false; btn.textContent = OFFER_I18N.share; updateValidity(); }
     }
 
-    // Init
-    document.addEventListener('DOMContentLoaded', async () => {
-        updateSplitPreview();
-
-        // Falls Wallet schon verbunden, Button-State setzen UND Balance abrufen
-        if (sellerWalletAddress) {
-            const btn = document.getElementById('connectSellerWalletBtn');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
-
-            // Balance abrufen
-            if (window.worldChainMarketplace?.getWalletBalances) {
-                try {
-                    const balances = await window.worldChainMarketplace.getWalletBalances(sellerWalletAddress);
-                    const balanceDiv = document.getElementById('sellerWalletBalance');
-                    const wldBalanceSpan = document.getElementById('wldBalance');
-
-                    if (balances.wld !== null && wldBalanceSpan && balanceDiv) {
-                        wldBalanceSpan.textContent = balances.wld;
-                        balanceDiv.style.display = 'block';
-                    }
-                } catch (e) {
-                    console.error('Balance-Abfrage fehlgeschlagen:', e);
-                }
-            }
-        }
-
-        if (sellerUsdtWalletAddress) {
-            const btnUsdt = document.getElementById('connectSellerUsdtWalletBtn');
-            if (btnUsdt) { btnUsdt.disabled = true; btnUsdt.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btnUsdt.classList.replace('btn-outline-light', 'btn-success'); }
-        }
-
-        updateSellButtonState();
+    document.addEventListener('DOMContentLoaded', () => {
+        selectType('PhysicalObject');
+        if (sellerWalletAddress) setWalletConnected(sellerWalletAddress);
+        updatePreview(); updateValidity();
     });
 </script>
 @Html.AntiForgeryToken()
 }
-

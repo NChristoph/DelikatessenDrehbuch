@@ -1,7 +1,9 @@
 @model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.UserDashboardViewModel
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
     Layout = "_MiniAppLayout";
-    ViewData["Title"] = "Creator Dashboard";
+    ViewData["Title"] = SharedLocalizer["MyProfile.CreatorDashboard"].Value;
 
     var fullUserHash = Model.UserHash ?? string.Empty;
     var shortUserHash = fullUserHash;
@@ -20,16 +22,16 @@
         <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
             <div>
                 <p class="dashboard-eyebrow mb-1">Premium Creator Area</p>
-                <h1 class="dashboard-title mb-2">Creator Dashboard</h1>
+                <h1 class="dashboard-title mb-2">@SharedLocalizer["MyProfile.CreatorDashboard"]</h1>
                 @if (Model.IsLoggedInWithWorldMiniApp)
                 {
                     <div class="creator-hash-wrap" aria-live="polite">
                         <span class="creator-hash-label">User Hash</span>
                         <code id="userHashText" class="creator-hash" data-full-hash="@fullUserHash">@shortUserHash</code>
                         <button type="button" id="copyHashBtn" class="btn btn-sm creator-btn-outline" data-copy-text="@fullUserHash">
-                            <i class="bi bi-copy me-1"></i>Kopieren
+                            <i class="bi bi-copy me-1"></i>@SharedLocalizer["SharedFeed.Copy"]
                         </button>
-                        <span id="copyToast" class="copy-toast" role="status">Kopiert</span>
+                        <span id="copyToast" class="copy-toast" role="status">@SharedLocalizer["Dashboard.Copied"]</span>
                     </div>
                 }
             </div>
@@ -41,7 +43,7 @@
         @if (!Model.IsLoggedInWithWorldMiniApp)
         {
             <div class="alert alert-warning shadow-sm">
-                Bitte zuerst in der World Mini App einloggen, damit dein Dashboard geladen werden kann.
+                @SharedLocalizer["Dashboard.LoginRequired"]
             </div>
         }
         else
@@ -50,21 +52,21 @@
                 <div class="hero-bg-glow"></div>
                 <div class="hero-main d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-end gap-3">
                     <div>
-                        <p class="metric-label mb-1">Verfügbar</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.Available"]</p>
                         <div class="hero-value">@Model.OpenWldAmount.ToString("0.######") <span>WLD</span></div>
                     </div>
                     <button type="button" class="btn creator-btn-primary btn-lg">
-                        <i class="bi bi-cash-coin me-2"></i>Geld anfordern
+                        <i class="bi bi-cash-coin me-2"></i>@SharedLocalizer["Dashboard.RequestMoney"]
                     </button>
                 </div>
 
                 <div class="hero-sub-grid mt-4">
                     <div class="hero-sub-card">
-                        <p class="metric-label mb-1">USDC/USDT offen</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.UsdcOpen"]</p>
                         <p class="metric-value mb-0">@Model.OpenUsdcAmount.ToString("0.######") USDC</p>
                     </div>
                     <div class="hero-sub-card">
-                        <p class="metric-label mb-1">Insgesamt erhalten</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.TotalReceived"]</p>
                         <p class="metric-value mb-0">@Model.TotalCreatorRevenue.ToString("0.######") WLD</p>
                     </div>
                 </div>
@@ -74,28 +76,28 @@
                 <div class="stats-grid">
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-bag-check-fill"></i></div>
-                        <p class="metric-label mb-1">Verkäufe</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.Sales"]</p>
                         <p class="stat-value mb-0">@Model.SoldMealPlanCount</p>
                     </article>
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-lightning-charge-fill"></i></div>
-                        <p class="metric-label mb-1">Verfügbar</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.Available"]</p>
                         <p class="stat-value mb-0">@Model.OpenWldAmount.ToString("0.######") <span>WLD</span></p>
                     </article>
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-hourglass-split"></i></div>
-                        <p class="metric-label mb-1">Ausstehend</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.Pending"]</p>
                         <p class="stat-value mb-0">@Model.OpenUsdcAmount.ToString("0.######") <span>USDC</span></p>
                     </article>
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-patch-check-fill"></i></div>
-                        <p class="metric-label mb-1">Bereits erhalten</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.AlreadyReceived"]</p>
                         <p class="stat-value mb-0">@Model.TotalCreatorRevenue.ToString("0.######") <span>WLD</span></p>
                     </article>
                 </div>
                 <div class="mt-3">
                     <a href="@Url.Action("Payout", "Marketplace", new { area = "WorldMiniApp" })" class="btn btn-dark rounded-pill">
-                        <i class="bi bi-cash-coin me-1"></i> Guthaben auszahlen
+                        <i class="bi bi-cash-coin me-1"></i> @SharedLocalizer["Dashboard.PayoutBalance"]
                     </a>
                 </div>
             </section>
@@ -104,40 +106,40 @@
             <section class="content-card mb-4" aria-label="Watch Analytics">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h2 class="section-title mb-0">Watch Analytics</h2>
-                    <span class="section-meta">Nur qualifizierte Views ab 8 Sekunden</span>
+                    <span class="section-meta">@SharedLocalizer["Dashboard.QualifiedViewsHint"]</span>
                 </div>
 
                 <div class="stats-grid mb-4">
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-play-btn-fill"></i></div>
-                        <p class="metric-label mb-1">Qualifizierte Views</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.QualifiedViews"]</p>
                         <p class="stat-value mb-0">@Model.WatchAnalytics.QualifiedViewCount</p>
                     </article>
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-people-fill"></i></div>
-                        <p class="metric-label mb-1">Echte Viewer</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.RealViewers"]</p>
                         <p class="stat-value mb-0">@Model.WatchAnalytics.UniqueQualifiedViewerCount</p>
                     </article>
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-clock-history"></i></div>
-                        <p class="metric-label mb-1">Watch-Minuten</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.WatchMinutes"]</p>
                         <p class="stat-value mb-0">@Model.WatchAnalytics.TotalQualifiedWatchMinutes.ToString("0.##")</p>
                     </article>
                     <article class="stat-card">
                         <div class="stat-icon"><i class="bi bi-stopwatch-fill"></i></div>
-                        <p class="metric-label mb-1">Ø Watch-Sekunden</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.AvgWatchSeconds"]</p>
                         <p class="stat-value mb-0">@Model.WatchAnalytics.AverageQualifiedWatchSeconds.ToString("0.##")</p>
                     </article>
                 </div>
 
                 <div class="hero-sub-grid mt-0 mb-4">
                     <div class="hero-sub-card">
-                        <p class="metric-label mb-1">Von dir angesehen</p>
-                        <p class="metric-value mb-0">@Model.WatchAnalytics.ViewerQualifiedClipCount Clips</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.ViewedByYou"]</p>
+                        <p class="metric-value mb-0">@SharedLocalizer["Dashboard.ClipsCount", Model.WatchAnalytics.ViewerQualifiedClipCount]</p>
                     </div>
                     <div class="hero-sub-card">
-                        <p class="metric-label mb-1">Deine Watch-Time</p>
-                        <p class="metric-value mb-0">@Model.WatchAnalytics.ViewerQualifiedWatchMinutes.ToString("0.##") Minuten</p>
+                        <p class="metric-label mb-1">@SharedLocalizer["Dashboard.YourWatchTime"]</p>
+                        <p class="metric-value mb-0">@SharedLocalizer["Dashboard.MinutesCount", Model.WatchAnalytics.ViewerQualifiedWatchMinutes.ToString("0.##")]</p>
                     </div>
                 </div>
 
@@ -145,8 +147,8 @@
                 {
                     <div class="empty-state">
                         <i class="bi bi-bar-chart-line"></i>
-                        <p class="mb-1">Noch keine qualifizierten Watch-Daten</p>
-                        <small>Ein Clip zählt erst, wenn er mindestens 8 Sekunden aktiv angesehen wurde.</small>
+                        <p class="mb-1">@SharedLocalizer["Dashboard.NoWatchData"]</p>
+                        <small>@SharedLocalizer["Dashboard.NoWatchDataHint"]</small>
                     </div>
                 }
                 else
@@ -159,7 +161,7 @@
                                     <div class="activity-status neutral" aria-hidden="true"><i class="bi bi-camera-reels-fill"></i></div>
                                     <div class="flex-grow-1">
                                         <h3 class="activity-title mb-1">@clip.RecipeTitle</h3>
-                                        <p class="activity-amount mb-0">@clip.QualifiedViews Views &middot; @clip.TotalWatchMinutes.ToString("0.##") Minuten</p>
+                                        <p class="activity-amount mb-0">@SharedLocalizer["Dashboard.ViewsCount", clip.QualifiedViews] &middot; @SharedLocalizer["Dashboard.MinutesCount", clip.TotalWatchMinutes.ToString("0.##")]</p>
                                     </div>
                                     <div class="text-end">
                                         <div class="activity-time">Ø @clip.AverageWatchSeconds.ToString("0.##")s</div>
@@ -173,15 +175,15 @@
             <section class="content-card mb-4" aria-label="Sales Activity Feed">
                 <div class="d-flex align-items-center justify-content-between mb-3">
                     <h2 class="section-title mb-0">Sales Activity</h2>
-                    <span class="section-meta">@Model.SalesHistory.Count Einträge</span>
+                    <span class="section-meta">@SharedLocalizer["Dashboard.EntriesCount", Model.SalesHistory.Count]</span>
                 </div>
 
                 @if (!Model.SalesHistory.Any())
                 {
                     <div class="empty-state">
                         <i class="bi bi-activity"></i>
-                        <p class="mb-1">Noch keine Verkäufe</p>
-                        <small>Deine Verkäufe erscheinen hier automatisch, sobald ein Listing gekauft wurde.</small>
+                        <p class="mb-1">@SharedLocalizer["Dashboard.NoSales"]</p>
+                        <small>@SharedLocalizer["Dashboard.NoSalesHint"]</small>
                     </div>
                 }
                 else
@@ -193,7 +195,7 @@
                                 <div class="activity-head">
                                     <div class="activity-status" aria-hidden="true"><i class="bi bi-check-circle-fill"></i></div>
                                     <div class="flex-grow-1">
-                                        <h3 class="activity-title mb-1">@(sale.Listing?.Title ?? $"Listing #{sale.ListingId}")</h3>
+                                        <h3 class="activity-title mb-1">@(sale.Listing?.Title ?? SharedLocalizer["Dashboard.ListingFallback", sale.ListingId].Value)</h3>
                                         <p class="activity-amount mb-0">+@sale.CreatorAmount.ToString("0.######") @sale.PaymentToken</p>
                                     </div>
                                     <time class="activity-time" datetime="@sale.PurchasedAt.ToString("o")">@sale.PurchasedAt.ToString("dd.MM.yyyy HH:mm")</time>
@@ -202,8 +204,8 @@
                                     <summary>Details <i class="bi bi-chevron-down"></i></summary>
                                     <div class="activity-details-grid">
                                         <div><span>Token</span><strong>@sale.PaymentToken</strong></div>
-                                        <div><span>Preis</span><strong>@sale.PricePaid.ToString("0.######")</strong></div>
-                                        <div><span>Creator Anteil</span><strong>@sale.CreatorAmount.ToString("0.######")</strong></div>
+                                        <div><span>@SharedLocalizer["Offer.Price"]</span><strong>@sale.PricePaid.ToString("0.######")</strong></div>
+                                        <div><span>@SharedLocalizer["Dashboard.CreatorShare"]</span><strong>@sale.CreatorAmount.ToString("0.######")</strong></div>
                                     </div>
                                 </details>
                             </article>
@@ -214,7 +216,7 @@
 
             <div class="quick-actions-bar">
                 <button type="button" class="btn creator-btn-primary flex-grow-1">
-                    <i class="bi bi-cash-coin me-2"></i>Geld anfordern
+                    <i class="bi bi-cash-coin me-2"></i>@SharedLocalizer["Dashboard.RequestMoney"]
                 </button>
                 <a class="btn creator-btn-secondary" href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })">
                     <i class="bi bi-shop-window me-2"></i>Listings
@@ -260,11 +262,11 @@
                         toast.classList.remove('show');
                     }, 1400);
                 } catch {
-                    toast.textContent = 'Fehler';
+                    toast.textContent = '@SharedLocalizer["Dashboard.Error"]';
                     toast.classList.add('show');
                     window.setTimeout(function () {
                         toast.classList.remove('show');
-                        toast.textContent = 'Kopiert';
+                        toast.textContent = '@SharedLocalizer["Dashboard.Copied"]';
                     }, 1400);
                 }
             });

@@ -6,6 +6,7 @@ using DelikatessenDrehbuch.Models;
 using DelikatessenDrehbuch.Services;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Extensions;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Localization;
 using System.Globalization;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
@@ -24,6 +25,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         // Logger ergänzt, damit Fehlerdetails serverseitig protokolliert werden,
         // statt sie (wie zuvor) per ex.Message an den Client zu leaken.
         private readonly ILogger<RecipeSwapController> _logger;
+        private readonly IStringLocalizer<DelikatessenDrehbuch.SharedResources> _localizer;
 
         // --- Rate-Limits für teure KI-Aufrufe (pro User, Sliding-Window via MemoryCache) ---
         // Schützt vor Kosten-/DoS-Missbrauch durch wiederholte LLM-Calls. Greift NUR vor
@@ -40,7 +42,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             IRecipeSwapStepAiService stepAiService,
             IRecipeVariantSummaryAiService variantSummaryAiService,
             IMemoryCache cache,
-            ILogger<RecipeSwapController> logger)
+            ILogger<RecipeSwapController> logger,
+            IStringLocalizer<DelikatessenDrehbuch.SharedResources> localizer)
         {
             _context = context;
             _aiService = aiService;
@@ -48,6 +51,27 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _variantSummaryAiService = variantSummaryAiService;
             _cache = cache;
             _logger = logger;
+            _localizer = localizer;
+        }
+
+        // Löst einen resx-Key für eine EXPLIZITE Sprache auf (nicht die Thread-Kultur),
+        // damit die Community-Optionen dieselbe Sprache wie die KI-Vorschläge (request.Language) nutzen.
+        private string LocalizeForLanguage(string key, string language)
+        {
+            var previous = CultureInfo.CurrentUICulture;
+            try
+            {
+                CultureInfo.CurrentUICulture = new CultureInfo(string.IsNullOrWhiteSpace(language) ? "de" : language);
+                return _localizer[key].Value;
+            }
+            catch (CultureNotFoundException)
+            {
+                return _localizer[key].Value;
+            }
+            finally
+            {
+                CultureInfo.CurrentUICulture = previous;
+            }
         }
 
         [HttpPost("publish")]
@@ -671,6 +695,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                         .Where(i => communityPick.Contains(i.Id))
                         .ToListAsync();
 
+                    // Community-Texte in der angeforderten Sprache (konsistent mit den KI-Vorschlägen).
+                    var communityReason = LocalizeForLanguage("Swap.CommunityReason", normalizedLanguage);
+                    var communityPreparation = LocalizeForLanguage("Swap.CommunityPreparation", normalizedLanguage);
+                    var communityTaste = LocalizeForLanguage("Swap.CommunityTaste", normalizedLanguage);
+                    var communityTested = LocalizeForLanguage("Swap.CommunityTested", normalizedLanguage);
+
                     foreach (var ing in communityIngredients)
                     {
                         var calDelta = (ing.Calories_a_100g - original.Calories_a_100g) * (qtyInGrams / 100m);
@@ -684,7 +714,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                             Name = GetIngredientName(ing, normalizedLanguage),
                             Quantity = actualQuantity,
                             Unit = actualUnit,
-                            Reason = "Beliebte Community-Variante.",
+                            Reason = communityReason,
                             CompatibilityScore = 0.88,
                             Delta = new NutritionDelta
                             {
@@ -693,9 +723,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                                 CarbsDelta = Math.Round(cDelta, 1),
                                 FatDelta = Math.Round(fDelta, 1)
                             },
-                            PreparationChange = "Wie gewohnt zubereiten (ggf. Garzeit prüfen).",
-                            TasteImpact = "Ähnliches Profil, je nach Zutat leicht verändert.",
-                            Pros = new List<string> { "Community-getestet" },
+                            PreparationChange = communityPreparation,
+                            TasteImpact = communityTaste,
+                            Pros = new List<string> { communityTested },
                             Cons = new List<string>(),
                             CostPerKg = null
                         });

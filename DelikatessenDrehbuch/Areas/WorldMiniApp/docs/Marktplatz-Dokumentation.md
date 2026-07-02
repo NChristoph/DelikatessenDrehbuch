@@ -248,6 +248,7 @@ Alle unter `/WorldMiniApp/Marketplace/…`, Controller `MarketplaceController`.
 | GET | `Sell` | Verkaufs-Formular (verkaufbare Pläne) |
 | POST | `SaveWalletAddress(walletAddress, token)` | Wallet pro Token in Session speichern |
 | GET | `GetWalletAddress(token)` | Wallet aus Session lesen |
+| POST | `UploadOfferImage(file)` | Angebots-Foto zu Bunny.net hochladen → CDN-URL (für CoverImageUrl/ImagesJson) |
 | POST | `CreateListing(CreateListingRequest)` | Angebot erstellen (typ-übergreifend: `ListingType` + typ-spezifische Felder) |
 | POST | `DeactivateListing(listingId)` | Angebot deaktivieren (Owner) |
 | POST | `ActivateListing(listingId)` | Angebot aktivieren (Owner) |
@@ -349,7 +350,7 @@ serverseitige Zahlungsverifizierung (Modell B). Bilder/Dateien werden in Phase 1
 - Übrige Typen: wie bisher (`location.reload`).
 
 Das Erstellungs-Formular (`Views/Marketplace/Sell.cshtml`) zeigt eine **Typ-Auswahl** und blendet die
-typ-spezifischen Felder dynamisch ein (Plan-Liste / Rezept-Dropdown / Bild-URL+Bestand+Versand /
+typ-spezifischen Felder dynamisch ein (Plan-Liste / Rezept-Dropdown / Foto-Upload+Bestand+Versand /
 Download-URL / nur Beschreibung).
 
 ### 14.3 `DownloadDigitalProduct(int listingId)` (GET)
@@ -384,7 +385,11 @@ Der `SlotIndex` ist nur UI-Struktur — gespeichert wird wie gehabt pro Tag (`Da
 - **Bestand bei Objekt**: Da on-chain *vor* dem Finalize bezahlt wird, kann bei limitierter Stückzahl
   theoretisch übers Limit verkauft werden (Race). Aktuell wird `StockQuantity` nur auf 0 geclamped und
   der Verkäufer benachrichtigt; manuelle Abwicklung/Erstattung. Bei Bedarf: Reservierung vor Zahlung.
-- **Medien**: nur per URL (kein Foto-Upload). Direkter Upload = möglicher Folgeschritt.
+- **Medien**: Fotos werden direkt zu **Bunny.net** hochgeladen (CDN/Caching) statt externer Links.
+  `POST Marketplace/UploadOfferImage` (IFormFile → `IBlobUploadService.UploadContentToBlob`, WEBP) liefert die
+  CDN-URL; das erste Foto ist das `CoverImageUrl`, alle Fotos landen in `ImagesJson`. Die „Angebot erstellen"-
+  Seite (`Sell.cshtml`) ist im **Social-Composer-Stil** umgesetzt (Handoff `Areas/Vorlagen/design_handoff_create_offer`):
+  Bild-zuerst, Typ-Pills, Titel/Beschreibung, Preis+Split, Wallet-Strip, Live-Vorschau, „Teilen" oben (aktiv erst wenn gültig).
 - **Dienstleistung**: keine Termin-/Buchungslogik — nur Notification an den Verkäufer.
 
 ---

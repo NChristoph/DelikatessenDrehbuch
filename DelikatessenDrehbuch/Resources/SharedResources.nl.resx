@@ -1225,4 +1225,215 @@
   <data name="Notify.Open" xml:space="preserve">
     <value>Openen</value>
   </data>
+  <data name="SharedFeed.PostPlaceholder" xml:space="preserve">
+    <value>Schrijf iets voor de groep…</value>
+  </data>
+  <data name="SharedFeed.Post" xml:space="preserve">
+    <value>Plaatsen</value>
+  </data>
+  <data name="SharedFeed.TabPrivate" xml:space="preserve">
+    <value>Privé</value>
+  </data>
+  <data name="SharedFeed.PrivatePickMember" xml:space="preserve">
+    <value>Kies een lid om privé te berichten</value>
+  </data>
+  <data name="SharedFeed.PrivatePlaceholder" xml:space="preserve">
+    <value>Privébericht…</value>
+  </data>
+  <data name="SharedFeed.PrivateNoMembers" xml:space="preserve">
+    <value>Nog geen andere leden.</value>
+  </data>
+  <data name="Offer.Title" xml:space="preserve"><value>Nieuw aanbod</value></data>
+  <data name="Offer.Close" xml:space="preserve"><value>Sluiten</value></data>
+  <data name="Offer.Share" xml:space="preserve"><value>Delen</value></data>
+  <data name="Offer.Sharing" xml:space="preserve"><value>Delen…</value></data>
+  <data name="Offer.AddPhotos" xml:space="preserve"><value>Foto's toevoegen</value></data>
+  <data name="Offer.AddPhotosSub" xml:space="preserve"><value>Laat je aanbod op zijn best zien</value></data>
+  <data name="Offer.WhatOffer" xml:space="preserve"><value>Wat wil je aanbieden?</value></data>
+  <data name="Offer.TypeMealPlan" xml:space="preserve"><value>Maaltijdplan</value></data>
+  <data name="Offer.TypeRecipe" xml:space="preserve"><value>Recept</value></data>
+  <data name="Offer.TypeObject" xml:space="preserve"><value>Object</value></data>
+  <data name="Offer.TypeDigital" xml:space="preserve"><value>Digitaal</value></data>
+  <data name="Offer.TypeService" xml:space="preserve"><value>Dienst</value></data>
+  <data name="Offer.WhichPlan" xml:space="preserve"><value>Welk plan wil je aanbieden?</value></data>
+  <data name="Offer.NoPlans" xml:space="preserve"><value>Je hebt nog geen verkoopbare plannen.</value></data>
+  <data name="Offer.Created" xml:space="preserve"><value>Gemaakt:</value></data>
+  <data name="Offer.WhichRecipe" xml:space="preserve"><value>Welk recept wil je aanbieden?</value></data>
+  <data name="Offer.PickRecipe" xml:space="preserve"><value>– Recept kiezen –</value></data>
+  <data name="Offer.NoRecipes" xml:space="preserve"><value>Je hebt nog geen eigen recepten.</value></data>
+  <data name="Offer.ProductDetails" xml:space="preserve"><value>Productdetails</value></data>
+  <data name="Offer.StockPlaceholder" xml:space="preserve"><value>Voorraad (leeg = onbeperkt)</value></data>
+  <data name="Offer.ShippingNeeded" xml:space="preserve"><value>Verzending nodig</value></data>
+  <data name="Offer.ShippingHint" xml:space="preserve"><value>Bij verzending vragen we het adres bij aankoop.</value></data>
+  <data name="Offer.DigitalTitle" xml:space="preserve"><value>Digitaal product</value></data>
+  <data name="Offer.DigitalUrlPlaceholder" xml:space="preserve"><value>Download-/bestands-URL (https://…)</value></data>
+  <data name="Offer.DigitalHint" xml:space="preserve"><value>De downloadlink wordt pas na aankoop vrijgegeven.</value></data>
+  <data name="Offer.ServiceTitle" xml:space="preserve"><value>Dienst</value></data>
+  <data name="Offer.ServiceAvailPlaceholder" xml:space="preserve"><value>Beschikbaarheid / locatie (optioneel)</value></data>
+  <data name="Offer.ServiceHint" xml:space="preserve"><value>Na aankoop krijg je bericht om contact op te nemen.</value></data>
+  <data name="Offer.TitlePlaceholder" xml:space="preserve"><value>Titel van je aanbod</value></data>
+  <data name="Offer.CaptionPlaceholder" xml:space="preserve"><value>Schrijf een beschrijving… Wat maakt je aanbod bijzonder?</value></data>
+  <data name="Offer.Price" xml:space="preserve"><value>Prijs</value></data>
+  <data name="Offer.WalletTitle" xml:space="preserve"><value>Uitbetaalwallet (WLD)</value></data>
+  <data name="Offer.WalletConnect" xml:space="preserve"><value>Verbinden</value></data>
+  <data name="Offer.WalletConnectHint" xml:space="preserve"><value>Tik om te verbinden</value></data>
+  <data name="Offer.WalletConnected" xml:space="preserve"><value>Verbonden</value></data>
+  <data name="Offer.PreviewHead" xml:space="preserve"><value>Voorbeeld</value></data>
+  <data name="Offer.PreviewHint" xml:space="preserve"><value>Zo ziet je aanbod eruit in de feed</value></data>
+  <data name="Offer.You" xml:space="preserve"><value>Jij</value></data>
+  <data name="Offer.PreviewTitleFallback" xml:space="preserve"><value>Jouw aanbodtitel</value></data>
+  <data name="Offer.Buy" xml:space="preserve"><value>Kopen</value></data>
+  <data name="Offer.SplitInfo" xml:space="preserve"><value>Jij krijgt {0} · 20% platformkosten</value></data>
+  <data name="Offer.ConnectedWith" xml:space="preserve"><value>Verbonden · {0}</value></data>
+  <data name="Offer.Cover" xml:space="preserve"><value>Omslag</value></data>
+  <data name="Offer.ErrFillRequired" xml:space="preserve"><value>Vul alle verplichte velden in (foto, type, titel, prijs, wallet).</value></data>
+  <data name="Offer.ErrUpload" xml:space="preserve"><value>Uploaden mislukt.</value></data>
+  <data name="Offer.ErrImagesOnly" xml:space="preserve"><value>Alleen afbeeldingen.</value></data>
+  <data name="Offer.ErrWallet" xml:space="preserve"><value>Wallet-verbinding mislukt.</value></data>
+  <data name="Offer.ErrGeneric" xml:space="preserve"><value>Er ging iets mis. Probeer opnieuw.</value></data>
+  <data name="SharedFeed.Copy" xml:space="preserve"><value>Kopiëren</value></data>
+  <data name="SharedFeed.RoleAdmin" xml:space="preserve"><value>ADMIN</value></data>
+  <data name="SharedFeed.MemberSince" xml:space="preserve"><value>Lid</value></data>
+  <data name="SharedFeed.DeleteGroup" xml:space="preserve"><value>Groep verwijderen</value></data>
+  <data name="SharedFeed.LeaveGroup" xml:space="preserve"><value>Groep verlaten</value></data>
+  <data name="SharedFeed.DeleteGroupConfirm" xml:space="preserve"><value>⚠️ Wil je deze groep echt VERWIJDEREN? Alle inhoud, berichten en leden worden verwijderd. Dit kan niet ongedaan worden gemaakt.</value></data>
+  <data name="SharedFeed.LeaveGroupConfirm" xml:space="preserve"><value>Wil je deze groep echt verlaten?</value></data>
+  <data name="SharedFeed.DeleteTodoConfirm" xml:space="preserve"><value>Deze taak echt verwijderen?</value></data>
+  <data name="Feed.ShareRecipe" xml:space="preserve"><value>Recept delen</value></data>
+  <data name="Feed.ShareViaLink" xml:space="preserve"><value>Link delen</value></data>
+  <data name="Feed.ShareViaLinkDesc" xml:space="preserve"><value>Via Messenger, WhatsApp, enz.</value></data>
+  <data name="Feed.ShareToGroup" xml:space="preserve"><value>In groep delen</value></data>
+  <data name="Feed.ShareToGroupDesc" xml:space="preserve"><value>Deel met je groepen</value></data>
+  <data name="Feed.ShareUnavailable" xml:space="preserve"><value>Delen is momenteel niet beschikbaar.</value></data>
+  <data name="Feed.ShareLoadingGroups" xml:space="preserve"><value>Groepen laden...</value></data>
+  <data name="Feed.ShareNoGroups" xml:space="preserve"><value>Je zit nog in geen enkele groep. Maak eerst een groep aan!</value></data>
+  <data name="Feed.ShareContents" xml:space="preserve"><value>items</value></data>
+  <data name="Feed.ShareGroupsError" xml:space="preserve"><value>Kan groepen niet laden.</value></data>
+  <data name="Feed.ShareConfirm" xml:space="preserve"><value>"{0}" delen in groep "{1}"?</value></data>
+  <data name="Feed.ShareSuccess" xml:space="preserve"><value>Gedeeld in "{0}"!</value></data>
+  <data name="Feed.ShareError" xml:space="preserve"><value>Fout bij het delen</value></data>
+  <data name="Feed.ShareLinkPrompt" xml:space="preserve"><value>Link delen:</value></data>
+  <data name="Card.Save" xml:space="preserve"><value>Bewaren</value></data>
+  <data name="Card.Recipes" xml:space="preserve"><value>Recepten</value></data>
+  <data name="Card.KcalPerDay" xml:space="preserve"><value>kcal/dag</value></data>
+  <data name="Card.Type" xml:space="preserve"><value>Type</value></data>
+  <data name="Card.OnStockLabel" xml:space="preserve"><value>op voorraad</value></data>
+  <data name="Card.OnStock" xml:space="preserve"><value>Op voorraad</value></data>
+  <data name="Card.OnStockCount" xml:space="preserve"><value>{0} op voorraad</value></data>
+  <data name="Card.InstantDownload" xml:space="preserve"><value>Direct downloaden</value></data>
+  <data name="Card.SingleRecipe" xml:space="preserve"><value>Los recept</value></data>
+  <data name="Card.Service" xml:space="preserve"><value>Dienst</value></data>
+  <data name="Card.Days" xml:space="preserve"><value>{0} dagen</value></data>
+  <data name="Card.Sold" xml:space="preserve"><value>{0} verk.</value></data>
+  <data name="Card.DishesInPlan" xml:space="preserve"><value>Gerechten in het plan</value></data>
+  <data name="Card.MacrosNutrition" xml:space="preserve"><value>Macro's &amp; voeding</value></data>
+  <data name="Card.PerDay" xml:space="preserve"><value>Per dag</value></data>
+  <data name="Card.RecipesCount" xml:space="preserve"><value>{0} recepten</value></data>
+  <data name="Card.Preview" xml:space="preserve"><value>Voorbeeld</value></data>
+  <data name="Card.PreviewFor" xml:space="preserve"><value>Voorbeeld van {0}</value></data>
+  <data name="Card.PlanningNow" xml:space="preserve"><value>plannen nu</value></data>
+  <data name="Dashboard.Copied" xml:space="preserve"><value>Gekopieerd</value></data>
+  <data name="Dashboard.Error" xml:space="preserve"><value>Fout</value></data>
+  <data name="Dashboard.LoginRequired" xml:space="preserve"><value>Log eerst in bij de World Mini App zodat je dashboard kan laden.</value></data>
+  <data name="Dashboard.Available" xml:space="preserve"><value>Beschikbaar</value></data>
+  <data name="Dashboard.RequestMoney" xml:space="preserve"><value>Geld aanvragen</value></data>
+  <data name="Dashboard.UsdcOpen" xml:space="preserve"><value>USDC/USDT open</value></data>
+  <data name="Dashboard.TotalReceived" xml:space="preserve"><value>Totaal ontvangen</value></data>
+  <data name="Dashboard.Sales" xml:space="preserve"><value>Verkopen</value></data>
+  <data name="Dashboard.Pending" xml:space="preserve"><value>In behandeling</value></data>
+  <data name="Dashboard.AlreadyReceived" xml:space="preserve"><value>Al ontvangen</value></data>
+  <data name="Dashboard.PayoutBalance" xml:space="preserve"><value>Saldo uitbetalen</value></data>
+  <data name="Dashboard.QualifiedViewsHint" xml:space="preserve"><value>Alleen gekwalificeerde weergaven vanaf 8 seconden</value></data>
+  <data name="Dashboard.QualifiedViews" xml:space="preserve"><value>Gekwalificeerde weergaven</value></data>
+  <data name="Dashboard.RealViewers" xml:space="preserve"><value>Echte kijkers</value></data>
+  <data name="Dashboard.WatchMinutes" xml:space="preserve"><value>Kijkminuten</value></data>
+  <data name="Dashboard.AvgWatchSeconds" xml:space="preserve"><value>Gem. kijkseconden</value></data>
+  <data name="Dashboard.ViewedByYou" xml:space="preserve"><value>Door jou bekeken</value></data>
+  <data name="Dashboard.ClipsCount" xml:space="preserve"><value>{0} clips</value></data>
+  <data name="Dashboard.YourWatchTime" xml:space="preserve"><value>Jouw kijktijd</value></data>
+  <data name="Dashboard.MinutesCount" xml:space="preserve"><value>{0} minuten</value></data>
+  <data name="Dashboard.NoWatchData" xml:space="preserve"><value>Nog geen gekwalificeerde kijkdata</value></data>
+  <data name="Dashboard.NoWatchDataHint" xml:space="preserve"><value>Een clip telt pas als deze minstens 8 seconden actief is bekeken.</value></data>
+  <data name="Dashboard.ViewsCount" xml:space="preserve"><value>{0} weergaven</value></data>
+  <data name="Dashboard.EntriesCount" xml:space="preserve"><value>{0} vermeldingen</value></data>
+  <data name="Dashboard.NoSales" xml:space="preserve"><value>Nog geen verkopen</value></data>
+  <data name="Dashboard.NoSalesHint" xml:space="preserve"><value>Je verkopen verschijnen hier automatisch zodra een listing is gekocht.</value></data>
+  <data name="Dashboard.CreatorShare" xml:space="preserve"><value>Aandeel maker</value></data>
+  <data name="Dashboard.ListingFallback" xml:space="preserve"><value>Listing #{0}</value></data>
+  <data name="Marketplace.Title" xml:space="preserve"><value>Marktplaats</value></data>
+  <data name="Marketplace.BuyAndSell" xml:space="preserve"><value>Kopen &amp; verkopen</value></data>
+  <data name="Marketplace.NotConnected" xml:space="preserve"><value>niet verbonden</value></data>
+  <data name="Marketplace.Connect" xml:space="preserve"><value>Verbinden</value></data>
+  <data name="Marketplace.Mine" xml:space="preserve"><value>Mijne</value></data>
+  <data name="Marketplace.CreateListing" xml:space="preserve"><value>Aanbieding maken</value></data>
+  <data name="Marketplace.FilterAll" xml:space="preserve"><value>Alle ({0})</value></data>
+  <data name="Marketplace.NoListings" xml:space="preserve"><value>Nog geen aanbiedingen.</value></data>
+  <data name="Marketplace.BeFirst" xml:space="preserve"><value>Wees de eerste die een maaltijdplan verkoopt!</value></data>
+  <data name="Marketplace.SellFirst" xml:space="preserve"><value>Eerste plan verkopen</value></data>
+  <data name="Marketplace.YourListing" xml:space="preserve"><value>Jouw aanbieding</value></data>
+  <data name="Marketplace.PlanPreview" xml:space="preserve"><value>Planvoorbeeld</value></data>
+  <data name="Marketplace.LoadingPreview" xml:space="preserve"><value>Voorbeeld laden...</value></data>
+  <data name="Marketplace.PreviewUnavailable" xml:space="preserve"><value>Voorbeeld niet beschikbaar.</value></data>
+  <data name="Marketplace.Fiber" xml:space="preserve"><value>Vezels</value></data>
+  <data name="Marketplace.NutritionWholePlan" xml:space="preserve"><value>Voedingswaarden voor het hele plan (alle dagen)</value></data>
+  <data name="Marketplace.DayPrefix" xml:space="preserve"><value>Dag</value></data>
+  <data name="Marketplace.NoRecipesDay" xml:space="preserve"><value>Geen recepten</value></data>
+  <data name="Marketplace.NoPreview" xml:space="preserve"><value>Geen voorbeeld beschikbaar.</value></data>
+  <data name="Marketplace.PreviewLoadError" xml:space="preserve"><value>Voorbeeld kon niet worden geladen.</value></data>
+  <data name="Marketplace.Connecting" xml:space="preserve"><value>Verbinden...</value></data>
+  <data name="Marketplace.Connected" xml:space="preserve"><value>Verbonden</value></data>
+  <data name="Marketplace.WalletConnectFailed" xml:space="preserve"><value>Wallet-verbinding mislukt.</value></data>
+  <data name="Marketplace.PurchaseDownloadOpening" xml:space="preserve"><value>Aankoop gelukt! Je download wordt geopend.</value></data>
+  <data name="Marketplace.PurchaseSellerNotified" xml:space="preserve"><value>Aankoop gelukt! De verkoper is op de hoogte gebracht.</value></data>
+  <data name="Marketplace.Buying" xml:space="preserve"><value>Kopen...</value></data>
+  <data name="Marketplace.LoginFirst" xml:space="preserve"><value>Log eerst in met World ID.</value></data>
+  <data name="Marketplace.SellerNoWallet" xml:space="preserve"><value>De verkoper heeft geen wallet. Aankoop niet mogelijk.</value></data>
+  <data name="Marketplace.ShippingPrompt" xml:space="preserve"><value>Voer je bezorgadres in (naam, straat, postcode, plaats, land):</value></data>
+  <data name="Marketplace.ShippingRequired" xml:space="preserve"><value>Zonder bezorgadres kan het item niet worden verzonden.</value></data>
+  <data name="Marketplace.RateUnavailable" xml:space="preserve"><value>WLD/USD-koers niet beschikbaar. Herlaad de pagina.</value></data>
+  <data name="Marketplace.PlatformWalletMissing" xml:space="preserve"><value>Platform-wallet is niet geconfigureerd. Aankoop niet mogelijk.</value></data>
+  <data name="Marketplace.PurchaseIncomplete" xml:space="preserve"><value>Aankoop kon niet worden voltooid.</value></data>
+  <data name="Marketplace.PurchaseValidationFailed" xml:space="preserve"><value>Aankoopvalidatie mislukt.</value></data>
+  <data name="Marketplace.NoPaymentMethod" xml:space="preserve"><value>Geen betaalmethode beschikbaar. Open de app in de World App.</value></data>
+  <data name="Marketplace.PurchaseFailed" xml:space="preserve"><value>Aankoop mislukt.</value></data>
+  <data name="CreatorShop.Subtitle" xml:space="preserve"><value>Premium maaltijdplannen van creators</value></data>
+  <data name="CreatorShop.NoPlans" xml:space="preserve"><value>Nog geen plannen beschikbaar.</value></data>
+  <data name="Payout.Title" xml:space="preserve"><value>Uitbetaling</value></data>
+  <data name="Payout.BackToListings" xml:space="preserve"><value>Terug naar Mijn aanbiedingen</value></data>
+  <data name="Payout.Heading" xml:space="preserve"><value>Saldo &amp; uitbetaling</value></data>
+  <data name="Payout.AvailableBalance" xml:space="preserve"><value>Beschikbaar saldo (verkopersaandeel uit verkopen)</value></data>
+  <data name="Payout.Amount" xml:space="preserve"><value>Bedrag</value></data>
+  <data name="Payout.PayoutWallet" xml:space="preserve"><value>Uitbetalings-wallet</value></data>
+  <data name="Payout.RequestButton" xml:space="preserve"><value>Uitbetaling aanvragen</value></data>
+  <data name="Payout.Note" xml:space="preserve"><value>De uitbetaling wordt na controle handmatig overgemaakt. Het saldo wordt direct gereserveerd.</value></data>
+  <data name="Payout.History" xml:space="preserve"><value>Geschiedenis</value></data>
+  <data name="Payout.Date" xml:space="preserve"><value>Datum</value></data>
+  <data name="Payout.NoPayouts" xml:space="preserve"><value>Nog geen uitbetalingen.</value></data>
+  <data name="Payout.RequestSubmitted" xml:space="preserve"><value>Aanvraag ingediend. Uitbetaling volgt na controle.</value></data>
+  <data name="MyListings.Title" xml:space="preserve"><value>Mijn aanbiedingen</value></data>
+  <data name="MyListings.BackToMarketplace" xml:space="preserve"><value>Terug naar marktplaats</value></data>
+  <data name="MyListings.ListingSg" xml:space="preserve"><value>aanbieding</value></data>
+  <data name="MyListings.ListingPl" xml:space="preserve"><value>aanbiedingen</value></data>
+  <data name="MyListings.Balance" xml:space="preserve"><value>Saldo</value></data>
+  <data name="MyListings.NewListing" xml:space="preserve"><value>Nieuwe aanbieding</value></data>
+  <data name="MyListings.NoListings" xml:space="preserve"><value>Nog geen aanbiedingen</value></data>
+  <data name="MyListings.EmptyHint" xml:space="preserve"><value>Maak je eerste aanbieding – maaltijdplan, recept, object, digitaal product of dienst.</value></data>
+  <data name="MyListings.RecipeImageAlt" xml:space="preserve"><value>Receptafbeelding {0} voor {1}</value></data>
+  <data name="MyListings.TotalMacrosAria" xml:space="preserve"><value>Totale macro's van dit plan</value></data>
+  <data name="MyListings.TotalMacros" xml:space="preserve"><value>Totale macro's</value></data>
+  <data name="MyListings.Active" xml:space="preserve"><value>Actief</value></data>
+  <data name="MyListings.Inactive" xml:space="preserve"><value>Inactief</value></data>
+  <data name="MyListings.MacrosTagsAria" xml:space="preserve"><value>Macro's en tags</value></data>
+  <data name="MyListings.Diet" xml:space="preserve"><value>Dieet</value></data>
+  <data name="MyListings.StatsAria" xml:space="preserve"><value>Statistieken</value></data>
+  <data name="MyListings.Sold" xml:space="preserve"><value>{0} verkocht</value></data>
+  <data name="MyListings.PlanningNow" xml:space="preserve"><value>{0} plannen nu</value></data>
+  <data name="MyListings.Deactivate" xml:space="preserve"><value>Deactiveren</value></data>
+  <data name="MyListings.Activate" xml:space="preserve"><value>Activeren</value></data>
+  <data name="MyListings.ConfirmActivate" xml:space="preserve"><value>Aanbieding echt activeren?</value></data>
+  <data name="MyListings.ConfirmDeactivate" xml:space="preserve"><value>Aanbieding echt deactiveren?</value></data>
+  <data name="Swap.CommunityReason" xml:space="preserve"><value>Populaire community-variant.</value></data>
+  <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Bereid zoals gebruikelijk (controleer eventueel de kooktijd).</value></data>
+  <data name="Swap.CommunityTaste" xml:space="preserve"><value>Vergelijkbaar profiel, licht anders afhankelijk van het ingrediënt.</value></data>
+  <data name="Swap.CommunityTested" xml:space="preserve"><value>Community-getest</value></data>
 </root>

@@ -1,0 +1,249 @@
+/* Marketplace Cards — Design tokens */
+:root {
+  --bg-cream: #f5efe1;
+  --bg-cream-2: #ede5d2;
+  --ink-deep: #14391f;
+  --ink-deep-2: #0f2c18;
+  --ink-mid: #2a4a32;
+  --ink-line: rgba(20, 57, 31, 0.12);
+  --ink-text: #1a2e20;
+  --ink-mute: #6b7868;
+  --avocado: #5fa052;
+  --coral: #ff7849;
+  --coral-soft: #ffb494;
+  --orange: #ff9a3c;
+  --gold: #f5b942;
+  --premium: #c8a45c;
+  --card: #ffffff;
+  --card-soft: #faf6ec;
+  --shadow-sm: 0 2px 8px rgba(20, 57, 31, 0.06);
+  --shadow-md: 0 8px 24px rgba(20, 57, 31, 0.10);
+  --shadow-lg: 0 20px 60px rgba(20, 57, 31, 0.16);
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  --font-serif: 'Fraunces', 'Playfair Display', Georgia, serif;
+}
+
+* { box-sizing: border-box; }
+
+.mp-screen {
+  width: 100%;
+  height: 100%;
+  background: var(--bg-cream);
+  font-family: var(--font-sans);
+  color: var(--ink-text);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  font-feature-settings: 'cv11', 'ss01';
+}
+
+.mp-screen::-webkit-scrollbar { display: none; }
+.mp-screen * { scrollbar-width: none; }
+.mp-screen *::-webkit-scrollbar { display: none; }
+
+/* Header */
+.mp-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 18px 20px 14px;
+  flex-shrink: 0;
+}
+.mp-header h1 {
+  font-family: var(--font-serif);
+  font-weight: 600;
+  font-size: 24px;
+  letter-spacing: -0.02em;
+  margin: 0;
+  color: var(--ink-deep);
+}
+.mp-header .sub {
+  font-size: 12px;
+  color: var(--ink-mute);
+  margin-top: 2px;
+}
+.mp-back {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: transparent;
+  border: none;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-deep);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.mp-sell-btn {
+  background: var(--ink-deep);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+.mp-sell-btn .plus {
+  color: var(--gold);
+  font-size: 14px;
+  margin-right: 2px;
+}
+
+/* Wallet */
+.mp-wallet {
+  margin: 0 16px 12px;
+  background: linear-gradient(135deg, #1a3a23, #0e2415);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  color: white;
+  flex-shrink: 0;
+}
+.mp-wallet-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.mp-wallet-label {
+  font-size: 13px;
+  font-weight: 600;
+}
+.mp-wallet-status {
+  font-size: 11px;
+  opacity: 0.65;
+  margin-top: 2px;
+}
+.mp-wallet-btns {
+  display: flex;
+  gap: 6px;
+}
+.mp-wallet-btn {
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.18);
+  color: white;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.mp-wallet-btn.primary {
+  background: rgba(255,255,255,0.12);
+}
+
+/* Filter chips */
+.mp-filters {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+  flex-shrink: 0;
+}
+.mp-chip {
+  flex-shrink: 0;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: white;
+  border: 1px solid var(--ink-line);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--ink-text);
+  cursor: pointer;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.mp-chip.active {
+  background: var(--ink-deep);
+  color: white;
+  border-color: var(--ink-deep);
+}
+.mp-chip .dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--avocado);
+}
+
+/* Cards container */
+.mp-feed {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 14px 100px;
+  scroll-behavior: smooth;
+}
+
+/* Bottom nav */
+.mp-bottom {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  background: rgba(255,255,255,0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 1px solid var(--ink-line);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 12px 24px;
+  z-index: 5;
+}
+.mp-bottom-btn {
+  background: none;
+  border: none;
+  color: var(--ink-mute);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-size: 10px;
+  cursor: pointer;
+  padding: 4px 10px;
+  position: relative;
+}
+.mp-bottom-btn.active { color: var(--ink-deep); }
+.mp-bottom-btn .badge {
+  position: absolute;
+  top: -2px; right: 2px;
+  background: var(--coral);
+  color: white;
+  border-radius: 999px;
+  font-size: 8px;
+  font-weight: 700;
+  width: 14px; height: 14px;
+  display: flex; align-items: center; justify-content: center;
+}
+.mp-fab {
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: var(--coral);
+  color: white;
+  border: 4px solid white;
+  font-size: 22px;
+  font-weight: 300;
+  margin-top: -16px;
+  cursor: pointer;
+  box-shadow: 0 4px 14px rgba(255, 120, 73, 0.4);
+}
+
+/* Test mode banner */
+.mp-testbanner {
+  margin: 0 16px 14px;
+  background: #fff3d4;
+  border: 1px solid #f0c87a;
+  border-radius: 12px;
+  padding: 8px 12px;
+  font-size: 11px;
+  color: #8a6418;
+  text-align: center;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+}

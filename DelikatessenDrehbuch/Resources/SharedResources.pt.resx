@@ -1334,4 +1334,215 @@
   <data name="Notify.Open" xml:space="preserve">
     <value>Abrir</value>
   </data>
+  <data name="SharedFeed.PostPlaceholder" xml:space="preserve">
+    <value>Escreva algo para o grupo…</value>
+  </data>
+  <data name="SharedFeed.Post" xml:space="preserve">
+    <value>Publicar</value>
+  </data>
+  <data name="SharedFeed.TabPrivate" xml:space="preserve">
+    <value>Privado</value>
+  </data>
+  <data name="SharedFeed.PrivatePickMember" xml:space="preserve">
+    <value>Escolha um membro para enviar mensagem privada</value>
+  </data>
+  <data name="SharedFeed.PrivatePlaceholder" xml:space="preserve">
+    <value>Mensagem privada…</value>
+  </data>
+  <data name="SharedFeed.PrivateNoMembers" xml:space="preserve">
+    <value>Ainda não há outros membros.</value>
+  </data>
+  <data name="Offer.Title" xml:space="preserve"><value>Nova oferta</value></data>
+  <data name="Offer.Close" xml:space="preserve"><value>Fechar</value></data>
+  <data name="Offer.Share" xml:space="preserve"><value>Partilhar</value></data>
+  <data name="Offer.Sharing" xml:space="preserve"><value>A partilhar…</value></data>
+  <data name="Offer.AddPhotos" xml:space="preserve"><value>Adicionar fotos</value></data>
+  <data name="Offer.AddPhotosSub" xml:space="preserve"><value>Mostra a tua oferta no seu melhor</value></data>
+  <data name="Offer.WhatOffer" xml:space="preserve"><value>O que queres oferecer?</value></data>
+  <data name="Offer.TypeMealPlan" xml:space="preserve"><value>Plano de refeições</value></data>
+  <data name="Offer.TypeRecipe" xml:space="preserve"><value>Receita</value></data>
+  <data name="Offer.TypeObject" xml:space="preserve"><value>Objeto</value></data>
+  <data name="Offer.TypeDigital" xml:space="preserve"><value>Digital</value></data>
+  <data name="Offer.TypeService" xml:space="preserve"><value>Serviço</value></data>
+  <data name="Offer.WhichPlan" xml:space="preserve"><value>Que plano queres oferecer?</value></data>
+  <data name="Offer.NoPlans" xml:space="preserve"><value>Ainda não tens planos vendáveis.</value></data>
+  <data name="Offer.Created" xml:space="preserve"><value>Criado:</value></data>
+  <data name="Offer.WhichRecipe" xml:space="preserve"><value>Que receita queres oferecer?</value></data>
+  <data name="Offer.PickRecipe" xml:space="preserve"><value>– Escolher receita –</value></data>
+  <data name="Offer.NoRecipes" xml:space="preserve"><value>Ainda não tens receitas próprias.</value></data>
+  <data name="Offer.ProductDetails" xml:space="preserve"><value>Detalhes do produto</value></data>
+  <data name="Offer.StockPlaceholder" xml:space="preserve"><value>Stock (vazio = ilimitado)</value></data>
+  <data name="Offer.ShippingNeeded" xml:space="preserve"><value>Requer envio</value></data>
+  <data name="Offer.ShippingHint" xml:space="preserve"><value>Para envio pedimos a morada na compra.</value></data>
+  <data name="Offer.DigitalTitle" xml:space="preserve"><value>Produto digital</value></data>
+  <data name="Offer.DigitalUrlPlaceholder" xml:space="preserve"><value>URL de download/ficheiro (https://…)</value></data>
+  <data name="Offer.DigitalHint" xml:space="preserve"><value>O link de download é libertado só após a compra.</value></data>
+  <data name="Offer.ServiceTitle" xml:space="preserve"><value>Serviço</value></data>
+  <data name="Offer.ServiceAvailPlaceholder" xml:space="preserve"><value>Disponibilidade / local (opcional)</value></data>
+  <data name="Offer.ServiceHint" xml:space="preserve"><value>Após a compra és notificado para entrar em contacto.</value></data>
+  <data name="Offer.TitlePlaceholder" xml:space="preserve"><value>Título da tua oferta</value></data>
+  <data name="Offer.CaptionPlaceholder" xml:space="preserve"><value>Escreve uma descrição… O que torna a tua oferta especial?</value></data>
+  <data name="Offer.Price" xml:space="preserve"><value>Preço</value></data>
+  <data name="Offer.WalletTitle" xml:space="preserve"><value>Carteira de pagamento (WLD)</value></data>
+  <data name="Offer.WalletConnect" xml:space="preserve"><value>Ligar</value></data>
+  <data name="Offer.WalletConnectHint" xml:space="preserve"><value>Toca para ligar</value></data>
+  <data name="Offer.WalletConnected" xml:space="preserve"><value>Ligado</value></data>
+  <data name="Offer.PreviewHead" xml:space="preserve"><value>Pré-visualização</value></data>
+  <data name="Offer.PreviewHint" xml:space="preserve"><value>É assim que a tua oferta aparece no feed</value></data>
+  <data name="Offer.You" xml:space="preserve"><value>Tu</value></data>
+  <data name="Offer.PreviewTitleFallback" xml:space="preserve"><value>Título da tua oferta</value></data>
+  <data name="Offer.Buy" xml:space="preserve"><value>Comprar</value></data>
+  <data name="Offer.SplitInfo" xml:space="preserve"><value>Recebes {0} · 20% taxa da plataforma</value></data>
+  <data name="Offer.ConnectedWith" xml:space="preserve"><value>Ligado · {0}</value></data>
+  <data name="Offer.Cover" xml:space="preserve"><value>Capa</value></data>
+  <data name="Offer.ErrFillRequired" xml:space="preserve"><value>Preenche todos os campos (foto, tipo, título, preço, carteira).</value></data>
+  <data name="Offer.ErrUpload" xml:space="preserve"><value>Falha no upload.</value></data>
+  <data name="Offer.ErrImagesOnly" xml:space="preserve"><value>Apenas imagens.</value></data>
+  <data name="Offer.ErrWallet" xml:space="preserve"><value>Falha ao ligar a carteira.</value></data>
+  <data name="Offer.ErrGeneric" xml:space="preserve"><value>Algo correu mal. Tenta novamente.</value></data>
+  <data name="SharedFeed.Copy" xml:space="preserve"><value>Copiar</value></data>
+  <data name="SharedFeed.RoleAdmin" xml:space="preserve"><value>ADMIN</value></data>
+  <data name="SharedFeed.MemberSince" xml:space="preserve"><value>Membro</value></data>
+  <data name="SharedFeed.DeleteGroup" xml:space="preserve"><value>Eliminar grupo</value></data>
+  <data name="SharedFeed.LeaveGroup" xml:space="preserve"><value>Sair do grupo</value></data>
+  <data name="SharedFeed.DeleteGroupConfirm" xml:space="preserve"><value>⚠️ Queres mesmo ELIMINAR este grupo? Todo o conteúdo, mensagens e membros serão removidos. Esta ação não pode ser anulada.</value></data>
+  <data name="SharedFeed.LeaveGroupConfirm" xml:space="preserve"><value>Queres mesmo sair deste grupo?</value></data>
+  <data name="SharedFeed.DeleteTodoConfirm" xml:space="preserve"><value>Eliminar esta tarefa?</value></data>
+  <data name="Feed.ShareRecipe" xml:space="preserve"><value>Partilhar receita</value></data>
+  <data name="Feed.ShareViaLink" xml:space="preserve"><value>Partilhar link</value></data>
+  <data name="Feed.ShareViaLinkDesc" xml:space="preserve"><value>Por Messenger, WhatsApp, etc.</value></data>
+  <data name="Feed.ShareToGroup" xml:space="preserve"><value>Partilhar no grupo</value></data>
+  <data name="Feed.ShareToGroupDesc" xml:space="preserve"><value>Partilha com os teus grupos</value></data>
+  <data name="Feed.ShareUnavailable" xml:space="preserve"><value>A partilha não está disponível de momento.</value></data>
+  <data name="Feed.ShareLoadingGroups" xml:space="preserve"><value>A carregar grupos...</value></data>
+  <data name="Feed.ShareNoGroups" xml:space="preserve"><value>Ainda não estás em nenhum grupo. Cria um grupo primeiro!</value></data>
+  <data name="Feed.ShareContents" xml:space="preserve"><value>conteúdos</value></data>
+  <data name="Feed.ShareGroupsError" xml:space="preserve"><value>Erro ao carregar os grupos.</value></data>
+  <data name="Feed.ShareConfirm" xml:space="preserve"><value>Partilhar "{0}" no grupo "{1}"?</value></data>
+  <data name="Feed.ShareSuccess" xml:space="preserve"><value>Partilhado em "{0}"!</value></data>
+  <data name="Feed.ShareError" xml:space="preserve"><value>Erro ao partilhar</value></data>
+  <data name="Feed.ShareLinkPrompt" xml:space="preserve"><value>Partilhar link:</value></data>
+  <data name="Card.Save" xml:space="preserve"><value>Guardar</value></data>
+  <data name="Card.Recipes" xml:space="preserve"><value>Receitas</value></data>
+  <data name="Card.KcalPerDay" xml:space="preserve"><value>kcal/dia</value></data>
+  <data name="Card.Type" xml:space="preserve"><value>Tipo</value></data>
+  <data name="Card.OnStockLabel" xml:space="preserve"><value>em estoque</value></data>
+  <data name="Card.OnStock" xml:space="preserve"><value>Em estoque</value></data>
+  <data name="Card.OnStockCount" xml:space="preserve"><value>{0} em estoque</value></data>
+  <data name="Card.InstantDownload" xml:space="preserve"><value>Download instantâneo</value></data>
+  <data name="Card.SingleRecipe" xml:space="preserve"><value>Receita única</value></data>
+  <data name="Card.Service" xml:space="preserve"><value>Serviço</value></data>
+  <data name="Card.Days" xml:space="preserve"><value>{0} dias</value></data>
+  <data name="Card.Sold" xml:space="preserve"><value>{0} vend.</value></data>
+  <data name="Card.DishesInPlan" xml:space="preserve"><value>Pratos do plano</value></data>
+  <data name="Card.MacrosNutrition" xml:space="preserve"><value>Macros e nutrição</value></data>
+  <data name="Card.PerDay" xml:space="preserve"><value>Por dia</value></data>
+  <data name="Card.RecipesCount" xml:space="preserve"><value>{0} receitas</value></data>
+  <data name="Card.Preview" xml:space="preserve"><value>Pré-visualização</value></data>
+  <data name="Card.PreviewFor" xml:space="preserve"><value>Pré-visualização de {0}</value></data>
+  <data name="Card.PlanningNow" xml:space="preserve"><value>planejando agora</value></data>
+  <data name="Dashboard.Copied" xml:space="preserve"><value>Copiado</value></data>
+  <data name="Dashboard.Error" xml:space="preserve"><value>Erro</value></data>
+  <data name="Dashboard.LoginRequired" xml:space="preserve"><value>Faça login primeiro no World Mini App para que seu painel possa carregar.</value></data>
+  <data name="Dashboard.Available" xml:space="preserve"><value>Disponível</value></data>
+  <data name="Dashboard.RequestMoney" xml:space="preserve"><value>Solicitar dinheiro</value></data>
+  <data name="Dashboard.UsdcOpen" xml:space="preserve"><value>USDC/USDT em aberto</value></data>
+  <data name="Dashboard.TotalReceived" xml:space="preserve"><value>Total recebido</value></data>
+  <data name="Dashboard.Sales" xml:space="preserve"><value>Vendas</value></data>
+  <data name="Dashboard.Pending" xml:space="preserve"><value>Pendente</value></data>
+  <data name="Dashboard.AlreadyReceived" xml:space="preserve"><value>Já recebido</value></data>
+  <data name="Dashboard.PayoutBalance" xml:space="preserve"><value>Sacar saldo</value></data>
+  <data name="Dashboard.QualifiedViewsHint" xml:space="preserve"><value>Apenas visualizações qualificadas a partir de 8 segundos</value></data>
+  <data name="Dashboard.QualifiedViews" xml:space="preserve"><value>Visualizações qualificadas</value></data>
+  <data name="Dashboard.RealViewers" xml:space="preserve"><value>Espectadores reais</value></data>
+  <data name="Dashboard.WatchMinutes" xml:space="preserve"><value>Minutos assistidos</value></data>
+  <data name="Dashboard.AvgWatchSeconds" xml:space="preserve"><value>Segundos médios</value></data>
+  <data name="Dashboard.ViewedByYou" xml:space="preserve"><value>Visto por você</value></data>
+  <data name="Dashboard.ClipsCount" xml:space="preserve"><value>{0} clipes</value></data>
+  <data name="Dashboard.YourWatchTime" xml:space="preserve"><value>Seu tempo de exibição</value></data>
+  <data name="Dashboard.MinutesCount" xml:space="preserve"><value>{0} minutos</value></data>
+  <data name="Dashboard.NoWatchData" xml:space="preserve"><value>Ainda sem dados de visualização qualificados</value></data>
+  <data name="Dashboard.NoWatchDataHint" xml:space="preserve"><value>Um clipe so conta depois de ser assistido ativamente por pelo menos 8 segundos.</value></data>
+  <data name="Dashboard.ViewsCount" xml:space="preserve"><value>{0} visualizações</value></data>
+  <data name="Dashboard.EntriesCount" xml:space="preserve"><value>{0} entradas</value></data>
+  <data name="Dashboard.NoSales" xml:space="preserve"><value>Ainda sem vendas</value></data>
+  <data name="Dashboard.NoSalesHint" xml:space="preserve"><value>Suas vendas aparecem aqui automaticamente assim que um anúncio é comprado.</value></data>
+  <data name="Dashboard.CreatorShare" xml:space="preserve"><value>Parte do criador</value></data>
+  <data name="Dashboard.ListingFallback" xml:space="preserve"><value>Listing #{0}</value></data>
+  <data name="Marketplace.Title" xml:space="preserve"><value>Mercado</value></data>
+  <data name="Marketplace.BuyAndSell" xml:space="preserve"><value>Comprar e vender</value></data>
+  <data name="Marketplace.NotConnected" xml:space="preserve"><value>não conectado</value></data>
+  <data name="Marketplace.Connect" xml:space="preserve"><value>Conectar</value></data>
+  <data name="Marketplace.Mine" xml:space="preserve"><value>Meus</value></data>
+  <data name="Marketplace.CreateListing" xml:space="preserve"><value>Criar anúncio</value></data>
+  <data name="Marketplace.FilterAll" xml:space="preserve"><value>Todos ({0})</value></data>
+  <data name="Marketplace.NoListings" xml:space="preserve"><value>Ainda sem anúncios.</value></data>
+  <data name="Marketplace.BeFirst" xml:space="preserve"><value>Seja o primeiro a vender um plano de refeições!</value></data>
+  <data name="Marketplace.SellFirst" xml:space="preserve"><value>Vender o primeiro plano</value></data>
+  <data name="Marketplace.YourListing" xml:space="preserve"><value>Seu anúncio</value></data>
+  <data name="Marketplace.PlanPreview" xml:space="preserve"><value>Pré-visualização do plano</value></data>
+  <data name="Marketplace.LoadingPreview" xml:space="preserve"><value>Carregando pré-visualização...</value></data>
+  <data name="Marketplace.PreviewUnavailable" xml:space="preserve"><value>Pré-visualização indisponível.</value></data>
+  <data name="Marketplace.Fiber" xml:space="preserve"><value>Fibras</value></data>
+  <data name="Marketplace.NutritionWholePlan" xml:space="preserve"><value>Valores nutricionais do plano inteiro (todos os dias)</value></data>
+  <data name="Marketplace.DayPrefix" xml:space="preserve"><value>Dia</value></data>
+  <data name="Marketplace.NoRecipesDay" xml:space="preserve"><value>Sem receitas</value></data>
+  <data name="Marketplace.NoPreview" xml:space="preserve"><value>Nenhuma pré-visualização disponível.</value></data>
+  <data name="Marketplace.PreviewLoadError" xml:space="preserve"><value>Não foi possível carregar a pré-visualização.</value></data>
+  <data name="Marketplace.Connecting" xml:space="preserve"><value>Conectando...</value></data>
+  <data name="Marketplace.Connected" xml:space="preserve"><value>Conectado</value></data>
+  <data name="Marketplace.WalletConnectFailed" xml:space="preserve"><value>Falha na conexão da wallet.</value></data>
+  <data name="Marketplace.PurchaseDownloadOpening" xml:space="preserve"><value>Compra concluída! Seu download está abrindo.</value></data>
+  <data name="Marketplace.PurchaseSellerNotified" xml:space="preserve"><value>Compra concluída! O vendedor foi notificado.</value></data>
+  <data name="Marketplace.Buying" xml:space="preserve"><value>Comprando...</value></data>
+  <data name="Marketplace.LoginFirst" xml:space="preserve"><value>Faça login primeiro com World ID.</value></data>
+  <data name="Marketplace.SellerNoWallet" xml:space="preserve"><value>O vendedor não tem wallet configurada. Compra não é possível.</value></data>
+  <data name="Marketplace.ShippingPrompt" xml:space="preserve"><value>Digite seu endereço de entrega (nome, rua, CEP, cidade, país):</value></data>
+  <data name="Marketplace.ShippingRequired" xml:space="preserve"><value>Sem endereço de entrega o item não pode ser enviado.</value></data>
+  <data name="Marketplace.RateUnavailable" xml:space="preserve"><value>Taxa WLD/USD indisponível. Recarregue a página.</value></data>
+  <data name="Marketplace.PlatformWalletMissing" xml:space="preserve"><value>A wallet da plataforma não está configurada. Compra não é possível.</value></data>
+  <data name="Marketplace.PurchaseIncomplete" xml:space="preserve"><value>Não foi possível concluir a compra.</value></data>
+  <data name="Marketplace.PurchaseValidationFailed" xml:space="preserve"><value>Falha na validação da compra.</value></data>
+  <data name="Marketplace.NoPaymentMethod" xml:space="preserve"><value>Nenhum método de pagamento disponível. Abra o app no World App.</value></data>
+  <data name="Marketplace.PurchaseFailed" xml:space="preserve"><value>Falha na compra.</value></data>
+  <data name="CreatorShop.Subtitle" xml:space="preserve"><value>Planos premium de criadores</value></data>
+  <data name="CreatorShop.NoPlans" xml:space="preserve"><value>Ainda sem planos disponíveis.</value></data>
+  <data name="Payout.Title" xml:space="preserve"><value>Saque</value></data>
+  <data name="Payout.BackToListings" xml:space="preserve"><value>Voltar aos Meus anúncios</value></data>
+  <data name="Payout.Heading" xml:space="preserve"><value>Saldo e saque</value></data>
+  <data name="Payout.AvailableBalance" xml:space="preserve"><value>Saldo disponível (parte do vendedor das vendas)</value></data>
+  <data name="Payout.Amount" xml:space="preserve"><value>Valor</value></data>
+  <data name="Payout.PayoutWallet" xml:space="preserve"><value>Wallet de saque</value></data>
+  <data name="Payout.RequestButton" xml:space="preserve"><value>Solicitar saque</value></data>
+  <data name="Payout.Note" xml:space="preserve"><value>O saque é transferido manualmente após revisão. O saldo é reservado imediatamente.</value></data>
+  <data name="Payout.History" xml:space="preserve"><value>Histórico</value></data>
+  <data name="Payout.Date" xml:space="preserve"><value>Data</value></data>
+  <data name="Payout.NoPayouts" xml:space="preserve"><value>Ainda sem saques.</value></data>
+  <data name="Payout.RequestSubmitted" xml:space="preserve"><value>Pedido enviado. O saque será feito após revisão.</value></data>
+  <data name="MyListings.Title" xml:space="preserve"><value>Meus anúncios</value></data>
+  <data name="MyListings.BackToMarketplace" xml:space="preserve"><value>Voltar ao mercado</value></data>
+  <data name="MyListings.ListingSg" xml:space="preserve"><value>anúncio</value></data>
+  <data name="MyListings.ListingPl" xml:space="preserve"><value>anúncios</value></data>
+  <data name="MyListings.Balance" xml:space="preserve"><value>Saldo</value></data>
+  <data name="MyListings.NewListing" xml:space="preserve"><value>Novo anúncio</value></data>
+  <data name="MyListings.NoListings" xml:space="preserve"><value>Ainda sem anúncios</value></data>
+  <data name="MyListings.EmptyHint" xml:space="preserve"><value>Crie seu primeiro anúncio – plano de refeições, receita, objeto, produto digital ou serviço.</value></data>
+  <data name="MyListings.RecipeImageAlt" xml:space="preserve"><value>Imagem da receita {0} de {1}</value></data>
+  <data name="MyListings.TotalMacrosAria" xml:space="preserve"><value>Macros totais deste plano</value></data>
+  <data name="MyListings.TotalMacros" xml:space="preserve"><value>Macros totais</value></data>
+  <data name="MyListings.Active" xml:space="preserve"><value>Ativo</value></data>
+  <data name="MyListings.Inactive" xml:space="preserve"><value>Inativo</value></data>
+  <data name="MyListings.MacrosTagsAria" xml:space="preserve"><value>Macros e tags</value></data>
+  <data name="MyListings.Diet" xml:space="preserve"><value>Dieta</value></data>
+  <data name="MyListings.StatsAria" xml:space="preserve"><value>Estatísticas</value></data>
+  <data name="MyListings.Sold" xml:space="preserve"><value>{0} vendidos</value></data>
+  <data name="MyListings.PlanningNow" xml:space="preserve"><value>{0} planejando agora</value></data>
+  <data name="MyListings.Deactivate" xml:space="preserve"><value>Desativar</value></data>
+  <data name="MyListings.Activate" xml:space="preserve"><value>Ativar</value></data>
+  <data name="MyListings.ConfirmActivate" xml:space="preserve"><value>Ativar mesmo este anúncio?</value></data>
+  <data name="MyListings.ConfirmDeactivate" xml:space="preserve"><value>Desativar mesmo este anúncio?</value></data>
+  <data name="Swap.CommunityReason" xml:space="preserve"><value>Variante popular da comunidade.</value></data>
+  <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Prepare como de costume (verifique o tempo de cozimento se necessário).</value></data>
+  <data name="Swap.CommunityTaste" xml:space="preserve"><value>Perfil semelhante, ligeiramente diferente conforme o ingrediente.</value></data>
+  <data name="Swap.CommunityTested" xml:space="preserve"><value>Testado pela comunidade</value></data>
 </root>

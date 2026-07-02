@@ -1,7 +1,9 @@
 @using System.Linq
 @using System.Globalization
+@using Microsoft.Extensions.Localization
 
 @model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
     var heroSlides = (Model.HeroSlides ?? new List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardHeroSlideViewModel>())
         .Where(x => !string.IsNullOrWhiteSpace(x.ImageUrl)).ToList();
@@ -21,14 +23,14 @@
     var creatorSubtitle = Model.ListingType switch
     {
         DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.PhysicalObject
-            => Model.StockQuantity.HasValue ? $"{Model.StockQuantity.Value} auf Lager" : "Auf Lager",
+            => Model.StockQuantity.HasValue ? SharedLocalizer["Card.OnStockCount", Model.StockQuantity.Value].Value : SharedLocalizer["Card.OnStock"].Value,
         DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.DigitalProduct
-            => "Sofort-Download",
+            => SharedLocalizer["Card.InstantDownload"].Value,
         DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.SingleRecipe
-            => "Einzelrezept",
+            => SharedLocalizer["Card.SingleRecipe"].Value,
         DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.Service
-            => "Dienstleistung",
-        _ => $"{Model.DayCount} Tage"
+            => SharedLocalizer["Card.Service"].Value,
+        _ => SharedLocalizer["Card.Days", Model.DayCount].Value
     };
 }
 
@@ -67,7 +69,7 @@
         }
 
         <!-- Like button -->
-        <button class="cs-like-btn" aria-label="Merken">
+        <button class="cs-like-btn" aria-label="@SharedLocalizer["Card.Save"]">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#14391f" stroke-width="2">
                 <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
             </svg>
@@ -102,13 +104,13 @@
         {
             <div class="cs-stat-cell">
                 <div class="cs-stat-value">@Model.RecipeCount</div>
-                <div class="cs-stat-label">Rezepte</div>
+                <div class="cs-stat-label">@SharedLocalizer["Card.Recipes"]</div>
             </div>
             @if (kcalPerDay.HasValue)
             {
                 <div class="cs-stat-cell">
                     <div class="cs-stat-value">@(kcalPerDay.Value >= 1000 ? $"{(kcalPerDay.Value / 1000m):0.#}k" : Math.Round(kcalPerDay.Value).ToString())</div>
-                    <div class="cs-stat-label">kcal/Tag</div>
+                    <div class="cs-stat-label">@SharedLocalizer["Card.KcalPerDay"]</div>
                 </div>
             }
         }
@@ -116,13 +118,13 @@
         {
             <div class="cs-stat-cell">
                 <div class="cs-stat-value">@Model.TypeLabel</div>
-                <div class="cs-stat-label">Typ</div>
+                <div class="cs-stat-label">@SharedLocalizer["Card.Type"]</div>
             </div>
             @if (Model.ListingType == DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MarketplaceListingType.PhysicalObject && Model.StockQuantity.HasValue)
             {
                 <div class="cs-stat-cell">
                     <div class="cs-stat-value">@Model.StockQuantity.Value</div>
-                    <div class="cs-stat-label">auf Lager</div>
+                    <div class="cs-stat-label">@SharedLocalizer["Card.OnStockLabel"]</div>
                 </div>
             }
         }
@@ -133,7 +135,7 @@
                 </svg>
                 @Model.Rating.ToString("0.0")
             </div>
-            <div class="cs-stat-label">@Model.SoldCount verk.</div>
+            <div class="cs-stat-label">@SharedLocalizer["Card.Sold", Model.SoldCount]</div>
         </div>
     </div>
 
@@ -142,7 +144,7 @@
     {
         <div class="cs-carousel-section">
             <div class="cs-carousel-header">
-                <span class="cs-carousel-label">Gerichte im Plan</span>
+                <span class="cs-carousel-label">@SharedLocalizer["Card.DishesInPlan"]</span>
                 <span class="cs-carousel-counter" id="carouselCounter-@Model.ListingId">1 / @heroSlides.Count</span>
             </div>
             <div class="cs-carousel-track" id="carouselTrack-@Model.ListingId" data-listing-id="@Model.ListingId">
@@ -178,7 +180,7 @@
                         <circle cx="12" cy="12" r="10"/>
                         <path d="M12 2 a10 10 0 0 1 8.66 5"/>
                     </svg>
-                    Makros &amp; N&auml;hrwerte
+                    @SharedLocalizer["Card.MacrosNutrition"]
                 </span>
                 <svg class="cs-macros-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
                     <path d="M6 9l6 6 6-6"/>
@@ -188,15 +190,15 @@
             <div class="cs-macros-panel" id="macrosPanel-@Model.ListingId">
                 <div class="cs-macros-header">
                     <div>
-                        <div class="cs-macros-kcal-label">Pro Tag</div>
+                        <div class="cs-macros-kcal-label">@SharedLocalizer["Card.PerDay"]</div>
                         <div class="cs-macros-kcal-value">
                             @(kcalPerDay.HasValue ? Math.Round(kcalPerDay.Value).ToString() : "-")
                             <span class="cs-macros-kcal-unit">kcal</span>
                         </div>
                     </div>
                     <div class="cs-macros-info">
-                        <div class="cs-macros-info-sub">@Model.DayCount Tage</div>
-                        <div class="cs-macros-info-main">@Model.RecipeCount Rezepte</div>
+                        <div class="cs-macros-info-sub">@SharedLocalizer["Card.Days", Model.DayCount]</div>
+                        <div class="cs-macros-info-main">@SharedLocalizer["Card.RecipesCount", Model.RecipeCount]</div>
                     </div>
                 </div>
 
@@ -204,7 +206,7 @@
                     @if (Model.ProteinGrams.HasValue)
                     {
                         <div class="cs-macro-bar-row">
-                            <span class="cs-macro-bar-label">Protein</span>
+                            <span class="cs-macro-bar-label">@SharedLocalizer["Feed.Protein"]</span>
                             <div class="cs-macro-bar-track">
                                 <div class="cs-macro-bar-fill protein" style="width: @(proteinPct)%"></div>
                             </div>
@@ -214,7 +216,7 @@
                     @if (Model.FatGrams.HasValue)
                     {
                         <div class="cs-macro-bar-row">
-                            <span class="cs-macro-bar-label">Fett</span>
+                            <span class="cs-macro-bar-label">@SharedLocalizer["Feed.Fat"]</span>
                             <div class="cs-macro-bar-track">
                                 <div class="cs-macro-bar-fill fat" style="width: @(fatPct)%"></div>
                             </div>
@@ -224,7 +226,7 @@
                     @if (Model.CarbsGrams.HasValue)
                     {
                         <div class="cs-macro-bar-row">
-                            <span class="cs-macro-bar-label">KH</span>
+                            <span class="cs-macro-bar-label">@SharedLocalizer["Feed.Carbs"]</span>
                             <div class="cs-macro-bar-track">
                                 <div class="cs-macro-bar-fill carbs" style="width: @(carbsPct)%"></div>
                             </div>
@@ -246,8 +248,8 @@
             @if (isMealPlan)
             {
                 <button class="cs-btn-preview js-cs-preview" data-listing-id="@Model.ListingId"
-                        aria-label="Vorschau f&uuml;r @Model.Title">
-                    Vorschau
+                        aria-label="@SharedLocalizer["Card.PreviewFor", Model.Title]">
+                    @SharedLocalizer["Card.Preview"]
                 </button>
             }
             <button class="cs-btn-buy js-cs-buy"
@@ -274,7 +276,7 @@
                 <span class="cs-social-avatar a2"></span>
                 <span class="cs-social-avatar a3"></span>
             </span>
-            <span><strong class="cs-social-count">@Model.ActivePlannerCount</strong> planen jetzt</span>
+            <span><strong class="cs-social-count">@Model.ActivePlannerCount</strong> @SharedLocalizer["Card.PlanningNow"]</span>
         </span>
         <span>@Model.CreatedDateLabel</span>
     </div>

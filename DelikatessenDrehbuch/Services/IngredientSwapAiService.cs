@@ -351,6 +351,7 @@ CRITICAL Rules - Follow Strictly:
   * DO NOT add thousand separators (use 300 not 300.000 or 300,000)
   * The quantity field in JSON must be a plain number: {Math.Round(originalGrams)}
 - Do not suggest the original ingredient itself.
+- compatibility_score MUST be a decimal between 0.0 and 1.0 (1.0 = perfect match, 0.0 = poor match). Do NOT use a 0-10 or 0-100 scale.
 - Keep reasons short and concrete.
 - Write every natural-language field in {responseLanguage}.
 - This includes reason, preparation_change, taste_impact, pros, and cons.
@@ -361,26 +362,24 @@ Available ingredients:
 
         private List<int?> GetRelevantGroupsForSwap(int? originalGroupId, string? goal)
         {
+            // Group-Ids laut DB-"Group"-Tabelle:
+            // 1 Fleisch | 2 Gemüse | 3 Milchprodukte | 4 Obst | 5 Gewürze
+            // 6 Fisch   | 7 Sonstiges | 8 Grundnahrungsmittel | 9 Nüsse/Samen/Hülsenfrüchte
             if (string.Equals(goal, "vegan", StringComparison.OrdinalIgnoreCase))
             {
-                return new List<int?> { 2, 3, 5, 8, 9 };
+                // Nur pflanzliche Gruppen. KEINE Milchprodukte(3), Fleisch(1) oder Fisch(6).
+                return new List<int?> { 2, 4, 5, 8, 9 };
             }
 
-            if (originalGroupId == 1 || originalGroupId == 7)
+            if (originalGroupId == 1)
             {
-                // In this project, all meat variants are stored under the same meat group.
-                // Keep it simple and don't restrict further here, otherwise the candidate pool can collapse to one animal only.
+                // Fleisch bleibt Fleisch (alle Fleischsorten liegen in Gruppe 1).
                 return new List<int?> { 1 };
             }
 
-            if (originalGroupId == 3)
-            {
-                // Seafood-family: keep it seafood.
-                return new List<int?> { 3 };
-            }
-
-            // Default: keep it to the same group. (We intentionally do NOT add a "generic" group here,
-            // because that leaks unrelated vegetables for herbs/spices.)
+            // Default: innerhalb der eigenen Gruppe bleiben (Fisch->Fisch, Milch->Milch,
+            // Gemüse->Gemüse, ...). Bewusst KEINE generische Gruppe ergänzen, sonst leaken
+            // z. B. Gemüse in Kräuter/Gewürz-Swaps.
             return new List<int?> { originalGroupId };
         }
 
@@ -564,6 +563,7 @@ Available ingredients:
 
             var scored = pool
                 .Where(x => x.Id != original.Id)
+                .Where(x => !IsIncompatibleOutlier(original, x))
                 .Select(x => new { Item = x, Score = ComputeMatchScore(original, originalUnit, x) })
                 .OrderByDescending(x => x.Score)
                 .ThenByDescending(x => x.Item.Protein)
@@ -783,7 +783,7 @@ Available ingredients:
                     Quantity = correctedQuantity,
                     Unit = NormalizeSwapUnit(isLiquidSwap, suggestion.Unit),
                     Reason = string.IsNullOrWhiteSpace(suggestion.Reason) ? "Good culinary alternative for this recipe." : suggestion.Reason.Trim(),
-                    CompatibilityScore = Math.Clamp(suggestion.CompatibilityScore, 0d, 1d),
+                    CompatibilityScore = NormalizeCompatibilityScore(suggestion.CompatibilityScore),
                     PreparationChange = string.IsNullOrWhiteSpace(suggestion.PreparationChange) ? null : suggestion.PreparationChange.Trim(),
                     TasteImpact = string.IsNullOrWhiteSpace(suggestion.TasteImpact) ? "Similar overall taste profile." : suggestion.TasteImpact.Trim(),
                     Pros = suggestion.Pros?.Where(x => !string.IsNullOrWhiteSpace(x)).Select(x => x.Trim()).Distinct().Take(4).ToList() ?? new List<string>(),
@@ -938,6 +938,41 @@ Available ingredients:
         {
             _ = suggestedUnit; // We keep output units stable for UI consistency.
             return isLiquidSwap ? "ml" : "g";
+        }
+
+        // The AI is asked for a 0.0-1.0 score, but models frequently return 0-10 or 0-100.
+        // Normalize defensively so a returned "8" doesn't collapse to 1.0 and destroy ranking.
+        private static double NormalizeCompatibilityScore(double raw)
+        {
+            if (double.IsNaN(raw) || raw <= 0d) return 0d;
+            if (raw <= 1d) return raw;              // already 0-1
+            if (raw <= 10d) return raw / 10d;       // 0-10 scale
+            return Math.Clamp(raw / 100d, 0d, 1d);  // 0-100 scale
+        }
+
+        // Hard-drop clearly incompatible outliers from the AI candidate list, e.g. pure sugar/starch
+        // (no protein, no fat) or pure fat/oil when the ORIGINAL is a more balanced ingredient.
+        // This prevents "sugar for noodles" suggestions that slip through the coarse GroupId filter.
+        // Kept intentionally narrow so the candidate pool doesn't shrink for normal swaps.
+        private static bool IsIncompatibleOutlier(IngredientsAndNutrients original, IngredientListItem candidate)
+        {
+            var candPureCarb = candidate.Carbs > 80m && candidate.Protein < 2m && candidate.Fat < 2m; // sugar, pure starch
+            var candPureFat = candidate.Fat > 80m && candidate.Protein < 2m && candidate.Carbs < 5m;  // pure oil/fat
+            if (!candPureCarb && !candPureFat)
+            {
+                return false;
+            }
+
+            // If the original is ALSO such an outlier (sugar->honey, oil->oil), keep it.
+            var origPureCarb = original.Carbohydrates_a_100g > 80m && original.Protein_a_100g < 2m && original.Fat_a_100g < 2m;
+            var origPureFat = original.Fat_a_100g > 80m && original.Protein_a_100g < 2m && original.Carbohydrates_a_100g < 5m;
+            if (origPureCarb || origPureFat)
+            {
+                return false;
+            }
+
+            // Original carries meaningful protein or fat -> a pure-sugar/pure-oil swap makes no culinary sense.
+            return original.Protein_a_100g >= 5m || original.Fat_a_100g >= 5m;
         }
 
         private static bool IsLiquidUnit(string? unit)

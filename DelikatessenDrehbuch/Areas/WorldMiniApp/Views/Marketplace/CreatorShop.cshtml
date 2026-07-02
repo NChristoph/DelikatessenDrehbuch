@@ -1,4 +1,6 @@
 @model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.PlanCardViewModel>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
     ViewData["Title"] = "Creator Shop";
     Layout = "_MiniAppLayout";
@@ -13,13 +15,13 @@
         </a>
         <div>
             <h5 class="fw-bold mb-0">Creator Shop</h5>
-            <p class="text-muted small mb-0">Premium Meal Plans von Creatorn</p>
+            <p class="text-muted small mb-0">@SharedLocalizer["CreatorShop.Subtitle"]</p>
         </div>
     </div>
 
     @if (!Model.Any())
     {
-        <div class="text-center py-5 text-muted">Noch keine Pläne verfügbar.</div>
+        <div class="text-center py-5 text-muted">@SharedLocalizer["CreatorShop.NoPlans"]</div>
     }
     else
     {

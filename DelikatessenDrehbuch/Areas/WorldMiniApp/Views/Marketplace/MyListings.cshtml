@@ -1,7 +1,9 @@
 @model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MealPlanListing>
 @using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
-    ViewData["Title"] = "Meine Angebote";
+    ViewData["Title"] = SharedLocalizer["MyListings.Title"].Value;
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
     var cards = ViewData["MyListingCards"] as List<PlanCardViewModel> ?? new List<PlanCardViewModel>();
@@ -14,22 +16,22 @@
 
 <div class="container py-4" style="max-width:720px;">
     <a href="@Url.Action("Index", "Marketplace", new { area = "WorldMiniApp" })" class="ml-back-link d-inline-block mb-3">
-        <i class="bi bi-arrow-left"></i> Zurück zum Marktplatz
+        <i class="bi bi-arrow-left"></i> @SharedLocalizer["MyListings.BackToMarketplace"]
     </a>
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h4 class="ml-page-title mb-0">Meine Angebote</h4>
-            <small class="ml-page-subtitle">@Model.Count @(Model.Count == 1 ? "Angebot" : "Angebote")</small>
+            <h4 class="ml-page-title mb-0">@SharedLocalizer["MyListings.Title"]</h4>
+            <small class="ml-page-subtitle">@Model.Count @(Model.Count == 1 ? SharedLocalizer["MyListings.ListingSg"].Value : SharedLocalizer["MyListings.ListingPl"].Value)</small>
         </div>
         <div class="d-flex gap-2">
             <a href="@Url.Action("Payout", "Marketplace", new { area = "WorldMiniApp" })"
                class="ml-pill ml-pill-outline">
-                <i class="bi bi-cash-coin me-1"></i>Guthaben
+                <i class="bi bi-cash-coin me-1"></i>@SharedLocalizer["MyListings.Balance"]
             </a>
             <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })"
                class="ml-pill ml-pill-solid">
-                <span class="ml-pill-plus">+</span> Neues Angebot
+                <span class="ml-pill-plus">+</span> @SharedLocalizer["MyListings.NewListing"]
             </a>
         </div>
     </div>
@@ -43,10 +45,10 @@
                     <line x1="7" y1="7" x2="7.01" y2="7"/>
                 </svg>
             </div>
-            <p class="ml-empty-title mb-1">Noch keine Angebote</p>
-            <p class="text-muted small mb-3">Erstelle dein erstes Angebot – Essensplan, Rezept, Objekt, digitales Produkt oder Dienstleistung.</p>
+            <p class="ml-empty-title mb-1">@SharedLocalizer["MyListings.NoListings"]</p>
+            <p class="text-muted small mb-3">@SharedLocalizer["MyListings.EmptyHint"]</p>
             <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="ml-pill ml-pill-solid">
-                <span class="ml-pill-plus">+</span> Angebot erstellen
+                <span class="ml-pill-plus">+</span> @SharedLocalizer["Marketplace.CreateListing"]
             </a>
         </div>
     }
@@ -83,7 +85,7 @@
                                     @for (var i = 0; i < heroSlides.Count; i++)
                                     {
                                         <div class="carousel-item @(i == 0 ? "active" : "")">
-                                            <img src="@heroSlides[i].ImageUrl" alt="@($"Rezeptbild {i + 1} für {card.Title}")" class="cs-hero-img" loading="lazy" />
+                                            <img src="@heroSlides[i].ImageUrl" alt="@SharedLocalizer["MyListings.RecipeImageAlt", i + 1, card.Title]" class="cs-hero-img" loading="lazy" />
                                             <div class="cs-recipe-caption">@heroSlides[i].RecipeTitle</div>
                                         </div>
                                     }
@@ -91,13 +93,13 @@
                                     @if (hasMacroData)
                                     {
                                         <div class="carousel-item @(heroSlides.Count == 0 ? "active" : "")">
-                                            <div class="cs-hero-macro-slide" aria-label="Gesamtmakros dieses Plans">
-                                                <div class="cs-macro-title">Gesamt-Makros</div>
+                                            <div class="cs-hero-macro-slide" aria-label="@SharedLocalizer["MyListings.TotalMacrosAria"]">
+                                                <div class="cs-macro-title">@SharedLocalizer["MyListings.TotalMacros"]</div>
                                                 <div class="cs-macro-grid">
                                                     <span>kcal: @(card.CaloriesKcal.HasValue ? Math.Round(card.CaloriesKcal.Value).ToString() : "-")</span>
-                                                    <span>Protein: @(card.ProteinGrams.HasValue ? $"{Math.Round(card.ProteinGrams.Value, 1)}g" : "-")</span>
-                                                    <span>Fett: @(card.FatGrams.HasValue ? $"{Math.Round(card.FatGrams.Value, 1)}g" : "-")</span>
-                                                    <span>KH: @(card.CarbsGrams.HasValue ? $"{Math.Round(card.CarbsGrams.Value, 1)}g" : "-")</span>
+                                                    <span>@SharedLocalizer["Recipe.Protein"]: @(card.ProteinGrams.HasValue ? $"{Math.Round(card.ProteinGrams.Value, 1)}g" : "-")</span>
+                                                    <span>@SharedLocalizer["Recipe.Fat"]: @(card.FatGrams.HasValue ? $"{Math.Round(card.FatGrams.Value, 1)}g" : "-")</span>
+                                                    <span>@SharedLocalizer["Feed.Carbs"]: @(card.CarbsGrams.HasValue ? $"{Math.Round(card.CarbsGrams.Value, 1)}g" : "-")</span>
                                                 </div>
                                             </div>
                                         </div>
@@ -119,13 +121,13 @@
                         @if (isActive)
                         {
                             <span class="cs-premium-pill" style="background: linear-gradient(135deg, #15803d, #22c55e);">
-                                <i class="bi bi-check-circle-fill me-1"></i>Aktiv
+                                <i class="bi bi-check-circle-fill me-1"></i>@SharedLocalizer["MyListings.Active"]
                             </span>
                         }
                         else
                         {
                             <span class="cs-premium-pill" style="background: linear-gradient(135deg, #6b7280, #9ca3af);">
-                                <i class="bi bi-pause-circle-fill me-1"></i>Inaktiv
+                                <i class="bi bi-pause-circle-fill me-1"></i>@SharedLocalizer["MyListings.Inactive"]
                             </span>
                         }
 
@@ -133,11 +135,11 @@
                             <h3 class="cs-title">@card.Title</h3>
                             @if (card.IsMealPlan)
                             {
-                                <p class="cs-subline mb-0">@card.DayCount Tage · @card.RecipeCount Rezepte · @card.CreatedDateLabel</p>
+                                <p class="cs-subline mb-0">@SharedLocalizer["Card.Days", card.DayCount] · @SharedLocalizer["Card.RecipesCount", card.RecipeCount] · @card.CreatedDateLabel</p>
                             }
                             else
                             {
-                                <p class="cs-subline mb-0">@card.TypeLabel@(card.ListingType == MarketplaceListingType.PhysicalObject && card.StockQuantity.HasValue ? $" · {card.StockQuantity.Value} auf Lager" : "") · @card.CreatedDateLabel</p>
+                                <p class="cs-subline mb-0">@card.TypeLabel@(card.ListingType == MarketplaceListingType.PhysicalObject && card.StockQuantity.HasValue ? (" · " + SharedLocalizer["Card.OnStockCount", card.StockQuantity.Value].Value) : "") · @card.CreatedDateLabel</p>
                             }
                         </div>
                     </div>
@@ -145,14 +147,14 @@
                     <div class="cs-body">
                         <div class="cs-creator-label">@card.PriceWld.ToString("0.##") WLD</div>
 
-                        <div class="cs-macro-row" role="list" aria-label="Makros und Tags">
+                        <div class="cs-macro-row" role="list" aria-label="@SharedLocalizer["MyListings.MacrosTagsAria"]">
                             @if (card.CaloriesKcal.HasValue)
                             {
                                 <span class="cs-chip" role="listitem">@Math.Round(card.CaloriesKcal.Value) kcal</span>
                             }
                             @if (card.ProteinGrams.HasValue)
                             {
-                                <span class="cs-chip" role="listitem">@Math.Round(card.ProteinGrams.Value, 1)g Protein</span>
+                                <span class="cs-chip" role="listitem">@Math.Round(card.ProteinGrams.Value, 1)g @SharedLocalizer["Recipe.Protein"]</span>
                             }
                             @if (card.IsLowCarb)
                             {
@@ -160,22 +162,22 @@
                             }
                             @if (card.IsDietFriendly)
                             {
-                                <span class="cs-chip cs-chip-tag" role="listitem">Diät</span>
+                                <span class="cs-chip cs-chip-tag" role="listitem">@SharedLocalizer["MyListings.Diet"]</span>
                             }
                         </div>
 
-                        <div class="cs-social-row" aria-label="Statistiken">
+                        <div class="cs-social-row" aria-label="@SharedLocalizer["MyListings.StatsAria"]">
                             <span><i class="bi bi-star-fill text-warning me-1"></i>@card.Rating.ToString("0.0")</span>
-                            <span><i class="bi bi-bag-check-fill me-1"></i>@card.SoldCount verkauft</span>
-                            <span><i class="bi bi-people-fill me-1"></i>@card.ActivePlannerCount planen aktuell</span>
+                            <span><i class="bi bi-bag-check-fill me-1"></i>@SharedLocalizer["MyListings.Sold", card.SoldCount]</span>
+                            <span><i class="bi bi-people-fill me-1"></i>@SharedLocalizer["MyListings.PlanningNow", card.ActivePlannerCount]</span>
                         </div>
 
                         <div class="cs-cta-row">
                             <button type="button"
                                     class="cs-btn cs-btn-secondary"
-                                    aria-label="@($"Vorschau für {card.Title} öffnen")"
+                                    aria-label="@SharedLocalizer["Card.PreviewFor", card.Title]"
                                     onclick="showFeedPreview(@card.ListingId)">
-                                Vorschau
+                                @SharedLocalizer["Card.Preview"]
                             </button>
 
                             <div class="cs-buy-wrap">
@@ -187,7 +189,7 @@
                                     <button type="button"
                                             class="cs-btn ml-btn-deactivate"
                                             onclick="toggleListing(@card.ListingId, false)">
-                                        <i class="bi bi-pause-circle me-1"></i>Deaktivieren
+                                        <i class="bi bi-pause-circle me-1"></i>@SharedLocalizer["MyListings.Deactivate"]
                                     </button>
                                 }
                                 else
@@ -195,7 +197,7 @@
                                     <button type="button"
                                             class="cs-btn ml-btn-activate"
                                             onclick="toggleListing(@card.ListingId, true)">
-                                        <i class="bi bi-play-circle me-1"></i>Aktivieren
+                                        <i class="bi bi-play-circle me-1"></i>@SharedLocalizer["MyListings.Activate"]
                                     </button>
                                 }
                             </div>
@@ -304,8 +306,7 @@
 @section Scripts {
 <script>
     async function toggleListing(listingId, activate) {
-        var actionText = activate ? 'aktivieren' : 'deaktivieren';
-        if (!confirm('Angebot wirklich ' + actionText + '?')) return;
+        if (!confirm(activate ? '@SharedLocalizer["MyListings.ConfirmActivate"]' : '@SharedLocalizer["MyListings.ConfirmDeactivate"]')) return;
 
         var url = activate
             ? '@Url.Action("ActivateListing", "Marketplace", new { area = "WorldMiniApp" })'
@@ -325,10 +326,10 @@
             if (data.success) {
                 location.reload();
             } else {
-                alert('Fehler: ' + (data.error || 'Unbekannter Fehler'));
+                alert('@SharedLocalizer["Dashboard.Error"]: ' + (data.error || '@SharedLocalizer["Error.Generic"]'));
             }
         } catch {
-            alert('Netzwerkfehler.');
+            alert('@SharedLocalizer["Error.NetworkError"].');
         }
     }
 </script>

@@ -458,7 +458,12 @@ app.UseAuthentication();
 // [Authorize]-Prüfung der Identity-Haupt-App beeinflusst (keine Cross-Contamination).
 app.Use(async (context, next) =>
 {
-    if (context.Request.Path.StartsWithSegments("/WorldMiniApp", StringComparison.OrdinalIgnoreCase))
+    // RecipeSwapController liegt route-technisch unter "/api/recipe-swap" (eigene
+    // JSON-API), gehört aber zur Mini-App und braucht dieselbe Cookie-Identität.
+    // Ohne diesen Pfad bekam der Zutaten-Tausch "User not authenticated".
+    var path = context.Request.Path;
+    if (path.StartsWithSegments("/WorldMiniApp", StringComparison.OrdinalIgnoreCase)
+        || path.StartsWithSegments("/api/recipe-swap", StringComparison.OrdinalIgnoreCase))
     {
         var result = await context.AuthenticateAsync(WorldMiniAppUserHashHelper.AuthScheme);
         if (result?.Succeeded == true && result.Principal != null)

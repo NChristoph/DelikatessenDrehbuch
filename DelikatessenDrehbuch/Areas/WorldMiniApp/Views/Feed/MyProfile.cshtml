@@ -765,7 +765,7 @@
             </a>
             @if (isAdmin)
             {
-                <a class="quick-link" href="@Url.Action("CommentModeration", "Feed", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
+                <a class="quick-link" href="@Url.Action("CommentModeration", "FeedComments", new { area = "WorldMiniApp", userHash = Model.User.UserHash })">
                     <i class="bi bi-flag-fill"></i> @SharedLocalizer["MyProfile.CommentModeration"]
                 </a>
                 <a class="quick-link" href="@Url.Action("ReportedContent", "Admin", new { area = "WorldMiniApp" })">
@@ -840,7 +840,7 @@
                 data-bs-target="#dashboardEmbedCollapse"
                 aria-expanded="false"
                 aria-controls="dashboardEmbedCollapse">
-            <i class="bi bi-speedometer2"></i> Creator Dashboard
+            <i class="bi bi-speedometer2"></i> @SharedLocalizer["MyProfile.CreatorDashboard"]
             <span class="ms-1 opacity-75" id="dashboardToggleCaret">▾</span>
         </button>
 
@@ -854,7 +854,7 @@
                 <iframe class="dashboard-embed-frame"
                         src="@Url.Action("UserDashboard", "Home", new { area = "WorldMiniApp" })"
                         loading="lazy"
-                        title="Creator Dashboard"></iframe>
+                        title="@SharedLocalizer["MyProfile.CreatorDashboard"]"></iframe>
             </div>
         </div>
     }

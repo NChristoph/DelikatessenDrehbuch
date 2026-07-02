@@ -1334,4 +1334,215 @@
   <data name="Notify.Open" xml:space="preserve">
     <value>Buka</value>
   </data>
+  <data name="SharedFeed.PostPlaceholder" xml:space="preserve">
+    <value>Tulis sesuatu untuk grup…</value>
+  </data>
+  <data name="SharedFeed.Post" xml:space="preserve">
+    <value>Posting</value>
+  </data>
+  <data name="SharedFeed.TabPrivate" xml:space="preserve">
+    <value>Pribadi</value>
+  </data>
+  <data name="SharedFeed.PrivatePickMember" xml:space="preserve">
+    <value>Pilih anggota untuk pesan pribadi</value>
+  </data>
+  <data name="SharedFeed.PrivatePlaceholder" xml:space="preserve">
+    <value>Pesan pribadi…</value>
+  </data>
+  <data name="SharedFeed.PrivateNoMembers" xml:space="preserve">
+    <value>Belum ada anggota lain.</value>
+  </data>
+  <data name="Offer.Title" xml:space="preserve"><value>Penawaran baru</value></data>
+  <data name="Offer.Close" xml:space="preserve"><value>Tutup</value></data>
+  <data name="Offer.Share" xml:space="preserve"><value>Bagikan</value></data>
+  <data name="Offer.Sharing" xml:space="preserve"><value>Membagikan…</value></data>
+  <data name="Offer.AddPhotos" xml:space="preserve"><value>Tambahkan foto</value></data>
+  <data name="Offer.AddPhotosSub" xml:space="preserve"><value>Tampilkan penawaranmu sebaik mungkin</value></data>
+  <data name="Offer.WhatOffer" xml:space="preserve"><value>Apa yang ingin kamu tawarkan?</value></data>
+  <data name="Offer.TypeMealPlan" xml:space="preserve"><value>Rencana makan</value></data>
+  <data name="Offer.TypeRecipe" xml:space="preserve"><value>Resep</value></data>
+  <data name="Offer.TypeObject" xml:space="preserve"><value>Objek</value></data>
+  <data name="Offer.TypeDigital" xml:space="preserve"><value>Digital</value></data>
+  <data name="Offer.TypeService" xml:space="preserve"><value>Layanan</value></data>
+  <data name="Offer.WhichPlan" xml:space="preserve"><value>Rencana mana yang ingin kamu tawarkan?</value></data>
+  <data name="Offer.NoPlans" xml:space="preserve"><value>Belum ada rencana yang bisa dijual.</value></data>
+  <data name="Offer.Created" xml:space="preserve"><value>Dibuat:</value></data>
+  <data name="Offer.WhichRecipe" xml:space="preserve"><value>Resep mana yang ingin kamu tawarkan?</value></data>
+  <data name="Offer.PickRecipe" xml:space="preserve"><value>– Pilih resep –</value></data>
+  <data name="Offer.NoRecipes" xml:space="preserve"><value>Kamu belum punya resep sendiri.</value></data>
+  <data name="Offer.ProductDetails" xml:space="preserve"><value>Detail produk</value></data>
+  <data name="Offer.StockPlaceholder" xml:space="preserve"><value>Stok (kosong = tak terbatas)</value></data>
+  <data name="Offer.ShippingNeeded" xml:space="preserve"><value>Perlu pengiriman</value></data>
+  <data name="Offer.ShippingHint" xml:space="preserve"><value>Untuk pengiriman, alamat ditanyakan saat pembelian.</value></data>
+  <data name="Offer.DigitalTitle" xml:space="preserve"><value>Produk digital</value></data>
+  <data name="Offer.DigitalUrlPlaceholder" xml:space="preserve"><value>URL unduhan/berkas (https://…)</value></data>
+  <data name="Offer.DigitalHint" xml:space="preserve"><value>Tautan unduhan dibuka hanya setelah pembelian.</value></data>
+  <data name="Offer.ServiceTitle" xml:space="preserve"><value>Layanan</value></data>
+  <data name="Offer.ServiceAvailPlaceholder" xml:space="preserve"><value>Ketersediaan / lokasi (opsional)</value></data>
+  <data name="Offer.ServiceHint" xml:space="preserve"><value>Setelah pembelian kamu diberi tahu untuk menghubungi.</value></data>
+  <data name="Offer.TitlePlaceholder" xml:space="preserve"><value>Judul penawaranmu</value></data>
+  <data name="Offer.CaptionPlaceholder" xml:space="preserve"><value>Tulis deskripsi… Apa yang membuat penawaranmu istimewa?</value></data>
+  <data name="Offer.Price" xml:space="preserve"><value>Harga</value></data>
+  <data name="Offer.WalletTitle" xml:space="preserve"><value>Dompet pembayaran (WLD)</value></data>
+  <data name="Offer.WalletConnect" xml:space="preserve"><value>Hubungkan</value></data>
+  <data name="Offer.WalletConnectHint" xml:space="preserve"><value>Ketuk untuk menghubungkan</value></data>
+  <data name="Offer.WalletConnected" xml:space="preserve"><value>Terhubung</value></data>
+  <data name="Offer.PreviewHead" xml:space="preserve"><value>Pratinjau</value></data>
+  <data name="Offer.PreviewHint" xml:space="preserve"><value>Begini tampilan penawaranmu di feed</value></data>
+  <data name="Offer.You" xml:space="preserve"><value>Kamu</value></data>
+  <data name="Offer.PreviewTitleFallback" xml:space="preserve"><value>Judul penawaranmu</value></data>
+  <data name="Offer.Buy" xml:space="preserve"><value>Beli</value></data>
+  <data name="Offer.SplitInfo" xml:space="preserve"><value>Kamu mendapat {0} · biaya platform 20%</value></data>
+  <data name="Offer.ConnectedWith" xml:space="preserve"><value>Terhubung · {0}</value></data>
+  <data name="Offer.Cover" xml:space="preserve"><value>Sampul</value></data>
+  <data name="Offer.ErrFillRequired" xml:space="preserve"><value>Isi semua kolom wajib (foto, tipe, judul, harga, dompet).</value></data>
+  <data name="Offer.ErrUpload" xml:space="preserve"><value>Unggah gagal.</value></data>
+  <data name="Offer.ErrImagesOnly" xml:space="preserve"><value>Hanya gambar.</value></data>
+  <data name="Offer.ErrWallet" xml:space="preserve"><value>Koneksi dompet gagal.</value></data>
+  <data name="Offer.ErrGeneric" xml:space="preserve"><value>Terjadi kesalahan. Coba lagi.</value></data>
+  <data name="SharedFeed.Copy" xml:space="preserve"><value>Salin</value></data>
+  <data name="SharedFeed.RoleAdmin" xml:space="preserve"><value>ADMIN</value></data>
+  <data name="SharedFeed.MemberSince" xml:space="preserve"><value>Anggota</value></data>
+  <data name="SharedFeed.DeleteGroup" xml:space="preserve"><value>Hapus grup</value></data>
+  <data name="SharedFeed.LeaveGroup" xml:space="preserve"><value>Keluar dari grup</value></data>
+  <data name="SharedFeed.DeleteGroupConfirm" xml:space="preserve"><value>⚠️ Yakin ingin MENGHAPUS grup ini? Semua konten, pesan, dan anggota akan dihapus. Tindakan ini tidak bisa dibatalkan.</value></data>
+  <data name="SharedFeed.LeaveGroupConfirm" xml:space="preserve"><value>Yakin ingin keluar dari grup ini?</value></data>
+  <data name="SharedFeed.DeleteTodoConfirm" xml:space="preserve"><value>Hapus tugas ini?</value></data>
+  <data name="Feed.ShareRecipe" xml:space="preserve"><value>Bagikan resep</value></data>
+  <data name="Feed.ShareViaLink" xml:space="preserve"><value>Bagikan tautan</value></data>
+  <data name="Feed.ShareViaLinkDesc" xml:space="preserve"><value>Lewat Messenger, WhatsApp, dll.</value></data>
+  <data name="Feed.ShareToGroup" xml:space="preserve"><value>Bagikan ke grup</value></data>
+  <data name="Feed.ShareToGroupDesc" xml:space="preserve"><value>Bagikan dengan grupmu</value></data>
+  <data name="Feed.ShareUnavailable" xml:space="preserve"><value>Berbagi tidak tersedia saat ini.</value></data>
+  <data name="Feed.ShareLoadingGroups" xml:space="preserve"><value>Memuat grup...</value></data>
+  <data name="Feed.ShareNoGroups" xml:space="preserve"><value>Kamu belum tergabung dalam grup mana pun. Buat grup dulu!</value></data>
+  <data name="Feed.ShareContents" xml:space="preserve"><value>konten</value></data>
+  <data name="Feed.ShareGroupsError" xml:space="preserve"><value>Gagal memuat grup.</value></data>
+  <data name="Feed.ShareConfirm" xml:space="preserve"><value>Bagikan "{0}" ke grup "{1}"?</value></data>
+  <data name="Feed.ShareSuccess" xml:space="preserve"><value>Dibagikan ke "{0}"!</value></data>
+  <data name="Feed.ShareError" xml:space="preserve"><value>Gagal membagikan</value></data>
+  <data name="Feed.ShareLinkPrompt" xml:space="preserve"><value>Bagikan tautan:</value></data>
+  <data name="Card.Save" xml:space="preserve"><value>Simpan</value></data>
+  <data name="Card.Recipes" xml:space="preserve"><value>Resep</value></data>
+  <data name="Card.KcalPerDay" xml:space="preserve"><value>kkal/hari</value></data>
+  <data name="Card.Type" xml:space="preserve"><value>Tipe</value></data>
+  <data name="Card.OnStockLabel" xml:space="preserve"><value>tersedia</value></data>
+  <data name="Card.OnStock" xml:space="preserve"><value>Tersedia</value></data>
+  <data name="Card.OnStockCount" xml:space="preserve"><value>{0} tersedia</value></data>
+  <data name="Card.InstantDownload" xml:space="preserve"><value>Unduh instan</value></data>
+  <data name="Card.SingleRecipe" xml:space="preserve"><value>Resep tunggal</value></data>
+  <data name="Card.Service" xml:space="preserve"><value>Layanan</value></data>
+  <data name="Card.Days" xml:space="preserve"><value>{0} hari</value></data>
+  <data name="Card.Sold" xml:space="preserve"><value>{0} terjual</value></data>
+  <data name="Card.DishesInPlan" xml:space="preserve"><value>Hidangan dalam rencana</value></data>
+  <data name="Card.MacrosNutrition" xml:space="preserve"><value>Makro &amp; nutrisi</value></data>
+  <data name="Card.PerDay" xml:space="preserve"><value>Per hari</value></data>
+  <data name="Card.RecipesCount" xml:space="preserve"><value>{0} resep</value></data>
+  <data name="Card.Preview" xml:space="preserve"><value>Pratinjau</value></data>
+  <data name="Card.PreviewFor" xml:space="preserve"><value>Pratinjau untuk {0}</value></data>
+  <data name="Card.PlanningNow" xml:space="preserve"><value>merencanakan sekarang</value></data>
+  <data name="Dashboard.Copied" xml:space="preserve"><value>Disalin</value></data>
+  <data name="Dashboard.Error" xml:space="preserve"><value>Kesalahan</value></data>
+  <data name="Dashboard.LoginRequired" xml:space="preserve"><value>Silakan masuk ke World Mini App terlebih dahulu agar dasbor Anda dapat dimuat.</value></data>
+  <data name="Dashboard.Available" xml:space="preserve"><value>Tersedia</value></data>
+  <data name="Dashboard.RequestMoney" xml:space="preserve"><value>Minta uang</value></data>
+  <data name="Dashboard.UsdcOpen" xml:space="preserve"><value>USDC/USDT terbuka</value></data>
+  <data name="Dashboard.TotalReceived" xml:space="preserve"><value>Total diterima</value></data>
+  <data name="Dashboard.Sales" xml:space="preserve"><value>Penjualan</value></data>
+  <data name="Dashboard.Pending" xml:space="preserve"><value>Tertunda</value></data>
+  <data name="Dashboard.AlreadyReceived" xml:space="preserve"><value>Sudah diterima</value></data>
+  <data name="Dashboard.PayoutBalance" xml:space="preserve"><value>Tarik saldo</value></data>
+  <data name="Dashboard.QualifiedViewsHint" xml:space="preserve"><value>Hanya tayangan memenuhi syarat mulai 8 detik</value></data>
+  <data name="Dashboard.QualifiedViews" xml:space="preserve"><value>Tayangan memenuhi syarat</value></data>
+  <data name="Dashboard.RealViewers" xml:space="preserve"><value>Penonton nyata</value></data>
+  <data name="Dashboard.WatchMinutes" xml:space="preserve"><value>Menit tontonan</value></data>
+  <data name="Dashboard.AvgWatchSeconds" xml:space="preserve"><value>Rata-rata detik tontonan</value></data>
+  <data name="Dashboard.ViewedByYou" xml:space="preserve"><value>Ditonton oleh Anda</value></data>
+  <data name="Dashboard.ClipsCount" xml:space="preserve"><value>{0} klip</value></data>
+  <data name="Dashboard.YourWatchTime" xml:space="preserve"><value>Waktu tonton Anda</value></data>
+  <data name="Dashboard.MinutesCount" xml:space="preserve"><value>{0} menit</value></data>
+  <data name="Dashboard.NoWatchData" xml:space="preserve"><value>Belum ada data tontonan memenuhi syarat</value></data>
+  <data name="Dashboard.NoWatchDataHint" xml:space="preserve"><value>Klip baru dihitung setelah ditonton aktif minimal 8 detik.</value></data>
+  <data name="Dashboard.ViewsCount" xml:space="preserve"><value>{0} tayangan</value></data>
+  <data name="Dashboard.EntriesCount" xml:space="preserve"><value>{0} entri</value></data>
+  <data name="Dashboard.NoSales" xml:space="preserve"><value>Belum ada penjualan</value></data>
+  <data name="Dashboard.NoSalesHint" xml:space="preserve"><value>Penjualan Anda muncul di sini otomatis begitu listing dibeli.</value></data>
+  <data name="Dashboard.CreatorShare" xml:space="preserve"><value>Bagian kreator</value></data>
+  <data name="Dashboard.ListingFallback" xml:space="preserve"><value>Listing #{0}</value></data>
+  <data name="Marketplace.Title" xml:space="preserve"><value>Pasar</value></data>
+  <data name="Marketplace.BuyAndSell" xml:space="preserve"><value>Beli &amp; jual</value></data>
+  <data name="Marketplace.NotConnected" xml:space="preserve"><value>tidak terhubung</value></data>
+  <data name="Marketplace.Connect" xml:space="preserve"><value>Sambungkan</value></data>
+  <data name="Marketplace.Mine" xml:space="preserve"><value>Milik saya</value></data>
+  <data name="Marketplace.CreateListing" xml:space="preserve"><value>Buat listing</value></data>
+  <data name="Marketplace.FilterAll" xml:space="preserve"><value>Semua ({0})</value></data>
+  <data name="Marketplace.NoListings" xml:space="preserve"><value>Belum ada listing.</value></data>
+  <data name="Marketplace.BeFirst" xml:space="preserve"><value>Jadilah yang pertama menjual rencana makan!</value></data>
+  <data name="Marketplace.SellFirst" xml:space="preserve"><value>Jual rencana pertama</value></data>
+  <data name="Marketplace.YourListing" xml:space="preserve"><value>Listing Anda</value></data>
+  <data name="Marketplace.PlanPreview" xml:space="preserve"><value>Pratinjau rencana</value></data>
+  <data name="Marketplace.LoadingPreview" xml:space="preserve"><value>Memuat pratinjau...</value></data>
+  <data name="Marketplace.PreviewUnavailable" xml:space="preserve"><value>Pratinjau tidak tersedia.</value></data>
+  <data name="Marketplace.Fiber" xml:space="preserve"><value>Serat</value></data>
+  <data name="Marketplace.NutritionWholePlan" xml:space="preserve"><value>Nutrisi untuk seluruh rencana (semua hari)</value></data>
+  <data name="Marketplace.DayPrefix" xml:space="preserve"><value>Hari</value></data>
+  <data name="Marketplace.NoRecipesDay" xml:space="preserve"><value>Tidak ada resep</value></data>
+  <data name="Marketplace.NoPreview" xml:space="preserve"><value>Tidak ada pratinjau.</value></data>
+  <data name="Marketplace.PreviewLoadError" xml:space="preserve"><value>Pratinjau tidak dapat dimuat.</value></data>
+  <data name="Marketplace.Connecting" xml:space="preserve"><value>Menyambungkan...</value></data>
+  <data name="Marketplace.Connected" xml:space="preserve"><value>Terhubung</value></data>
+  <data name="Marketplace.WalletConnectFailed" xml:space="preserve"><value>Koneksi wallet gagal.</value></data>
+  <data name="Marketplace.PurchaseDownloadOpening" xml:space="preserve"><value>Pembelian berhasil! Unduhan Anda sedang dibuka.</value></data>
+  <data name="Marketplace.PurchaseSellerNotified" xml:space="preserve"><value>Pembelian berhasil! Penjual telah diberi tahu.</value></data>
+  <data name="Marketplace.Buying" xml:space="preserve"><value>Membeli...</value></data>
+  <data name="Marketplace.LoginFirst" xml:space="preserve"><value>Silakan masuk dengan World ID terlebih dahulu.</value></data>
+  <data name="Marketplace.SellerNoWallet" xml:space="preserve"><value>Penjual belum menyiapkan wallet. Pembelian tidak dapat dilakukan.</value></data>
+  <data name="Marketplace.ShippingPrompt" xml:space="preserve"><value>Masukkan alamat pengiriman Anda (nama, jalan, kode pos, kota, negara):</value></data>
+  <data name="Marketplace.ShippingRequired" xml:space="preserve"><value>Tanpa alamat pengiriman, barang tidak dapat dikirim.</value></data>
+  <data name="Marketplace.RateUnavailable" xml:space="preserve"><value>Kurs WLD/USD tidak tersedia. Muat ulang halaman.</value></data>
+  <data name="Marketplace.PlatformWalletMissing" xml:space="preserve"><value>Wallet platform belum dikonfigurasi. Pembelian tidak dapat dilakukan.</value></data>
+  <data name="Marketplace.PurchaseIncomplete" xml:space="preserve"><value>Pembelian tidak dapat diselesaikan.</value></data>
+  <data name="Marketplace.PurchaseValidationFailed" xml:space="preserve"><value>Validasi pembelian gagal.</value></data>
+  <data name="Marketplace.NoPaymentMethod" xml:space="preserve"><value>Tidak ada metode pembayaran. Buka aplikasi di World App.</value></data>
+  <data name="Marketplace.PurchaseFailed" xml:space="preserve"><value>Pembelian gagal.</value></data>
+  <data name="CreatorShop.Subtitle" xml:space="preserve"><value>Rencana makan premium dari kreator</value></data>
+  <data name="CreatorShop.NoPlans" xml:space="preserve"><value>Belum ada rencana tersedia.</value></data>
+  <data name="Payout.Title" xml:space="preserve"><value>Pencairan</value></data>
+  <data name="Payout.BackToListings" xml:space="preserve"><value>Kembali ke Listing Saya</value></data>
+  <data name="Payout.Heading" xml:space="preserve"><value>Saldo &amp; pencairan</value></data>
+  <data name="Payout.AvailableBalance" xml:space="preserve"><value>Saldo tersedia (bagian penjual dari penjualan)</value></data>
+  <data name="Payout.Amount" xml:space="preserve"><value>Jumlah</value></data>
+  <data name="Payout.PayoutWallet" xml:space="preserve"><value>Wallet pencairan</value></data>
+  <data name="Payout.RequestButton" xml:space="preserve"><value>Minta pencairan</value></data>
+  <data name="Payout.Note" xml:space="preserve"><value>Pencairan ditransfer manual setelah ditinjau. Saldo langsung dicadangkan.</value></data>
+  <data name="Payout.History" xml:space="preserve"><value>Riwayat</value></data>
+  <data name="Payout.Date" xml:space="preserve"><value>Tanggal</value></data>
+  <data name="Payout.NoPayouts" xml:space="preserve"><value>Belum ada pencairan.</value></data>
+  <data name="Payout.RequestSubmitted" xml:space="preserve"><value>Permintaan dikirim. Pencairan menyusul setelah ditinjau.</value></data>
+  <data name="MyListings.Title" xml:space="preserve"><value>Listing Saya</value></data>
+  <data name="MyListings.BackToMarketplace" xml:space="preserve"><value>Kembali ke pasar</value></data>
+  <data name="MyListings.ListingSg" xml:space="preserve"><value>listing</value></data>
+  <data name="MyListings.ListingPl" xml:space="preserve"><value>listing</value></data>
+  <data name="MyListings.Balance" xml:space="preserve"><value>Saldo</value></data>
+  <data name="MyListings.NewListing" xml:space="preserve"><value>Listing baru</value></data>
+  <data name="MyListings.NoListings" xml:space="preserve"><value>Belum ada listing</value></data>
+  <data name="MyListings.EmptyHint" xml:space="preserve"><value>Buat listing pertama Anda – rencana makan, resep, objek, produk digital, atau layanan.</value></data>
+  <data name="MyListings.RecipeImageAlt" xml:space="preserve"><value>Gambar resep {0} untuk {1}</value></data>
+  <data name="MyListings.TotalMacrosAria" xml:space="preserve"><value>Total makro rencana ini</value></data>
+  <data name="MyListings.TotalMacros" xml:space="preserve"><value>Total makro</value></data>
+  <data name="MyListings.Active" xml:space="preserve"><value>Aktif</value></data>
+  <data name="MyListings.Inactive" xml:space="preserve"><value>Tidak aktif</value></data>
+  <data name="MyListings.MacrosTagsAria" xml:space="preserve"><value>Makro dan tag</value></data>
+  <data name="MyListings.Diet" xml:space="preserve"><value>Diet</value></data>
+  <data name="MyListings.StatsAria" xml:space="preserve"><value>Statistik</value></data>
+  <data name="MyListings.Sold" xml:space="preserve"><value>{0} terjual</value></data>
+  <data name="MyListings.PlanningNow" xml:space="preserve"><value>{0} sedang merencanakan</value></data>
+  <data name="MyListings.Deactivate" xml:space="preserve"><value>Nonaktifkan</value></data>
+  <data name="MyListings.Activate" xml:space="preserve"><value>Aktifkan</value></data>
+  <data name="MyListings.ConfirmActivate" xml:space="preserve"><value>Yakin mengaktifkan listing ini?</value></data>
+  <data name="MyListings.ConfirmDeactivate" xml:space="preserve"><value>Yakin menonaktifkan listing ini?</value></data>
+  <data name="Swap.CommunityReason" xml:space="preserve"><value>Varian komunitas populer.</value></data>
+  <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Siapkan seperti biasa (periksa waktu memasak bila perlu).</value></data>
+  <data name="Swap.CommunityTaste" xml:space="preserve"><value>Profil serupa, sedikit berbeda tergantung bahan.</value></data>
+  <data name="Swap.CommunityTested" xml:space="preserve"><value>Teruji komunitas</value></data>
 </root>

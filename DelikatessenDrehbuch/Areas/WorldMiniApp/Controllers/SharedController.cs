@@ -368,9 +368,39 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 }).ToList()
             };
 
+            // Likes pro Feed-Item (Anzahl + ob aktueller User geliked hat).
+            var itemIds = items.Select(x => x.Id).ToList();
+            var likeRows = itemIds.Count == 0
+                ? new List<(int ItemId, string UserHash)>()
+                : (await _context.WorldSharedFeedItemLikes
+                        .AsNoTracking()
+                        .Where(x => itemIds.Contains(x.WorldSharedFeedItemId))
+                        .Select(x => new { x.WorldSharedFeedItemId, x.UserHash })
+                        .ToListAsync())
+                    .Select(x => (ItemId: x.WorldSharedFeedItemId, UserHash: x.UserHash))
+                    .ToList();
+            var likeCounts = likeRows.GroupBy(x => x.ItemId).ToDictionary(g => g.Key, g => g.Count());
+            var likedByMe = likeRows.Where(x => x.UserHash == userHash).Select(x => x.ItemId).ToHashSet();
+
             foreach (var item in items)
             {
-                if (item.ContentType == "mealplan" && plans.TryGetValue(item.SourceToken, out var plan))
+                if (item.ContentType == "text")
+                {
+                    detail.Items.Add(new SharedFeedContentCardViewModel
+                    {
+                        ItemId = item.Id,
+                        ContentType = "text",
+                        Title = item.Title,
+                        Text = item.Text,
+                        AddedByName = users.TryGetValue(item.AddedByUserHash, out var addedByText) ? addedByText : ShortHash(item.AddedByUserHash),
+                        CreatorUserHash = item.AddedByUserHash,
+                        IsCreator = string.Equals(item.AddedByUserHash, userHash, StringComparison.OrdinalIgnoreCase),
+                        CreatedAtUtc = item.CreatedAtUtc,
+                        LikeCount = likeCounts.GetValueOrDefault(item.Id),
+                        LikedByCurrentUser = likedByMe.Contains(item.Id)
+                    });
+                }
+                else if (item.ContentType == "mealplan" && plans.TryGetValue(item.SourceToken, out var plan))
                 {
                     var planItems = JsonConvert.DeserializeObject<List<MealPlanHelperMobile>>(plan.MealPlanJson) ?? new List<MealPlanHelperMobile>();
                     var recipeIds = planItems.Select(x => x.RecipeId).Distinct().ToList();
@@ -404,6 +434,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     var returnToFeed = $"/WorldMiniApp/Shared/FeedLight?feedId={feedId}&userHash={Uri.EscapeDataString(userHash)}";
                     detail.Items.Add(new SharedFeedContentCardViewModel
                     {
+                        ItemId = item.Id,
+                        LikeCount = likeCounts.GetValueOrDefault(item.Id),
+                        LikedByCurrentUser = likedByMe.Contains(item.Id),
                         ContentType = "mealplan",
                         Title = string.IsNullOrWhiteSpace(plan.Title) ? item.Title : plan.Title,
                         SourceToken = item.SourceToken,
@@ -427,6 +460,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     var returnToFeed = $"/WorldMiniApp/Shared/FeedLight?feedId={feedId}&userHash={Uri.EscapeDataString(userHash)}";
                     detail.Items.Add(new SharedFeedContentCardViewModel
                     {
+                        ItemId = item.Id,
+                        LikeCount = likeCounts.GetValueOrDefault(item.Id),
+                        LikedByCurrentUser = likedByMe.Contains(item.Id),
                         ContentType = "shoppinglist",
                         Title = item.Title,
                         SourceToken = item.SourceToken,
@@ -690,6 +726,157 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 id = m.Id,
                 userHash = m.UserHash,
                 userName = users.TryGetValue(m.UserHash, out var name) ? name : ShortHash(m.UserHash),
+                message = m.Message,
+                createdAtUtc = m.CreatedAtUtc,
+                isOwn = string.Equals(m.UserHash, userHash, StringComparison.OrdinalIgnoreCase)
+            }).ToList();
+
+            return Ok(result);
+        }
+
+        // POST: Text-Posting im Gruppen-Feed (Feed + Chat verschmolzen).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateTextPost([FromBody] CreateTextPostRequest request)
+        {
+            var userHash = ResolveUserHash(request.UserHash ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash)) return Unauthorized();
+            if (!await HasFeedAccessAsync(request.FeedId, userHash)) return Forbid();
+
+            var text = (request.Text ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(text) || text.Length > 2000)
+                return BadRequest("Beitrag ist leer oder zu lang (max. 2000 Zeichen).");
+
+            var item = new WorldSharedFeedItem
+            {
+                WorldSharedFeedId = request.FeedId,
+                ContentType = "text",
+                SourceToken = Guid.NewGuid().ToString("N"),
+                Title = text.Length <= 200 ? text : text[..200],
+                Text = text,
+                AddedByUserHash = userHash,
+                CreatedAtUtc = DateTime.UtcNow
+            };
+            await _context.WorldSharedFeedItems.AddAsync(item);
+            await _context.SaveChangesAsync();
+            await TouchFeedAsync(request.FeedId);
+
+            var user = await _context.WorldAppUser.AsNoTracking().FirstOrDefaultAsync(x => x.UserHash == userHash);
+            return Ok(new
+            {
+                id = item.Id,
+                text = item.Text,
+                addedByName = user?.UserName ?? ShortHash(userHash),
+                createdAtUtc = item.CreatedAtUtc,
+                isOwn = true,
+                likeCount = 0,
+                liked = false
+            });
+        }
+
+        // POST: Like auf ein Feed-Item togglen (jedes Mitglied darf liken).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ToggleItemLike([FromBody] ToggleItemLikeRequest request)
+        {
+            var userHash = ResolveUserHash(request.UserHash ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash)) return Unauthorized();
+
+            var item = await _context.WorldSharedFeedItems.AsNoTracking()
+                .FirstOrDefaultAsync(x => x.Id == request.ItemId);
+            if (item == null) return NotFound();
+            if (!await HasFeedAccessAsync(item.WorldSharedFeedId, userHash)) return Forbid();
+
+            var existing = await _context.WorldSharedFeedItemLikes
+                .FirstOrDefaultAsync(x => x.WorldSharedFeedItemId == request.ItemId && x.UserHash == userHash);
+
+            bool liked;
+            if (existing != null)
+            {
+                _context.WorldSharedFeedItemLikes.Remove(existing);
+                liked = false;
+            }
+            else
+            {
+                await _context.WorldSharedFeedItemLikes.AddAsync(new WorldSharedFeedItemLike
+                {
+                    WorldSharedFeedItemId = request.ItemId,
+                    UserHash = userHash,
+                    CreatedAtUtc = DateTime.UtcNow
+                });
+                liked = true;
+            }
+            await _context.SaveChangesAsync();
+
+            var likeCount = await _context.WorldSharedFeedItemLikes
+                .CountAsync(x => x.WorldSharedFeedItemId == request.ItemId);
+
+            return Ok(new { liked, likeCount });
+        }
+
+        // POST: Private 1:1-Nachricht an ein Gruppenmitglied (ehemaliger Chat).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SendPrivateMessage([FromBody] SendPrivateMessageRequest request)
+        {
+            var userHash = ResolveUserHash(request.UserHash ?? string.Empty);
+            if (string.IsNullOrWhiteSpace(userHash)) return Unauthorized();
+
+            var recipient = (request.RecipientUserHash ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(recipient) || string.Equals(recipient, userHash, StringComparison.Ordinal))
+                return BadRequest("Ungültiger Empfänger.");
+
+            // Beide müssen Mitglied der Gruppe sein.
+            if (!await HasFeedAccessAsync(request.FeedId, userHash) || !await HasFeedAccessAsync(request.FeedId, recipient))
+                return Forbid();
+
+            if (string.IsNullOrWhiteSpace(request.Message) || request.Message.Length > 1000)
+                return BadRequest("Nachricht ist leer oder zu lang (max. 1000 Zeichen).");
+
+            var message = new WorldSharedFeedMessage
+            {
+                WorldSharedFeedId = request.FeedId,
+                UserHash = userHash,
+                RecipientUserHash = recipient,
+                Message = request.Message.Trim(),
+                CreatedAtUtc = DateTime.UtcNow
+            };
+            await _context.WorldSharedFeedMessages.AddAsync(message);
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                id = message.Id,
+                userHash = message.UserHash,
+                message = message.Message,
+                createdAtUtc = message.CreatedAtUtc,
+                isOwn = true
+            });
+        }
+
+        // GET: Privater 1:1-Thread mit einem Mitglied (Polling-fähig).
+        [HttpGet]
+        public async Task<IActionResult> GetPrivateMessages(int feedId, string otherUserHash, string userHash = "", int? sinceId = null)
+        {
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash)) return Unauthorized();
+            if (string.IsNullOrWhiteSpace(otherUserHash)) return BadRequest("Empfänger fehlt.");
+            if (!await HasFeedAccessAsync(feedId, userHash)) return Forbid();
+
+            var query = _context.WorldSharedFeedMessages.AsNoTracking()
+                .Where(x => x.WorldSharedFeedId == feedId
+                    && x.RecipientUserHash != null
+                    && ((x.UserHash == userHash && x.RecipientUserHash == otherUserHash)
+                        || (x.UserHash == otherUserHash && x.RecipientUserHash == userHash)));
+
+            if (sinceId.HasValue) query = query.Where(x => x.Id > sinceId.Value);
+
+            var messages = await query.OrderByDescending(x => x.CreatedAtUtc).Take(50).ToListAsync();
+            messages.Reverse();
+
+            var result = messages.Select(m => new
+            {
+                id = m.Id,
                 message = m.Message,
                 createdAtUtc = m.CreatedAtUtc,
                 isOwn = string.Equals(m.UserHash, userHash, StringComparison.OrdinalIgnoreCase)
@@ -1315,6 +1502,27 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             public int FeedId { get; set; }
             public string? UserHash { get; set; }
+            public string Message { get; set; } = string.Empty;
+        }
+
+        public class CreateTextPostRequest
+        {
+            public int FeedId { get; set; }
+            public string? UserHash { get; set; }
+            public string Text { get; set; } = string.Empty;
+        }
+
+        public class ToggleItemLikeRequest
+        {
+            public int ItemId { get; set; }
+            public string? UserHash { get; set; }
+        }
+
+        public class SendPrivateMessageRequest
+        {
+            public int FeedId { get; set; }
+            public string? UserHash { get; set; }
+            public string RecipientUserHash { get; set; } = string.Empty;
             public string Message { get; set; } = string.Empty;
         }
 

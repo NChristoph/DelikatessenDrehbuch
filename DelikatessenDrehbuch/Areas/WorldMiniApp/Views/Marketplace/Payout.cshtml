@@ -1,6 +1,8 @@
 @using DelikatessenDrehbuch.Areas.WorldMiniApp.Models
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
-    ViewData["Title"] = "Auszahlung";
+    ViewData["Title"] = SharedLocalizer["Payout.Title"].Value;
     Layout = "_MiniAppLayout";
     var balance = (decimal?)ViewData["Balance"] ?? 0m;
     var payouts = ViewData["Payouts"] as List<MarketplacePayoutRequest> ?? new List<MarketplacePayoutRequest>();
@@ -11,37 +13,37 @@
 @Html.AntiForgeryToken()
 <div class="container py-3" style="max-width:560px">
     <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small d-inline-block mb-3">
-        <i class="bi bi-arrow-left"></i> Zurück zu Meine Angebote
+        <i class="bi bi-arrow-left"></i> @SharedLocalizer["Payout.BackToListings"]
     </a>
-    <h4 class="mb-3">Guthaben &amp; Auszahlung</h4>
+    <h4 class="mb-3">@SharedLocalizer["Payout.Heading"]</h4>
 
     <div class="card p-3 mb-3 shadow-sm">
-        <div class="text-muted small">Verfügbares Guthaben (Verkäufer-Anteil aus Verkäufen)</div>
+        <div class="text-muted small">@SharedLocalizer["Payout.AvailableBalance"]</div>
         <div style="font-size:1.8rem;font-weight:700">@balance.ToString("0.######") <span class="text-muted" style="font-size:1rem">WLD</span></div>
     </div>
 
     <form id="payoutForm" class="card p-3 mb-3 shadow-sm">
-        <label class="small mb-1">Betrag</label>
+        <label class="small mb-1">@SharedLocalizer["Payout.Amount"]</label>
         <input id="payoutAmount" type="number" step="0.000001" min="0" max="@balance.ToString(System.Globalization.CultureInfo.InvariantCulture)" class="form-control mb-2" required />
         <label class="small mb-1">Token</label>
         <select id="payoutToken" class="form-control mb-2">
             <option value="WLD">WLD</option>
             <option value="USDCE">USDC.e</option>
         </select>
-        <label class="small mb-1">Auszahlungs-Wallet</label>
+        <label class="small mb-1">@SharedLocalizer["Payout.PayoutWallet"]</label>
         <input id="payoutWallet" type="text" class="form-control mb-2" value="@walletWLD" placeholder="0x…" required />
-        <button type="submit" class="btn btn-primary w-100">Auszahlung anfordern</button>
+        <button type="submit" class="btn btn-primary w-100">@SharedLocalizer["Payout.RequestButton"]</button>
         <div id="payoutMsg" class="small mt-2"></div>
-        <div class="text-muted small mt-2">Die Auszahlung wird nach Prüfung manuell überwiesen. Das Guthaben wird sofort reserviert.</div>
+        <div class="text-muted small mt-2">@SharedLocalizer["Payout.Note"]</div>
     </form>
 
-    <h6>Verlauf</h6>
+    <h6>@SharedLocalizer["Payout.History"]</h6>
     <table class="table table-sm">
-        <thead><tr><th>Datum</th><th>Betrag</th><th>Token</th><th>Status</th></tr></thead>
+        <thead><tr><th>@SharedLocalizer["Payout.Date"]</th><th>@SharedLocalizer["Payout.Amount"]</th><th>Token</th><th>Status</th></tr></thead>
         <tbody>
             @if (payouts.Count == 0)
             {
-                <tr><td colspan="4" class="text-muted">Noch keine Auszahlungen.</td></tr>
+                <tr><td colspan="4" class="text-muted">@SharedLocalizer["Payout.NoPayouts"]</td></tr>
             }
             @foreach (var p in payouts)
             {
@@ -82,15 +84,15 @@
                 var data = await res.json();
                 if (data.success) {
                     msg.style.color = 'green';
-                    msg.textContent = 'Antrag gestellt. Auszahlung folgt nach Prüfung.';
+                    msg.textContent = '@SharedLocalizer["Payout.RequestSubmitted"]';
                     setTimeout(function () { location.reload(); }, 1200);
                 } else {
                     msg.style.color = 'red';
-                    msg.textContent = data.error || 'Fehler';
+                    msg.textContent = data.error || '@SharedLocalizer["Dashboard.Error"]';
                 }
             } catch (_) {
                 msg.style.color = 'red';
-                msg.textContent = 'Netzwerkfehler';
+                msg.textContent = '@SharedLocalizer["Error.NetworkError"]';
             }
         });
     })();

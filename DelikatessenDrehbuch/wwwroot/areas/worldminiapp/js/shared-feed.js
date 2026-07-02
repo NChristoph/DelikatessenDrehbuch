@@ -862,4 +862,167 @@
     styleEl.textContent = chatStyles;
     document.head.appendChild(styleEl);
 
+    // ─────────────────────────────────────────────────────────────
+    // Feed + Chat verschmolzen: Text-Postings, Likes, private 1:1-DMs
+    // ─────────────────────────────────────────────────────────────
+    function sfToken() {
+        return document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+    }
+    function sfTime(ts) {
+        try { return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }); }
+        catch { return ''; }
+    }
+    function sfToast(msg) { if (typeof simpleToast === 'function') simpleToast(msg, 'error'); }
+
+    // ── Text-Posting erstellen ──
+    window.createTextPost = function() {
+        const btn = document.getElementById('feedPostBtn');
+        const input = document.getElementById('feedPostInput');
+        if (!btn || !input) return;
+        const text = input.value.trim();
+        if (!text) return;
+        const feedId = parseInt(btn.dataset.feedId);
+        const userHash = btn.dataset.userHash;
+        btn.disabled = true;
+        fetch('/WorldMiniApp/Shared/CreateTextPost', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': sfToken() },
+            body: JSON.stringify({ feedId, userHash, text })
+        })
+        .then(res => { if (!res.ok) throw new Error('post failed'); return res.json(); })
+        .then(post => {
+            input.value = '';
+            const empty = document.getElementById('feedEmptyState');
+            if (empty) empty.style.display = 'none';
+            const list = document.getElementById('feedItemsList');
+            if (list) list.insertAdjacentHTML('afterbegin', renderTextPost(post));
+        })
+        .catch(() => sfToast('Fehler beim Posten.'))
+        .finally(() => { btn.disabled = false; });
+    };
+
+    function renderTextPost(p) {
+        const name = escapeHtml(p.addedByName || 'User');
+        const initial = escapeHtml((p.addedByName || '?').trim().charAt(0).toUpperCase());
+        return `<article class="s-text-post" data-item-id="${p.id}">
+            <div class="s-text-post-head">
+                <div class="s-member-avatar" data-gradient="0"><span>${initial}</span></div>
+                <span class="s-text-post-name">${name}</span>
+                <span class="s-text-post-time">${sfTime(p.createdAtUtc)}</span>
+            </div>
+            <div class="s-text-post-body">${escapeHtml(p.text || '')}</div>
+            <button type="button" class="s-like-btn" data-item-id="${p.id}" onclick="toggleItemLike(this)">
+                <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <span class="s-like-count">${p.likeCount || 0}</span>
+            </button>
+        </article>`;
+    }
+
+    // ── Like togglen ──
+    window.toggleItemLike = function(btn) {
+        const itemId = parseInt(btn.dataset.itemId);
+        if (!itemId) return;
+        btn.disabled = true;
+        fetch('/WorldMiniApp/Shared/ToggleItemLike', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': sfToken() },
+            body: JSON.stringify({ itemId })
+        })
+        .then(res => { if (!res.ok) throw new Error('like failed'); return res.json(); })
+        .then(r => {
+            btn.classList.toggle('liked', !!r.liked);
+            const c = btn.querySelector('.s-like-count');
+            if (c) c.textContent = r.likeCount;
+        })
+        .catch(() => {})
+        .finally(() => { btn.disabled = false; });
+    };
+
+    // ── Private 1:1-DMs ──
+    let sfPrivateOther = null, sfPrivateLastId = 0, sfPrivatePoll = null;
+
+    window.openPrivateThread = function(otherUserHash, name) {
+        sfPrivateOther = otherUserHash;
+        sfPrivateLastId = 0;
+        document.getElementById('privateMemberList').style.display = 'none';
+        const thread = document.getElementById('privateThread');
+        thread.style.display = 'flex';
+        document.getElementById('privateThreadName').textContent = name || '';
+        document.getElementById('privateMessages').innerHTML = '';
+        loadPrivateMessages();
+        if (sfPrivatePoll) clearInterval(sfPrivatePoll);
+        sfPrivatePoll = setInterval(() => { if (sfPrivateOther) loadPrivateMessages(sfPrivateLastId); }, 3000);
+    };
+
+    window.closePrivateThread = function() {
+        sfPrivateOther = null;
+        if (sfPrivatePoll) { clearInterval(sfPrivatePoll); sfPrivatePoll = null; }
+        document.getElementById('privateThread').style.display = 'none';
+        document.getElementById('privateMemberList').style.display = '';
+    };
+
+    function loadPrivateMessages(sinceId) {
+        const thread = document.getElementById('privateThread');
+        if (!thread || !sfPrivateOther) return;
+        const feedId = parseInt(thread.dataset.feedId);
+        const userHash = thread.dataset.userHash;
+        let url = `/WorldMiniApp/Shared/GetPrivateMessages?feedId=${feedId}&otherUserHash=${encodeURIComponent(sfPrivateOther)}&userHash=${encodeURIComponent(userHash)}`;
+        if (sinceId) url += `&sinceId=${sinceId}`;
+        fetch(url)
+        .then(res => { if (!res.ok) throw new Error('load failed'); return res.json(); })
+        .then(msgs => {
+            const box = document.getElementById('privateMessages');
+            if (!box) return;
+            msgs.forEach(m => {
+                if (m.id > sfPrivateLastId) sfPrivateLastId = m.id;
+                box.insertAdjacentHTML('beforeend', renderPrivateMsg(m));
+            });
+            if (msgs.length) box.scrollTop = box.scrollHeight;
+        })
+        .catch(() => {});
+    }
+
+    function renderPrivateMsg(m) {
+        return `<div class="s-chat-msg ${m.isOwn ? 'is-own' : ''}">
+            <div class="s-chat-msg-bubble">${escapeHtml(m.message)}</div>
+            <div class="s-chat-msg-time">${sfTime(m.createdAtUtc)}</div>
+        </div>`;
+    }
+
+    window.sendPrivateMessage = function() {
+        const thread = document.getElementById('privateThread');
+        const input = document.getElementById('privateInput');
+        const btn = document.getElementById('privateSendBtn');
+        if (!thread || !input || !sfPrivateOther) return;
+        const message = input.value.trim();
+        if (!message) return;
+        const feedId = parseInt(thread.dataset.feedId);
+        const userHash = thread.dataset.userHash;
+        btn.disabled = true; input.disabled = true;
+        fetch('/WorldMiniApp/Shared/SendPrivateMessage', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': sfToken() },
+            body: JSON.stringify({ feedId, userHash, recipientUserHash: sfPrivateOther, message })
+        })
+        .then(res => { if (!res.ok) throw new Error('send failed'); return res.json(); })
+        .then(m => {
+            input.value = '';
+            if (m.id > sfPrivateLastId) {
+                sfPrivateLastId = m.id;
+                const box = document.getElementById('privateMessages');
+                box.insertAdjacentHTML('beforeend', renderPrivateMsg(m));
+                box.scrollTop = box.scrollHeight;
+            }
+        })
+        .catch(() => sfToast('Fehler beim Senden.'))
+        .finally(() => { btn.disabled = false; input.disabled = false; input.focus(); });
+    };
+
+    document.addEventListener('keypress', (e) => {
+        if (e.target && e.target.id === 'privateInput' && e.key === 'Enter') {
+            e.preventDefault();
+            window.sendPrivateMessage();
+        }
+    });
+
 })();

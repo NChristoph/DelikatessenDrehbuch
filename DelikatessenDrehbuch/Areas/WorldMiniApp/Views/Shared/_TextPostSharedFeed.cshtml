@@ -1,0 +1,19 @@
+@model DelikatessenDrehbuch.Areas.WorldMiniApp.Models.SharedFeedContentCardViewModel
+@{
+    var name = string.IsNullOrWhiteSpace(Model.AddedByName) ? "User" : Model.AddedByName;
+    var initial = name.Trim().Length > 0 ? name.Trim()[0].ToString().ToUpper() : "?";
+}
+
+<article class="s-text-post" data-item-id="@Model.ItemId">
+    <div class="s-text-post-head">
+        <div class="s-member-avatar" data-gradient="0"><span>@initial</span></div>
+        <span class="s-text-post-name">@name</span>
+        <span class="s-text-post-time">@Model.CreatedAtUtc.ToLocalTime().ToString("dd.MM. HH:mm")</span>
+    </div>
+    <div class="s-text-post-body">@Model.Text</div>
+    <button type="button" class="s-like-btn @(Model.LikedByCurrentUser ? "liked" : "")"
+            data-item-id="@Model.ItemId" onclick="toggleItemLike(this)">
+        <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+        <span class="s-like-count">@Model.LikeCount</span>
+    </button>
+</article>

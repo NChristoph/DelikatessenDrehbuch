@@ -55,8 +55,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 
     public class SharedFeedContentCardViewModel
     {
+        public int ItemId { get; set; }
         public string ContentType { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
+        // Body bei Text-Postings (ContentType = "text").
+        public string? Text { get; set; }
+        public int LikeCount { get; set; }
+        public bool LikedByCurrentUser { get; set; }
         public string SourceToken { get; set; } = string.Empty;
         public string OpenUrl { get; set; } = string.Empty;
         public string AddedByName { get; set; } = string.Empty;

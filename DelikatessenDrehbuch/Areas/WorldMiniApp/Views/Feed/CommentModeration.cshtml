@@ -172,7 +172,7 @@
                         </div>
 
                         <div class="comment-report-actions">
-                            <form method="post" action="@Url.Action("ResolveCommentReport", "Feed", new { area = "WorldMiniApp" })">
+                            <form method="post" action="@Url.Action("ResolveCommentReport", "FeedComments", new { area = "WorldMiniApp" })">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="userHash" value="@Model.UserHash" />
                                 <input type="hidden" name="commentId" value="@item.CommentId" />
@@ -182,7 +182,7 @@
                                 </button>
                             </form>
 
-                            <form method="post" action="@Url.Action("ResolveCommentReport", "Feed", new { area = "WorldMiniApp" })" onsubmit="return confirm('@T("Kommentar wirklich entfernen?", "Really remove this comment?", "Eliminar realmente este comentario?", "Remover realmente este comentario?").Replace("'", "\\'")');">
+                            <form method="post" action="@Url.Action("ResolveCommentReport", "FeedComments", new { area = "WorldMiniApp" })" onsubmit="return confirm('@T("Kommentar wirklich entfernen?", "Really remove this comment?", "Eliminar realmente este comentario?", "Remover realmente este comentario?").Replace("'", "\\'")');">
                                 @Html.AntiForgeryToken()
                                 <input type="hidden" name="userHash" value="@Model.UserHash" />
                                 <input type="hidden" name="commentId" value="@item.CommentId" />

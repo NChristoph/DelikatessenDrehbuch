@@ -1225,4 +1225,215 @@
   <data name="Notify.Open" xml:space="preserve">
     <value>Öppna</value>
   </data>
+  <data name="SharedFeed.PostPlaceholder" xml:space="preserve">
+    <value>Skriv något till gruppen…</value>
+  </data>
+  <data name="SharedFeed.Post" xml:space="preserve">
+    <value>Publicera</value>
+  </data>
+  <data name="SharedFeed.TabPrivate" xml:space="preserve">
+    <value>Privat</value>
+  </data>
+  <data name="SharedFeed.PrivatePickMember" xml:space="preserve">
+    <value>Välj en medlem att skicka privat till</value>
+  </data>
+  <data name="SharedFeed.PrivatePlaceholder" xml:space="preserve">
+    <value>Privat meddelande…</value>
+  </data>
+  <data name="SharedFeed.PrivateNoMembers" xml:space="preserve">
+    <value>Inga andra medlemmar ännu.</value>
+  </data>
+  <data name="Offer.Title" xml:space="preserve"><value>Nytt erbjudande</value></data>
+  <data name="Offer.Close" xml:space="preserve"><value>Stäng</value></data>
+  <data name="Offer.Share" xml:space="preserve"><value>Dela</value></data>
+  <data name="Offer.Sharing" xml:space="preserve"><value>Delar…</value></data>
+  <data name="Offer.AddPhotos" xml:space="preserve"><value>Lägg till foton</value></data>
+  <data name="Offer.AddPhotosSub" xml:space="preserve"><value>Visa ditt erbjudande från sin bästa sida</value></data>
+  <data name="Offer.WhatOffer" xml:space="preserve"><value>Vad vill du erbjuda?</value></data>
+  <data name="Offer.TypeMealPlan" xml:space="preserve"><value>Måltidsplan</value></data>
+  <data name="Offer.TypeRecipe" xml:space="preserve"><value>Recept</value></data>
+  <data name="Offer.TypeObject" xml:space="preserve"><value>Objekt</value></data>
+  <data name="Offer.TypeDigital" xml:space="preserve"><value>Digitalt</value></data>
+  <data name="Offer.TypeService" xml:space="preserve"><value>Tjänst</value></data>
+  <data name="Offer.WhichPlan" xml:space="preserve"><value>Vilken plan vill du erbjuda?</value></data>
+  <data name="Offer.NoPlans" xml:space="preserve"><value>Du har inga säljbara planer än.</value></data>
+  <data name="Offer.Created" xml:space="preserve"><value>Skapad:</value></data>
+  <data name="Offer.WhichRecipe" xml:space="preserve"><value>Vilket recept vill du erbjuda?</value></data>
+  <data name="Offer.PickRecipe" xml:space="preserve"><value>– Välj recept –</value></data>
+  <data name="Offer.NoRecipes" xml:space="preserve"><value>Du har inga egna recept än.</value></data>
+  <data name="Offer.ProductDetails" xml:space="preserve"><value>Produktdetaljer</value></data>
+  <data name="Offer.StockPlaceholder" xml:space="preserve"><value>Lager (tomt = obegränsat)</value></data>
+  <data name="Offer.ShippingNeeded" xml:space="preserve"><value>Frakt krävs</value></data>
+  <data name="Offer.ShippingHint" xml:space="preserve"><value>Vid frakt frågar vi om adressen vid köp.</value></data>
+  <data name="Offer.DigitalTitle" xml:space="preserve"><value>Digital produkt</value></data>
+  <data name="Offer.DigitalUrlPlaceholder" xml:space="preserve"><value>Nedladdnings-/fil-URL (https://…)</value></data>
+  <data name="Offer.DigitalHint" xml:space="preserve"><value>Nedladdningslänken låses upp först efter köp.</value></data>
+  <data name="Offer.ServiceTitle" xml:space="preserve"><value>Tjänst</value></data>
+  <data name="Offer.ServiceAvailPlaceholder" xml:space="preserve"><value>Tillgänglighet / plats (valfritt)</value></data>
+  <data name="Offer.ServiceHint" xml:space="preserve"><value>Efter köp meddelas du för att ta kontakt.</value></data>
+  <data name="Offer.TitlePlaceholder" xml:space="preserve"><value>Titel på ditt erbjudande</value></data>
+  <data name="Offer.CaptionPlaceholder" xml:space="preserve"><value>Skriv en beskrivning… Vad gör ditt erbjudande speciellt?</value></data>
+  <data name="Offer.Price" xml:space="preserve"><value>Pris</value></data>
+  <data name="Offer.WalletTitle" xml:space="preserve"><value>Utbetalningsplånbok (WLD)</value></data>
+  <data name="Offer.WalletConnect" xml:space="preserve"><value>Anslut</value></data>
+  <data name="Offer.WalletConnectHint" xml:space="preserve"><value>Tryck för att ansluta</value></data>
+  <data name="Offer.WalletConnected" xml:space="preserve"><value>Ansluten</value></data>
+  <data name="Offer.PreviewHead" xml:space="preserve"><value>Förhandsvisning</value></data>
+  <data name="Offer.PreviewHint" xml:space="preserve"><value>Så ser ditt erbjudande ut i flödet</value></data>
+  <data name="Offer.You" xml:space="preserve"><value>Du</value></data>
+  <data name="Offer.PreviewTitleFallback" xml:space="preserve"><value>Din erbjudandetitel</value></data>
+  <data name="Offer.Buy" xml:space="preserve"><value>Köp</value></data>
+  <data name="Offer.SplitInfo" xml:space="preserve"><value>Du får {0} · 20% plattformsavgift</value></data>
+  <data name="Offer.ConnectedWith" xml:space="preserve"><value>Ansluten · {0}</value></data>
+  <data name="Offer.Cover" xml:space="preserve"><value>Omslag</value></data>
+  <data name="Offer.ErrFillRequired" xml:space="preserve"><value>Fyll i alla obligatoriska fält (foto, typ, titel, pris, plånbok).</value></data>
+  <data name="Offer.ErrUpload" xml:space="preserve"><value>Uppladdning misslyckades.</value></data>
+  <data name="Offer.ErrImagesOnly" xml:space="preserve"><value>Endast bilder.</value></data>
+  <data name="Offer.ErrWallet" xml:space="preserve"><value>Plånboksanslutning misslyckades.</value></data>
+  <data name="Offer.ErrGeneric" xml:space="preserve"><value>Något gick fel. Försök igen.</value></data>
+  <data name="SharedFeed.Copy" xml:space="preserve"><value>Kopiera</value></data>
+  <data name="SharedFeed.RoleAdmin" xml:space="preserve"><value>ADMIN</value></data>
+  <data name="SharedFeed.MemberSince" xml:space="preserve"><value>Medlem</value></data>
+  <data name="SharedFeed.DeleteGroup" xml:space="preserve"><value>Radera grupp</value></data>
+  <data name="SharedFeed.LeaveGroup" xml:space="preserve"><value>Lämna grupp</value></data>
+  <data name="SharedFeed.DeleteGroupConfirm" xml:space="preserve"><value>⚠️ Vill du verkligen RADERA den här gruppen? Allt innehåll, meddelanden och medlemmar tas bort. Detta kan inte ångras.</value></data>
+  <data name="SharedFeed.LeaveGroupConfirm" xml:space="preserve"><value>Vill du verkligen lämna den här gruppen?</value></data>
+  <data name="SharedFeed.DeleteTodoConfirm" xml:space="preserve"><value>Radera den här uppgiften?</value></data>
+  <data name="Feed.ShareRecipe" xml:space="preserve"><value>Dela recept</value></data>
+  <data name="Feed.ShareViaLink" xml:space="preserve"><value>Dela länk</value></data>
+  <data name="Feed.ShareViaLinkDesc" xml:space="preserve"><value>Via Messenger, WhatsApp osv.</value></data>
+  <data name="Feed.ShareToGroup" xml:space="preserve"><value>Dela i grupp</value></data>
+  <data name="Feed.ShareToGroupDesc" xml:space="preserve"><value>Dela med dina grupper</value></data>
+  <data name="Feed.ShareUnavailable" xml:space="preserve"><value>Delning är inte tillgänglig just nu.</value></data>
+  <data name="Feed.ShareLoadingGroups" xml:space="preserve"><value>Laddar grupper...</value></data>
+  <data name="Feed.ShareNoGroups" xml:space="preserve"><value>Du är inte med i någon grupp ännu. Skapa en grupp först!</value></data>
+  <data name="Feed.ShareContents" xml:space="preserve"><value>innehåll</value></data>
+  <data name="Feed.ShareGroupsError" xml:space="preserve"><value>Det gick inte att ladda grupper.</value></data>
+  <data name="Feed.ShareConfirm" xml:space="preserve"><value>Dela "{0}" i gruppen "{1}"?</value></data>
+  <data name="Feed.ShareSuccess" xml:space="preserve"><value>Delad i "{0}"!</value></data>
+  <data name="Feed.ShareError" xml:space="preserve"><value>Fel vid delning</value></data>
+  <data name="Feed.ShareLinkPrompt" xml:space="preserve"><value>Dela länk:</value></data>
+  <data name="Card.Save" xml:space="preserve"><value>Spara</value></data>
+  <data name="Card.Recipes" xml:space="preserve"><value>Recept</value></data>
+  <data name="Card.KcalPerDay" xml:space="preserve"><value>kcal/dag</value></data>
+  <data name="Card.Type" xml:space="preserve"><value>Typ</value></data>
+  <data name="Card.OnStockLabel" xml:space="preserve"><value>i lager</value></data>
+  <data name="Card.OnStock" xml:space="preserve"><value>I lager</value></data>
+  <data name="Card.OnStockCount" xml:space="preserve"><value>{0} i lager</value></data>
+  <data name="Card.InstantDownload" xml:space="preserve"><value>Direkt nedladdning</value></data>
+  <data name="Card.SingleRecipe" xml:space="preserve"><value>Enskilt recept</value></data>
+  <data name="Card.Service" xml:space="preserve"><value>Tjänst</value></data>
+  <data name="Card.Days" xml:space="preserve"><value>{0} dagar</value></data>
+  <data name="Card.Sold" xml:space="preserve"><value>{0} sålda</value></data>
+  <data name="Card.DishesInPlan" xml:space="preserve"><value>Rätter i planen</value></data>
+  <data name="Card.MacrosNutrition" xml:space="preserve"><value>Makron &amp; näring</value></data>
+  <data name="Card.PerDay" xml:space="preserve"><value>Per dag</value></data>
+  <data name="Card.RecipesCount" xml:space="preserve"><value>{0} recept</value></data>
+  <data name="Card.Preview" xml:space="preserve"><value>Förhandsvisning</value></data>
+  <data name="Card.PreviewFor" xml:space="preserve"><value>Förhandsvisning av {0}</value></data>
+  <data name="Card.PlanningNow" xml:space="preserve"><value>planerar nu</value></data>
+  <data name="Dashboard.Copied" xml:space="preserve"><value>Kopierat</value></data>
+  <data name="Dashboard.Error" xml:space="preserve"><value>Fel</value></data>
+  <data name="Dashboard.LoginRequired" xml:space="preserve"><value>Logga in i World Mini App först så att din instrumentpanel kan laddas.</value></data>
+  <data name="Dashboard.Available" xml:space="preserve"><value>Tillgängligt</value></data>
+  <data name="Dashboard.RequestMoney" xml:space="preserve"><value>Begär pengar</value></data>
+  <data name="Dashboard.UsdcOpen" xml:space="preserve"><value>USDC/USDT öppet</value></data>
+  <data name="Dashboard.TotalReceived" xml:space="preserve"><value>Totalt mottaget</value></data>
+  <data name="Dashboard.Sales" xml:space="preserve"><value>Försäljning</value></data>
+  <data name="Dashboard.Pending" xml:space="preserve"><value>Väntande</value></data>
+  <data name="Dashboard.AlreadyReceived" xml:space="preserve"><value>Redan mottaget</value></data>
+  <data name="Dashboard.PayoutBalance" xml:space="preserve"><value>Ta ut saldo</value></data>
+  <data name="Dashboard.QualifiedViewsHint" xml:space="preserve"><value>Endast kvalificerade visningar från 8 sekunder</value></data>
+  <data name="Dashboard.QualifiedViews" xml:space="preserve"><value>Kvalificerade visningar</value></data>
+  <data name="Dashboard.RealViewers" xml:space="preserve"><value>Riktiga tittare</value></data>
+  <data name="Dashboard.WatchMinutes" xml:space="preserve"><value>Tittade minuter</value></data>
+  <data name="Dashboard.AvgWatchSeconds" xml:space="preserve"><value>Snitt tittade sekunder</value></data>
+  <data name="Dashboard.ViewedByYou" xml:space="preserve"><value>Sett av dig</value></data>
+  <data name="Dashboard.ClipsCount" xml:space="preserve"><value>{0} klipp</value></data>
+  <data name="Dashboard.YourWatchTime" xml:space="preserve"><value>Din tittartid</value></data>
+  <data name="Dashboard.MinutesCount" xml:space="preserve"><value>{0} minuter</value></data>
+  <data name="Dashboard.NoWatchData" xml:space="preserve"><value>Inga kvalificerade visningsdata ännu</value></data>
+  <data name="Dashboard.NoWatchDataHint" xml:space="preserve"><value>Ett klipp räknas först när det har setts aktivt i minst 8 sekunder.</value></data>
+  <data name="Dashboard.ViewsCount" xml:space="preserve"><value>{0} visningar</value></data>
+  <data name="Dashboard.EntriesCount" xml:space="preserve"><value>{0} poster</value></data>
+  <data name="Dashboard.NoSales" xml:space="preserve"><value>Inga försäljningar ännu</value></data>
+  <data name="Dashboard.NoSalesHint" xml:space="preserve"><value>Din försäljning visas här automatiskt så snart en annons har köpts.</value></data>
+  <data name="Dashboard.CreatorShare" xml:space="preserve"><value>Skaparandel</value></data>
+  <data name="Dashboard.ListingFallback" xml:space="preserve"><value>Listing #{0}</value></data>
+  <data name="Marketplace.Title" xml:space="preserve"><value>Marknadsplats</value></data>
+  <data name="Marketplace.BuyAndSell" xml:space="preserve"><value>Köp &amp; sälj</value></data>
+  <data name="Marketplace.NotConnected" xml:space="preserve"><value>inte ansluten</value></data>
+  <data name="Marketplace.Connect" xml:space="preserve"><value>Anslut</value></data>
+  <data name="Marketplace.Mine" xml:space="preserve"><value>Mina</value></data>
+  <data name="Marketplace.CreateListing" xml:space="preserve"><value>Skapa annons</value></data>
+  <data name="Marketplace.FilterAll" xml:space="preserve"><value>Alla ({0})</value></data>
+  <data name="Marketplace.NoListings" xml:space="preserve"><value>Inga annonser ännu.</value></data>
+  <data name="Marketplace.BeFirst" xml:space="preserve"><value>Bli först med att sälja en måltidsplan!</value></data>
+  <data name="Marketplace.SellFirst" xml:space="preserve"><value>Sälj första planen</value></data>
+  <data name="Marketplace.YourListing" xml:space="preserve"><value>Din annons</value></data>
+  <data name="Marketplace.PlanPreview" xml:space="preserve"><value>Planförhandsvisning</value></data>
+  <data name="Marketplace.LoadingPreview" xml:space="preserve"><value>Laddar förhandsvisning...</value></data>
+  <data name="Marketplace.PreviewUnavailable" xml:space="preserve"><value>Förhandsvisning ej tillgänglig.</value></data>
+  <data name="Marketplace.Fiber" xml:space="preserve"><value>Fiber</value></data>
+  <data name="Marketplace.NutritionWholePlan" xml:space="preserve"><value>Näringsvärden för hela planen (alla dagar)</value></data>
+  <data name="Marketplace.DayPrefix" xml:space="preserve"><value>Dag</value></data>
+  <data name="Marketplace.NoRecipesDay" xml:space="preserve"><value>Inga recept</value></data>
+  <data name="Marketplace.NoPreview" xml:space="preserve"><value>Ingen förhandsvisning tillgänglig.</value></data>
+  <data name="Marketplace.PreviewLoadError" xml:space="preserve"><value>Förhandsvisningen kunde inte laddas.</value></data>
+  <data name="Marketplace.Connecting" xml:space="preserve"><value>Ansluter...</value></data>
+  <data name="Marketplace.Connected" xml:space="preserve"><value>Ansluten</value></data>
+  <data name="Marketplace.WalletConnectFailed" xml:space="preserve"><value>Wallet-anslutning misslyckades.</value></data>
+  <data name="Marketplace.PurchaseDownloadOpening" xml:space="preserve"><value>Köpet lyckades! Din nedladdning öppnas.</value></data>
+  <data name="Marketplace.PurchaseSellerNotified" xml:space="preserve"><value>Köpet lyckades! Säljaren har meddelats.</value></data>
+  <data name="Marketplace.Buying" xml:space="preserve"><value>Köper...</value></data>
+  <data name="Marketplace.LoginFirst" xml:space="preserve"><value>Logga in med World ID först.</value></data>
+  <data name="Marketplace.SellerNoWallet" xml:space="preserve"><value>Säljaren har ingen wallet. Köp inte möjligt.</value></data>
+  <data name="Marketplace.ShippingPrompt" xml:space="preserve"><value>Ange din leveransadress (namn, gata, postnr, ort, land):</value></data>
+  <data name="Marketplace.ShippingRequired" xml:space="preserve"><value>Utan leveransadress kan varan inte skickas.</value></data>
+  <data name="Marketplace.RateUnavailable" xml:space="preserve"><value>WLD/USD-kurs ej tillgänglig. Ladda om sidan.</value></data>
+  <data name="Marketplace.PlatformWalletMissing" xml:space="preserve"><value>Plattformens wallet är inte konfigurerad. Köp inte möjligt.</value></data>
+  <data name="Marketplace.PurchaseIncomplete" xml:space="preserve"><value>Köpet kunde inte slutföras.</value></data>
+  <data name="Marketplace.PurchaseValidationFailed" xml:space="preserve"><value>Köpvalidering misslyckades.</value></data>
+  <data name="Marketplace.NoPaymentMethod" xml:space="preserve"><value>Ingen betalningsmetod tillgänglig. Öppna appen i World App.</value></data>
+  <data name="Marketplace.PurchaseFailed" xml:space="preserve"><value>Köpet misslyckades.</value></data>
+  <data name="CreatorShop.Subtitle" xml:space="preserve"><value>Premium måltidsplaner från creators</value></data>
+  <data name="CreatorShop.NoPlans" xml:space="preserve"><value>Inga planer tillgängliga ännu.</value></data>
+  <data name="Payout.Title" xml:space="preserve"><value>Utbetalning</value></data>
+  <data name="Payout.BackToListings" xml:space="preserve"><value>Tillbaka till Mina annonser</value></data>
+  <data name="Payout.Heading" xml:space="preserve"><value>Saldo &amp; utbetalning</value></data>
+  <data name="Payout.AvailableBalance" xml:space="preserve"><value>Tillgängligt saldo (säljarandel från försäljning)</value></data>
+  <data name="Payout.Amount" xml:space="preserve"><value>Belopp</value></data>
+  <data name="Payout.PayoutWallet" xml:space="preserve"><value>Utbetalnings-wallet</value></data>
+  <data name="Payout.RequestButton" xml:space="preserve"><value>Begär utbetalning</value></data>
+  <data name="Payout.Note" xml:space="preserve"><value>Utbetalningen överförs manuellt efter granskning. Saldot reserveras omedelbart.</value></data>
+  <data name="Payout.History" xml:space="preserve"><value>Historik</value></data>
+  <data name="Payout.Date" xml:space="preserve"><value>Datum</value></data>
+  <data name="Payout.NoPayouts" xml:space="preserve"><value>Inga utbetalningar ännu.</value></data>
+  <data name="Payout.RequestSubmitted" xml:space="preserve"><value>Begäran skickad. Utbetalning sker efter granskning.</value></data>
+  <data name="MyListings.Title" xml:space="preserve"><value>Mina annonser</value></data>
+  <data name="MyListings.BackToMarketplace" xml:space="preserve"><value>Tillbaka till marknadsplatsen</value></data>
+  <data name="MyListings.ListingSg" xml:space="preserve"><value>annons</value></data>
+  <data name="MyListings.ListingPl" xml:space="preserve"><value>annonser</value></data>
+  <data name="MyListings.Balance" xml:space="preserve"><value>Saldo</value></data>
+  <data name="MyListings.NewListing" xml:space="preserve"><value>Ny annons</value></data>
+  <data name="MyListings.NoListings" xml:space="preserve"><value>Inga annonser ännu</value></data>
+  <data name="MyListings.EmptyHint" xml:space="preserve"><value>Skapa din första annons – måltidsplan, recept, objekt, digital produkt eller tjänst.</value></data>
+  <data name="MyListings.RecipeImageAlt" xml:space="preserve"><value>Receptbild {0} för {1}</value></data>
+  <data name="MyListings.TotalMacrosAria" xml:space="preserve"><value>Totala makron för denna plan</value></data>
+  <data name="MyListings.TotalMacros" xml:space="preserve"><value>Totala makron</value></data>
+  <data name="MyListings.Active" xml:space="preserve"><value>Aktiv</value></data>
+  <data name="MyListings.Inactive" xml:space="preserve"><value>Inaktiv</value></data>
+  <data name="MyListings.MacrosTagsAria" xml:space="preserve"><value>Makron och taggar</value></data>
+  <data name="MyListings.Diet" xml:space="preserve"><value>Diet</value></data>
+  <data name="MyListings.StatsAria" xml:space="preserve"><value>Statistik</value></data>
+  <data name="MyListings.Sold" xml:space="preserve"><value>{0} sålda</value></data>
+  <data name="MyListings.PlanningNow" xml:space="preserve"><value>{0} planerar nu</value></data>
+  <data name="MyListings.Deactivate" xml:space="preserve"><value>Inaktivera</value></data>
+  <data name="MyListings.Activate" xml:space="preserve"><value>Aktivera</value></data>
+  <data name="MyListings.ConfirmActivate" xml:space="preserve"><value>Vill du verkligen aktivera annonsen?</value></data>
+  <data name="MyListings.ConfirmDeactivate" xml:space="preserve"><value>Vill du verkligen inaktivera annonsen?</value></data>
+  <data name="Swap.CommunityReason" xml:space="preserve"><value>Populär community-variant.</value></data>
+  <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Tillaga som vanligt (kontrollera tillagningstiden vid behov).</value></data>
+  <data name="Swap.CommunityTaste" xml:space="preserve"><value>Liknande profil, något annorlunda beroende på ingrediensen.</value></data>
+  <data name="Swap.CommunityTested" xml:space="preserve"><value>Community-testad</value></data>
 </root>

@@ -1,6 +1,8 @@
 @model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Models.MealPlanListing>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
-    ViewData["Title"] = "Marketplace";
+    ViewData["Title"] = SharedLocalizer["Marketplace.Title"].Value;
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
     var walletWLD = ViewData["WalletWLD"]?.ToString() ?? "";
@@ -226,8 +228,8 @@
                 </svg>
             </a>
             <div>
-                <h5>Marktplatz</h5>
-                <div class="mp-page-subtitle">Kaufen &amp; verkaufen</div>
+                <h5>@SharedLocalizer["Marketplace.Title"]</h5>
+                <div class="mp-page-subtitle">@SharedLocalizer["Marketplace.BuyAndSell"]</div>
             </div>
         </div>
     </div>
@@ -238,14 +240,14 @@
         <div class="d-flex justify-content-between align-items-center">
             <div>
                 <div class="wallet-label">World Wallet</div>
-                <div class="wallet-status" id="walletStatus">nicht verbunden</div>
+                <div class="wallet-status" id="walletStatus">@SharedLocalizer["Marketplace.NotConnected"]</div>
             </div>
             <div class="d-flex gap-2">
                 <button type="button" class="mp-wallet-btn primary" id="connectWalletBtn" onclick="connectWorldWallet()">
-                    <i class="bi bi-wallet2 me-1"></i>Verbinden
+                    <i class="bi bi-wallet2 me-1"></i>@SharedLocalizer["Marketplace.Connect"]
                 </button>
                 <a href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })"
-                   class="mp-wallet-btn">Meine</a>
+                   class="mp-wallet-btn">@SharedLocalizer["Marketplace.Mine"]</a>
             </div>
         </div>
         <div id="walletBalances" class="balance-row d-none">
@@ -265,7 +267,7 @@
     <!-- Verkaufen CTA -->
     <div class="text-center mb-3">
         <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="mp-sell-btn" style="display: inline-block;">
-            <span class="plus">+</span> Angebot erstellen
+            <span class="plus">+</span> @SharedLocalizer["Marketplace.CreateListing"]
         </a>
     </div>
 
@@ -273,7 +275,7 @@
 
     <!-- Filter Chips -->
     <div class="mp-filters">
-        <button class="mp-chip active" data-filter="all">Alle (@creatorShopCards.Count)</button>
+        <button class="mp-chip active" data-filter="all">@SharedLocalizer["Marketplace.FilterAll", creatorShopCards.Count]</button>
         <button class="mp-chip" data-filter="premium">Premium</button>
         <button class="mp-chip" data-filter="low-carb">Low Carb</button>
         <button class="mp-chip" data-filter="high-protein">High-Protein</button>
@@ -289,10 +291,10 @@
                     <polyline points="9 22 9 12 15 12 15 22"/>
                 </svg>
             </div>
-            <p style="color:#6b7868" class="mb-1">Noch keine Angebote vorhanden.</p>
-            <p style="color:#6b7868" class="small mb-3">Sei der Erste, der einen Essensplan verkauft!</p>
+            <p style="color:#6b7868" class="mb-1">@SharedLocalizer["Marketplace.NoListings"]</p>
+            <p style="color:#6b7868" class="small mb-3">@SharedLocalizer["Marketplace.BeFirst"]</p>
             <a href="@Url.Action("Sell", "Marketplace", new { area = "WorldMiniApp" })" class="mp-sell-btn">
-                <span class="plus">+</span> Ersten Plan verkaufen
+                <span class="plus">+</span> @SharedLocalizer["Marketplace.SellFirst"]
             </a>
         </div>
     }
@@ -306,7 +308,7 @@
                 <div class="mb-2">
                     @if (isOwn && !allowSelfPurchaseForTesting)
                     {
-                        <div class="own-listing-label">Dein Angebot</div>
+                        <div class="own-listing-label">@SharedLocalizer["Marketplace.YourListing"]</div>
                     }
                     @await Html.PartialAsync("_CreatorShopPlanCard", card)
                 </div>
@@ -318,13 +320,13 @@
 <!-- Preview Offcanvas -->
 <div class="offcanvas offcanvas-bottom preview-offcanvas" tabindex="-1" id="previewOffcanvas">
     <div class="offcanvas-header pb-2">
-        <h6 class="offcanvas-title fw-bold" id="previewTitle">Plan-Vorschau</h6>
+        <h6 class="offcanvas-title fw-bold" id="previewTitle">@SharedLocalizer["Marketplace.PlanPreview"]</h6>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
     </div>
     <div class="offcanvas-body pt-0" id="previewBody">
         <div class="text-center py-4">
             <div class="spinner-border spinner-border-sm text-secondary"></div>
-            <p class="small text-muted mt-2">Lade Vorschau...</p>
+            <p class="small text-muted mt-2">@SharedLocalizer["Marketplace.LoadingPreview"]</p>
         </div>
     </div>
 </div>
@@ -373,7 +375,7 @@
         const el = document.getElementById('walletStatus');
         if (!el) return;
         const addr = walletAddresses.WLD || walletAddresses.USDCE;
-        el.textContent = addr ? shortWallet(addr) : 'nicht verbunden';
+        el.textContent = addr ? shortWallet(addr) : '@SharedLocalizer["Marketplace.NotConnected"]';
     }
 
     async function saveWalletToSession(address, token) {
@@ -449,8 +451,8 @@
     async function showPreview(listingId) {
         const titleEl = document.getElementById('previewTitle');
         const bodyEl = document.getElementById('previewBody');
-        if (titleEl) titleEl.textContent = 'Plan-Vorschau';
-        if (bodyEl) bodyEl.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-secondary"></div><p class="small text-muted mt-2">Lade Vorschau...</p></div>';
+        if (titleEl) titleEl.textContent = '@SharedLocalizer["Marketplace.PlanPreview"]';
+        if (bodyEl) bodyEl.innerHTML = '<div class="text-center py-4"><div class="spinner-border spinner-border-sm text-secondary"></div><p class="small text-muted mt-2">@SharedLocalizer["Marketplace.LoadingPreview"]</p></div>';
 
         const offcanvas = new bootstrap.Offcanvas(document.getElementById('previewOffcanvas'));
         offcanvas.show();
@@ -459,11 +461,11 @@
             const resp = await fetch(`@Url.Action("GetListingPreview", "Marketplace", new { area = "WorldMiniApp" })?listingId=${listingId}`);
             const data = await resp.json();
             if (!data.success) {
-                bodyEl.innerHTML = `<p class="text-danger small">${data.error || 'Vorschau nicht verfügbar.'}</p>`;
+                bodyEl.innerHTML = `<p class="text-danger small">${data.error || '@SharedLocalizer["Marketplace.PreviewUnavailable"]'}</p>`;
                 return;
             }
 
-            if (titleEl) titleEl.textContent = data.title || 'Plan-Vorschau';
+            if (titleEl) titleEl.textContent = data.title || '@SharedLocalizer["Marketplace.PlanPreview"]';
 
             let html = '';
 
@@ -481,34 +483,34 @@
                     </div>
                     <div class="nutrition-item">
                         <div class="nutrition-value">${n.protein}g</div>
-                        <div class="nutrition-label">Protein</div>
+                        <div class="nutrition-label">@SharedLocalizer["Recipe.Protein"]</div>
                     </div>
                     <div class="nutrition-item">
                         <div class="nutrition-value">${n.fat}g</div>
-                        <div class="nutrition-label">Fett</div>
+                        <div class="nutrition-label">@SharedLocalizer["Recipe.Fat"]</div>
                     </div>
                     <div class="nutrition-item">
                         <div class="nutrition-value">${n.carbs}g</div>
-                        <div class="nutrition-label">Kohlenhydrate</div>
+                        <div class="nutrition-label">@SharedLocalizer["Recipe.Carbs"]</div>
                     </div>
                     <div class="nutrition-item">
                         <div class="nutrition-value">${n.fiber}g</div>
-                        <div class="nutrition-label">Ballaststoffe</div>
+                        <div class="nutrition-label">@SharedLocalizer["Marketplace.Fiber"]</div>
                     </div>
                     <div class="nutrition-item">
                         <div class="nutrition-value">${data.recipeCount}</div>
-                        <div class="nutrition-label">Rezepte</div>
+                        <div class="nutrition-label">@SharedLocalizer["Card.Recipes"]</div>
                     </div>
                 </div>`;
-                html += `<p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>Nährwerte für den gesamten Plan (alle Tage)</p>`;
+                html += `<p class="text-muted small mb-3"><i class="bi bi-info-circle me-1"></i>@SharedLocalizer["Marketplace.NutritionWholePlan"]</p>`;
             }
 
             // Days + recipes
             if (data.days && data.days.length) {
                 for (const day of data.days) {
-                    html += `<div class="preview-day-header"><i class="bi bi-calendar-event me-1"></i>Tag ${day.day}</div>`;
+                    html += `<div class="preview-day-header"><i class="bi bi-calendar-event me-1"></i>@SharedLocalizer["Marketplace.DayPrefix"] ${day.day}</div>`;
                     if (!day.recipes || !day.recipes.length) {
-                        html += `<p class="text-muted small py-2">Keine Rezepte</p>`;
+                        html += `<p class="text-muted small py-2">@SharedLocalizer["Marketplace.NoRecipesDay"]</p>`;
                         continue;
                     }
                     for (const r of day.recipes) {
@@ -529,10 +531,10 @@
                 }
             }
 
-            bodyEl.innerHTML = html || '<p class="text-muted">Keine Vorschau verfügbar.</p>';
+            bodyEl.innerHTML = html || '<p class="text-muted">@SharedLocalizer["Marketplace.NoPreview"]</p>';
         } catch (e) {
             console.error('[Marketplace] Preview error:', e);
-            bodyEl.innerHTML = '<p class="text-danger small">Vorschau konnte nicht geladen werden.</p>';
+            bodyEl.innerHTML = '<p class="text-danger small">@SharedLocalizer["Marketplace.PreviewLoadError"]</p>';
         }
     }
 
@@ -542,7 +544,7 @@
         if (storedAddr) { updateWalletStatusUI(); await loadWalletBalances(storedAddr); return storedAddr; }
 
         const btn = document.getElementById('connectWalletBtn');
-        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>Verbinde...'; }
+        if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-arrow-repeat me-1 spin"></i>@SharedLocalizer["Marketplace.Connecting"]'; }
 
         try {
             let address = '';
@@ -551,8 +553,8 @@
             if (!address && window.connectWalletOnly) address = await window.connectWalletOnly();
 
             if (!address) {
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
-                alert('Wallet-Verbindung fehlgeschlagen.');
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>@SharedLocalizer["Marketplace.Connect"]'; }
+                alert('@SharedLocalizer["Marketplace.WalletConnectFailed"]');
                 return '';
             }
 
@@ -561,12 +563,12 @@
             walletAddresses.USDT = address;
             walletAddresses.USDCE = address;
 
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; btn.classList.replace('btn-outline-light', 'btn-success'); }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>@SharedLocalizer["Marketplace.Connected"]'; btn.classList.replace('btn-outline-light', 'btn-success'); }
             await loadWalletBalances(address);
             return address;
         } catch (error) {
-            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
-            alert(error?.message || 'Wallet-Verbindung fehlgeschlagen.');
+            if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>@SharedLocalizer["Marketplace.Connect"]'; }
+            alert(error?.message || '@SharedLocalizer["Marketplace.WalletConnectFailed"]');
             return '';
         }
     }
@@ -636,12 +638,12 @@
     function handlePurchaseSuccess(data) {
         window._pendingShippingAddress = '';
         if (data && data.downloadUrl) {
-            alert('Kauf erfolgreich! Dein Download wird geöffnet.');
+            alert('@SharedLocalizer["Marketplace.PurchaseDownloadOpening"]');
             window.location.href = data.downloadUrl;
             return;
         }
         if (data && data.listingType && data.listingType !== 'MealPlan' && data.listingType !== 'SingleRecipe') {
-            alert('Kauf erfolgreich! Der Verkäufer wurde benachrichtigt.');
+            alert('@SharedLocalizer["Marketplace.PurchaseSellerNotified"]');
         }
         location.reload();
     }
@@ -649,8 +651,8 @@
     function setBuyButtonLoading(listingId, loading) {
         const btn = document.getElementById(`buyBtn-${listingId}`);
         if (!btn) return;
-        if (loading) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Kaufe...'; }
-        else { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Kaufen'; }
+        if (loading) { btn.disabled = true; btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>@SharedLocalizer["Marketplace.Buying"]'; }
+        else { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>@SharedLocalizer["Offer.Buy"]'; }
     }
 
 
@@ -667,21 +669,21 @@
         const token = getSelectedToken();
         listingType = listingType || 'MealPlan';
 
-        if (!USER_HASH) { alert('Bitte zuerst mit World ID einloggen.'); return; }
+        if (!USER_HASH) { alert('@SharedLocalizer["Marketplace.LoginFirst"]'); return; }
 
         const buyBtn = document.getElementById(`buyBtn-${listingId}`);
         const sellerWallet = sellerWalletOverride || buyBtn?.dataset?.sellerWallet || '';
-        if (!sellerWallet) { alert('Verkäufer hat keine Wallet hinterlegt. Kauf nicht möglich.'); return; }
+        if (!sellerWallet) { alert('@SharedLocalizer["Marketplace.SellerNoWallet"]'); return; }
 
         // Bei physischem Objekt mit Versand vor der Zahlung die Lieferadresse erfragen.
         let shippingAddress = '';
         if (listingType === 'PhysicalObject' && requiresShipping) {
-            shippingAddress = (prompt('Bitte gib deine Lieferadresse ein (Name, Straße, PLZ, Ort, Land):') || '').trim();
-            if (!shippingAddress) { alert('Ohne Lieferadresse kann das Objekt nicht versendet werden.'); return; }
+            shippingAddress = (prompt('@SharedLocalizer["Marketplace.ShippingPrompt"]') || '').trim();
+            if (!shippingAddress) { alert('@SharedLocalizer["Marketplace.ShippingRequired"]'); return; }
         }
 
         const actualPrice = getActualPrice(priceWld, token);
-        if (token === 'USDCE' && !wldPriceUsd) { alert('WLD/USD Kurs nicht verfügbar. Bitte Seite neu laden.'); return; }
+        if (token === 'USDCE' && !wldPriceUsd) { alert('@SharedLocalizer["Marketplace.RateUnavailable"]'); return; }
 
         setBuyButtonLoading(listingId, true);
         window._pendingShippingAddress = shippingAddress;
@@ -695,7 +697,7 @@
                     ? (window.MARKETPLACE_PLATFORM_WALLET_USDT || window.MARKETPLACE_PLATFORM_WALLET_WLD)
                     : window.MARKETPLACE_PLATFORM_WALLET_WLD;
                 if (!platformWallet) {
-                    alert('Plattform-Wallet ist nicht konfiguriert. Kauf nicht möglich.');
+                    alert('@SharedLocalizer["Marketplace.PlatformWalletMissing"]');
                     setBuyButtonLoading(listingId, false);
                     return;
                 }
@@ -703,7 +705,7 @@
                 const reference = `listing-${listingId}-${Date.now()}`;
                 const payResult = await window.startMiniKitPayment({
                     to: platformWallet, tokenSymbol: token, amount: actualPrice,
-                    reference, description: `Marktplatz: ${title}`
+                    reference, description: `@SharedLocalizer["Marketplace.Title"]: ${title}`
                 });
 
                 console.log('[Marketplace] MiniKit payResult:', JSON.stringify(payResult));
@@ -715,7 +717,7 @@
                     const data = await finalizeOnBackend(listingId, txRef, buyerWallet, token);
                     console.log('[Marketplace] Finalize response:', JSON.stringify(data));
                     if (data.success) { handlePurchaseSuccess(data); }
-                    else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
+                    else { alert(data.error || '@SharedLocalizer["Marketplace.PurchaseIncomplete"]'); setBuyButtonLoading(listingId, false); }
                     return;
                 } else if (payResult?.status === 'success') {
                     console.warn('[Marketplace] Keine TX-Referenz, verwende Timestamp als Fallback');
@@ -723,7 +725,7 @@
                     const buyerWallet = await ensureBuyerWalletForToken(token);
                     const data = await finalizeOnBackend(listingId, fallbackRef, buyerWallet, token);
                     if (data.success) { handlePurchaseSuccess(data); }
-                    else { alert(data.error || 'Kauf konnte nicht abgeschlossen werden.'); setBuyButtonLoading(listingId, false); }
+                    else { alert(data.error || '@SharedLocalizer["Marketplace.PurchaseIncomplete"]'); setBuyButtonLoading(listingId, false); }
                     return;
                 }
             }
@@ -737,15 +739,15 @@
                     });
                     const data = await finalizeOnBackend(listingId, onChainResult.txHash, onChainResult.walletAddress, onChainResult.paymentToken);
                     if (data.success) { handlePurchaseSuccess(data); }
-                    else { alert(data.error || 'Kauf-Validierung fehlgeschlagen.'); setBuyButtonLoading(listingId, false); }
+                    else { alert(data.error || '@SharedLocalizer["Marketplace.PurchaseValidationFailed"]'); setBuyButtonLoading(listingId, false); }
                     return;
                 }
             }
 
-            alert('Kein Zahlungsweg verfügbar. Bitte öffne die App in der World App.');
+            alert('@SharedLocalizer["Marketplace.NoPaymentMethod"]');
             setBuyButtonLoading(listingId, false);
         } catch (error) {
-            alert(error?.message || 'Kauf fehlgeschlagen.');
+            alert(error?.message || '@SharedLocalizer["Marketplace.PurchaseFailed"]');
             setBuyButtonLoading(listingId, false);
         }
     }
@@ -789,7 +791,7 @@
         const existingAddress = walletAddresses.WLD || walletAddresses.USDCE;
         if (existingAddress) {
             const btn = document.getElementById('connectWalletBtn');
-            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>Verbunden'; }
+            if (btn) { btn.disabled = true; btn.innerHTML = '<i class="bi bi-check-lg me-1"></i>@SharedLocalizer["Marketplace.Connected"]'; }
             loadWalletBalances(existingAddress);
         }
 
@@ -800,7 +802,7 @@
                 const balancesEl = document.getElementById('walletBalances');
                 if (balancesEl) balancesEl.classList.add('d-none');
                 const btn = document.getElementById('connectWalletBtn');
-                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>Verbinden'; }
+                if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-wallet2 me-1"></i>@SharedLocalizer["Marketplace.Connect"]'; }
             });
         }
     });
