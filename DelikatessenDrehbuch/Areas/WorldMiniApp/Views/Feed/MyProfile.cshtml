@@ -112,8 +112,8 @@
         padding: 20px 18px;
         border-radius: 24px;
         margin-bottom: 12px;
-        background: rgba(245, 255, 250, 0.85);
-        border: 1px solid rgba(235, 250, 240, 0.9);
+        background: linear-gradient(160deg, #eaf6ec 0%, #e2f2e5 100%);
+        border: 1px solid rgba(20, 57, 31, 0.06);
         box-shadow: 0 8px 24px rgba(20,57,31,0.14), 0 4px 12px rgba(20,57,31,0.10);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
@@ -683,14 +683,6 @@
             <div class="avatar-main">@Initials(Model.User.UserName)</div>
 
             <div class="profile-right">
-                @if (isOrb)
-                {
-                    <div class="orb-badge">
-                        <i class="bi bi-patch-check-fill"></i>
-                        ORB VERIFIED
-                    </div>
-                }
-
                 <div class="profile-name">
                     @(string.IsNullOrWhiteSpace(Model.User.UserName) ? "User" : Model.User.UserName)
                 </div>
@@ -708,13 +700,6 @@
                         <span class="stat-val counter" data-target="@Model.LikedRecipes.Count">0</span>
                         <span class="stat-lbl">@SharedLocalizer["MyProfile.Likes"]</span>
                     </div>
-                    @if (isOrb)
-                    {
-                        <div class="stat-item">
-                            <span class="stat-val counter" data-target="@Model.FollowerCount">0</span>
-                            <span class="stat-lbl">@SharedLocalizer["MyProfile.Followers"]</span>
-                        </div>
-                    }
                 </div>
             </div>
         </div>
@@ -831,8 +816,7 @@
         </div>
     }
 
-    @if (isOrb)
-    {
+    @* Creator Dashboard: für jeden angemeldeten Nutzer sichtbar (kein Orb-/Admin-Gate mehr). *@
         <button class="quick-link quick-link-dashboard"
                 id="dashboardToggleBtn"
                 type="button"
@@ -857,13 +841,12 @@
                         title="@SharedLocalizer["MyProfile.CreatorDashboard"]"></iframe>
             </div>
         </div>
-    }
 
     @if (Model.User.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839")
     {
         <!-- Ad Manager Link -->
-        <a href="@Url.Action("Index", "AdminAds", new { area = "WorldMiniApp" })" class="quick-link" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
-            <i class="bi bi-megaphone-fill"></i> Ad Manager
+        <a href="@Url.Action("Index", "AdminAds", new { area = "WorldMiniApp" })" class="quick-link" style="background: #ffffff; color: var(--ink-deep); box-shadow: 0 2px 8px rgba(20,57,31,0.06);">
+            <i class="bi bi-megaphone-fill" style="color: var(--gold);"></i> Ad Manager
         </a>
     }
 
@@ -1297,5 +1280,6 @@
                     }
                 }
             } catch { /* ignore */ }
+        });
     </script>
 }

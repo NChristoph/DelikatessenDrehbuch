@@ -16,8 +16,8 @@ body.profile-theme-color {
     --creator-text: #1a1a1a;
     --creator-muted: rgba(0, 0, 0, 0.58);
     --creator-accent: #2d4f1e;
-    --creator-accent-2: #ff9966;
-    --creator-success: #1f8f5f;
+    --creator-accent-2: #5fa052;
+    --creator-success: #5fa052;
 }
 
 body.profile-theme-black {
@@ -64,7 +64,7 @@ body.profile-theme-lavender {
     --creator-success: #7c3aed;
 }
 body {
-    background: radial-gradient(1200px 600px at 80% -10%, rgba(124, 92, 255, 0.16), transparent 45%), var(--creator-bg);
+    background: radial-gradient(1200px 600px at 80% -10%, rgba(95, 160, 82, 0.14), transparent 45%), var(--creator-bg);
     color: var(--creator-text);
 }
 
@@ -77,11 +77,11 @@ body {
 }
 
 .dashboard-eyebrow {
-    color: var(--creator-muted);
+    color: #c8a45c;
     text-transform: uppercase;
     letter-spacing: .08em;
     font-size: .72rem;
-    font-weight: 600;
+    font-weight: 700;
 }
 
 .dashboard-title {
@@ -143,7 +143,7 @@ body {
 .hero-bg-glow {
     position: absolute;
     inset: 0;
-    background: linear-gradient(130deg, rgba(124, 92, 255, 0.22), rgba(95, 136, 255, 0.07) 40%, transparent 70%);
+    background: linear-gradient(130deg, rgba(95, 160, 82, 0.20), rgba(20, 57, 31, 0.06) 40%, transparent 70%);
     pointer-events: none;
 }
 
@@ -167,7 +167,7 @@ body {
 
 .hero-value span {
     font-size: clamp(1rem, 3vw, 1.4rem);
-    color: #d9d6ff;
+    color: var(--creator-muted);
 }
 
 .metric-value,
@@ -214,7 +214,7 @@ body {
     justify-content: center;
     margin-bottom: .5rem;
     color: #fff;
-    background: linear-gradient(140deg, rgba(124, 92, 255, 0.85), rgba(95, 136, 255, 0.85));
+    background: linear-gradient(140deg, #5fa052, #3f7536);
 }
 
 .content-card {
@@ -262,8 +262,8 @@ body {
 }
 
 .activity-status i { color: var(--creator-success); }
-.activity-status.neutral i { color: #b8bcff; }
-.activity-status.neutral { background: rgba(124, 92, 255, 0.22); }
+.activity-status.neutral i { color: #d99a3c; }
+.activity-status.neutral { background: rgba(217, 154, 60, 0.20); }
 
 .activity-title {
     font-size: .95rem;

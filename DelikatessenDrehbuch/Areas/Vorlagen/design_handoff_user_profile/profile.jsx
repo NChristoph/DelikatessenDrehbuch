@@ -12,7 +12,7 @@ const P_USER = {
   hashShort: '0x2da3...4839',
   initials: 'AV',
   verified: true,
-  stats: { abos: 1, likes: 6, follower: 2 },
+  stats: { following: 0, likes: 0 },
 };
 
 const P_LIKES = [
@@ -90,11 +90,17 @@ function PIcon({ name, size = 18, color = 'currentColor', fill = 'none', stroke 
   if (name === 'clock')    return <svg {...props}><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>;
   if (name === 'stopwatch')return <svg {...props}><circle cx="12" cy="13" r="8"/><line x1="9" y1="2" x2="15" y2="2"/><line x1="12" y1="9" x2="12" y2="13"/></svg>;
   if (name === 'trend')    return <svg {...props}><polyline points="22 7 13 16 8 11 2 17"/><polyline points="16 7 22 7 22 13"/></svg>;
+  if (name === 'send')     return <svg {...props}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
+  if (name === 'docPlus')  return <svg {...props}><path d="M9 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9"/><path d="M14 3v5h5"/><path d="M14 3l5 5"/><line x1="9" y1="15" x2="15" y2="15"/><line x1="12" y1="12" x2="12" y2="18"/></svg>;
+  if (name === 'shield')   return <svg {...props}><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6l8-4z"/></svg>;
+  if (name === 'arrowR')   return <svg {...props}><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>;
+  if (name === 'megaphone')return <svg {...props}><path d="M3 11l18-7v16L3 13v-2z"/><path d="M7 13v5a2 2 0 0 0 2 2h1v-6"/></svg>;
   return null;
 }
 
 // ─── Top bar ──────────────────────────────────────────────────
 function PTopBar() {
+  const [lang, setLang] = pUseState('EN');
   return (
     <div style={{
       flexShrink: 0,
@@ -106,20 +112,26 @@ function PTopBar() {
         padding: '8px 14px',
         fontSize: 13, fontWeight: 700, color: '#14391f',
         display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
-        boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)', fontFamily: 'inherit',
+        boxShadow: '0 2px 8px rgba(20,57,31,0.06)', fontFamily: 'inherit',
       }}>
         <PIcon name="back" size={14} color="#14391f" />
         Zurück zum Feed
       </button>
-      <button style={{
-        background: 'white', border: 'none', borderRadius: 999,
-        padding: '8px 12px',
-        fontSize: 11, fontWeight: 700, color: '#14391f',
-        display: 'inline-flex', alignItems: 'center', gap: 4, cursor: 'pointer',
-        boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)', fontFamily: 'inherit',
-        letterSpacing: '0.04em', textTransform: 'uppercase',
-      }}>
-        DE <PIcon name="chev" size={11} color="#14391f" />
+      <button
+        onClick={() => setLang(l => l === 'EN' ? 'DE' : 'EN')}
+        style={{
+          background: 'white', border: 'none', borderRadius: 999,
+          padding: '6px 11px',
+          fontSize: 12, fontWeight: 600, color: '#14391f',
+          display: 'inline-flex', alignItems: 'center', gap: 6, cursor: 'pointer',
+          boxShadow: '0 2px 8px rgba(20,57,31,0.06)', fontFamily: 'inherit',
+        }}>
+        <span style={{
+          fontSize: 9, fontWeight: 700, color: '#6b7868',
+          background: '#f1ebd9', padding: '2px 4px', borderRadius: 4,
+        }}>GB</span>
+        {lang}
+        <PIcon name="chev" size={11} color="#14391f" />
       </button>
     </div>
   );
@@ -130,13 +142,10 @@ function PProfileCard() {
   return (
     <div style={{
       margin: '0 14px',
-      background: 'rgba(255,255,255,0.7)',
-      backdropFilter: 'blur(20px)',
-      WebkitBackdropFilter: 'blur(20px)',
+      background: 'linear-gradient(160deg, #eaf6ec 0%, #e2f2e5 100%)',
       borderRadius: 24,
       padding: '20px 18px 20px',
-      border: '1px solid rgba(20,57,31,0.12)',
-      boxShadow: '0 8px 24px rgba(20,57,31,0.12), 0 2px 8px rgba(20,57,31,0.08)',
+      border: '1px solid rgba(20,57,31,0.06)',
     }}>
       {/* Identity */}
       <div style={{ display: 'flex', gap: 14 }}>
@@ -153,20 +162,8 @@ function PProfileCard() {
           boxShadow: '0 8px 22px rgba(20,57,31,0.18)',
         }}>{P_USER.initials}</div>
         <div style={{ flex: 1, minWidth: 0, paddingTop: 4 }}>
-          <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: 6,
-            padding: '4px 10px 4px 8px',
-            borderRadius: 999,
-            background: 'rgba(20,57,31,0.08)',
-            color: '#14391f',
-            fontSize: 10, fontWeight: 700,
-            letterSpacing: '0.1em', textTransform: 'uppercase',
-          }}>
-            <PIcon name="check" size={13} color="#5fa052" />
-            Orb verified
-          </span>
           <h1 style={{
-            margin: '8px 0 2px',
+            margin: '0 0 2px',
             fontFamily: "'Fraunces', serif",
             fontSize: 26, fontWeight: 700,
             letterSpacing: '-0.02em',
@@ -179,9 +176,8 @@ function PProfileCard() {
       {/* Stats */}
       <div style={{ display: 'flex', gap: 28, marginTop: 18, paddingLeft: 4 }}>
         {[
-          { v: P_USER.stats.abos,    l: 'Abos' },
-          { v: P_USER.stats.likes,   l: 'Likes' },
-          { v: P_USER.stats.follower,l: 'Follower' },
+          { v: P_USER.stats.following, l: 'Following' },
+          { v: P_USER.stats.likes,     l: 'Likes' },
         ].map(s => (
           <div key={s.l}>
             <div style={{
@@ -216,12 +212,12 @@ function PProfileCard() {
       </button>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 8 }}>
-        <PMiniBtn icon="shop" label="Marktplatz" />
-        <PMiniBtn icon="bag"  label="Meine Angebote" />
+        <PMiniBtn icon="send" label="Geteilte Inhalte" />
+        <PMiniBtn icon="shop" label="Marketplace" />
       </div>
       <div style={{ marginTop: 8, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-        <PMiniBtn icon="flag" label={'Kommentar-\nModeration'} multiline />
-        <span />
+        <PMiniBtn icon="bag"     label="My listings" />
+        <PMiniBtn icon="docPlus" label={'Verkaufsplan\nerstellen'} multiline />
       </div>
     </div>
   );
@@ -232,7 +228,7 @@ function PMiniBtn({ icon, label, active, multiline, onClick }) {
     <button
       onClick={onClick}
       style={{
-        background: active ? '#14391f' : 'white',
+        background: active ? '#14391f' : '#faf6ec',
         color: active ? 'white' : '#14391f',
         border: '1px solid rgba(20,57,31,0.08)',
         borderRadius: 16,
@@ -246,11 +242,71 @@ function PMiniBtn({ icon, label, active, multiline, onClick }) {
         whiteSpace: 'pre-line',
         textAlign: 'left',
         lineHeight: 1.2,
-        boxShadow: '0 4px 12px rgba(20,57,31,0.10), 0 2px 6px rgba(20,57,31,0.06)',
+        boxShadow: '0 2px 8px rgba(20,57,31,0.04)',
       }}>
       <PIcon name={icon} size={15} color={active ? 'white' : '#14391f'} />
       {label}
     </button>
+  );
+}
+
+// Admin access banner + Ad Manager pill
+function PAdminBanner() {
+  const [pin, setPin] = pUseState('');
+  return (
+    <div style={{ margin: '10px 14px 0', display: 'flex', flexDirection: 'column', gap: 10 }}>
+      <div style={{
+        background: 'rgba(20,20,20,0.045)',
+        borderRadius: 22,
+        padding: '14px 16px 16px',
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: 7,
+          color: '#14391f', fontSize: 12, fontWeight: 700,
+          letterSpacing: '0.08em', textTransform: 'uppercase',
+        }}>
+          <PIcon name="shield" size={14} color="#14391f" />
+          Admin-Zugang freischalten
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 10 }}>
+          <input
+            value={pin}
+            onChange={e => setPin(e.target.value)}
+            placeholder="PIN eingeben..."
+            style={{
+              flex: 1,
+              background: 'white',
+              border: 'none', borderRadius: 16,
+              padding: '12px 14px',
+              fontSize: 14, fontWeight: 600, color: '#14391f',
+              fontFamily: 'inherit', outline: 'none',
+              boxShadow: '0 2px 8px rgba(20,57,31,0.06)',
+            }}
+          />
+          <button style={{
+            width: 40, height: 40, borderRadius: '50%', flexShrink: 0,
+            background: '#14391f', border: 'none', cursor: 'pointer',
+            display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+            boxShadow: '0 2px 8px rgba(20,57,31,0.10)',
+          }}>
+            <PIcon name="arrowR" size={17} color="white" />
+          </button>
+        </div>
+      </div>
+      <button style={{
+        alignSelf: 'flex-start',
+        background: 'white',
+        color: '#14391f', border: 'none', borderRadius: 999,
+        padding: '11px 20px',
+        fontSize: 13.5, fontWeight: 700,
+        display: 'inline-flex', alignItems: 'center', gap: 8, cursor: 'pointer',
+        fontFamily: 'inherit',
+        boxShadow: '0 2px 8px rgba(20,57,31,0.06)',
+      }}>
+        <PIcon name="megaphone" size={15} color="#14391f" />
+        Ad Manager
+      </button>
+    </div>
   );
 }
 
@@ -262,7 +318,7 @@ function PDashboardToggle({ open, onClick }) {
       style={{
         margin: '8px 14px 0',
         width: 'calc(100% - 28px)',
-        background: open ? '#14391f' : 'white',
+        background: open ? '#14391f' : '#faf6ec',
         color: open ? 'white' : '#14391f',
         border: open ? 'none' : '1px solid rgba(20,57,31,0.08)',
         borderRadius: 16,
@@ -270,7 +326,7 @@ function PDashboardToggle({ open, onClick }) {
         fontSize: 14, fontWeight: 700,
         cursor: 'pointer', fontFamily: 'inherit',
         display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-        boxShadow: open ? '0 6px 20px rgba(20,57,31,0.24)' : '0 4px 12px rgba(20,57,31,0.10), 0 2px 6px rgba(20,57,31,0.06)',
+        boxShadow: open ? '0 6px 20px rgba(20,57,31,0.24)' : '0 2px 8px rgba(20,57,31,0.04)',
       }}>
       <PIcon name="gauge" size={15} color={open ? 'white' : '#14391f'} />
       Creator Dashboard
@@ -286,16 +342,15 @@ function PTabBar({ active, onChange }) {
   const tabs = [
     { id: 'likes',     label: 'Likes',    icon: 'heartF' },
     { id: 'ai',        label: 'AI',       icon: 'sparkle' },
-    { id: 'abos',      label: 'Abos',     icon: 'people' },
-    { id: 'erstellt',  label: 'Erstellt', icon: 'cal' },
-    { id: 'gekauft',   label: 'Gekauft',  icon: 'bag' },
-    { id: 'videos',    label: 'Videos',   icon: 'play' },
+    { id: 'abos',      label: 'Creators', icon: 'people' },
+    { id: 'erstellt',  label: 'Created',  icon: 'cal' },
+    { id: 'gekauft',   label: 'Bought',   icon: 'bag' },
   ];
   return (
     <div style={{ padding: '14px 14px 8px' }}>
       <div style={{
         display: 'flex',
-        background: 'rgba(20,57,31,0.06)',
+        background: 'rgba(20,20,20,0.045)',
         borderRadius: 22,
         padding: 4,
         gap: 2,
@@ -345,7 +400,7 @@ function PMediaGrid({ items }) {
           background: src ? `url(${src}) center/cover` : '#191917',
           position: 'relative',
           overflow: 'hidden',
-          boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+          boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
         }}>
           <span style={{
             position: 'absolute', bottom: 8, left: 8,
@@ -376,7 +431,7 @@ function PAITab() {
           aspectRatio: '9/14',
           borderRadius: 14, overflow: 'hidden',
           background: `url(${v.img}) center/cover`,
-          boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+          boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
         }}>
           <div style={{
             position: 'absolute', top: 8, left: 8,
@@ -420,7 +475,7 @@ function PAbosTab() {
           borderRadius: 18,
           padding: '12px 14px',
           display: 'flex', alignItems: 'center', gap: 12,
-          boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+          boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
           cursor: 'pointer',
         }}>
           <div style={{
@@ -447,7 +502,7 @@ function PErstelltTab() {
           borderRadius: 18,
           padding: '12px 12px 12px 16px',
           display: 'flex', alignItems: 'center', gap: 10,
-          boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+          boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
         }}>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#14391f' }}>{e.name}</div>
@@ -483,7 +538,7 @@ function PGekauftTab() {
           background: 'white',
           borderRadius: 18,
           padding: '14px 16px',
-          boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+          boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
         }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10 }}>
             <div style={{ flex: 1, minWidth: 0 }}>
@@ -532,7 +587,7 @@ function PVideosTab() {
           position: 'relative',
           overflow: 'hidden',
           background: src ? `url(${src}) center/cover` : '#191917',
-          boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+          boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
         }}>
           {/* Action col */}
           <div style={{
@@ -584,7 +639,7 @@ function PStatTile({ icon, label, value, unit, accent = '#5fa052' }) {
       background: 'white',
       borderRadius: 18,
       padding: '14px',
-      boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+      boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
     }}>
       <div style={{
         width: 34, height: 34, borderRadius: 12,
@@ -661,7 +716,7 @@ function PCreatorDashboard() {
         background: 'white',
         borderRadius: 22,
         padding: '18px',
-        boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+        boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
       }}>
         <div style={{
           fontSize: 11, fontWeight: 700,
@@ -704,7 +759,7 @@ function PCreatorDashboard() {
         background: 'white',
         borderRadius: 22,
         padding: 16,
-        boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+        boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
       }}>
         <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 10, marginBottom: 12 }}>
           <h3 style={{
@@ -738,7 +793,7 @@ function PCreatorDashboard() {
         background: 'white',
         borderRadius: 22,
         padding: 16,
-        boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+        boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <h3 style={{ margin: 0, fontFamily: "'Fraunces',serif", fontSize: 18, fontWeight: 700, color: '#14391f' }}>Top Clips</h3>
@@ -772,7 +827,7 @@ function PCreatorDashboard() {
         background: 'white',
         borderRadius: 22,
         padding: 16,
-        boxShadow: '0 4px 12px rgba(20,57,31,0.12), 0 2px 6px rgba(20,57,31,0.08)',
+        boxShadow: '0 2px 8px rgba(20,57,31,0.05)',
       }}>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
           <h3 style={{ margin: 0, fontFamily: "'Fraunces',serif", fontSize: 18, fontWeight: 700, color: '#14391f' }}>Sales Activity</h3>
@@ -850,6 +905,7 @@ function PScreen({ initialTab = 'likes', dashboardOpen = false }) {
       <div className="mp-feed" style={{ flex: 1, overflowY: 'auto', paddingBottom: 24 }}>
         <PTopBar />
         <PProfileCard />
+        <PAdminBanner />
         <PDashboardToggle open={open} onClick={() => setOpen(!open)} />
         {open && <PCreatorDashboard />}
         <PTabBar active={tab} onChange={setTab} />
@@ -858,7 +914,6 @@ function PScreen({ initialTab = 'likes', dashboardOpen = false }) {
         {tab === 'abos'     && <PAbosTab />}
         {tab === 'erstellt' && <PErstelltTab />}
         {tab === 'gekauft'  && <PGekauftTab />}
-        {tab === 'videos'   && <PVideosTab />}
       </div>
     </div>
   );
