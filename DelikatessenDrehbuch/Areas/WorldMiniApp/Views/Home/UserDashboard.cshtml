@@ -19,7 +19,7 @@
 
 <div class="creator-dashboard container py-4 px-3 px-sm-4">
     <div class="dashboard-shell mx-auto">
-        <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
+        <div class="dashboard-hero d-flex align-items-start justify-content-between gap-3 mb-4">
             <div>
                 <p class="dashboard-eyebrow mb-1">Premium Creator Area</p>
                 <h1 class="dashboard-title mb-2">@SharedLocalizer["MyProfile.CreatorDashboard"]</h1>
@@ -35,7 +35,7 @@
                     </div>
                 }
             </div>
-            <a class="btn creator-btn-outline d-md-none" href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })">
+            <a class="btn creator-btn-outline d-md-none" target="_top" href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })">
                 <i class="bi bi-arrow-left"></i>
             </a>
         </div>
@@ -96,7 +96,7 @@
                     </article>
                 </div>
                 <div class="mt-3">
-                    <a href="@Url.Action("Payout", "Marketplace", new { area = "WorldMiniApp" })" class="btn btn-dark rounded-pill">
+                    <a href="@Url.Action("Payout", "Marketplace", new { area = "WorldMiniApp" })" target="_top" class="btn btn-dark rounded-pill">
                         <i class="bi bi-cash-coin me-1"></i> @SharedLocalizer["Dashboard.PayoutBalance"]
                     </a>
                 </div>
@@ -218,9 +218,6 @@
                 <button type="button" class="btn creator-btn-primary flex-grow-1">
                     <i class="bi bi-cash-coin me-2"></i>@SharedLocalizer["Dashboard.RequestMoney"]
                 </button>
-                <a class="btn creator-btn-secondary" href="@Url.Action("MyListings", "Marketplace", new { area = "WorldMiniApp" })">
-                    <i class="bi bi-shop-window me-2"></i>Listings
-                </a>
             </div>
         }
     </div>

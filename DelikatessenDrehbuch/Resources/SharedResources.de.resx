@@ -1511,4 +1511,6 @@
   <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Wie gewohnt zubereiten (ggf. Garzeit prüfen).</value></data>
   <data name="Swap.CommunityTaste" xml:space="preserve"><value>Ähnliches Profil, je nach Zutat leicht verändert.</value></data>
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Community-getestet</value></data>
+  <data name="Feed.Ad" xml:space="preserve"><value>Werbung</value></data>
+  <data name="Feed.AdCta" xml:space="preserve"><value>Mehr erfahren</value></data>
 </root>

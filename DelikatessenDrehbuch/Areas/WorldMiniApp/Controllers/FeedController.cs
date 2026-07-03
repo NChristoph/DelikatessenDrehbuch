@@ -316,6 +316,36 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["WorldChainMarketplace"] = HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:MarketplaceContractAddress"] ?? "";
             ViewData["WorldChainTestMode"] = bool.TryParse(HttpContext.RequestServices.GetService<IConfiguration>()?["WorldChain:TestMode"], out var testMode) && testMode;
 
+            // Werbung in den Feed einstreuen: der AdInjectionService bestimmt die Positionen,
+            // wir mappen "nach Posting-Id X → Ad" und geben es via ViewData weiter (das @model bleibt
+            // List<WorldUserPosting>, damit der Rest der Feed-View unverändert bleibt).
+            try
+            {
+                var adInjection = HttpContext.RequestServices.GetService<IAdInjectionService>();
+                if (adInjection != null && model.Count > 0)
+                {
+                    var mixedFeed = await adInjection.InjectAdsIntoFeed(model, null);
+                    var adsByPostingId = new Dictionary<int, WorldAppAd>();
+                    WorldUserPosting? lastPosting = null;
+                    foreach (var entry in mixedFeed)
+                    {
+                        if (entry is WorldUserPosting posting)
+                        {
+                            lastPosting = posting;
+                        }
+                        else if (entry is AdInjectionService.AdSlot slot && slot.Ad != null && lastPosting != null)
+                        {
+                            adsByPostingId[lastPosting.Id] = slot.Ad;
+                        }
+                    }
+                    ViewData["FeedAdsByPostingId"] = adsByPostingId;
+                }
+            }
+            catch (Exception adEx)
+            {
+                _logger.LogWarning(adEx, "Ad-Injection in den Feed fehlgeschlagen.");
+            }
+
             return View(model);
         }
 

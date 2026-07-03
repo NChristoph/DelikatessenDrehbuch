@@ -1436,4 +1436,6 @@
   <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Tillaga som vanligt (kontrollera tillagningstiden vid behov).</value></data>
   <data name="Swap.CommunityTaste" xml:space="preserve"><value>Liknande profil, något annorlunda beroende på ingrediensen.</value></data>
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Community-testad</value></data>
+  <data name="Feed.Ad" xml:space="preserve"><value>Annons</value></data>
+  <data name="Feed.AdCta" xml:space="preserve"><value>Läs mer</value></data>
 </root>

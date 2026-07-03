@@ -125,6 +125,42 @@ body {
     transform: translateY(0);
 }
 
+/* Dark forest hero header (Design-Handoff §7) */
+.dashboard-hero {
+    background: linear-gradient(135deg, #1a3a23, #0e2415);
+    color: #fff;
+    border-radius: 22px;
+    padding: 20px 18px;
+    box-shadow: 0 12px 30px rgba(20, 57, 31, 0.18);
+    position: relative;
+    overflow: hidden;
+}
+.dashboard-hero .dashboard-eyebrow {
+    color: rgba(168, 211, 157, 0.85);
+    letter-spacing: 0.18em;
+    font-size: 0.66rem;
+}
+.dashboard-hero .dashboard-title {
+    font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+    color: #fff;
+    font-size: 26px;
+    letter-spacing: -0.02em;
+}
+.dashboard-hero .creator-hash-label { color: rgba(255, 255, 255, 0.7); }
+.dashboard-hero .creator-hash {
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+}
+.dashboard-hero .creator-btn-outline {
+    background: rgba(255, 255, 255, 0.12);
+    color: #fff;
+    border: none;
+}
+.dashboard-hero .creator-btn-outline:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
 .hero-earnings-card,
 .content-card,
 .stat-card {
@@ -160,14 +196,18 @@ body {
 }
 
 .hero-value {
+    font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
     font-size: clamp(1.9rem, 8vw, 3rem);
     line-height: 1.06;
-    font-weight: 800;
+    font-weight: 700;
+    letter-spacing: -0.03em;
 }
 
 .hero-value span {
+    font-family: var(--font-sans, 'Inter', sans-serif);
     font-size: clamp(1rem, 3vw, 1.4rem);
-    color: var(--creator-muted);
+    font-weight: 700;
+    color: #5fa052;
 }
 
 .metric-value,

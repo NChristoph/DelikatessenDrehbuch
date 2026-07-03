@@ -3581,3 +3581,67 @@
         .mp-prev-close-btn button:hover {
             background: rgba(20,57,31,0.03);
         }
+
+        /* ── Feed-Werbung (Vollbildkarte) ── */
+        .feed-ad-label {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            z-index: 6;
+            background: rgba(0,0,0,0.55);
+            color: #fff;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            padding: 4px 10px;
+            border-radius: 999px;
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+        }
+
+        .feed-ad-info {
+            position: absolute;
+            left: 16px;
+            right: 16px;
+            bottom: 100px;
+            z-index: 6;
+            color: #fff;
+        }
+
+        .feed-ad-title {
+            font-family: 'Fraunces', 'Playfair Display', Georgia, serif;
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.15;
+            margin: 0 0 6px;
+            text-shadow: 0 2px 12px rgba(0,0,0,0.5);
+        }
+
+        .feed-ad-desc {
+            font-size: 14px;
+            line-height: 1.4;
+            opacity: 0.92;
+            margin: 0 0 14px;
+            max-width: 82%;
+            text-shadow: 0 1px 8px rgba(0,0,0,0.5);
+        }
+
+        .feed-ad-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            background: #fff;
+            color: #14391f;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            padding: 11px 20px;
+            border-radius: 999px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.28);
+        }
+
+        .feed-ad-cta:hover {
+            color: #14391f;
+            filter: brightness(0.96);
+        }

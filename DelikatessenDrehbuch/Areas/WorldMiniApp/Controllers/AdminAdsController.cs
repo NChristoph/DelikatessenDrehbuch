@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using DelikatessenDrehbuch.Data;
 using DelikatessenDrehbuch.Areas.WorldMiniApp.Models;
+using DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 {
@@ -11,11 +12,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly ILogger<AdminAdsController> _logger;
+        private readonly IBlobUploadService _blobUpload;
 
-        public AdminAdsController(ApplicationDbContext context, ILogger<AdminAdsController> logger)
+        public AdminAdsController(ApplicationDbContext context, ILogger<AdminAdsController> logger, IBlobUploadService blobUpload)
         {
             _context = context;
             _logger = logger;
+            _blobUpload = blobUpload;
         }
 
         private bool IsAdmin()
@@ -63,7 +66,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         /// </summary>
         [HttpPost("Create")]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(WorldAppAd ad)
+        public async Task<IActionResult> Create(WorldAppAd ad, IFormFile? mediaFile = null)
         {
             if (!IsAdmin())
             {
@@ -72,6 +75,31 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             try
             {
+                // Optionaler Datei-Upload: Medium wird zu Bunny.net hochgeladen, MediaUrl daraus gesetzt.
+                if (mediaFile != null && mediaFile.Length > 0)
+                {
+                    var upload = await _blobUpload.UploadContentToBlob(mediaFile);
+                    var uploadedUrl = !string.IsNullOrWhiteSpace(upload.SourceUrl) ? upload.SourceUrl : upload.ThumbnailUrl;
+                    if (!string.IsNullOrWhiteSpace(uploadedUrl))
+                    {
+                        ad.MediaUrl = uploadedUrl;
+                        if (!string.IsNullOrWhiteSpace(upload.ThumbnailUrl))
+                        {
+                            ad.ThumbnailUrl = upload.ThumbnailUrl;
+                        }
+                        // Bunny Stream liefert bei Videos eine VideoGuid; sonst per Content-Type erkennen.
+                        ad.IsVideo = !string.IsNullOrWhiteSpace(upload.VideoGuid)
+                            || (mediaFile.ContentType?.StartsWith("video/", StringComparison.OrdinalIgnoreCase) ?? false);
+                    }
+                }
+
+                // Entweder Upload oder URL muss vorhanden sein.
+                if (string.IsNullOrWhiteSpace(ad.MediaUrl))
+                {
+                    ModelState.AddModelError("MediaUrl", "Bitte ein Medium hochladen oder eine URL angeben.");
+                    return View(ad);
+                }
+
                 var userHash = ResolveUserHash(string.Empty);
                 ad.CreatedByUserHash = userHash;
                 ad.CreatedAt = DateTime.UtcNow;

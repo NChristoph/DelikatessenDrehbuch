@@ -462,6 +462,39 @@
                     </div>
                 </div>
             </div>
+            @if (ViewData["FeedAdsByPostingId"] is Dictionary<int, WorldAppAd> __feedAds && __feedAds.TryGetValue(item.Id, out var __ad))
+            {
+                var __adIsVideo = __ad.IsVideo
+                    || (__ad.MediaUrl ?? "").ToLowerInvariant().Contains(".mp4")
+                    || (__ad.MediaUrl ?? "").ToLowerInvariant().Contains(".m3u8")
+                    || (__ad.MediaUrl ?? "").ToLowerInvariant().Contains(".webm");
+                <div class="feed-item feed-ad" data-ad-id="@__ad.Id">
+                    @if (__adIsVideo)
+                    {
+                        <video class="feed-media" src="@__ad.MediaUrl" playsinline loop muted preload="metadata" poster="@__ad.ThumbnailUrl"></video>
+                    }
+                    else
+                    {
+                        <img class="feed-media" src="@__ad.MediaUrl" alt="@__ad.Title" loading="lazy">
+                    }
+                    <div class="overlay-gradient"></div>
+                    <span class="feed-ad-label">@SharedLocalizer["Feed.Ad"]</span>
+                    <div class="feed-ad-info">
+                        <h3 class="feed-ad-title">@__ad.Title</h3>
+                        @if (!string.IsNullOrWhiteSpace(__ad.Description))
+                        {
+                            <p class="feed-ad-desc">@__ad.Description</p>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(__ad.TargetUrl))
+                        {
+                            <a class="feed-ad-cta" href="@__ad.TargetUrl" target="_blank" rel="noopener nofollow" onclick="trackAdClick(@__ad.Id)">
+                                @(string.IsNullOrWhiteSpace(__ad.CtaText) ? SharedLocalizer["Feed.AdCta"].Value : __ad.CtaText)
+                                <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
         }
         <div id="feedContent"></div>
             </section>
@@ -5633,6 +5666,42 @@
 
         // Also support showPreview alias
         window.showPreview = showFeedPreview;
+    </script>
+
+    <script>
+        // ── Feed-Werbung: Impression- + Click-Tracking ──
+        (function () {
+            var trackedAdImpressions = new Set();
+
+            function trackAdImpression(adId) {
+                if (!adId || trackedAdImpressions.has(adId)) return;
+                trackedAdImpressions.add(adId);
+                fetch('/api/worldminiapp/ads/impression/' + adId, { method: 'POST' }).catch(function () {});
+            }
+
+            window.trackAdClick = function (adId) {
+                if (!adId) return;
+                fetch('/api/worldminiapp/ads/click/' + adId, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({})
+                }).catch(function () {});
+            };
+
+            document.addEventListener('DOMContentLoaded', function () {
+                var adItems = document.querySelectorAll('.feed-ad[data-ad-id]');
+                if (!adItems.length || !('IntersectionObserver' in window)) return;
+                var obs = new IntersectionObserver(function (entries) {
+                    entries.forEach(function (e) {
+                        if (e.isIntersecting && e.intersectionRatio >= 0.5) {
+                            var id = parseInt(e.target.getAttribute('data-ad-id'), 10);
+                            if (!isNaN(id)) trackAdImpression(id);
+                        }
+                    });
+                }, { threshold: [0.5] });
+                adItems.forEach(function (el) { obs.observe(el); });
+            });
+        })();
     </script>
 
 </body>

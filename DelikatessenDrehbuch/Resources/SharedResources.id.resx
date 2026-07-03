@@ -1545,4 +1545,6 @@
   <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Siapkan seperti biasa (periksa waktu memasak bila perlu).</value></data>
   <data name="Swap.CommunityTaste" xml:space="preserve"><value>Profil serupa, sedikit berbeda tergantung bahan.</value></data>
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Teruji komunitas</value></data>
+  <data name="Feed.Ad" xml:space="preserve"><value>Iklan</value></data>
+  <data name="Feed.AdCta" xml:space="preserve"><value>Pelajari lebih lanjut</value></data>
 </root>

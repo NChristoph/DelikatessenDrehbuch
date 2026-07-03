@@ -1543,4 +1543,6 @@
   <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Tilbered som sædvanligt (tjek tilberedningstiden om nødvendigt).</value></data>
   <data name="Swap.CommunityTaste" xml:space="preserve"><value>Lignende profil, let forskellig afhængigt af ingrediensen.</value></data>
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Community-testet</value></data>
+  <data name="Feed.Ad" xml:space="preserve"><value>Annonce</value></data>
+  <data name="Feed.AdCta" xml:space="preserve"><value>Læs mere</value></data>
 </root>

@@ -116,7 +116,7 @@
         <h1>@(isEdit ? "Edit Ad" : "Create New Ad")</h1>
     </div>
 
-    <form method="post" action="@(isEdit ? Url.Action("Edit", new { id = Model.Id }) : Url.Action("Create"))">
+    <form method="post" enctype="multipart/form-data" action="@(isEdit ? Url.Action("Edit", new { id = Model.Id }) : Url.Action("Create"))">
         @Html.AntiForgeryToken()
         @Html.HiddenFor(m => m.Id)
 
@@ -132,11 +132,20 @@
             <div class="form-help">Optional description (shown on some ad placements)</div>
         </div>
 
+        @if (!isEdit)
+        {
+            <div class="form-group">
+                <label class="form-label" for="mediaFile">Medium hochladen (Bild oder Video)</label>
+                <input type="file" class="form-control" id="mediaFile" name="mediaFile" accept="image/*,video/*" onchange="onMediaFileChosen()" />
+                <div class="form-help">Lade dein Werbe-Medium direkt hoch (Bunny.net) — oder gib unten stattdessen eine URL an.</div>
+            </div>
+        }
+
         <div class="form-group">
-            <label class="form-label" for="MediaUrl">Media URL * (Image or Video)</label>
-            <input type="url" class="form-control" id="MediaUrl" name="MediaUrl" value="@Model.MediaUrl" required maxlength="1000"
+            <label class="form-label" for="MediaUrl">Media URL@(isEdit ? " *" : "") (Image or Video)</label>
+            <input type="url" class="form-control" id="MediaUrl" name="MediaUrl" value="@Model.MediaUrl" @(isEdit ? "required" : "") maxlength="1000"
                    placeholder="https://..." onchange="previewMedia()" />
-            <div class="form-help">Full URL to the ad image or video (must be accessible publicly)</div>
+            <div class="form-help">@(isEdit ? "Full URL to the ad image or video (must be accessible publicly)" : "Alternativ zum Upload: öffentliche URL zum Bild/Video.")</div>
             <div id="mediaPreview" class="preview-box" style="display:none;">
                 <img id="previewImg" class="preview-img" alt="Preview" />
                 <video id="previewVideo" class="preview-img" controls muted style="display:none;"></video>
@@ -221,7 +230,7 @@
         <div class="form-group">
             <label class="form-label" for="StartDate">Start Date (Optional)</label>
             <input type="datetime-local" class="form-control" id="StartDate" name="StartDate"
-                   value="@(Model.StartDate?.ToString("yyyy-MM-ddTHH:mm"))" />
+                   value="@((Model.StartDate ?? DateTime.UtcNow).ToString("yyyy-MM-ddTHH:mm"))" />
             <div class="form-help">Ad won't show before this date</div>
         </div>
 
@@ -264,4 +273,29 @@
     }
 
     document.getElementById('IsVideo').addEventListener('change', previewMedia);
+
+    // Lokale Vorschau der hochgeladenen Datei (vor dem Absenden) + IsVideo automatisch setzen.
+    function onMediaFileChosen() {
+        const fileInput = document.getElementById('mediaFile');
+        if (!fileInput || !fileInput.files || !fileInput.files.length) return;
+        const file = fileInput.files[0];
+        const objectUrl = URL.createObjectURL(file);
+        const isVideo = (file.type || '').startsWith('video/');
+        const box = document.getElementById('mediaPreview');
+        const img = document.getElementById('previewImg');
+        const video = document.getElementById('previewVideo');
+        const isVideoCb = document.getElementById('IsVideo');
+        if (isVideoCb) isVideoCb.checked = isVideo;
+        if (box) box.style.display = 'block';
+        if (isVideo) {
+            if (img) img.style.display = 'none';
+            if (video) { video.style.display = 'block'; video.src = objectUrl; }
+        } else {
+            if (video) video.style.display = 'none';
+            if (img) { img.style.display = 'block'; img.src = objectUrl; }
+        }
+        // Wenn eine Datei gewählt ist, ist die URL nicht mehr nötig.
+        const urlInput = document.getElementById('MediaUrl');
+        if (urlInput) urlInput.removeAttribute('required');
+    }
 </script>

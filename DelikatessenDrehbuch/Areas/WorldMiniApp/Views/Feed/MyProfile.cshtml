@@ -69,7 +69,7 @@
 
     body {
         font-family: 'Inter', sans-serif;
-        background: #ffffff;
+        background: var(--bg-cream);
         color: var(--ink-deep);
     }
 
@@ -258,8 +258,8 @@
         text-decoration: none;
         border-radius: 16px;
         padding: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.9);
-        background: rgba(255, 255, 255, 0.85);
+        border: 1px solid rgba(20, 57, 31, 0.08);
+        background: #faf6ec;
         color: var(--ink-deep);
         font-size: 13px;
         font-weight: 700;
@@ -276,18 +276,18 @@
         width: 100%;
         margin-top: 8px;
         margin-bottom: 16px;
-        border-radius: 16px;
-        padding: 16px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        box-shadow: 0 8px 24px rgba(102, 126, 234, 0.35);
-        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 22px;
+        padding: 14px 16px;
+        background: rgba(20, 20, 20, 0.045);
+        box-shadow: none;
+        border: 1px solid rgba(20, 57, 31, 0.06);
     }
 
     .admin-login-header {
         display: flex;
         align-items: center;
         gap: 8px;
-        color: white;
+        color: var(--ink-deep);
         font-weight: 700;
         font-size: 13px;
         margin-bottom: 12px;
@@ -308,34 +308,33 @@
     .admin-login-input {
         flex: 1;
         padding: 12px 16px;
-        border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.3);
-        background: rgba(255, 255, 255, 0.15);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
-        color: white;
+        border-radius: 16px;
+        border: 1px solid rgba(20, 57, 31, 0.12);
+        background: #ffffff;
+        box-shadow: 0 2px 8px rgba(20, 57, 31, 0.06);
+        color: var(--ink-deep);
         font-size: 14px;
         font-weight: 600;
         transition: all 0.2s;
     }
 
     .admin-login-input::placeholder {
-        color: rgba(255, 255, 255, 0.6);
+        color: #9aa295;
     }
 
     .admin-login-input:focus {
         outline: none;
-        border-color: rgba(255, 255, 255, 0.6);
-        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(20, 57, 31, 0.35);
+        background: #ffffff;
     }
 
     .admin-login-btn {
-        width: 44px;
-        height: 44px;
-        border-radius: 12px;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
         border: none;
-        background: rgba(255, 255, 255, 0.95);
-        color: #667eea;
+        background: var(--ink-deep);
+        color: #ffffff;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -371,7 +370,7 @@
         border-radius: 16px;
         padding: 13px;
         justify-content: center;
-        background: var(--card);
+        background: #faf6ec;
         border: 1px solid rgba(20,57,31,0.08);
         color: var(--ink-deep);
         box-shadow: var(--shadow-sm);
@@ -389,7 +388,7 @@
         border-radius: 24px;
         overflow: hidden;
         border: 1px solid rgba(20,57,31,0.08);
-        background: linear-gradient(135deg, #1a3a23, #0e2415);
+        background: transparent;
         box-shadow: var(--shadow-lg);
     }
 
@@ -433,7 +432,7 @@
 
     .nav-custom {
         display: flex;
-        background: rgba(20,57,31,0.06);
+        background: rgba(20,20,20,0.045);
         border-radius: 22px;
         padding: 4px;
         border: none;
@@ -759,6 +758,9 @@
                 <a class="quick-link" href="@Url.Action("CreatorManager", "Admin", new { area = "WorldMiniApp" })">
                     <i class="bi bi-people-fill"></i> @SharedLocalizer["MyProfile.CreatorManager"]
                 </a>
+                <a class="quick-link" href="@Url.Action("Index", "AdminAds", new { area = "WorldMiniApp" })">
+                    <i class="bi bi-megaphone-fill" style="color: var(--gold);"></i> Ad Manager
+                </a>
                 <form method="post" action="@Url.Action("Logout", "Admin", new { area = "WorldMiniApp" })" style="display: inline;">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="quick-link" style="background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); border: none; cursor: pointer; width: 100%;">
@@ -830,25 +832,12 @@
 
         <div class="collapse" id="dashboardEmbedCollapse">
             <div class="dashboard-embed-shell">
-                <div class="dashboard-embed-header">
-                    <div class="dashboard-eyebrow">Premium Creator Area</div>
-                    <h2 class="dashboard-title">@SharedLocalizer["MyProfile.CreatorDashboard"]</h2>
-                    <div class="dashboard-hash">@Model.User.UserHash</div>
-                </div>
                 <iframe class="dashboard-embed-frame"
                         src="@Url.Action("UserDashboard", "Home", new { area = "WorldMiniApp" })"
                         loading="lazy"
                         title="@SharedLocalizer["MyProfile.CreatorDashboard"]"></iframe>
             </div>
         </div>
-
-    @if (Model.User.UserHash == "0x2da33d4d7152caf4dad616bffa6fed2a7fd896ebe32be8806c79ed5010ff4839")
-    {
-        <!-- Ad Manager Link -->
-        <a href="@Url.Action("Index", "AdminAds", new { area = "WorldMiniApp" })" class="quick-link" style="background: #ffffff; color: var(--ink-deep); box-shadow: 0 2px 8px rgba(20,57,31,0.06);">
-            <i class="bi bi-megaphone-fill" style="color: var(--gold);"></i> Ad Manager
-        </a>
-    }
 
     <!-- Tabs -->
     <ul class="nav nav-custom" role="tablist">
@@ -877,14 +866,11 @@
                 <i class="bi bi-bag-check-fill fs-5"></i><span>@SharedLocalizer["MyProfile.TabBought"]</span>
             </button>
         </li>
-        @if (isOrb)
-        {
-            <li class="nav-item">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-videos">
-                    <i class="bi bi-play-circle-fill fs-5"></i><span>@SharedLocalizer["MyProfile.TabVideos"]</span>
-                </button>
-            </li>
-        }
+        <li class="nav-item">
+            <button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-videos">
+                <i class="bi bi-play-circle-fill fs-5"></i><span>@SharedLocalizer["MyProfile.TabVideos"]</span>
+            </button>
+        </li>
     </ul>
 
     <div class="tab-content">
@@ -1098,9 +1084,7 @@
             }
         </div>
 
-        @if (isOrb)
-        {
-            <div class="tab-pane fade" id="tab-videos">
+        <div class="tab-pane fade" id="tab-videos">
                 <div class="video-grid">
                     @foreach (var posting in Model.MyVideos)
                     {
@@ -1175,7 +1159,6 @@
                     }
                 </div>
             </div>
-        }
 
     </div>
 </div>

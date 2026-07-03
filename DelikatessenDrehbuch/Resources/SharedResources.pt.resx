@@ -1545,4 +1545,6 @@
   <data name="Swap.CommunityPreparation" xml:space="preserve"><value>Prepare como de costume (verifique o tempo de cozimento se necessário).</value></data>
   <data name="Swap.CommunityTaste" xml:space="preserve"><value>Perfil semelhante, ligeiramente diferente conforme o ingrediente.</value></data>
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Testado pela comunidade</value></data>
+  <data name="Feed.Ad" xml:space="preserve"><value>Anúncio</value></data>
+  <data name="Feed.AdCta" xml:space="preserve"><value>Saiba mais</value></data>
 </root>

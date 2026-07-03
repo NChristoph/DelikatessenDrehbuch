@@ -196,7 +196,12 @@
 
 <div class="admin-container">
     <div class="admin-header">
-        <h1>📊 Ad Management</h1>
+        <div style="display:flex;align-items:center;gap:14px;">
+            <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp" })" style="display:inline-flex;align-items:center;gap:6px;color:#2c3e50;text-decoration:none;font-weight:600;padding:9px 14px;border-radius:8px;background:#fff;box-shadow:0 2px 8px rgba(0,0,0,0.08);white-space:nowrap;">
+                <i class="bi bi-arrow-left"></i> Zurück
+            </a>
+            <h1>📊 Ad Management</h1>
+        </div>
         <a href="@Url.Action("Create")" class="btn-create">+ Create New Ad</a>
     </div>
 
