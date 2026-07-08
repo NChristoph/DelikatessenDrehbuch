@@ -28,6 +28,42 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             _httpClient = httpClientFactory.CreateClient("BunnyStorage");
         }
 
+        public async Task DeleteVideoAsync(string videoGuid)
+        {
+            if (string.IsNullOrWhiteSpace(videoGuid))
+            {
+                return;
+            }
+
+            try
+            {
+                var apiKey = _configuration["Bunny_Net_Api_Stream"];
+                var libraryId = _configuration["Bunny_Net_Stream_ID"];
+                if (string.IsNullOrWhiteSpace(apiKey) || string.IsNullOrWhiteSpace(libraryId))
+                {
+                    _logger.LogWarning("Cannot delete Bunny video {VideoGuid}: stream credentials missing.", videoGuid);
+                    return;
+                }
+
+                var url = $"https://video.bunnycdn.com/library/{libraryId}/videos/{videoGuid}";
+                using var request = new HttpRequestMessage(HttpMethod.Delete, url);
+                request.Headers.Add("AccessKey", apiKey);
+                using var response = await _httpClient.SendAsync(request);
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("Deleted orphaned Bunny video {VideoGuid}.", videoGuid);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to delete Bunny video {VideoGuid}: {Status}", videoGuid, response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error deleting Bunny video {VideoGuid}.", videoGuid);
+            }
+        }
+
         public async Task<UploadContentResult> UploadContentToBlob(IFormFile file)
         {
             if (file == null || file.Length == 0)

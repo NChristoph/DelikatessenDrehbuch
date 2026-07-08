@@ -451,6 +451,23 @@
         </div>
     }
 
+    @if (TempData["ClaimLink"] != null)
+    {
+        <div class="alert alert-info">
+            <div style="font-weight:600;margin-bottom:6px;"><i class="bi bi-link-45deg"></i> Claim-Link (an den Creator senden):</div>
+            <div style="display:flex;gap:8px;align-items:center;">
+                <input type="text" readonly value="@TempData["ClaimLink"]" id="claimLinkField"
+                       style="flex:1;padding:8px;border:1px solid #ccc;border-radius:8px;font-family:monospace;font-size:12px;" />
+                <button type="button" class="btn btn-secondary btn-sm" onclick="navigator.clipboard.writeText(document.getElementById('claimLinkField').value)">
+                    <i class="bi bi-clipboard"></i> Kopieren
+                </button>
+            </div>
+            <div style="font-size:12px;color:#666;margin-top:6px;">
+                Der Creator öffnet den Link in der World App und meldet sich mit seiner eigenen World ID an — danach gehört ihm der Kanal (Inhalte + Einnahmen). 14 Tage gültig.
+            </div>
+        </div>
+    }
+
     <div class="admin-card">
         <div class="card-title">
             <i class="bi bi-person-plus-fill"></i>
@@ -476,8 +493,8 @@
                     <div class="form-group">
                         <label class="form-label">Verifizierung</label>
                         <div class="form-check">
-                            <input type="hidden" name="isOrbVerified" value="false" />
                             <input type="checkbox" name="isOrbVerified" class="form-check-input" id="orbCheck" value="true" />
+                            <input type="hidden" name="isOrbVerified" value="false" />
                             <label class="form-check-label" for="orbCheck">Orb-Verifiziert</label>
                         </div>
                     </div>
@@ -545,6 +562,14 @@
                                     <input type="hidden" name="targetHash" value="@creator.UserHash" />
                                     <button type="submit" class="btn btn-success btn-sm">
                                         <i class="bi bi-box-arrow-in-right"></i> Anmelden als
+                                    </button>
+                                </form>
+                                <form asp-action="CreateClaimLink" method="post" style="margin: 0; display: inline;"
+                                      onsubmit="return confirm('Claim-Link für @creator.UserName erstellen? Der Empfänger übernimmt damit den Kanal inkl. Einnahmen.')">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="sourceHash" value="@creator.UserHash" />
+                                    <button type="submit" class="btn btn-warning btn-sm">
+                                        <i class="bi bi-link-45deg"></i> Übergeben
                                     </button>
                                 </form>
                                 <form asp-action="DeleteCreator" method="post" style="margin: 0; display: inline;" onsubmit="return confirm('Creator @creator.UserName wirklich löschen?')">

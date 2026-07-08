@@ -1438,4 +1438,113 @@
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Diuji komuniti</value></data>
   <data name="Feed.Ad" xml:space="preserve"><value>Iklan</value></data>
   <data name="Feed.AdCta" xml:space="preserve"><value>Ketahui lebih lanjut</value></data>
+  <data name="BuildOwn.Title" xml:space="preserve"><value>Cipta pelan jualan</value></data>
+  <data name="BuildOwn.BackToProfile" xml:space="preserve"><value>Kembali ke profil</value></data>
+  <data name="BuildOwn.Intro" xml:space="preserve"><value>Bina pelan makan hanya daripada resipi anda sendiri – termasuk yang peribadi. Pelan siap boleh anda jual di pasar.</value></data>
+  <data name="BuildOwn.NoOwnRecipes" xml:space="preserve"><value>Belum ada resipi sendiri</value></data>
+  <data name="BuildOwn.NoOwnRecipesHint" xml:space="preserve"><value>Muat naik beberapa resipi dahulu (boleh sebagai "untuk saya sahaja"), kemudian anda boleh susun pelan di sini.</value></data>
+  <data name="BuildOwn.PlanTitle" xml:space="preserve"><value>Tajuk pelan</value></data>
+  <data name="BuildOwn.PlanTitlePlaceholder" xml:space="preserve"><value>cth. Minggu tinggi protein saya</value></data>
+  <data name="BuildOwn.People" xml:space="preserve"><value>Orang</value></data>
+  <data name="BuildOwn.Days" xml:space="preserve"><value>Hari</value></data>
+  <data name="BuildOwn.NutritionTotal" xml:space="preserve"><value>Nutrisi – jumlah</value></data>
+  <data name="BuildOwn.NutritionPortion" xml:space="preserve"><value>Nutrisi – setiap hidangan</value></data>
+  <data name="BuildOwn.Total" xml:space="preserve"><value>Jumlah</value></data>
+  <data name="BuildOwn.PerPortion" xml:space="preserve"><value>Setiap hidangan</value></data>
+  <data name="BuildOwn.Fiber" xml:space="preserve"><value>Serat</value></data>
+  <data name="BuildOwn.NoRecipes" xml:space="preserve"><value>Tiada resipi</value></data>
+  <data name="BuildOwn.FillDays" xml:space="preserve"><value>Isi hari &amp; hidangan</value></data>
+  <data name="BuildOwn.PaletteHint" xml:space="preserve"><value>Resipi anda – ketik untuk tambah ke hidangan aktif</value></data>
+  <data name="BuildOwn.SavePlan" xml:space="preserve"><value>Simpan pelan</value></data>
+  <data name="BuildOwn.SlotStarter" xml:space="preserve"><value>Pembuka</value></data>
+  <data name="BuildOwn.SlotMain" xml:space="preserve"><value>Hidangan utama</value></data>
+  <data name="BuildOwn.SlotDessert" xml:space="preserve"><value>Pencuci mulut</value></data>
+  <data name="BuildOwn.RecipeShort" xml:space="preserve"><value>Resipi</value></data>
+  <data name="BuildOwn.Remove" xml:space="preserve"><value>Buang</value></data>
+  <data name="BuildOwn.RecipeSg" xml:space="preserve"><value>resipi</value></data>
+  <data name="BuildOwn.RecipePl" xml:space="preserve"><value>resipi</value></data>
+  <data name="BuildOwn.TapToActivate" xml:space="preserve"><value>ketik untuk mengaktifkan</value></data>
+  <data name="BuildOwn.Day" xml:space="preserve"><value>Hari</value></data>
+  <data name="BuildOwn.ActivePrefix" xml:space="preserve"><value>Aktif:</value></data>
+  <data name="BuildOwn.Loading" xml:space="preserve"><value>Memuatkan…</value></data>
+  <data name="BuildOwn.CurrentPortion" xml:space="preserve"><value>Semasa · setiap hidangan</value></data>
+  <data name="BuildOwn.CurrentPersons" xml:space="preserve"><value>Semasa · {0} org</value></data>
+  <data name="BuildOwn.LoginFirst" xml:space="preserve"><value>Sila log masuk dahulu.</value></data>
+  <data name="BuildOwn.AddAtLeastOne" xml:space="preserve"><value>Rancang sekurang-kurangnya satu resipi.</value></data>
+  <data name="BuildOwn.DefaultTitle" xml:space="preserve"><value>Pelan jualan saya</value></data>
+  <data name="BuildOwn.Saving" xml:space="preserve"><value>Menyimpan...</value></data>
+  <data name="BuildOwn.SaveFailed" xml:space="preserve"><value>Pelan tidak dapat disimpan.</value></data>
+  <data name="BuildOwn.SaveError" xml:space="preserve"><value>Ralat semasa menyimpan.</value></data>
+  <data name="ShareShoppingList.Title" xml:space="preserve"><value>Kongsi senarai beli-belah</value></data>
+  <data name="ShareShoppingList.Heading" xml:space="preserve"><value>Senarai beli-belah dikongsi</value></data>
+  <data name="ShareShoppingList.Editable" xml:space="preserve"><value>Senarai ini boleh disunting lagi.</value></data>
+  <data name="MealCard.Shuffle" xml:space="preserve"><value>Rawak</value></data>
+  <data name="MealCard.NoDish" xml:space="preserve"><value>Tiada hidangan</value></data>
+  <data name="MealCard.Add" xml:space="preserve"><value>Tambah</value></data>
+  <data name="Layout.Title" xml:space="preserve"><value>Mini Perancang</value></data>
+  <data name="Landing.DefaultTitle" xml:space="preserve"><value>Kandungan dikongsi</value></data>
+  <data name="Landing.DefaultDescription" xml:space="preserve"><value>Buka kandungan ini dalam World App</value></data>
+  <data name="Landing.OpenInWorldApp" xml:space="preserve"><value>Buka dalam World App</value></data>
+  <data name="Landing.CopyAndOpen" xml:space="preserve"><value>Salin pautan dan buka apl</value></data>
+  <data name="Landing.CopyHint" xml:space="preserve"><value>Menyalin pautan dan membuka World App. Pergi ke Mini App di sana dan tampal pautan.</value></data>
+  <data name="Landing.OpenInBrowser" xml:space="preserve"><value>Buka dalam pelayar</value></data>
+  <data name="Landing.NoWorldApp" xml:space="preserve"><value>Belum ada World App?</value></data>
+  <data name="Landing.DownloadIos" xml:space="preserve"><value>Muat turun untuk iOS</value></data>
+  <data name="Landing.DownloadAndroid" xml:space="preserve"><value>Muat turun untuk Android</value></data>
+  <data name="Landing.OpeningWorldApp" xml:space="preserve"><value>Membuka World App...</value></data>
+  <data name="Landing.TryAgain" xml:space="preserve"><value>Cuba lagi</value></data>
+  <data name="Landing.CouldNotOpen" xml:space="preserve"><value>World App tidak dapat dibuka.</value></data>
+  <data name="Landing.CouldNotOpenHint" xml:space="preserve"><value>Buka kandungan terus dalam pelayar atau pasang apl.</value></data>
+  <data name="Landing.OpenManually" xml:space="preserve"><value>Sila buka World App secara manual atau gunakan butang pelayar terus.</value></data>
+  <data name="Landing.WorldAppOpening" xml:space="preserve"><value>World App sedang dibuka...</value></data>
+  <data name="Landing.BackToPage" xml:space="preserve"><value>Kembali ke halaman. Anda boleh cuba lagi atau buka terus dalam pelayar.</value></data>
+  <data name="Landing.LinkCopiedOpening" xml:space="preserve"><value>Pautan disalin. Membuka World App...</value></data>
+  <data name="Landing.LinkCopiedClipboard" xml:space="preserve"><value>Pautan disalin ke papan keratan!</value></data>
+  <data name="Landing.LinkCopiedPrefix" xml:space="preserve"><value>Pautan disalin:</value></data>
+  <data name="Landing.LinkPrefix" xml:space="preserve"><value>Pautan:</value></data>
+  <data name="SharedList.BackToGroup" xml:space="preserve"><value>Kembali ke kumpulan</value></data>
+  <data name="SharedList.SyncHint" xml:space="preserve"><value>Penyegerakan masa nyata — tanda dikongsi secara automatik.</value></data>
+  <data name="SharedList.Other" xml:space="preserve"><value>Lain-lain</value></data>
+  <data name="SharedList.LiveSyncActive" xml:space="preserve"><value>Penyegerakan langsung aktif</value></data>
+  <data name="SharedList.Done" xml:space="preserve"><value>selesai</value></data>
+  <data name="SharedList.SyncError" xml:space="preserve"><value>Ralat penyegerakan</value></data>
+  <data name="Generator.Title" xml:space="preserve"><value>Persediaan anda</value></data>
+  <data name="Generator.DietLabel" xml:space="preserve"><value>Diet</value></data>
+  <data name="Generator.AllDesc" xml:space="preserve"><value>Daging, ikan &amp; sayur</value></data>
+  <data name="Generator.Vegetarian" xml:space="preserve"><value>Vegetarian</value></data>
+  <data name="Generator.VeggieDesc" xml:space="preserve"><value>Tiada daging/ikan</value></data>
+  <data name="Generator.Vegan" xml:space="preserve"><value>Vegan</value></data>
+  <data name="Generator.FocusLabel" xml:space="preserve"><value>Fokus (pelbagai pilihan)</value></data>
+  <data name="Generator.Fast" xml:space="preserve"><value>Pantas</value></data>
+  <data name="Generator.Balanced" xml:space="preserve"><value>Seimbang</value></data>
+  <data name="Generator.Scope" xml:space="preserve"><value>Skop</value></data>
+  <data name="Generator.TitlePlaceholder" xml:space="preserve"><value>cth. Diet musim panas</value></data>
+  <data name="Generated.Title" xml:space="preserve"><value>Pelan anda</value></data>
+  <data name="Generated.Courses" xml:space="preserve"><value>Hidangan</value></data>
+  <data name="Generated.Meals" xml:space="preserve"><value>Waktu makan</value></data>
+  <data name="Generated.Main" xml:space="preserve"><value>Utama</value></data>
+  <data name="Generated.Breakfast" xml:space="preserve"><value>Sarapan</value></data>
+  <data name="Generated.Lunch" xml:space="preserve"><value>Makan tengah hari</value></data>
+  <data name="Generated.Dinner" xml:space="preserve"><value>Makan malam</value></data>
+  <data name="Generated.FinishPlan" xml:space="preserve"><value>Selesaikan pelan</value></data>
+  <data name="Generated.LoadError" xml:space="preserve"><value>Ralat semasa memuat.</value></data>
+  <data name="Generated.LoadingRecipes" xml:space="preserve"><value>Memuatkan resipi...</value></data>
+  <data name="Generated.ListLoadError" xml:space="preserve"><value>Tidak dapat memuatkan senarai.</value></data>
+  <data name="ShowRecipe.SearchPlaceholder" xml:space="preserve"><value>Cari (tajuk atau penerangan)...</value></data>
+  <data name="ShowRecipe.AdaptingSteps" xml:space="preserve"><value>Menyesuaikan penyediaan dengan bahan yang ditukar...</value></data>
+  <data name="ShowRecipe.WaitGenerating" xml:space="preserve"><value>Sila tunggu: tajuk/penerangan masih dijana.</value></data>
+  <data name="ShowRecipe.Saving" xml:space="preserve"><value>Menyimpan...</value></data>
+  <data name="ShowRecipe.VariantNoMeta" xml:space="preserve"><value>Varian tiada tajuk/penerangan (AI). Sila cuba lagi.</value></data>
+  <data name="ShowRecipe.SaveVariantFailed" xml:space="preserve"><value>Tidak dapat menyimpan varian. Sila cuba lagi.</value></data>
+  <data name="ShowRecipe.Loading" xml:space="preserve"><value>Memuatkan...</value></data>
+  <data name="CreatePosting.LoadingData" xml:space="preserve"><value>Memuatkan data...</value></data>
+  <data name="CreatePosting.OneMoment" xml:space="preserve"><value>Sebentar</value></data>
+  <data name="CreatePosting.TitlePlaceholder" xml:space="preserve"><value>Tajuk</value></data>
+  <data name="CreatePosting.MinutesPlaceholder" xml:space="preserve"><value>Minit</value></data>
+  <data name="CreatePosting.IngredientSearchPlaceholder" xml:space="preserve"><value>Cari bahan...</value></data>
+  <data name="CreatePosting.MissingIngredientPlaceholder" xml:space="preserve"><value>cth. pisang tanduk hijau</value></data>
+  <data name="CreatePosting.StepsPlaceholder" xml:space="preserve"><value>Tulis langkah penyediaan di sini (satu langkah setiap baris)...</value></data>
+  <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Bahan</value></data>
+  <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Tampal sari kata (pilihan)</value></data>
+  <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>Tampal teks WEBVTT di sini — digunakan sebagai sumber bahasa Jerman (bukan transkripsi automatik); terjemahan automatik. Pengepala ditambah jika tiada.</value></data>
 </root>

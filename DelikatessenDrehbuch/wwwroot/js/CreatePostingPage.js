@@ -5796,9 +5796,14 @@
                 }
                 return window.CreatePostingPageData.loadIngredientTransforms()
                     .then(transforms => {
-                        window.ingredientTransforms = transforms;
-                        ingredientTransforms = transforms;
-                        return transforms;
+                        // JSON-generated (derived) ingredients are disabled — they were a relic of the
+                        // old upload flow. Neutralize the transform data so selecting an ingredient never
+                        // auto-creates sub-items (e.g. Ei → Eigelb/Eischnee) that have no catalog
+                        // reference and break saving. Plumbing kept; only the data is emptied.
+                        const disabled = { adjective_patterns: {}, special_transforms: [] };
+                        window.ingredientTransforms = disabled;
+                        ingredientTransforms = disabled;
+                        return disabled;
                     })
                     .catch(() => null);
             }

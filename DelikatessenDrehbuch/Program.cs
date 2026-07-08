@@ -28,6 +28,9 @@ using Microsoft.AspNetCore.Localization;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Mirror app logs into the in-memory buffer so the admin mini-console (MyProfile) can show them.
+builder.Logging.AddProvider(new DelikatessenDrehbuch.Areas.WorldMiniApp.Services.InMemoryLoggerProvider());
+
 // Kestrel-Limits für große Video-Uploads erhöhen
 builder.Services.Configure<Microsoft.AspNetCore.Server.Kestrel.Core.KestrelServerOptions>(options =>
 {
@@ -147,13 +150,12 @@ builder.Services.AddScoped<IBlobUploadService, BunnyUploadService>();
 builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 builder.Services.AddScoped<ISaveNewRecipeService, SaveNewRecipeService>();
 builder.Services.AddScoped<CaptionGenerationService>();
+builder.Services.AddScoped<DelikatessenDrehbuch.Areas.WorldMiniApp.Services.IChannelTransferService, DelikatessenDrehbuch.Areas.WorldMiniApp.Services.ChannelTransferService>();
 builder.Services.AddScoped<WorldMiniApp.Services.IFeedAlgorithmService, WorldMiniApp.Services.FeedAlgorithmService>();
 builder.Services.AddScoped<IAdInjectionService, AdInjectionService>();
-builder.Services.AddScoped<TradingAgentService>();
 builder.Services.AddScoped<BlockchainService>();
-builder.Services.AddScoped<DexService>();
-builder.Services.AddScoped<TradingStrategyService>();
-builder.Services.AddHostedService<TradingAgentBackgroundService>();
+// Trading-agent feature removed (autonomous background service, TradingAgentController,
+// AgentApiController, TradingAgentService, TradingStrategyService, DexService, and its models/DbSets).
 
 // Recipe Translation System (NEW) - OLD service removed, using RecipeTranslationService now
 
@@ -191,14 +193,8 @@ builder.Services.AddHttpClient<IMissingIngredientAiService, MissingIngredientAiS
 {
     client.Timeout = TimeSpan.FromSeconds(120);
 });
-builder.Services.AddHttpClient<IRecipeAiTransformService, RecipeAiTransformService>(client =>
-{
-    client.Timeout = TimeSpan.FromSeconds(120);
-});
 builder.Services.AddSingleton<IBackgroundTaskQueue>(_ => new BackgroundTaskQueue(capacity: 300));
 builder.Services.AddHostedService<WorldMiniAppQueuedHostedService>();
-builder.Services.AddSingleton<IRecipeAiVariantJobService, RecipeAiVariantJobService>();
-builder.Services.AddScoped<IRecipeAiNutritionService, RecipeAiNutritionService>();
 builder.Services.AddHttpClient<IRecipeStepGeneratorService, RecipeStepGeneratorService>(client =>
 {
     client.Timeout = TimeSpan.FromSeconds(30);

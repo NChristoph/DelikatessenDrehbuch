@@ -29,6 +29,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private static readonly TimeSpan UploadRateWindow = TimeSpan.FromMinutes(10);
         private const int MissingIngredientSaveRateLimit = 10;
         private static readonly TimeSpan MissingIngredientSaveRateWindow = TimeSpan.FromMinutes(30);
+        private const int MissingIngredientLookupRateLimit = 20;
+        private static readonly TimeSpan MissingIngredientLookupRateWindow = TimeSpan.FromMinutes(10);
+        private const int MaxIngredientNameLength = 80;
         private const int StepGenerationRateLimit = 20;
         private static readonly TimeSpan StepGenerationRateWindow = TimeSpan.FromMinutes(10);
 
@@ -128,6 +131,32 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     await stream.ReadAsync(videoBytes, 0, videoBytes.Length);
                 }
 
+                // Optional: creator-pasted source captions. If the creator pasted WEBVTT text, it is
+                // used as the German source caption instead of Whisper; translation into the other
+                // languages stays unchanged. The WEBVTT header is added automatically if missing.
+                string? manualVttContent = null;
+                var pastedVtt = Request.Form["captionVttText"].FirstOrDefault();
+                if (!string.IsNullOrWhiteSpace(pastedVtt))
+                {
+                    const int maxVttChars = 200_000; // ample for a recipe video's captions
+                    if (pastedVtt.Length > maxVttChars)
+                    {
+                        pastedVtt = pastedVtt.Substring(0, maxVttChars);
+                    }
+
+                    // Accept if it contains at least one cue marker ("-->") or already has the header.
+                    // NormalizeWebVtt (on store) prepends "WEBVTT" when the header is missing.
+                    if (pastedVtt.Contains("-->") ||
+                        pastedVtt.TrimStart().StartsWith("WEBVTT", StringComparison.OrdinalIgnoreCase))
+                    {
+                        manualVttContent = pastedVtt;
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Ignoring pasted caption text: no WEBVTT cues found. User={UserHash}", userHash);
+                    }
+                }
+
                 // 2. Copy all needed data (so we can access it after request ends)
                 // IMPORTANT: Extract simple data, not Entity objects to avoid DbContext tracking issues
                 var ingredientData = posting.IngredientMeasureQuantity?.Select(imq => new
@@ -151,7 +180,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     IsOffline = posting.IsOffline,
                     VideoBytes = videoBytes,
                     FileName = posting.Content.FileName,
-                    ContentType = posting.Content.ContentType
+                    ContentType = posting.Content.ContentType,
+                    ManualVttContent = manualVttContent
                 };
 
                 // Extract values for error logging (avoid dynamic in lambda)
@@ -444,18 +474,25 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return BadRequest(new { message = "Bitte gib eine Zutat ein." });
             }
 
+            // Adding ingredients to the shared catalog is open to ANY logged-in creator (not just
+            // orb-verified) — abuse is contained by the per-user rate limits below, not by an orb gate.
             var userHash = ResolveUserHash(request.UserHash);
-            if (!await IsCreatorAllowedAsync(_context, userHash))
+            if (string.IsNullOrWhiteSpace(userHash))
             {
                 return Json(new MissingIngredientLookupResponse
                 {
                     Success = false,
                     Mode = "forbidden",
-                    Message = "Nicht berechtigt."
+                    Message = "Bitte zuerst anmelden."
                 });
             }
 
             var trimmedIngredientName = request.IngredientName.Trim();
+            if (trimmedIngredientName.Length > MaxIngredientNameLength)
+            {
+                trimmedIngredientName = trimmedIngredientName.Substring(0, MaxIngredientNameLength).Trim();
+            }
+
             var existingMatches = await FindMatchingIngredientsAsync(trimmedIngredientName, 6, cancellationToken);
             if (existingMatches.Count > 0)
             {
@@ -465,6 +502,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     Mode = "existing_match",
                     Message = "Es wurden passende Zutaten im Katalog gefunden.",
                     Matches = existingMatches.Select(x => MapExistingMatchDto(x, trimmedIngredientName)).ToList()
+                });
+            }
+
+            if (!TryConsumeMissingIngredientLookupSlot(userHash, out var retryAfter))
+            {
+                if (retryAfter.HasValue)
+                {
+                    Response.Headers["Retry-After"] = Math.Ceiling(retryAfter.Value.TotalSeconds).ToString(CultureInfo.InvariantCulture);
+                }
+
+                return Json(new MissingIngredientLookupResponse
+                {
+                    Success = false,
+                    Mode = "rate_limited",
+                    Message = "Limit erreicht: zu viele KI-Anfragen. Bitte etwas später erneut versuchen."
                 });
             }
 
@@ -487,7 +539,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 {
                     Success = false,
                     Mode = "error",
-                    Message = ex.Message
+                    Message = "Der KI-Vorschlag konnte gerade nicht geladen werden. Bitte versuche es später erneut."
                 });
             }
         }
@@ -528,13 +580,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 });
             }
 
+            // Open to any logged-in creator; abuse is contained by the save rate limit below.
             var userHash = ResolveUserHash(request.UserHash);
-            if (!await IsCreatorAllowedAsync(_context, userHash))
+            if (string.IsNullOrWhiteSpace(userHash))
             {
                 return Json(new MissingIngredientSaveResponse
                 {
                     Success = false,
-                    Message = "Nicht berechtigt."
+                    Message = "Bitte zuerst anmelden."
                 });
             }
 
@@ -988,6 +1041,43 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return true;
         }
 
+        private bool TryConsumeMissingIngredientLookupSlot(string userHash, out TimeSpan? retryAfter)
+        {
+            retryAfter = null;
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return false;
+            }
+
+            var cacheKey = $"worldminiapp:missing-ingredient-lookup:{userHash}";
+            var now = DateTimeOffset.UtcNow;
+            var state = _memoryCache.Get<UploadRateState>(cacheKey);
+
+            if (state == null)
+            {
+                state = new UploadRateState { Count = 1, WindowStart = now };
+                _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = MissingIngredientLookupRateWindow
+                });
+                return true;
+            }
+
+            if (state.Count >= MissingIngredientLookupRateLimit)
+            {
+                retryAfter = (state.WindowStart + MissingIngredientLookupRateWindow) - now;
+                _logger.LogWarning("Missing-ingredient lookup limit exceeded for user {UserHash}.", userHash);
+                return false;
+            }
+
+            state.Count += 1;
+            _memoryCache.Set(cacheKey, state, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = MissingIngredientLookupRateWindow
+            });
+            return true;
+        }
+
         private bool TryConsumeStepGenerationSlot(string userHash, out TimeSpan? retryAfter)
         {
             retryAfter = null;
@@ -1361,6 +1451,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             bool isOffline = uploadData.IsOffline;
             var ingredientData = uploadData.IngredientData as IEnumerable<dynamic>;
             List<int> selectedKeywordIds = uploadData.SelectedKeywordIds;
+            string? manualVttContent = uploadData.ManualVttContent;
 
             // Create new scope (important for DbContext!)
             using var scope = _serviceScopeFactory.CreateScope();
@@ -1377,6 +1468,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             _logger.LogInformation("Video uploaded to Bunny: {Url}", uploadResult.SourceUrl);
 
+            try
+            {
             // 2. AI translation (if steps provided)
             List<RecipeSteps> recipeSteps = new();
             if (!string.IsNullOrWhiteSpace(stepsText))
@@ -1411,6 +1504,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                             Text = kvp.Value,
                             CreatedAt = now
                         });
+                    }
+                }
+
+                // Fallback: if the translation failed/returned nothing, keep at least the original
+                // German steps so a recipe is never saved completely without instructions.
+                if (!recipeSteps.Any(s => s.Culture == "de"))
+                {
+                    recipeSteps.Add(new RecipeSteps
+                    {
+                        Culture = "de",
+                        Text = stepsText.Trim(),
+                        CreatedAt = now
+                    });
+                    if (!translation.Success)
+                    {
+                        _logger.LogWarning("Recipe step translation failed for '{Title}'; saved original German steps only.", title);
                     }
                 }
             }
@@ -1488,6 +1597,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await context.WorldUserPosting.AddAsync(posting);
             await context.SaveChangesAsync();
 
+            // If the creator pasted a source VTT, generate captions + translations now (right after a
+            // successful save) so they don't depend on the Bunny webhook firing. Runs ~10 OpenAI calls;
+            // isolated in its own try so a caption hiccup never fails the (already saved) upload.
+            if (!string.IsNullOrWhiteSpace(manualVttContent) && !string.IsNullOrEmpty(uploadResult.VideoGuid))
+            {
+                try
+                {
+                    var captionService = scope.ServiceProvider.GetRequiredService<CaptionGenerationService>();
+                    await captionService.GenerateCaptionsFromSourceVttAsync(uploadResult.VideoGuid, manualVttContent);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Caption generation from pasted VTT failed. VideoGuid={VideoGuid}", uploadResult.VideoGuid);
+                }
+            }
+
             // 6. Link keywords
             if (selectedKeywordIds != null && selectedKeywordIds.Count > 0)
             {
@@ -1541,6 +1666,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             _logger.LogInformation("Upload completed successfully. Posting {PostingId} for user {UserHash}",
                 posting.Id, userHash);
+            }
+            catch
+            {
+                // Something after the Bunny upload failed (recipe/ingredient save, DB, …). Remove the
+                // now-orphaned Bunny video so unreferenced uploads don't pile up, then let the caller's
+                // handler send the error notification.
+                await blobUpload.DeleteVideoAsync(uploadResult.VideoGuid);
+                throw;
+            }
         }
 
         // Helper to create IFormFile from bytes

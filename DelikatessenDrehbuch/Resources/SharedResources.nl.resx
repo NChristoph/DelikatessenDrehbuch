@@ -1438,4 +1438,113 @@
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Community-getest</value></data>
   <data name="Feed.Ad" xml:space="preserve"><value>Advertentie</value></data>
   <data name="Feed.AdCta" xml:space="preserve"><value>Meer informatie</value></data>
+  <data name="BuildOwn.Title" xml:space="preserve"><value>Verkoopplan maken</value></data>
+  <data name="BuildOwn.BackToProfile" xml:space="preserve"><value>Terug naar profiel</value></data>
+  <data name="BuildOwn.Intro" xml:space="preserve"><value>Bouw een maaltijdplan uitsluitend uit je eigen recepten – ook privé. Het voltooide plan kun je daarna op de marktplaats verkopen.</value></data>
+  <data name="BuildOwn.NoOwnRecipes" xml:space="preserve"><value>Nog geen eigen recepten</value></data>
+  <data name="BuildOwn.NoOwnRecipesHint" xml:space="preserve"><value>Upload eerst wat recepten (gerust als "alleen voor mij"), daarna kun je hier je plan samenstellen.</value></data>
+  <data name="BuildOwn.PlanTitle" xml:space="preserve"><value>Plantitel</value></data>
+  <data name="BuildOwn.PlanTitlePlaceholder" xml:space="preserve"><value>bijv. Mijn eiwitrijke week</value></data>
+  <data name="BuildOwn.People" xml:space="preserve"><value>Personen</value></data>
+  <data name="BuildOwn.Days" xml:space="preserve"><value>Dagen</value></data>
+  <data name="BuildOwn.NutritionTotal" xml:space="preserve"><value>Voeding – totaal</value></data>
+  <data name="BuildOwn.NutritionPortion" xml:space="preserve"><value>Voeding – per portie</value></data>
+  <data name="BuildOwn.Total" xml:space="preserve"><value>Totaal</value></data>
+  <data name="BuildOwn.PerPortion" xml:space="preserve"><value>Per portie</value></data>
+  <data name="BuildOwn.Fiber" xml:space="preserve"><value>Vezels</value></data>
+  <data name="BuildOwn.NoRecipes" xml:space="preserve"><value>Geen recepten</value></data>
+  <data name="BuildOwn.FillDays" xml:space="preserve"><value>Dagen &amp; maaltijden vullen</value></data>
+  <data name="BuildOwn.PaletteHint" xml:space="preserve"><value>Jouw recepten – tik om toe te voegen aan de actieve maaltijd</value></data>
+  <data name="BuildOwn.SavePlan" xml:space="preserve"><value>Plan opslaan</value></data>
+  <data name="BuildOwn.SlotStarter" xml:space="preserve"><value>Voorgerecht</value></data>
+  <data name="BuildOwn.SlotMain" xml:space="preserve"><value>Hoofdgerecht</value></data>
+  <data name="BuildOwn.SlotDessert" xml:space="preserve"><value>Nagerecht</value></data>
+  <data name="BuildOwn.RecipeShort" xml:space="preserve"><value>Recept</value></data>
+  <data name="BuildOwn.Remove" xml:space="preserve"><value>Verwijderen</value></data>
+  <data name="BuildOwn.RecipeSg" xml:space="preserve"><value>recept</value></data>
+  <data name="BuildOwn.RecipePl" xml:space="preserve"><value>recepten</value></data>
+  <data name="BuildOwn.TapToActivate" xml:space="preserve"><value>tik om te activeren</value></data>
+  <data name="BuildOwn.Day" xml:space="preserve"><value>Dag</value></data>
+  <data name="BuildOwn.ActivePrefix" xml:space="preserve"><value>Actief:</value></data>
+  <data name="BuildOwn.Loading" xml:space="preserve"><value>Laden…</value></data>
+  <data name="BuildOwn.CurrentPortion" xml:space="preserve"><value>Actueel · per portie</value></data>
+  <data name="BuildOwn.CurrentPersons" xml:space="preserve"><value>Actueel · {0} pers.</value></data>
+  <data name="BuildOwn.LoginFirst" xml:space="preserve"><value>Log eerst in.</value></data>
+  <data name="BuildOwn.AddAtLeastOne" xml:space="preserve"><value>Plan minstens één recept.</value></data>
+  <data name="BuildOwn.DefaultTitle" xml:space="preserve"><value>Mijn verkoopplan</value></data>
+  <data name="BuildOwn.Saving" xml:space="preserve"><value>Opslaan...</value></data>
+  <data name="BuildOwn.SaveFailed" xml:space="preserve"><value>Het plan kon niet worden opgeslagen.</value></data>
+  <data name="BuildOwn.SaveError" xml:space="preserve"><value>Fout bij opslaan.</value></data>
+  <data name="ShareShoppingList.Title" xml:space="preserve"><value>Boodschappenlijst delen</value></data>
+  <data name="ShareShoppingList.Heading" xml:space="preserve"><value>Gedeelde boodschappenlijst</value></data>
+  <data name="ShareShoppingList.Editable" xml:space="preserve"><value>Deze lijst kan verder worden bewerkt.</value></data>
+  <data name="MealCard.Shuffle" xml:space="preserve"><value>Husselen</value></data>
+  <data name="MealCard.NoDish" xml:space="preserve"><value>Geen gerecht</value></data>
+  <data name="MealCard.Add" xml:space="preserve"><value>Toevoegen</value></data>
+  <data name="Layout.Title" xml:space="preserve"><value>Mini Planner</value></data>
+  <data name="Landing.DefaultTitle" xml:space="preserve"><value>Gedeelde inhoud</value></data>
+  <data name="Landing.DefaultDescription" xml:space="preserve"><value>Open deze inhoud in de World App</value></data>
+  <data name="Landing.OpenInWorldApp" xml:space="preserve"><value>Openen in World App</value></data>
+  <data name="Landing.CopyAndOpen" xml:space="preserve"><value>Link kopiëren en app openen</value></data>
+  <data name="Landing.CopyHint" xml:space="preserve"><value>Kopieert de link en opent de World App. Ga daar naar de Mini App en plak de link.</value></data>
+  <data name="Landing.OpenInBrowser" xml:space="preserve"><value>Openen in browser</value></data>
+  <data name="Landing.NoWorldApp" xml:space="preserve"><value>Nog geen World App?</value></data>
+  <data name="Landing.DownloadIos" xml:space="preserve"><value>Downloaden voor iOS</value></data>
+  <data name="Landing.DownloadAndroid" xml:space="preserve"><value>Downloaden voor Android</value></data>
+  <data name="Landing.OpeningWorldApp" xml:space="preserve"><value>World App openen...</value></data>
+  <data name="Landing.TryAgain" xml:space="preserve"><value>Opnieuw proberen</value></data>
+  <data name="Landing.CouldNotOpen" xml:space="preserve"><value>World App kon niet worden geopend.</value></data>
+  <data name="Landing.CouldNotOpenHint" xml:space="preserve"><value>Open de inhoud direct in de browser of installeer de app.</value></data>
+  <data name="Landing.OpenManually" xml:space="preserve"><value>Open de World App handmatig of gebruik direct de browserknop.</value></data>
+  <data name="Landing.WorldAppOpening" xml:space="preserve"><value>World App wordt geopend...</value></data>
+  <data name="Landing.BackToPage" xml:space="preserve"><value>Terug naar de pagina. Je kunt het opnieuw proberen of direct in de browser openen.</value></data>
+  <data name="Landing.LinkCopiedOpening" xml:space="preserve"><value>Link gekopieerd. World App wordt nu geopend...</value></data>
+  <data name="Landing.LinkCopiedClipboard" xml:space="preserve"><value>Link naar klembord gekopieerd!</value></data>
+  <data name="Landing.LinkCopiedPrefix" xml:space="preserve"><value>Link gekopieerd:</value></data>
+  <data name="Landing.LinkPrefix" xml:space="preserve"><value>Link:</value></data>
+  <data name="SharedList.BackToGroup" xml:space="preserve"><value>Terug naar groep</value></data>
+  <data name="SharedList.SyncHint" xml:space="preserve"><value>Realtime sync — vinkjes worden automatisch gedeeld.</value></data>
+  <data name="SharedList.Other" xml:space="preserve"><value>Overig</value></data>
+  <data name="SharedList.LiveSyncActive" xml:space="preserve"><value>Live-sync actief</value></data>
+  <data name="SharedList.Done" xml:space="preserve"><value>klaar</value></data>
+  <data name="SharedList.SyncError" xml:space="preserve"><value>Sync-fout</value></data>
+  <data name="Generator.Title" xml:space="preserve"><value>Jouw setup</value></data>
+  <data name="Generator.DietLabel" xml:space="preserve"><value>Voedingswijze</value></data>
+  <data name="Generator.AllDesc" xml:space="preserve"><value>Vlees, vis &amp; groenten</value></data>
+  <data name="Generator.Vegetarian" xml:space="preserve"><value>Vegetarisch</value></data>
+  <data name="Generator.VeggieDesc" xml:space="preserve"><value>Geen vlees/vis</value></data>
+  <data name="Generator.Vegan" xml:space="preserve"><value>Veganistisch</value></data>
+  <data name="Generator.FocusLabel" xml:space="preserve"><value>Focus (meerkeuze)</value></data>
+  <data name="Generator.Fast" xml:space="preserve"><value>Snel</value></data>
+  <data name="Generator.Balanced" xml:space="preserve"><value>Uitgebalanceerd</value></data>
+  <data name="Generator.Scope" xml:space="preserve"><value>Omvang</value></data>
+  <data name="Generator.TitlePlaceholder" xml:space="preserve"><value>bijv. Zomerdieet</value></data>
+  <data name="Generated.Title" xml:space="preserve"><value>Jouw plan</value></data>
+  <data name="Generated.Courses" xml:space="preserve"><value>Gangen</value></data>
+  <data name="Generated.Meals" xml:space="preserve"><value>Maaltijden</value></data>
+  <data name="Generated.Main" xml:space="preserve"><value>Hoofd</value></data>
+  <data name="Generated.Breakfast" xml:space="preserve"><value>Ontbijt</value></data>
+  <data name="Generated.Lunch" xml:space="preserve"><value>Lunch</value></data>
+  <data name="Generated.Dinner" xml:space="preserve"><value>Avond</value></data>
+  <data name="Generated.FinishPlan" xml:space="preserve"><value>Plan afronden</value></data>
+  <data name="Generated.LoadError" xml:space="preserve"><value>Fout bij het laden.</value></data>
+  <data name="Generated.LoadingRecipes" xml:space="preserve"><value>Recepten laden...</value></data>
+  <data name="Generated.ListLoadError" xml:space="preserve"><value>Kon de lijst niet laden.</value></data>
+  <data name="ShowRecipe.SearchPlaceholder" xml:space="preserve"><value>Zoeken (titel of beschrijving)...</value></data>
+  <data name="ShowRecipe.AdaptingSteps" xml:space="preserve"><value>Bereiding wordt aangepast aan de gewisselde ingrediënten...</value></data>
+  <data name="ShowRecipe.WaitGenerating" xml:space="preserve"><value>Even geduld: titel/beschrijving worden nog gegenereerd.</value></data>
+  <data name="ShowRecipe.Saving" xml:space="preserve"><value>Opslaan...</value></data>
+  <data name="ShowRecipe.VariantNoMeta" xml:space="preserve"><value>Variant heeft geen titel/beschrijving (AI). Probeer opnieuw.</value></data>
+  <data name="ShowRecipe.SaveVariantFailed" xml:space="preserve"><value>Kon de variant niet opslaan. Probeer opnieuw.</value></data>
+  <data name="ShowRecipe.Loading" xml:space="preserve"><value>Laden...</value></data>
+  <data name="CreatePosting.LoadingData" xml:space="preserve"><value>Gegevens laden...</value></data>
+  <data name="CreatePosting.OneMoment" xml:space="preserve"><value>Een moment geduld</value></data>
+  <data name="CreatePosting.TitlePlaceholder" xml:space="preserve"><value>Titel</value></data>
+  <data name="CreatePosting.MinutesPlaceholder" xml:space="preserve"><value>Minuten</value></data>
+  <data name="CreatePosting.IngredientSearchPlaceholder" xml:space="preserve"><value>Ingrediënt zoeken...</value></data>
+  <data name="CreatePosting.MissingIngredientPlaceholder" xml:space="preserve"><value>bijv. groene bakbanaan</value></data>
+  <data name="CreatePosting.StepsPlaceholder" xml:space="preserve"><value>Schrijf hier je bereidingsstappen (één stap per regel)...</value></data>
+  <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Ingrediënt</value></data>
+  <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Ondertitels plakken (optioneel)</value></data>
+  <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>Plak hier WEBVTT-tekst — gebruikt als Duitse bron (in plaats van automatische transcriptie); vertaling is automatisch. De koptekst wordt zo nodig toegevoegd.</value></data>
 </root>

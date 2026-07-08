@@ -171,11 +171,24 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services.Interfaces
                 }
                 else
                 {
-                    if (!nutrientsDict.TryGetValue(nutrientId, out var nutrientRef)
-                        || !measuresDict.TryGetValue(measureName, out var measureRef)
-                        || !quantitiesDict.TryGetValue((double)quantityValue, out var quantityRef))
+                    var hasNutrient = nutrientsDict.TryGetValue(nutrientId, out var nutrientRef);
+                    var hasMeasure = measuresDict.TryGetValue(measureName, out var measureRef);
+                    var hasQuantity = quantitiesDict.TryGetValue((double)quantityValue, out var quantityRef);
+                    if (!hasNutrient || !hasMeasure || !hasQuantity)
                     {
-                        throw new WorldMiniAppNotFoundException("Referenzdaten für Zutat nicht gefunden.");
+                        // Name the exact missing piece so the creator/operator can fix it instead of
+                        // getting a generic "not found" that hides which ingredient broke the upload.
+                        var ingredientLabel = hasNutrient
+                            ? (nutrientRef!.Name_DE ?? $"Zutat-Id {nutrientId}")
+                            : (incoming.IngredientsAndNutrients?.Name_DE ?? $"Zutat-Id {nutrientId}");
+                        var missing = new List<string>();
+                        if (!hasNutrient) missing.Add($"Zutat „{ingredientLabel}“ ist nicht im Katalog");
+                        if (!hasMeasure) missing.Add($"Einheit „{measureName}“ fehlt");
+                        if (!hasQuantity) missing.Add($"Menge „{quantityValue}“ fehlt");
+
+                        throw new WorldMiniAppNotFoundException(
+                            $"Zutat „{ingredientLabel}“ konnte nicht gespeichert werden: {string.Join("; ", missing)}. " +
+                            "Bitte diese Zutat/Menge/Einheit im Katalog anlegen oder aus dem Rezept entfernen.");
                     }
 
                     ingredientToUse = new IngredientMeasureQuantity

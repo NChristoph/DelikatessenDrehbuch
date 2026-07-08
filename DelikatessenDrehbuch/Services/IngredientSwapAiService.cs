@@ -134,7 +134,7 @@ namespace DelikatessenDrehbuch.Services
         {
             EnsureApiKeyConfigured(_openaiApiKey, "OpenAI");
 
-            var prompt = await BuildOptimizedSwapPromptAsync(original, recipe, goal, language, contextSwaps, existingIngredients);
+            var (prompt, candidateIds) = await BuildOptimizedSwapPromptAsync(original, recipe, goal, language, contextSwaps, existingIngredients);
             var requestBody = new
             {
                 model = string.IsNullOrWhiteSpace(_openAiModel) ? DefaultOpenAiModel : _openAiModel,
@@ -173,7 +173,7 @@ namespace DelikatessenDrehbuch.Services
                         type = "json_schema",
                         name = "ingredient_swap_suggestions",
                         strict = true,
-                        schema = BuildOpenAiSchema()
+                        schema = BuildOpenAiSchema(candidateIds)
                     }
                 }
             };
@@ -199,7 +199,7 @@ namespace DelikatessenDrehbuch.Services
                 return new List<IngredientSwapOption>();
             }
 
-            var parsed = await ParseAndValidateSuggestionsAsync(outputText, original, language, recipe);
+            var parsed = await ParseAndValidateSuggestionsAsync(outputText, original, language, recipe, candidateIds);
             var hasCommunityVariants = await _context.RecipeCommunityVariants
                 .AsNoTracking()
                 .AnyAsync(v => v.OriginalRecipeId == recipe.Id);
@@ -224,7 +224,7 @@ namespace DelikatessenDrehbuch.Services
             }
         }
 
-        private async Task<string> BuildOptimizedSwapPromptAsync(
+        private async Task<(string Prompt, HashSet<int> CandidateIds)> BuildOptimizedSwapPromptAsync(
             IngredientsAndNutrients original,
             RecipeBaseData recipe,
             string? goal,
@@ -295,7 +295,15 @@ namespace DelikatessenDrehbuch.Services
                 originalUsage.DisplayUnit,
                 relevantGroupIds,
                 excludeIngredientIds);
+
+            // Inject curated "known substitute" hints (e.g. egg -> banana / apple sauce / tofu when
+            // baking). These bypass the group filter, outlier filter and ranking, and are announced
+            // to the model as approved cross-category substitutes (see hintBlock below).
+            var swapHintNames = await ApplySwapHintsAsync(
+                availableIngredients, original, recipe, goal, excludeIngredientIds, language);
+
             var responseLanguage = GetResponseLanguageName(language);
+            var candidateIds = availableIngredients.Select(i => i.Id).ToHashSet();
 
             var goalInstruction = goal?.Trim().ToLowerInvariant() switch
             {
@@ -323,7 +331,13 @@ namespace DelikatessenDrehbuch.Services
                 contextBlock = "\n\nAlready selected swaps (context for this recipe):\n" + string.Join("\n", lines);
             }
 
-            return $@"Swap ingredient ""{GetIngredientName(original, language)}"" in recipe ""{recipe.Title}"".
+            // Curated substitutes for this ingredient/dish that are allowed to cross categories.
+            var hintBlock = swapHintNames.Count > 0
+                ? "\n- APPROVED substitutes for this dish (you MAY suggest these even though they are in a DIFFERENT category — they are known culinary substitutes here): "
+                  + string.Join(", ", swapHintNames) + "."
+                : string.Empty;
+
+            var prompt = $@"Swap ingredient ""{GetIngredientName(original, language)}"" in recipe ""{recipe.Title}"".
 Goal: {goalInstruction}
 Original nutrition per 100g: {original.Calories_a_100g} kcal, protein {original.Protein_a_100g} g, carbs {original.Carbohydrates_a_100g} g, fat {original.Fat_a_100g} g.
 Amount used in this recipe: {displayQty} {originalUsage.DisplayUnit} (= {gramsFormatted} grams total).
@@ -340,7 +354,7 @@ CRITICAL Rules - Follow Strictly:
   * Dairy → ONLY other dairy or plant-based dairy alternatives
   * Nuts/Seeds → ONLY other nuts or seeds (NEVER grains, sweeteners, or vegetables)
   * Herbs/Spices → ONLY other herbs/spices with similar flavor profile
-  * Sweeteners (sugar/honey) → ONLY other sweeteners (NEVER savory ingredients)
+  * Sweeteners (sugar/honey) → ONLY other sweeteners (NEVER savory ingredients){hintBlock}
 - Match texture and physical form: crunchy → crunchy, creamy → creamy, liquid → liquid, solid → solid.
 - QUANTITY RULE (MOST CRITICAL - READ CAREFULLY):
   * Original ingredient amount: {gramsFormatted} grams (this is a NUMBER without thousand separators)
@@ -358,6 +372,8 @@ CRITICAL Rules - Follow Strictly:
 
 Available ingredients:
 {string.Join("\n", availableIngredients.Select(i => $"{i.Id}|{i.Name}|{i.Nutrition}"))}";
+
+            return (prompt, candidateIds);
         }
 
         private List<int?> GetRelevantGroupsForSwap(int? originalGroupId, string? goal)
@@ -584,6 +600,79 @@ Available ingredients:
             return ingredientList;
         }
 
+        /// <summary>
+        /// Injects curated IngredientSwapHints for the original ingredient into the candidate pool
+        /// (mutates <paramref name="candidates"/>), bypassing the group/outlier/score filters. Only
+        /// hints whose optional Context/Goal match the recipe/goal are applied. Returns the display
+        /// names of the applied substitutes (for the prompt's "approved substitutes" note).
+        /// </summary>
+        private async Task<List<string>> ApplySwapHintsAsync(
+            List<(int Id, string Name, string Nutrition)> candidates,
+            IngredientsAndNutrients original,
+            RecipeBaseData? recipe,
+            string? goal,
+            ISet<int>? excludeIngredientIds,
+            string language)
+        {
+            var hintNames = new List<string>();
+
+            var hints = await _context.IngredientSwapHints
+                .Where(h => h.FromIngredientId == original.Id)
+                .OrderBy(h => h.Priority)
+                .ToListAsync();
+            if (hints.Count == 0)
+            {
+                return hintNames;
+            }
+
+            var recipeContext = (((recipe?.Category ?? string.Empty) + " " + (recipe?.Title ?? string.Empty)))
+                .ToLowerInvariant();
+            var normalizedGoal = goal?.Trim().ToLowerInvariant();
+
+            var applicable = hints
+                .Where(h => string.IsNullOrWhiteSpace(h.Goal)
+                            || string.Equals(h.Goal.Trim(), normalizedGoal, StringComparison.OrdinalIgnoreCase))
+                .Where(h => string.IsNullOrWhiteSpace(h.Context)
+                            || recipeContext.Contains(h.Context.Trim().ToLowerInvariant()))
+                .Where(h => h.ToIngredientId != original.Id)
+                .ToList();
+            if (applicable.Count == 0)
+            {
+                return hintNames;
+            }
+
+            var wantedIds = applicable.Select(h => h.ToIngredientId).Distinct().ToList();
+            var byId = (await _context.IngredientsAndNutrients
+                    .Where(i => wantedIds.Contains(i.Id))
+                    .ToListAsync())
+                .ToDictionary(i => i.Id);
+
+            var existingIds = candidates.Select(c => c.Id).ToHashSet();
+
+            foreach (var h in applicable)
+            {
+                if (!byId.TryGetValue(h.ToIngredientId, out var ing))
+                {
+                    continue;
+                }
+
+                var name = GetIngredientName(ing, language);
+                if (!hintNames.Contains(name))
+                {
+                    hintNames.Add(name);
+                }
+
+                // Add to the pool if not already there / not excluded (front = prominent).
+                if (!existingIds.Contains(ing.Id) && !(excludeIngredientIds?.Contains(ing.Id) ?? false))
+                {
+                    candidates.Insert(0, (ing.Id, name, $"{ing.Calories_a_100g}kcal,P{ing.Protein_a_100g}g"));
+                    existingIds.Add(ing.Id);
+                }
+            }
+
+            return hintNames;
+        }
+
         private async Task<bool> IsSeasoningGroupAsync(int? groupId)
         {
             if (!groupId.HasValue)
@@ -696,7 +785,8 @@ Available ingredients:
             string? jsonResponse,
             IngredientsAndNutrients original,
             string language,
-            RecipeBaseData? recipe = null)
+            RecipeBaseData? recipe = null,
+            IReadOnlyCollection<int>? candidateIds = null)
         {
             if (string.IsNullOrWhiteSpace(jsonResponse))
             {
@@ -739,6 +829,18 @@ Available ingredients:
             {
                 if (suggestion.IngredientId == original.Id)
                 {
+                    continue;
+                }
+
+                // Level 2 guard (belt-and-suspenders): even though the schema enum should prevent
+                // it, drop any id the model returned that was NOT in the candidate pool we offered.
+                // Prevents silently swapping in an unrelated DB ingredient that bypassed the
+                // group/outlier/diversify pre-filtering.
+                if (candidateIds != null && candidateIds.Count > 0 && !candidateIds.Contains(suggestion.IngredientId))
+                {
+                    _logger.LogWarning(
+                        "AI suggested off-pool ingredient id {Id} (\"{Name}\") not in candidate list; dropping.",
+                        suggestion.IngredientId, suggestion.IngredientName);
                     continue;
                 }
 
@@ -1053,8 +1155,16 @@ Available ingredients:
             return score;
         }
 
-        private static object BuildOpenAiSchema()
+        private static object BuildOpenAiSchema(IReadOnlyCollection<int>? candidateIds = null)
         {
+            // Level 1 guard: constrain ingredient_id to the exact candidate pool that was
+            // offered to the model. In strict mode the model then structurally CANNOT emit
+            // an off-pool / hallucinated id. Fall back to a plain integer if we somehow have
+            // no candidates (empty enum would be invalid under strict json_schema).
+            object ingredientIdSchema = (candidateIds != null && candidateIds.Count > 0)
+                ? new { type = "integer", @enum = candidateIds.ToArray() }
+                : (object)new { type = "integer" };
+
             return new
             {
                 type = "object",
@@ -1071,7 +1181,7 @@ Available ingredients:
                             additionalProperties = false,
                             properties = new
                             {
-                                ingredient_id = new { type = "integer" },
+                                ingredient_id = ingredientIdSchema,
                                 ingredient_name = new { type = "string" },
                                 quantity = new { type = "number" },
                                 unit = new { type = "string" },

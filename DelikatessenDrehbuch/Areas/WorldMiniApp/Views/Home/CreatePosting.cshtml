@@ -17,10 +17,10 @@
     <div id="datatableLoadingOverlay" class="creator-loading d-none">
         <div class="creator-loading-card">
             <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">Lade...</span>
+                <span class="visually-hidden">@SharedLocalizer["ShowRecipe.Loading"]</span>
             </div>
-            <div class="fw-bold mt-2">Lade Daten...</div>
-            <div class="small text-muted">Einen Moment bitte</div>
+            <div class="fw-bold mt-2">@SharedLocalizer["CreatePosting.LoadingData"]</div>
+            <div class="small text-muted">@SharedLocalizer["CreatePosting.OneMoment"]</div>
         </div>
     </div>
 
@@ -127,7 +127,7 @@
                                     <input asp-for="Title"
                                            id="basisTitleInput"
                                            class="cp-input lang-ph"
-                                           placeholder="Titel"
+                                           placeholder="@SharedLocalizer["CreatePosting.TitlePlaceholder"]"
                                            data-ph-de="Titel"
                                            data-ph-en="Title"
                                            data-ph-esp="Título"
@@ -193,7 +193,7 @@
                                                id="basisPersonsInput"
                                                type="number"
                                                class="cp-input lang-ph"
-                                               placeholder="Personen"
+                                               placeholder="@SharedLocalizer["BuildOwn.People"]"
                                                data-ph-de="Personen"
                                                data-ph-en="Persons"
                                                data-ph-esp="Personas"
@@ -215,7 +215,7 @@
                                                id="basisDurationInput"
                                                type="number"
                                                class="cp-input lang-ph"
-                                               placeholder="Minuten"
+                                               placeholder="@SharedLocalizer["CreatePosting.MinutesPlaceholder"]"
                                                data-ph-de="Minuten"
                                                data-ph-en="Minutes"
                                                data-ph-esp="Minutos"
@@ -276,6 +276,22 @@
                             <div style="font-size:13px;color:var(--cp-ink-mute);">@SharedLocalizer["CreatePosting.ChooseVideoOrImage"]</div>
                             <input asp-for="Content" type="file" accept="video/*,image/*" class="d-none" id="videoInput" onchange="handleVideoUpload(this)" />
                         </label>
+
+                        <!-- Optional: Untertitel als WEBVTT-Text einfügen. Wird bei Videos als deutsche
+                             Quelle genutzt (statt automatischer Whisper-Transkription); die Übersetzung in
+                             alle Sprachen läuft unverändert automatisch. Für Bilder ohne Wirkung.
+                             Die WEBVTT-Kopfzeile wird bei Bedarf automatisch ergänzt. -->
+                        <div style="margin-top:12px;">
+                            <label for="captionVttInput" style="display:block;font-size:13px;font-weight:600;color:var(--cp-ink-deep);margin-bottom:4px;">
+                                @SharedLocalizer["CreatePosting.CaptionVttLabel"]
+                            </label>
+                            <textarea name="captionVttText" id="captionVttInput" rows="6" spellcheck="false"
+                                      placeholder="00:00:00.000 --> 00:00:03.000&#10;Butter schmelzen.&#10;&#10;00:00:04.000 --> 00:00:06.000&#10;Zucker hinzufügen und verrühren."
+                                      style="width:100%;box-sizing:border-box;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--cp-ink-deep);border:1px solid rgba(20,57,31,0.2);border-radius:var(--cp-radius-md,10px);padding:10px;background:#fff;resize:vertical;"></textarea>
+                            <div style="font-size:12px;color:var(--cp-ink-mute);margin-top:4px;">
+                                @SharedLocalizer["CreatePosting.CaptionVttHint"]
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -296,7 +312,7 @@
                         <div style="margin-bottom:20px;">
                             <div class="cp-input-wrapper">
                                 <i class="bi bi-search cp-input-icon"></i>
-                                <input type="text" id="ingredientSearch" class="cp-input lang-ph" placeholder="Zutat suchen..."
+                                <input type="text" id="ingredientSearch" class="cp-input lang-ph" placeholder="@SharedLocalizer["CreatePosting.IngredientSearchPlaceholder"]"
                                        data-ph-de="Zutat suchen..."
                                        data-ph-en="Search ingredient..."
                                        data-ph-esp="Buscar ingrediente..."
@@ -325,7 +341,7 @@
                                     @SharedLocalizer["CreatePosting.IngredientTestHint"]
                                 </div>
                                 <div style="display:flex;gap:8px;align-items:stretch;">
-                                    <input type="text" id="missingIngredientInput" placeholder="z.B. Kochbanane grün"
+                                    <input type="text" id="missingIngredientInput" placeholder="@SharedLocalizer["CreatePosting.MissingIngredientPlaceholder"]"
                                            class="cp-input lang-ph" style="flex:1;"
                                            data-ph-de="z.B. Kochbanane grün"
                                            data-ph-en="e.g. green plantain"
@@ -454,7 +470,7 @@
                                 rows="12"
                                 required
                                 style="font-size: 14px; line-height: 1.6; resize: vertical; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;"
-                                placeholder="Schreibe deine Zubereitungsschritte hier (ein Schritt pro Zeile)..."
+                                placeholder="@SharedLocalizer["CreatePosting.StepsPlaceholder"]"
                                 data-ph-de="Schreibe deine Zubereitungsschritte hier (ein Schritt pro Zeile)..."
                                 data-ph-en="Write your preparation steps here (one step per line)..."
                                 data-ph-esp="Escribe los pasos de preparación aquí (un paso por línea)..."
@@ -568,7 +584,7 @@
     <div class="d-flex justify-content-center mb-3">
         <div class="ingredient-add-chip">
             <span class="ingredient-group-icon" id="ingredientAddIcon"></span>
-            <span id="ingredientAddName">Zutat</span>
+            <span id="ingredientAddName">@SharedLocalizer["CreatePosting.Ingredient"]</span>
         </div>
     </div>
 

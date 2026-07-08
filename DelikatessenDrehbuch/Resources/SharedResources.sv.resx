@@ -1438,4 +1438,113 @@
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Community-testad</value></data>
   <data name="Feed.Ad" xml:space="preserve"><value>Annons</value></data>
   <data name="Feed.AdCta" xml:space="preserve"><value>Läs mer</value></data>
+  <data name="BuildOwn.Title" xml:space="preserve"><value>Skapa säljplan</value></data>
+  <data name="BuildOwn.BackToProfile" xml:space="preserve"><value>Tillbaka till profil</value></data>
+  <data name="BuildOwn.Intro" xml:space="preserve"><value>Bygg en måltidsplan enbart av dina egna recept – även privata. Den färdiga planen kan du sedan sälja på marknadsplatsen.</value></data>
+  <data name="BuildOwn.NoOwnRecipes" xml:space="preserve"><value>Inga egna recept ännu</value></data>
+  <data name="BuildOwn.NoOwnRecipesHint" xml:space="preserve"><value>Ladda upp några recept först (gärna som "bara för mig"), sedan kan du bygga din plan här.</value></data>
+  <data name="BuildOwn.PlanTitle" xml:space="preserve"><value>Plantitel</value></data>
+  <data name="BuildOwn.PlanTitlePlaceholder" xml:space="preserve"><value>t.ex. Min proteinrika vecka</value></data>
+  <data name="BuildOwn.People" xml:space="preserve"><value>Personer</value></data>
+  <data name="BuildOwn.Days" xml:space="preserve"><value>Dagar</value></data>
+  <data name="BuildOwn.NutritionTotal" xml:space="preserve"><value>Näring – totalt</value></data>
+  <data name="BuildOwn.NutritionPortion" xml:space="preserve"><value>Näring – per portion</value></data>
+  <data name="BuildOwn.Total" xml:space="preserve"><value>Totalt</value></data>
+  <data name="BuildOwn.PerPortion" xml:space="preserve"><value>Per portion</value></data>
+  <data name="BuildOwn.Fiber" xml:space="preserve"><value>Fiber</value></data>
+  <data name="BuildOwn.NoRecipes" xml:space="preserve"><value>Inga recept</value></data>
+  <data name="BuildOwn.FillDays" xml:space="preserve"><value>Fyll dagar &amp; måltider</value></data>
+  <data name="BuildOwn.PaletteHint" xml:space="preserve"><value>Dina recept – tryck för att lägga till i den aktiva måltiden</value></data>
+  <data name="BuildOwn.SavePlan" xml:space="preserve"><value>Spara plan</value></data>
+  <data name="BuildOwn.SlotStarter" xml:space="preserve"><value>Förrätt</value></data>
+  <data name="BuildOwn.SlotMain" xml:space="preserve"><value>Huvudrätt</value></data>
+  <data name="BuildOwn.SlotDessert" xml:space="preserve"><value>Efterrätt</value></data>
+  <data name="BuildOwn.RecipeShort" xml:space="preserve"><value>Recept</value></data>
+  <data name="BuildOwn.Remove" xml:space="preserve"><value>Ta bort</value></data>
+  <data name="BuildOwn.RecipeSg" xml:space="preserve"><value>recept</value></data>
+  <data name="BuildOwn.RecipePl" xml:space="preserve"><value>recept</value></data>
+  <data name="BuildOwn.TapToActivate" xml:space="preserve"><value>tryck för att aktivera</value></data>
+  <data name="BuildOwn.Day" xml:space="preserve"><value>Dag</value></data>
+  <data name="BuildOwn.ActivePrefix" xml:space="preserve"><value>Aktiv:</value></data>
+  <data name="BuildOwn.Loading" xml:space="preserve"><value>Laddar…</value></data>
+  <data name="BuildOwn.CurrentPortion" xml:space="preserve"><value>Aktuell · per portion</value></data>
+  <data name="BuildOwn.CurrentPersons" xml:space="preserve"><value>Aktuell · {0} pers.</value></data>
+  <data name="BuildOwn.LoginFirst" xml:space="preserve"><value>Logga in först.</value></data>
+  <data name="BuildOwn.AddAtLeastOne" xml:space="preserve"><value>Planera minst ett recept.</value></data>
+  <data name="BuildOwn.DefaultTitle" xml:space="preserve"><value>Min säljplan</value></data>
+  <data name="BuildOwn.Saving" xml:space="preserve"><value>Sparar...</value></data>
+  <data name="BuildOwn.SaveFailed" xml:space="preserve"><value>Planen kunde inte sparas.</value></data>
+  <data name="BuildOwn.SaveError" xml:space="preserve"><value>Fel vid sparande.</value></data>
+  <data name="ShareShoppingList.Title" xml:space="preserve"><value>Dela inköpslista</value></data>
+  <data name="ShareShoppingList.Heading" xml:space="preserve"><value>Delad inköpslista</value></data>
+  <data name="ShareShoppingList.Editable" xml:space="preserve"><value>Den här listan kan redigeras vidare.</value></data>
+  <data name="MealCard.Shuffle" xml:space="preserve"><value>Slumpa</value></data>
+  <data name="MealCard.NoDish" xml:space="preserve"><value>Ingen rätt</value></data>
+  <data name="MealCard.Add" xml:space="preserve"><value>Lägg till</value></data>
+  <data name="Layout.Title" xml:space="preserve"><value>Mini Planerare</value></data>
+  <data name="Landing.DefaultTitle" xml:space="preserve"><value>Delat innehåll</value></data>
+  <data name="Landing.DefaultDescription" xml:space="preserve"><value>Öppna detta innehåll i World App</value></data>
+  <data name="Landing.OpenInWorldApp" xml:space="preserve"><value>Öppna i World App</value></data>
+  <data name="Landing.CopyAndOpen" xml:space="preserve"><value>Kopiera länk och öppna appen</value></data>
+  <data name="Landing.CopyHint" xml:space="preserve"><value>Kopierar länken och öppnar World App. Gå till Mini-appen där och klistra in länken.</value></data>
+  <data name="Landing.OpenInBrowser" xml:space="preserve"><value>Öppna i webbläsare</value></data>
+  <data name="Landing.NoWorldApp" xml:space="preserve"><value>Ingen World App ännu?</value></data>
+  <data name="Landing.DownloadIos" xml:space="preserve"><value>Ladda ner för iOS</value></data>
+  <data name="Landing.DownloadAndroid" xml:space="preserve"><value>Ladda ner för Android</value></data>
+  <data name="Landing.OpeningWorldApp" xml:space="preserve"><value>Öppnar World App...</value></data>
+  <data name="Landing.TryAgain" xml:space="preserve"><value>Försök igen</value></data>
+  <data name="Landing.CouldNotOpen" xml:space="preserve"><value>World App kunde inte öppnas.</value></data>
+  <data name="Landing.CouldNotOpenHint" xml:space="preserve"><value>Öppna innehållet direkt i webbläsaren eller installera appen.</value></data>
+  <data name="Landing.OpenManually" xml:space="preserve"><value>Öppna World App manuellt eller använd webbläsarknappen direkt.</value></data>
+  <data name="Landing.WorldAppOpening" xml:space="preserve"><value>World App öppnas...</value></data>
+  <data name="Landing.BackToPage" xml:space="preserve"><value>Tillbaka till sidan. Du kan försöka igen eller öppna direkt i webbläsaren.</value></data>
+  <data name="Landing.LinkCopiedOpening" xml:space="preserve"><value>Länk kopierad. Öppnar nu World App...</value></data>
+  <data name="Landing.LinkCopiedClipboard" xml:space="preserve"><value>Länk kopierad till urklipp!</value></data>
+  <data name="Landing.LinkCopiedPrefix" xml:space="preserve"><value>Länk kopierad:</value></data>
+  <data name="Landing.LinkPrefix" xml:space="preserve"><value>Länk:</value></data>
+  <data name="SharedList.BackToGroup" xml:space="preserve"><value>Tillbaka till gruppen</value></data>
+  <data name="SharedList.SyncHint" xml:space="preserve"><value>Realtidssynk — bockar delas automatiskt.</value></data>
+  <data name="SharedList.Other" xml:space="preserve"><value>Övrigt</value></data>
+  <data name="SharedList.LiveSyncActive" xml:space="preserve"><value>Live-synk aktiv</value></data>
+  <data name="SharedList.Done" xml:space="preserve"><value>klara</value></data>
+  <data name="SharedList.SyncError" xml:space="preserve"><value>Synkfel</value></data>
+  <data name="Generator.Title" xml:space="preserve"><value>Din inställning</value></data>
+  <data name="Generator.DietLabel" xml:space="preserve"><value>Kosthållning</value></data>
+  <data name="Generator.AllDesc" xml:space="preserve"><value>Kött, fisk &amp; grönsaker</value></data>
+  <data name="Generator.Vegetarian" xml:space="preserve"><value>Vegetarisk</value></data>
+  <data name="Generator.VeggieDesc" xml:space="preserve"><value>Inget kött/fisk</value></data>
+  <data name="Generator.Vegan" xml:space="preserve"><value>Vegansk</value></data>
+  <data name="Generator.FocusLabel" xml:space="preserve"><value>Fokus (flerval)</value></data>
+  <data name="Generator.Fast" xml:space="preserve"><value>Snabb</value></data>
+  <data name="Generator.Balanced" xml:space="preserve"><value>Balanserad</value></data>
+  <data name="Generator.Scope" xml:space="preserve"><value>Omfattning</value></data>
+  <data name="Generator.TitlePlaceholder" xml:space="preserve"><value>t.ex. Sommardiet</value></data>
+  <data name="Generated.Title" xml:space="preserve"><value>Din plan</value></data>
+  <data name="Generated.Courses" xml:space="preserve"><value>Rätter</value></data>
+  <data name="Generated.Meals" xml:space="preserve"><value>Måltider</value></data>
+  <data name="Generated.Main" xml:space="preserve"><value>Huvud</value></data>
+  <data name="Generated.Breakfast" xml:space="preserve"><value>Frukost</value></data>
+  <data name="Generated.Lunch" xml:space="preserve"><value>Lunch</value></data>
+  <data name="Generated.Dinner" xml:space="preserve"><value>Middag</value></data>
+  <data name="Generated.FinishPlan" xml:space="preserve"><value>Slutför plan</value></data>
+  <data name="Generated.LoadError" xml:space="preserve"><value>Fel vid laddning.</value></data>
+  <data name="Generated.LoadingRecipes" xml:space="preserve"><value>Laddar recept...</value></data>
+  <data name="Generated.ListLoadError" xml:space="preserve"><value>Kunde inte ladda listan.</value></data>
+  <data name="ShowRecipe.SearchPlaceholder" xml:space="preserve"><value>Sök (titel eller beskrivning)...</value></data>
+  <data name="ShowRecipe.AdaptingSteps" xml:space="preserve"><value>Anpassar tillagningen till de utbytta ingredienserna...</value></data>
+  <data name="ShowRecipe.WaitGenerating" xml:space="preserve"><value>Vänta lite: titel/beskrivning genereras fortfarande.</value></data>
+  <data name="ShowRecipe.Saving" xml:space="preserve"><value>Sparar...</value></data>
+  <data name="ShowRecipe.VariantNoMeta" xml:space="preserve"><value>Varianten har ingen titel/beskrivning (AI). Försök igen.</value></data>
+  <data name="ShowRecipe.SaveVariantFailed" xml:space="preserve"><value>Kunde inte spara varianten. Försök igen.</value></data>
+  <data name="ShowRecipe.Loading" xml:space="preserve"><value>Laddar...</value></data>
+  <data name="CreatePosting.LoadingData" xml:space="preserve"><value>Laddar data...</value></data>
+  <data name="CreatePosting.OneMoment" xml:space="preserve"><value>Ett ögonblick</value></data>
+  <data name="CreatePosting.TitlePlaceholder" xml:space="preserve"><value>Titel</value></data>
+  <data name="CreatePosting.MinutesPlaceholder" xml:space="preserve"><value>Minuter</value></data>
+  <data name="CreatePosting.IngredientSearchPlaceholder" xml:space="preserve"><value>Sök ingrediens...</value></data>
+  <data name="CreatePosting.MissingIngredientPlaceholder" xml:space="preserve"><value>t.ex. grön mjölbanan</value></data>
+  <data name="CreatePosting.StepsPlaceholder" xml:space="preserve"><value>Skriv dina tillagningssteg här (ett steg per rad)...</value></data>
+  <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Ingrediens</value></data>
+  <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Klistra in undertexter (valfritt)</value></data>
+  <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>Klistra in WEBVTT-text här — används som tysk källa (i stället för automatisk transkription); översättning sker automatiskt. Rubriken läggs till vid behov.</value></data>
 </root>

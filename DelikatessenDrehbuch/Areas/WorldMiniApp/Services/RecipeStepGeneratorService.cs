@@ -321,8 +321,10 @@ Return ONLY valid JSON matching the schema (enforced). The 'reasoning' field sho
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("OpenAI API error: {Status}", response.StatusCode);
-                throw new InvalidOperationException($"OpenAI API error: {response.StatusCode} - {responseBody}");
+                // Log the full body for diagnostics, but never surface it to the caller/client
+                // (it can contain API/config details).
+                _logger.LogError("OpenAI API error: {Status} - {Body}", response.StatusCode, responseBody);
+                throw new InvalidOperationException($"OpenAI API error: {response.StatusCode}");
             }
 
             var aiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseBody);
@@ -725,8 +727,10 @@ Return ONLY valid JSON matching the schema (enforced).
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("OpenAI API error: {Status}", response.StatusCode);
-                throw new InvalidOperationException($"OpenAI API error: {response.StatusCode} - {responseBody}");
+                // Log the full body for diagnostics, but never surface it to the caller/client
+                // (it can contain API/config details).
+                _logger.LogError("OpenAI API error: {Status} - {Body}", response.StatusCode, responseBody);
+                throw new InvalidOperationException($"OpenAI API error: {response.StatusCode}");
             }
 
             var aiResponse = JsonSerializer.Deserialize<OpenAiResponse>(responseBody);

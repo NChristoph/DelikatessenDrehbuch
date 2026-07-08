@@ -990,7 +990,7 @@
     </div>
     <div class="offcanvas-body">
         <div class="d-flex gap-2 align-items-center mb-3 flex-wrap">
-            <input id="variantSearchInput" class="form-control" placeholder="Suchen (Titel oder Beschreibung)..." style="max-width: 420px; border-radius: 14px;" />
+            <input id="variantSearchInput" class="form-control" placeholder="@SharedLocalizer["ShowRecipe.SearchPlaceholder"]" style="max-width: 420px; border-radius: 14px;" />
             <div class="btn-group" role="group" aria-label="Sortierung">
                 <button type="button" class="btn btn-outline-secondary active" id="variantSortNewBtn">Neu</button>
                 <button type="button" class="btn btn-outline-secondary" id="variantSortTopBtn">Top</button>
@@ -1057,7 +1057,7 @@
 
         @* Footer *@
         <div class="alt-footer">
-            <button type="button" class="alt-cancel-btn" id="cancelAltModal">Abbrechen</button>
+            <button type="button" class="alt-cancel-btn" id="cancelAltModal">@SharedLocalizer["Common.Cancel"]</button>
         </div>
     </div>
 </div>
@@ -1649,6 +1649,15 @@
 </style>
 
 <script>
+    const srLoc = @Html.Raw(Json.Serialize(new {
+        adaptingSteps = SharedLocalizer["ShowRecipe.AdaptingSteps"].Value,
+        waitGenerating = SharedLocalizer["ShowRecipe.WaitGenerating"].Value,
+        saving = SharedLocalizer["ShowRecipe.Saving"].Value,
+        variantNoMeta = SharedLocalizer["ShowRecipe.VariantNoMeta"].Value,
+        saveVariantFailed = SharedLocalizer["ShowRecipe.SaveVariantFailed"].Value,
+        loading = SharedLocalizer["ShowRecipe.Loading"].Value,
+        error = SharedLocalizer["Dashboard.Error"].Value
+    }));
     // Shared helper (some sections are conditionally rendered).
     // Keep it on window so any handler can use it safely.
     window.escapeHtml = window.escapeHtml || function (text) {
@@ -1989,7 +1998,7 @@
                         language: @Html.Raw(System.Text.Json.JsonSerializer.Serialize(language))
                     };
 
-                    showInlineStepLoader('Zubereitung wird an die getauschten Zutaten angepasst...');
+                    showInlineStepLoader(srLoc.adaptingSteps);
                     fetch('/api/recipe-swap/rewrite-steps', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
@@ -2102,7 +2111,7 @@
             // Require AI meta to be ready. We don't want to store fallback titles like "... (Variante)".
             const metaReady = (window.__swapVariantMeta && window.__swapVariantMeta.title && window.__swapVariantMeta.summary);
             if (!metaReady) {
-                showToast('Bitte kurz warten: Titel/Beschreibung werden noch generiert.', 'error');
+                showToast(srLoc.waitGenerating, 'error');
                 return;
             }
             const recipeId = parseInt(btn.getAttribute('data-recipe-id') || '0', 10);
@@ -2116,7 +2125,7 @@
 
             btn.disabled = true;
             const originalHtml = btn.innerHTML;
-            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>Speichern...';
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status"></span>' + srLoc.saving;
 
             try {
                 const res = await fetch('/api/recipe-swap/publish', {
@@ -2141,7 +2150,7 @@
                 const t = (data?.communityVariant?.title || '').toString().trim();
                 const s = (data?.communityVariant?.summary || '').toString().trim();
                 if (!t || !s) {
-                    throw new Error('Variante hat keinen Titel/Beschreibung (AI). Bitte erneut versuchen.');
+                    throw new Error(srLoc.variantNoMeta);
                 }
 
                 const id = data.communityVariant.id;
@@ -2150,7 +2159,7 @@
                 console.error(e);
                 btn.disabled = false;
                 btn.innerHTML = originalHtml;
-                showToast('Konnte Variante nicht speichern. Bitte erneut versuchen.', 'error');
+                showToast(srLoc.saveVariantFailed, 'error');
             }
         });
     });
@@ -2192,7 +2201,7 @@
 
         async function load() {
             const q = (qEl.value || '').trim();
-            metaEl.textContent = 'Lade...';
+            metaEl.textContent = srLoc.loading;
             listEl.innerHTML = '';
             emptyEl.style.display = 'none';
 
@@ -2246,7 +2255,7 @@
                 }).join('');
             } catch (e) {
                 console.error(e);
-                metaEl.textContent = 'Fehler';
+                metaEl.textContent = srLoc.error;
             }
         }
 

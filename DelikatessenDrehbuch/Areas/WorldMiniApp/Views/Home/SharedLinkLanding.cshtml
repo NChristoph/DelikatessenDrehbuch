@@ -1,9 +1,11 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
     Layout = null;
     var shareType = ViewData["ShareType"] as string ?? "content";
     var token = ViewData["Token"] as string ?? "";
-    var title = ViewData["Title"] as string ?? "Geteilter Inhalt";
-    var description = ViewData["Description"] as string ?? "Oeffne diesen Inhalt in der World App";
+    var title = ViewData["Title"] as string ?? SharedLocalizer["Landing.DefaultTitle"].Value;
+    var description = ViewData["Description"] as string ?? SharedLocalizer["Landing.DefaultDescription"].Value;
     var targetPath = ViewData["TargetPath"] as string ?? "";
 }
 <!DOCTYPE html>
@@ -173,7 +175,7 @@
         <button class="open-app-btn" id="openAppBtn" onclick="openInWorldApp()">
             <span id="btnContent">
                 <i class="bi bi-app"></i>
-                In World App oeffnen
+                @SharedLocalizer["Landing.OpenInWorldApp"]
             </span>
         </button>
 
@@ -182,30 +184,30 @@
         <div style="margin-top: 16px;">
             <button class="open-app-btn" style="background: linear-gradient(135deg, #5fa052 0%, #3f7536 100%);" onclick="copyLinkAndOpenApp()">
                 <i class="bi bi-clipboard-check"></i>
-                Link kopieren und App oeffnen
+                @SharedLocalizer["Landing.CopyAndOpen"]
             </button>
             <p style="font-size: 12px; color: #666; margin-top: 8px;">
-                Kopiert den Link und oeffnet World App. Navigiere dort zur Mini App und fuege den Link ein.
+                @SharedLocalizer["Landing.CopyHint"]
             </p>
         </div>
 
         <a class="open-app-btn secondary-btn" id="openBrowserBtn" href="#">
             <i class="bi bi-browser-chrome"></i>
-            Im Browser oeffnen
+            @SharedLocalizer["Landing.OpenInBrowser"]
         </a>
 
         <div class="fallback-text">
-            Noch keine World App?
+            @SharedLocalizer["Landing.NoWorldApp"]
         </div>
 
         <div class="download-links">
             <a href="https://apps.apple.com/app/worldcoin/id1560859847" class="download-link" target="_blank" rel="noopener noreferrer">
                 <i class="bi bi-apple"></i>
-                iOS herunterladen
+                @SharedLocalizer["Landing.DownloadIos"]
             </a>
             <a href="https://play.google.com/store/apps/details?id=com.worldcoin" class="download-link" target="_blank" rel="noopener noreferrer">
                 <i class="bi bi-google-play"></i>
-                Android herunterladen
+                @SharedLocalizer["Landing.DownloadAndroid"]
             </a>
         </div>
     </div>
@@ -246,6 +248,21 @@
         const targetPath = card.dataset.targetPath || "";
         const shareType = card.dataset.shareType || "";
 
+        const llLoc = @Html.Raw(Json.Serialize(new {
+            openInWorldApp = SharedLocalizer["Landing.OpenInWorldApp"].Value,
+            opening = SharedLocalizer["Landing.OpeningWorldApp"].Value,
+            tryAgain = SharedLocalizer["Landing.TryAgain"].Value,
+            couldNotOpen = SharedLocalizer["Landing.CouldNotOpen"].Value,
+            couldNotOpenHint = SharedLocalizer["Landing.CouldNotOpenHint"].Value,
+            openManually = SharedLocalizer["Landing.OpenManually"].Value,
+            worldAppOpening = SharedLocalizer["Landing.WorldAppOpening"].Value,
+            backToPage = SharedLocalizer["Landing.BackToPage"].Value,
+            linkCopiedOpening = SharedLocalizer["Landing.LinkCopiedOpening"].Value,
+            linkCopiedClipboard = SharedLocalizer["Landing.LinkCopiedClipboard"].Value,
+            linkCopiedPrefix = SharedLocalizer["Landing.LinkCopiedPrefix"].Value,
+            linkPrefix = SharedLocalizer["Landing.LinkPrefix"].Value
+        }));
+
         let attemptCount = 0;
         let appOpened = false;
 
@@ -270,7 +287,7 @@
             const fullUrl = buildTargetUrl();
 
             attemptCount++;
-            btnContent.innerHTML = '<span class="spinner"></span> Oeffne World App...';
+            btnContent.innerHTML = '<span class="spinner"></span> ' + llLoc.opening;
             btn.disabled = true;
 
             if (isInWorldApp()) {
@@ -308,13 +325,13 @@
                 const elapsed = Date.now() - startTime;
 
                 if (!document.hidden && elapsed > 3000) {
-                    btnContent.innerHTML = '<i class="bi bi-app"></i> Erneut versuchen';
+                    btnContent.innerHTML = '<i class="bi bi-app"></i> ' + llLoc.tryAgain;
                     btn.disabled = false;
 
                     if (attemptCount === 1) {
-                        status.innerHTML = 'World App konnte nicht geoeffnet werden.<br><small>Oeffne den Inhalt direkt im Browser oder installiere die App.</small>';
+                        status.innerHTML = llLoc.couldNotOpen + '<br><small>' + llLoc.couldNotOpenHint + '</small>';
                     } else {
-                        status.textContent = "Bitte oeffne die World App manuell oder nutze direkt den Browser-Button.";
+                        status.textContent = llLoc.openManually;
                     }
                 } else {
                     appOpened = true;
@@ -323,7 +340,7 @@
 
             setTimeout(() => {
                 if (!appOpened) {
-                    btnContent.innerHTML = '<i class="bi bi-app"></i> In World App oeffnen';
+                    btnContent.innerHTML = '<i class="bi bi-app"></i> ' + llLoc.openInWorldApp;
                     btn.disabled = false;
                 }
             }, 7000);
@@ -332,7 +349,7 @@
         document.addEventListener("visibilitychange", () => {
             if (document.hidden) {
                 appOpened = true;
-                document.getElementById("statusMessage").textContent = "World App wird geoeffnet...";
+                document.getElementById("statusMessage").textContent = llLoc.worldAppOpening;
             }
         });
 
@@ -341,7 +358,7 @@
                 setTimeout(() => {
                     const status = document.getElementById("statusMessage");
                     if (!appOpened) {
-                        status.textContent = "Zurueck zur Seite. Du kannst es erneut versuchen oder direkt im Browser oeffnen.";
+                        status.textContent = llLoc.backToPage;
                     }
                 }, 300);
             }
@@ -352,7 +369,7 @@
 
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(fullUrl).then(() => {
-                    document.getElementById("statusMessage").textContent = "Link kopiert. Oeffne jetzt die World App...";
+                    document.getElementById("statusMessage").textContent = llLoc.linkCopiedOpening;
 
                     setTimeout(() => {
                         if (/Android/.test(navigator.userAgent)) {
@@ -362,14 +379,14 @@
                         }
                     }, 500);
                 }).catch(() => {
-                    showToast("Link kopiert: " + fullUrl, 'success');
+                    showToast(llLoc.linkCopiedPrefix + ' ' + fullUrl, 'success');
                 });
             } else {
                 // Try to copy to clipboard
                 navigator.clipboard.writeText(fullUrl).then(() => {
-                    showToast("Link in Zwischenablage kopiert!", 'success');
+                    showToast(llLoc.linkCopiedClipboard, 'success');
                 }).catch(() => {
-                    showToast("Link: " + fullUrl, 'success');
+                    showToast(llLoc.linkPrefix + ' ' + fullUrl, 'success');
                 });
             }
         }

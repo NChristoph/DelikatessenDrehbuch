@@ -10,7 +10,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             lock (LogLock)
             {
                 Logs.Add($"{DateTime.UtcNow:HH:mm:ss.fff} - {message}");
-                if (Logs.Count > 200)
+                if (Logs.Count > 500)
                 {
                     Logs.RemoveAt(0);
                 }

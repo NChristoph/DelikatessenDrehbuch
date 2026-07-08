@@ -15,6 +15,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
     {
         private const string OpenAiEndpoint = "https://api.openai.com/v1/responses";
         private const string ModelName = "gpt-5-mini";
+        private const int AiRequestTimeoutSeconds = 60;
 
         private readonly HttpClient _httpClient;
         private readonly ApplicationDbContext _context;
@@ -131,7 +132,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             };
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
-            using var response = await _httpClient.SendAsync(request, cancellationToken);
+            using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            timeoutCts.CancelAfter(TimeSpan.FromSeconds(AiRequestTimeoutSeconds));
+
+            HttpResponseMessage response;
+            try
+            {
+                response = await _httpClient.SendAsync(request, timeoutCts.Token);
+            }
+            catch (OperationCanceledException ex) when (timeoutCts.IsCancellationRequested && !cancellationToken.IsCancellationRequested)
+            {
+                _logger.LogError(ex, "OpenAI ingredient suggestion timed out after {Timeout}s for {IngredientName}.", AiRequestTimeoutSeconds, trimmedIngredientName);
+                throw new InvalidOperationException($"AI request timed out after {AiRequestTimeoutSeconds} seconds.", ex);
+            }
+
+            using (response)
+            {
             var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
             if (!response.IsSuccessStatusCode)
             {
@@ -162,6 +178,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 RawJson = outputText,
                 Proposal = proposal
             };
+            }
         }
 
         private static MissingIngredientAiSuggestionResult BuildDevelopmentFallbackResult(string ingredientName)

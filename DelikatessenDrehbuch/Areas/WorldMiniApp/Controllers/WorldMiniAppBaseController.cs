@@ -38,6 +38,19 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return true;
             }
 
+            // While the operator is impersonating a creator ("Anmelden als" in the admin panel), the
+            // session hash is the channel's hash — which may be "device". Only the SuperUser can start
+            // impersonation, and doing so sets AdminOriginalHash = SuperUserHash (HttpOnly, server-side).
+            // Treat that as allowed so building a channel (upload + adding ingredients) works regardless
+            // of the placeholder creator's orb status.
+            var adminOriginalHash = HttpContext?.Request?.Cookies["AdminOriginalHash"];
+            if (!string.IsNullOrWhiteSpace(adminOriginalHash)
+                && !string.IsNullOrWhiteSpace(SuperUserHash)
+                && adminOriginalHash.Equals(SuperUserHash, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
             var user = await context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
             return user?.IsVerified == "orb";
         }

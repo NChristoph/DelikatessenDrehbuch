@@ -87,9 +87,8 @@ namespace DelikatessenDrehbuch.Data
         public DbSet<RecipeSteps> RecipeSteps { get; set; }
 
         // Trading Agents
-        public DbSet<WorldTradingAgent> WorldTradingAgents { get; set; }
-        public DbSet<WorldAgentTrade> WorldAgentTrades { get; set; }
-        public DbSet<WorldTokenPrice> WorldTokenPrices { get; set; }
+        public DbSet<ChannelClaim> ChannelClaims { get; set; }
+        public DbSet<IngredientSwapHint> IngredientSwapHints { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -598,6 +597,27 @@ namespace DelikatessenDrehbuch.Data
                     .WithMany()
                     .HasForeignKey(x => x.BaseRecipeId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<IngredientSwapHint>(e =>
+            {
+                e.ToTable("IngredientSwapHints");
+                e.Property(x => x.Context).HasMaxLength(64);
+                e.Property(x => x.Goal).HasMaxLength(32);
+                e.HasIndex(x => x.FromIngredientId);
+            });
+
+            builder.Entity<ChannelClaim>(e =>
+            {
+                e.ToTable("ChannelClaims");
+                e.Property(x => x.Token).IsRequired().HasMaxLength(64);
+                e.Property(x => x.SourceHash).IsRequired().HasMaxLength(256);
+                e.Property(x => x.CreatorName).HasMaxLength(256);
+                e.Property(x => x.Status).IsRequired().HasMaxLength(16);
+                e.Property(x => x.ClaimedByHash).HasMaxLength(256);
+
+                e.HasIndex(x => x.Token).IsUnique();
+                e.HasIndex(x => x.SourceHash);
             });
 
             builder.Entity<RecipeCommunityVariant>(e =>

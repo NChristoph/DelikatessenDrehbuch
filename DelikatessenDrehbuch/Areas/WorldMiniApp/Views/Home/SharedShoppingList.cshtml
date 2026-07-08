@@ -1,6 +1,8 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
     Layout = "_MiniAppLayout";
-    ViewData["Title"] = "Geteilte Einkaufsliste";
+    ViewData["Title"] = SharedLocalizer["ShareShoppingList.Heading"].Value;
     var token = ViewData["Token"] as string ?? "";
     var itemsJson = ViewData["Items"] as string ?? "[]";
     var checkedJson = ViewData["Checked"] as string ?? "[]";
@@ -13,14 +15,14 @@
     <div class="px-4 pt-3">
         <a href="@ViewData["ReturnToUrl"]" class="return-to-group-btn">
             <i class="bi bi-arrow-left"></i>
-            Zurück zur Gruppe
+            @SharedLocalizer["SharedList.BackToGroup"]
         </a>
     </div>
 }
 
 <div class="px-4 pt-4 pb-2">
-    <h2 class="fw-bold mb-1" style="color: #2c3e50;">Geteilte Einkaufsliste</h2>
-    <p class="text-muted small mb-0">Echtzeit-Sync &mdash; Haken werden automatisch geteilt.</p>
+    <h2 class="fw-bold mb-1" style="color: #2c3e50;">@SharedLocalizer["ShareShoppingList.Heading"]</h2>
+    <p class="text-muted small mb-0">@SharedLocalizer["SharedList.SyncHint"]</p>
 </div>
 
 <div class="container px-4 pb-5" id="sharedListContainer">
@@ -131,6 +133,13 @@
     var dirty = false;
     var polling = true;
 
+    var slLoc = @Html.Raw(Json.Serialize(new {
+        other = SharedLocalizer["SharedList.Other"].Value,
+        liveSyncActive = SharedLocalizer["SharedList.LiveSyncActive"].Value,
+        done = SharedLocalizer["SharedList.Done"].Value,
+        syncError = SharedLocalizer["SharedList.SyncError"].Value
+    }));
+
     var container = document.getElementById('sharedListContainer');
 
     function escapeHtml(s) {
@@ -145,7 +154,7 @@
         var groupOrder = [];
         for (var i = 0; i < items.length; i++) {
             var item = items[i];
-            var g = item.group || 'Sonstiges';
+            var g = item.group || slLoc.other;
             if (!groups[g]) {
                 groups[g] = [];
                 groupOrder.push(g);
@@ -155,7 +164,7 @@
 
         var html = '<div class="card border-0 shadow-sm rounded-4"><div class="card-body p-4">';
         html += '<div class="d-flex align-items-center justify-content-between mb-2">';
-        html += '<span class="fw-bold" style="font-size:0.9rem;"><span class="sl-sync-dot" id="syncDot"></span>Live-Sync aktiv</span>';
+        html += '<span class="fw-bold" style="font-size:0.9rem;"><span class="sl-sync-dot" id="syncDot"></span>' + slLoc.liveSyncActive + '</span>';
         html += '<span class="sl-status" id="syncStatus"></span>';
         html += '</div>';
 
@@ -184,7 +193,7 @@
         // Progress
         var total = items.length;
         var done = localChecked.size;
-        html += '<div class="sl-status mt-3">' + done + ' / ' + total + ' erledigt</div>';
+        html += '<div class="sl-status mt-3">' + done + ' / ' + total + ' ' + slLoc.done + '</div>';
         html += '</div></div>';
         container.innerHTML = html;
 
@@ -257,7 +266,7 @@
             setSyncing(false);
         } catch (e) {
             setSyncing(false);
-            setSyncStatus('Sync-Fehler');
+            setSyncStatus(slLoc.syncError);
         }
 
         setTimeout(pollLoop, 4000);

@@ -761,6 +761,17 @@
                 <a class="quick-link" href="@Url.Action("Index", "AdminAds", new { area = "WorldMiniApp" })">
                     <i class="bi bi-megaphone-fill" style="color: var(--gold);"></i> Ad Manager
                 </a>
+                <button type="button" class="quick-link" style="border:none;cursor:pointer;width:100%;" onclick="toggleDebugConsole()">
+                    <i class="bi bi-terminal-fill"></i> Debug-Konsole
+                </button>
+                <form method="get" action="@Url.Action("RegenerateCaptions", "Admin", new { area = "WorldMiniApp" })"
+                      style="display:flex;gap:6px;align-items:center;width:100%;grid-column:1 / -1;">
+                    <input type="number" name="postingId" placeholder="Posting-ID" required min="1"
+                           style="flex:1;min-width:0;padding:9px 10px;border:1px solid rgba(0,0,0,.15);border-radius:10px;font-size:13px;" />
+                    <button type="submit" class="quick-link" style="border:none;cursor:pointer;white-space:nowrap;flex:0 0 auto;">
+                        <i class="bi bi-badge-cc-fill"></i> Captions neu
+                    </button>
+                </form>
                 <form method="post" action="@Url.Action("Logout", "Admin", new { area = "WorldMiniApp" })" style="display: inline;">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="quick-link" style="background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); border: none; cursor: pointer; width: 100%;">
@@ -777,6 +788,71 @@
         </div>
 
     </div>
+
+    @if (isAdmin)
+    {
+        <div id="debugConsolePanel" style="display:none;margin:12px 0;border:1px solid #333;border-radius:12px;background:#0b0f14;color:#d7e0ea;overflow:hidden;">
+            <div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#141b24;border-bottom:1px solid #222;">
+                <strong style="font-size:13px;"><i class="bi bi-terminal-fill"></i> Debug-Konsole</strong>
+                <span id="debugConsoleCount" style="font-size:11px;color:#7a8896;"></span>
+                <span style="flex:1;"></span>
+                <label style="font-size:11px;color:#9aa7b4;display:flex;align-items:center;gap:4px;cursor:pointer;">
+                    <input type="checkbox" id="debugAutoRefresh" checked /> Auto
+                </label>
+                <button type="button" onclick="refreshDebugConsole()" style="font-size:11px;padding:3px 8px;border:none;border-radius:6px;background:#2a3542;color:#fff;cursor:pointer;">Neu laden</button>
+                <button type="button" onclick="clearDebugConsole()" style="font-size:11px;padding:3px 8px;border:none;border-radius:6px;background:#5a2230;color:#fff;cursor:pointer;">Leeren</button>
+            </div>
+            <pre id="debugConsoleBody" style="margin:0;padding:10px 12px;max-height:340px;overflow:auto;font-family:ui-monospace,Menlo,monospace;font-size:11.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word;"></pre>
+        </div>
+
+        <script>
+            (function () {
+                let debugTimer = null;
+
+                window.toggleDebugConsole = function () {
+                    const panel = document.getElementById('debugConsolePanel');
+                    if (!panel) return;
+                    const show = panel.style.display === 'none';
+                    panel.style.display = show ? 'block' : 'none';
+                    if (show) { refreshDebugConsole(); startDebugAuto(); }
+                    else { stopDebugAuto(); }
+                };
+
+                window.refreshDebugConsole = async function () {
+                    const body = document.getElementById('debugConsoleBody');
+                    const count = document.getElementById('debugConsoleCount');
+                    if (!body) return;
+                    try {
+                        const res = await fetch('/WorldMiniApp/Shared/GetDebugLogs', { cache: 'no-store' });
+                        const data = await res.json();
+                        const logs = (data && data.logs) ? data.logs : [];
+                        const atBottom = body.scrollTop + body.clientHeight >= body.scrollHeight - 20;
+                        body.textContent = logs.length ? logs.join('\n') : '(keine Logs)';
+                        if (count) count.textContent = logs.length + ' Zeilen';
+                        if (atBottom) body.scrollTop = body.scrollHeight;
+                    } catch (e) {
+                        body.textContent = 'Fehler beim Laden der Logs: ' + e;
+                    }
+                };
+
+                window.clearDebugConsole = async function () {
+                    try {
+                        await fetch('/WorldMiniApp/Shared/ClearDebugLogs', { method: 'POST' });
+                        refreshDebugConsole();
+                    } catch (e) { /* ignore */ }
+                };
+
+                function startDebugAuto() {
+                    stopDebugAuto();
+                    debugTimer = setInterval(function () {
+                        const cb = document.getElementById('debugAutoRefresh');
+                        if (cb && cb.checked) refreshDebugConsole();
+                    }, 2000);
+                }
+                function stopDebugAuto() { if (debugTimer) { clearInterval(debugTimer); debugTimer = null; } }
+            })();
+        </script>
+    }
 
     @* Admin Login UI - erscheint automatisch im Debug oder für spezielle Hash *@
     @{

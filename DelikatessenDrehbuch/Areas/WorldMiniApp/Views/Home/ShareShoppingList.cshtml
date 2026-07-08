@@ -1,15 +1,17 @@
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
     Layout = "_MiniAppLayout";
-    ViewData["Title"] = "Einkaufsliste teilen";
+    ViewData["Title"] = SharedLocalizer["ShareShoppingList.Title"].Value;
     var list = ViewData["List"] as string ?? string.Empty;
 }
 
 <div class="px-4 pt-4 pb-2">
     <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
-        <i class="bi bi-arrow-left"></i> Zurück
+        <i class="bi bi-arrow-left"></i> @SharedLocalizer["Common.Back"]
     </a>
-    <h2 class="fw-bold mb-1" style="color: #2c3e50;">Geteilte Einkaufsliste 🛒</h2>
-    <p class="text-muted small">Diese Liste kann weiterbearbeitet werden.</p>
+    <h2 class="fw-bold mb-1" style="color: #2c3e50;">@SharedLocalizer["ShareShoppingList.Heading"] 🛒</h2>
+    <p class="text-muted small">@SharedLocalizer["ShareShoppingList.Editable"]</p>
 </div>
 
 <div class="container px-4 pb-5">

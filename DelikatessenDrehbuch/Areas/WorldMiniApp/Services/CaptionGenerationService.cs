@@ -56,6 +56,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             {
                 _logger.LogInformation("Caption generation started. VideoGuid={VideoGuid}", videoGuid);
 
+                // If a German caption already exists, captions were already generated — either the
+                // creator pasted a VTT at upload time (translations done there) or a prior webhook run.
+                // Nothing to do.
+                var existingGerman = await TryDownloadManualSourceCaptionAsync(videoGuid);
+                if (!string.IsNullOrWhiteSpace(existingGerman))
+                {
+                    _logger.LogInformation("German caption already present; skipping Whisper/translation. VideoGuid={VideoGuid}", videoGuid);
+                    return true;
+                }
+
+                // No caption yet → transcribe with Whisper, then translate into all languages.
                 var videoPath = await DownloadVideoAsync(videoUrl, videoGuid);
                 if (string.IsNullOrWhiteSpace(videoPath))
                 {
@@ -63,50 +74,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                     return false;
                 }
 
+                string? germanVtt;
                 try
                 {
-                    var germanVtt = await TranscribeWithWhisperAsync(videoPath);
-                    if (string.IsNullOrWhiteSpace(germanVtt))
-                    {
-                        _logger.LogError("Whisper transcription returned no VTT. VideoGuid={VideoGuid}", videoGuid);
-                        return false;
-                    }
-
-                    await UploadCaptionToBunnyAsync(videoGuid, "de", germanVtt);
-                    _logger.LogWarning("German caption uploaded successfully. VideoGuid={VideoGuid}", videoGuid);
-
-                    foreach (var targetLanguage in GetTargetLanguages())
-                    {
-                        if (targetLanguage.Equals("de", StringComparison.OrdinalIgnoreCase))
-                        {
-                            continue;
-                        }
-
-                        try
-                        {
-                            var translatedVtt = await TranslateVttWithOpenAiAsync(germanVtt, targetLanguage);
-                            if (string.IsNullOrWhiteSpace(translatedVtt))
-                            {
-                                _logger.LogWarning("Translated VTT was empty. Language={Language} VideoGuid={VideoGuid}", targetLanguage, videoGuid);
-                                continue;
-                            }
-
-                            if (!IsMeaningfullyTranslated(germanVtt, translatedVtt, targetLanguage))
-                            {
-                                _logger.LogWarning("Skipping untranslated caption upload because target output matched German source. Language={Language} VideoGuid={VideoGuid}", targetLanguage, videoGuid);
-                                continue;
-                            }
-
-                            await UploadCaptionToBunnyAsync(videoGuid, targetLanguage, translatedVtt);
-                            _logger.LogWarning("Translated caption uploaded successfully. Language={Language} VideoGuid={VideoGuid}", targetLanguage, videoGuid);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, "Caption translation failed. Language={Language} VideoGuid={VideoGuid}", targetLanguage, videoGuid);
-                        }
-                    }
-
-                    return true;
+                    germanVtt = await TranscribeWithWhisperAsync(videoPath);
                 }
                 finally
                 {
@@ -115,12 +86,72 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                         File.Delete(videoPath);
                     }
                 }
+
+                if (string.IsNullOrWhiteSpace(germanVtt))
+                {
+                    _logger.LogError("No source VTT available (Whisper returned nothing). VideoGuid={VideoGuid}", videoGuid);
+                    return false;
+                }
+
+                await UploadGermanAndTranslateAsync(videoGuid, germanVtt);
+                return true;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Caption generation failed. VideoGuid={VideoGuid}", videoGuid);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Uploads the German source caption (de.vtt) and generates + uploads translated caption tracks
+        /// for every other language. Shared by the Whisper webhook path and the upload-time path.
+        /// </summary>
+        public async Task<(int Succeeded, int Total)> UploadGermanAndTranslateAsync(string videoGuid, string germanVtt)
+        {
+            germanVtt = NormalizeWebVtt(germanVtt);
+
+            await UploadCaptionToBunnyAsync(videoGuid, "de", germanVtt);
+            _logger.LogWarning("German caption uploaded successfully. VideoGuid={VideoGuid}", videoGuid);
+
+            var targetLanguages = GetTargetLanguages()
+                .Where(l => !l.Equals("de", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            _logger.LogWarning("Caption translation starting for {Count} languages [{Languages}]. VideoGuid={VideoGuid}",
+                targetLanguages.Length, string.Join(",", targetLanguages), videoGuid);
+
+            var succeeded = 0;
+            foreach (var targetLanguage in targetLanguages)
+            {
+                try
+                {
+                    var translatedVtt = await TranslateVttWithOpenAiAsync(germanVtt, targetLanguage);
+                    if (string.IsNullOrWhiteSpace(translatedVtt))
+                    {
+                        _logger.LogWarning("Translated VTT was empty. Language={Language} VideoGuid={VideoGuid}", targetLanguage, videoGuid);
+                        continue;
+                    }
+
+                    if (!IsMeaningfullyTranslated(germanVtt, translatedVtt, targetLanguage))
+                    {
+                        _logger.LogWarning("Skipping untranslated caption upload because target output matched German source. Language={Language} VideoGuid={VideoGuid}", targetLanguage, videoGuid);
+                        continue;
+                    }
+
+                    await UploadCaptionToBunnyAsync(videoGuid, targetLanguage, translatedVtt);
+                    succeeded++;
+                    _logger.LogWarning("Translated caption uploaded successfully. Language={Language} VideoGuid={VideoGuid}", targetLanguage, videoGuid);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Caption translation failed. Language={Language} VideoGuid={VideoGuid}", targetLanguage, videoGuid);
+                }
+            }
+
+            _logger.LogWarning("Caption translations done: {Succeeded}/{Total} uploaded. VideoGuid={VideoGuid}",
+                succeeded, targetLanguages.Length, videoGuid);
+
+            return (succeeded, targetLanguages.Length);
         }
 
         private async Task<string?> DownloadVideoAsync(string videoUrl, string videoGuid)
@@ -208,7 +239,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 content.Add(fileContent, "file", Path.GetFileName(videoPath));
                 content.Add(new StringContent("whisper-1"), "model");
                 content.Add(new StringContent("vtt"), "response_format");
-                content.Add(new StringContent("de"), "language");
+
+                // Source language for transcription. Defaults to German (the app is German-first and
+                // the downstream translation step assumes a German source VTT). Set
+                // "OpenAI:WhisperLanguage" to another ISO code, or to "auto"/empty to let Whisper
+                // auto-detect. NOTE: if you switch away from "de", the "translate from German" step
+                // in TranslateVttWithOpenAiAsync must be revisited.
+                var whisperLanguage = (_config["OpenAI:WhisperLanguage"] ?? "de").Trim();
+                if (!string.IsNullOrWhiteSpace(whisperLanguage) &&
+                    !string.Equals(whisperLanguage, "auto", StringComparison.OrdinalIgnoreCase))
+                {
+                    content.Add(new StringContent(whisperLanguage), "language");
+                }
 
                 using var response = await client.PostAsync("https://api.openai.com/v1/audio/transcriptions", content);
                 response.EnsureSuccessStatusCode();
@@ -305,10 +347,27 @@ Rules:
 
         private string? GetOpenAiApiKey()
         {
-            return Environment.GetEnvironmentVariable("OPENAI_API_KEY")
-                ?? _config["SecretKeyOpenAi"]
-                ?? _config["OpenAI:ApiKey"]
-                ?? _config["OPENAI_API_KEY"];
+            // Use the SAME keys as the other (working) OpenAI services first. The OPENAI_API_KEY
+            // environment variable is checked LAST — a stale/invalid one there was causing 401s on
+            // caption translation while recipe/ingredient calls (which read the config keys) worked.
+            return FirstNonBlank(
+                Environment.GetEnvironmentVariable("SecretKeyOpenAi"),
+                _config["SecretKeyOpenAi"],
+                _config["OpenAI:ApiKey"],
+                Environment.GetEnvironmentVariable("OPENAI_API_KEY"),
+                _config["OPENAI_API_KEY"]);
+        }
+
+        private static string? FirstNonBlank(params string?[] values)
+        {
+            foreach (var v in values)
+            {
+                if (!string.IsNullOrWhiteSpace(v))
+                {
+                    return v;
+                }
+            }
+            return null;
         }
 
         private static string NormalizeWebVtt(string content)
@@ -333,6 +392,87 @@ Rules:
                 NormalizeWebVtt(sourceVtt),
                 NormalizeWebVtt(translatedVtt),
                 StringComparison.Ordinal);
+        }
+
+        // A creator-provided source VTT is stored directly as the German caption (de.vtt) — the same
+        // naming the player and translation use. That makes the German track available immediately
+        // (even if the caption webhook never fires) and lets GenerateCaptionsForVideoAsync pick it up
+        // as the translation source instead of running Whisper.
+        private static string ManualSourceCaptionPath(string videoGuid) => $"captions/{videoGuid}/de.vtt";
+
+        /// <summary>
+        /// Generates all caption tracks (de.vtt + translations) from a creator-pasted source VTT
+        /// (assumed German). Called from the upload background task so captions/translations do NOT
+        /// depend on the Bunny webhook firing or the recipe save succeeding.
+        /// </summary>
+        public async Task<bool> GenerateCaptionsFromSourceVttAsync(string videoGuid, string vttContent)
+        {
+            if (string.IsNullOrWhiteSpace(videoGuid) || string.IsNullOrWhiteSpace(vttContent))
+            {
+                return false;
+            }
+
+            try
+            {
+                await UploadGermanAndTranslateAsync(videoGuid, vttContent);
+                _logger.LogInformation("Generated captions + translations from creator-pasted VTT. VideoGuid={VideoGuid}", videoGuid);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to generate captions from creator-pasted VTT. VideoGuid={VideoGuid}", videoGuid);
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Re-generates the translated caption tracks for a video that already has a German caption
+        /// (de.vtt) in Bunny — used to repair videos whose translations failed (e.g. a bad API key).
+        /// Reads the existing de.vtt and re-runs the translation loop.
+        /// </summary>
+        public async Task<(bool Found, int Succeeded, int Total)> RegenerateTranslationsAsync(string videoGuid)
+        {
+            var germanVtt = await TryDownloadManualSourceCaptionAsync(videoGuid);
+            if (string.IsNullOrWhiteSpace(germanVtt))
+            {
+                _logger.LogWarning("RegenerateTranslations: no existing de.vtt found. VideoGuid={VideoGuid}", videoGuid);
+                return (false, 0, 0);
+            }
+
+            var (succeeded, total) = await UploadGermanAndTranslateAsync(videoGuid, germanVtt);
+            return (true, succeeded, total);
+        }
+
+        private async Task<string?> TryDownloadManualSourceCaptionAsync(string videoGuid)
+        {
+            try
+            {
+                var storageAddress = _config["Bunny_Net_Storage_Adres"];
+                var apiKey = _config["Bunny_Net_Passwort_Lager"];
+                if (string.IsNullOrWhiteSpace(storageAddress) || string.IsNullOrWhiteSpace(apiKey))
+                {
+                    return null;
+                }
+
+                var url = $"{storageAddress.TrimEnd('/')}/{ManualSourceCaptionPath(videoGuid)}";
+                var client = _httpClientFactory.CreateClient();
+                client.DefaultRequestHeaders.Add("AccessKey", apiKey);
+
+                using var response = await client.GetAsync(url);
+                if (!response.IsSuccessStatusCode)
+                {
+                    // 404 = no manual VTT for this video (the normal case) → fall back to Whisper.
+                    return null;
+                }
+
+                var vtt = await response.Content.ReadAsStringAsync();
+                return string.IsNullOrWhiteSpace(vtt) ? null : vtt;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to check for manual source VTT (falling back to Whisper). VideoGuid={VideoGuid}", videoGuid);
+                return null;
+            }
         }
 
         private async Task UploadCaptionToBunnyAsync(string videoGuid, string language, string vttContent)

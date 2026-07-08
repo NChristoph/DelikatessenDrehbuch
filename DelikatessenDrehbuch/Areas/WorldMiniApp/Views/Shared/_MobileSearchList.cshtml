@@ -1,4 +1,6 @@
 @model List<DelikatessenDrehbuch.Models.Recipes>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 
 <div class="p-3">
     @if (Model != null && Model.Any())
@@ -34,7 +36,7 @@
     {
         <div class="text-center py-5 text-muted">
             <i class="bi bi-basket fs-1"></i>
-            <p>Keine Rezepte gefunden.</p>
+            <p>@SharedLocalizer["Feed.NoRecipes"]</p>
         </div>
     }
 </div>

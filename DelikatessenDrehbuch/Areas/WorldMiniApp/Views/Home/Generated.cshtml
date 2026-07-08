@@ -21,7 +21,7 @@
             <a href="@Url.Action("Generator", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted small opacity-75">
                 <i class="bi bi-arrow-left"></i> @SharedLocalizer["MealPlan.ChangeSetup"]
             </a>
-            <h2 class="fw-bold mb-0" style="color: #2c3e50;">Dein Plan 🥑</h2>
+            <h2 class="fw-bold mb-0" style="color: #2c3e50;">@SharedLocalizer["Generated.Title"] 🥑</h2>
         </div>
         <button onclick="location.reload()" class="btn btn-light rounded-circle shadow-sm text-warning btn-hover-effect" style="width: 45px; height: 45px;">
             <i class="bi bi-arrow-clockwise fs-4"></i>
@@ -47,7 +47,7 @@
                 <div class="d-flex align-items-center justify-content-between p-3 border-bottom border-light bg-white bg-opacity-50">
                     <h5 class="fw-bold m-0 text-dark">Tag @(dayIndex)</h5>
                     <div class="d-flex align-items-center gap-2">
-                        <small class="text-muted meal-mode-label-@dayIndex">Gänge</small>
+                        <small class="text-muted meal-mode-label-@dayIndex">@SharedLocalizer["Generated.Courses"]</small>
                         <div class="form-check form-switch mb-0">
                             <input class="form-check-input meal-mode-toggle" type="checkbox" id="mealModeToggle_@dayIndex" data-day="@dayIndex" style="cursor: pointer;">
                         </div>
@@ -58,25 +58,25 @@
                     @* Gänge-Modus (Standard) *@
                     <ul class="nav nav-pills nav-fill gap-2 p-1 bg-white rounded-pill shadow-sm tabs-gaenge-@dayIndex" id="pills-tab-gaenge-@dayIndex" role="tablist" style="font-size: 0.8rem;">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#appetizer_@dayIndex" type="button">Vorspeise</button>
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#appetizer_@dayIndex" type="button">@SharedLocalizer["BuildOwn.SlotStarter"]</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active rounded-pill py-1 fw-bold" data-bs-toggle="pill" data-bs-target="#main_@dayIndex" type="button">Haupt</button>
+                            <button class="nav-link active rounded-pill py-1 fw-bold" data-bs-toggle="pill" data-bs-target="#main_@dayIndex" type="button">@SharedLocalizer["Generated.Main"]</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#dessert_@dayIndex" type="button">Dessert</button>
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#dessert_@dayIndex" type="button">@SharedLocalizer["BuildOwn.SlotDessert"]</button>
                         </li>
                     </ul>
                     @* Mahlzeiten-Modus *@
                     <ul class="nav nav-pills nav-fill gap-2 p-1 bg-white rounded-pill shadow-sm tabs-mahlzeiten-@dayIndex d-none" id="pills-tab-mahlzeiten-@dayIndex" role="tablist" style="font-size: 0.8rem;">
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#breakfast_@dayIndex" type="button">🥐 Frühstück</button>
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#breakfast_@dayIndex" type="button">🥐 @SharedLocalizer["Generated.Breakfast"]</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link active rounded-pill py-1 fw-bold" data-bs-toggle="pill" data-bs-target="#lunch_@dayIndex" type="button">🍱 Mittag</button>
+                            <button class="nav-link active rounded-pill py-1 fw-bold" data-bs-toggle="pill" data-bs-target="#lunch_@dayIndex" type="button">🍱 @SharedLocalizer["Generated.Lunch"]</button>
                         </li>
                         <li class="nav-item" role="presentation">
-                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#dinner_@dayIndex" type="button">🍝 Abend</button>
+                            <button class="nav-link rounded-pill py-1" data-bs-toggle="pill" data-bs-target="#dinner_@dayIndex" type="button">🍝 @SharedLocalizer["Generated.Dinner"]</button>
                         </li>
                     </ul>
                 </div>
@@ -153,7 +153,7 @@
             <button onclick="createMealPlan()" class="btn border-0 w-100 py-3 rounded-pill fw-bold shadow-lg d-flex align-items-center justify-content-center text-white btn-hover-effect"
                     style="background: linear-gradient(135deg, #FF9966 0%, #FF5E62 100%);">
                 <i class="bi bi-cart-check fs-4 me-2"></i>
-                <span class="fs-5">Plan Abschließen</span>
+                <span class="fs-5">@SharedLocalizer["Generated.FinishPlan"]</span>
             </button>
         </div>
     </div>
@@ -175,6 +175,13 @@
 
 @section Scripts {
 <script>
+    const genLoc = @Html.Raw(Json.Serialize(new {
+        courses = SharedLocalizer["Generated.Courses"].Value,
+        meals = SharedLocalizer["Generated.Meals"].Value,
+        loadError = SharedLocalizer["Generated.LoadError"].Value,
+        loadingRecipes = SharedLocalizer["Generated.LoadingRecipes"].Value,
+        listLoadError = SharedLocalizer["Generated.ListLoadError"].Value
+    }));
             // Simple toast feedback function
             function showToast(message, type = 'error') {
                 const toast = document.createElement('div');
@@ -259,7 +266,7 @@
 
                 // Label aktualisieren
                 const label = document.querySelector(`.meal-mode-label-${dayIndex}`);
-                if (label) label.textContent = 'Mahlzeiten';
+                if (label) label.textContent = genLoc.meals;
             }
 
             function switchToGaengeMode(dayIndex) {
@@ -283,7 +290,7 @@
 
                 // Label aktualisieren
                 const label = document.querySelector(`.meal-mode-label-${dayIndex}`);
-                if (label) label.textContent = 'Gänge';
+                if (label) label.textContent = genLoc.courses;
             }
 
             // 1. WÜRFELN (Lade zufälliges Rezept in die Karte)
@@ -314,7 +321,7 @@
                     })
                     .catch(err => {
                         console.error(err);
-                        container.innerHTML = '<div class="text-danger p-3 text-center">Fehler beim Laden.</div>';
+                        container.innerHTML = '<div class="text-danger p-3 text-center">' + genLoc.loadError + '</div>';
                     });
             }
 
@@ -333,7 +340,7 @@
                 contentDiv.innerHTML = `
                     <div class="d-flex flex-column justify-content-center align-items-center h-100 py-5">
                         <div class="spinner-border text-warning mb-3" role="status"></div>
-                        <small class="text-muted">Lade Rezepte...</small>
+                        <small class="text-muted">${genLoc.loadingRecipes}</small>
                     </div>`;
 
                 if (searchOffcanvasInstance) searchOffcanvasInstance.show();
@@ -346,7 +353,7 @@
                         contentDiv.innerHTML = html;
                     })
                     .catch(err => {
-                        contentDiv.innerHTML = '<div class="p-4 text-center text-danger">Konnte Liste nicht laden.</div>';
+                        contentDiv.innerHTML = '<div class="p-4 text-center text-danger">' + genLoc.listLoadError + '</div>';
                     });
             }
 
@@ -373,7 +380,7 @@
                         container.innerHTML = html;
                     })
                     .catch(err => {
-                        container.innerHTML = '<div class="text-danger p-3">Fehler beim Laden.</div>';
+                        container.innerHTML = '<div class="text-danger p-3">' + genLoc.loadError + '</div>';
                     });
             }
 

@@ -1,6 +1,8 @@
 @model List<DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers.MealPlanController.OwnRecipeItem>
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @{
-    ViewData["Title"] = "Verkaufsplan erstellen";
+    ViewData["Title"] = SharedLocalizer["BuildOwn.Title"].Value;
     Layout = "_MiniAppLayout";
     var userHash = ViewData["UserHash"]?.ToString() ?? "";
 }
@@ -61,22 +63,22 @@
 
 <div class="container py-3" style="max-width:720px;">
     <a href="@Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash })" class="bo-back-link d-inline-block mb-3">
-        <i class="bi bi-arrow-left"></i> Zurück zum Profil
+        <i class="bi bi-arrow-left"></i> @SharedLocalizer["BuildOwn.BackToProfile"]
     </a>
 
     <div class="bo-card p-4 mb-3">
-        <h4 class="bo-title mb-1">Verkaufsplan erstellen</h4>
-        <p class="text-muted small mb-0">Baue einen Essensplan ausschließlich aus deinen eigenen Rezepten – inklusive privater. Den fertigen Plan kannst du anschließend im Marktplatz verkaufen.</p>
+        <h4 class="bo-title mb-1">@SharedLocalizer["BuildOwn.Title"]</h4>
+        <p class="text-muted small mb-0">@SharedLocalizer["BuildOwn.Intro"]</p>
     </div>
 
     @if (!Model.Any())
     {
         <div class="bo-card p-5 text-center">
             <i class="bi bi-journal-plus" style="font-size:2.2rem;color:#bcae93;"></i>
-            <p class="bo-title mt-3 mb-1" style="font-size:18px;">Noch keine eigenen Rezepte</p>
-            <p class="text-muted small mb-3">Lade zuerst Rezepte hoch (gern als „nur für mich"), dann kannst du hier deinen Plan zusammenstellen.</p>
+            <p class="bo-title mt-3 mb-1" style="font-size:18px;">@SharedLocalizer["BuildOwn.NoOwnRecipes"]</p>
+            <p class="text-muted small mb-3">@SharedLocalizer["BuildOwn.NoOwnRecipesHint"]</p>
             <a href="@Url.Action("Upload", "Recipe", new { area = "WorldMiniApp" })" class="bo-save-btn d-inline-block" style="width:auto;padding:.6rem 1.4rem;text-decoration:none;">
-                <i class="bi bi-plus-lg me-1"></i>Rezept hochladen
+                <i class="bi bi-plus-lg me-1"></i>@SharedLocalizer["Home.UploadRecipe"]
             </a>
         </div>
     }
@@ -84,16 +86,16 @@
     {
         <!-- Einstellungen -->
         <div class="bo-card p-3 mb-3">
-            <label class="bo-label mb-1 d-block">Titel des Plans</label>
-            <input type="text" id="planTitleInput" class="form-control bo-input mb-3" maxlength="100" placeholder="z. B. Meine High-Protein-Woche" />
+            <label class="bo-label mb-1 d-block">@SharedLocalizer["BuildOwn.PlanTitle"]</label>
+            <input type="text" id="planTitleInput" class="form-control bo-input mb-3" maxlength="100" placeholder="@SharedLocalizer["BuildOwn.PlanTitlePlaceholder"]" />
 
             <div class="row g-2">
                 <div class="col-6">
-                    <label class="bo-label mb-1 d-block">Personen</label>
+                    <label class="bo-label mb-1 d-block">@SharedLocalizer["BuildOwn.People"]</label>
                     <input type="number" id="planPersonCount" class="form-control bo-input" min="1" max="20" value="2" onchange="updateNutrition()" />
                 </div>
                 <div class="col-6">
-                    <label class="bo-label mb-1 d-block">Tage</label>
+                    <label class="bo-label mb-1 d-block">@SharedLocalizer["BuildOwn.Days"]</label>
                     <input type="number" id="dayCount" class="form-control bo-input" min="1" max="14" value="7" onchange="renderDays(); updateNutrition()" />
                 </div>
             </div>
@@ -102,31 +104,31 @@
         <!-- Live-Nährwerte -->
         <div class="bo-card p-3 mb-3">
             <div class="d-flex align-items-center justify-content-between mb-2">
-                <span class="bo-label" id="nutriTitle">Nährwerte – Gesamt</span>
+                <span class="bo-label" id="nutriTitle">@SharedLocalizer["BuildOwn.NutritionTotal"]</span>
                 <div class="bo-seg" id="nutriToggle">
-                    <button type="button" class="bo-seg-btn active" data-mode="total" onclick="setNutriMode('total')">Gesamt</button>
-                    <button type="button" class="bo-seg-btn" data-mode="portion" onclick="setNutriMode('portion')">Pro Portion</button>
+                    <button type="button" class="bo-seg-btn active" data-mode="total" onclick="setNutriMode('total')">@SharedLocalizer["BuildOwn.Total"]</button>
+                    <button type="button" class="bo-seg-btn" data-mode="portion" onclick="setNutriMode('portion')">@SharedLocalizer["BuildOwn.PerPortion"]</button>
                 </div>
             </div>
             <div class="bo-nutri-grid">
                 <div class="bo-nutri-item"><div class="bo-nutri-val" id="nKcal">–</div><div class="bo-nutri-lbl">kcal</div></div>
-                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nProtein">–</div><div class="bo-nutri-lbl">Protein</div></div>
-                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nFat">–</div><div class="bo-nutri-lbl">Fett</div></div>
-                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nCarbs">–</div><div class="bo-nutri-lbl">KH</div></div>
-                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nFiber">–</div><div class="bo-nutri-lbl">Ballast.</div></div>
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nProtein">–</div><div class="bo-nutri-lbl">@SharedLocalizer["Feed.Protein"]</div></div>
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nFat">–</div><div class="bo-nutri-lbl">@SharedLocalizer["Feed.Fat"]</div></div>
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nCarbs">–</div><div class="bo-nutri-lbl">@SharedLocalizer["Feed.Carbs"]</div></div>
+                <div class="bo-nutri-item"><div class="bo-nutri-val" id="nFiber">–</div><div class="bo-nutri-lbl">@SharedLocalizer["BuildOwn.Fiber"]</div></div>
             </div>
-            <div class="bo-active-hint mt-2" id="nutriStatus">Keine Rezepte</div>
+            <div class="bo-active-hint mt-2" id="nutriStatus">@SharedLocalizer["BuildOwn.NoRecipes"]</div>
         </div>
 
         <!-- Tage -->
         <div class="d-flex align-items-center justify-content-between mb-2">
-            <span class="bo-label">Tage &amp; Mahlzeiten füllen</span>
+            <span class="bo-label">@SharedLocalizer["BuildOwn.FillDays"]</span>
             <span class="bo-active-hint" id="activeHint"></span>
         </div>
         <div class="d-flex flex-column gap-2 mb-3" id="daysContainer"></div>
 
         <!-- Rezept-Palette -->
-        <div class="bo-label mb-2">Deine Rezepte – tippen fügt zur aktiven Mahlzeit hinzu</div>
+        <div class="bo-label mb-2">@SharedLocalizer["BuildOwn.PaletteHint"]</div>
         <div class="bo-grid mb-3" id="recipeGrid">
             @foreach (var r in Model)
             {
@@ -146,7 +148,7 @@
 
         <div class="bo-savebar">
             <button class="bo-save-btn" id="btnSavePlan" onclick="savePlan()">
-                <i class="bi bi-bag-check me-1"></i>Plan speichern
+                <i class="bi bi-bag-check me-1"></i>@SharedLocalizer["BuildOwn.SavePlan"]
             </button>
         </div>
     }
@@ -158,11 +160,38 @@
 <script>
     const USER_HASH = '@userHash';
 
+    const boLoc = @Html.Raw(Json.Serialize(new {
+        slotStarter = SharedLocalizer["BuildOwn.SlotStarter"].Value,
+        slotMain = SharedLocalizer["BuildOwn.SlotMain"].Value,
+        slotDessert = SharedLocalizer["BuildOwn.SlotDessert"].Value,
+        recipeShort = SharedLocalizer["BuildOwn.RecipeShort"].Value,
+        remove = SharedLocalizer["BuildOwn.Remove"].Value,
+        recipeSg = SharedLocalizer["BuildOwn.RecipeSg"].Value,
+        recipePl = SharedLocalizer["BuildOwn.RecipePl"].Value,
+        tapToActivate = SharedLocalizer["BuildOwn.TapToActivate"].Value,
+        day = SharedLocalizer["BuildOwn.Day"].Value,
+        activePrefix = SharedLocalizer["BuildOwn.ActivePrefix"].Value,
+        loading = SharedLocalizer["BuildOwn.Loading"].Value,
+        currentPortion = SharedLocalizer["BuildOwn.CurrentPortion"].Value,
+        currentPersons = SharedLocalizer["BuildOwn.CurrentPersons"].Value,
+        noRecipes = SharedLocalizer["BuildOwn.NoRecipes"].Value,
+        error = SharedLocalizer["Dashboard.Error"].Value,
+        loginFirst = SharedLocalizer["BuildOwn.LoginFirst"].Value,
+        addAtLeastOne = SharedLocalizer["BuildOwn.AddAtLeastOne"].Value,
+        defaultTitle = SharedLocalizer["BuildOwn.DefaultTitle"].Value,
+        saving = SharedLocalizer["BuildOwn.Saving"].Value,
+        saveFailed = SharedLocalizer["BuildOwn.SaveFailed"].Value,
+        saveError = SharedLocalizer["BuildOwn.SaveError"].Value,
+        savePlan = SharedLocalizer["BuildOwn.SavePlan"].Value,
+        nutritionTotal = SharedLocalizer["BuildOwn.NutritionTotal"].Value,
+        nutritionPortion = SharedLocalizer["BuildOwn.NutritionPortion"].Value
+    }));
+
     // Mahlzeiten-Slots pro Tag.
     const SLOTS = [
-        { key: 0, name: 'Vorspeise', icon: 'bi-cup-hot' },
-        { key: 1, name: 'Hauptgang', icon: 'bi-egg-fried' },
-        { key: 2, name: 'Dessert',   icon: 'bi-cake2' }
+        { key: 0, name: boLoc.slotStarter, icon: 'bi-cup-hot' },
+        { key: 1, name: boLoc.slotMain, icon: 'bi-egg-fried' },
+        { key: 2, name: boLoc.slotDessert, icon: 'bi-cake2' }
     ];
 
     // Rezept-Lookup (Titel/Bild) aus der Palette aufbauen.
@@ -170,7 +199,7 @@
     document.querySelectorAll('#recipeGrid .bo-recipe').forEach(el => {
         const id = parseInt(el.dataset.id, 10);
         const img = el.querySelector('img');
-        RECIPES[id] = { title: el.dataset.title || ('Rezept #' + id), img: img ? img.src : '' };
+        RECIPES[id] = { title: el.dataset.title || (boLoc.recipeShort + ' #' + id), img: img ? img.src : '' };
     });
 
     // plan[day][slot] = [recipeId, ...]
@@ -204,24 +233,24 @@
                 const isActive = (d === activeDay && s.key === activeSlot);
                 let chips = '';
                 ids.forEach((rid, idx) => {
-                    const r = RECIPES[rid] || { title: 'Rezept #' + rid, img: '' };
+                    const r = RECIPES[rid] || { title: boLoc.recipeShort + ' #' + rid, img: '' };
                     const imgTag = r.img ? `<img src="${r.img}" alt="">` : '';
-                    chips += `<span class="bo-chip">${imgTag}${escapeHtml(r.title)}<button class="bo-chip-x" onclick="removeRecipe(${d}, ${s.key}, ${idx})" aria-label="Entfernen">&times;</button></span>`;
+                    chips += `<span class="bo-chip">${imgTag}${escapeHtml(r.title)}<button class="bo-chip-x" onclick="removeRecipe(${d}, ${s.key}, ${idx})" aria-label="${boLoc.remove}">&times;</button></span>`;
                 });
                 slotsHtml +=
                     `<div class="bo-slot${isActive ? ' active' : ''}" onclick="setActive(${d}, ${s.key}, event)">` +
                         `<div class="bo-slot-head"><span class="bo-slot-name"><i class="bi ${s.icon} bo-slot-icon"></i>${s.name}</span>` +
-                        `<span class="bo-slot-hint">${ids.length ? ids.length + ' Rezept' + (ids.length === 1 ? '' : 'e') : 'tippen zum Aktivieren'}</span></div>` +
+                        `<span class="bo-slot-hint">${ids.length ? ids.length + ' ' + (ids.length === 1 ? boLoc.recipeSg : boLoc.recipePl) : boLoc.tapToActivate}</span></div>` +
                         `<div>${chips}</div>` +
                     `</div>`;
             });
 
-            dayEl.innerHTML = `<div class="bo-day-name d-flex justify-content-between align-items-center">Tag ${d + 1}<span class="bo-day-nutri" id="dayNutri-${d}"></span></div>${slotsHtml}`;
+            dayEl.innerHTML = `<div class="bo-day-name d-flex justify-content-between align-items-center">${boLoc.day} ${d + 1}<span class="bo-day-nutri" id="dayNutri-${d}"></span></div>${slotsHtml}`;
             container.appendChild(dayEl);
         }
 
         const slotName = SLOTS.find(s => s.key === activeSlot)?.name || '';
-        document.getElementById('activeHint').textContent = `Aktiv: Tag ${activeDay + 1} · ${slotName}`;
+        document.getElementById('activeHint').textContent = `${boLoc.activePrefix} ${boLoc.day} ${activeDay + 1} · ${slotName}`;
         updateSaveState();
         paintNutrition();
     }
@@ -280,7 +309,7 @@
         document.querySelectorAll('#nutriToggle .bo-seg-btn').forEach(b =>
             b.classList.toggle('active', b.dataset.mode === nutriMode));
         document.getElementById('nutriTitle').textContent =
-            nutriMode === 'portion' ? 'Nährwerte – Pro Portion' : 'Nährwerte – Gesamt';
+            nutriMode === 'portion' ? boLoc.nutritionPortion : boLoc.nutritionTotal;
         updateNutrition();
     }
 
@@ -320,7 +349,7 @@
         ids.forEach(id => params.append('recipeIds', id));
         params.append('personCount', personCount);
         const resp = await fetch('/WorldMiniApp/MealPlan/GetMealPlanNutritionTotals?' + params.toString());
-        if (!resp.ok) throw new Error('Fehler');
+        if (!resp.ok) throw new Error(boLoc.error);
         return await resp.json();
     }
 
@@ -333,11 +362,11 @@
         if (wholeIds.length === 0) {
             cacheWhole = null; cacheDays = {};
             paintNutrition();
-            status.textContent = 'Keine Rezepte';
+            status.textContent = boLoc.noRecipes;
             return;
         }
 
-        status.textContent = 'Lädt…';
+        status.textContent = boLoc.loading;
         const token = ++nutriReqToken;
 
         try {
@@ -356,12 +385,12 @@
             cacheDays = {};
             dayResults.forEach(x => { cacheDays[x.d] = x.r; });
             paintNutrition();
-            status.textContent = nutriMode === 'portion' ? 'Aktuell · pro Portion' : `Aktuell · ${personCount} Pers.`;
+            status.textContent = nutriMode === 'portion' ? boLoc.currentPortion : boLoc.currentPersons.replace('{0}', personCount);
         } catch {
             if (token !== nutriReqToken) return;
             cacheWhole = null; cacheDays = {};
             paintNutrition();
-            status.textContent = 'Fehler';
+            status.textContent = boLoc.error;
         }
     }
 
@@ -372,17 +401,17 @@
     }
 
     async function savePlan() {
-        if (!USER_HASH) { alert('Bitte zuerst einloggen.'); return; }
+        if (!USER_HASH) { alert(boLoc.loginFirst); return; }
         const payload = buildPayload();
-        if (payload.length === 0) { alert('Bitte mindestens ein Rezept einplanen.'); return; }
+        if (payload.length === 0) { alert(boLoc.addAtLeastOne); return; }
 
-        const title = (document.getElementById('planTitleInput').value || '').trim() || 'Mein Verkaufsplan';
+        const title = (document.getElementById('planTitleInput').value || '').trim() || boLoc.defaultTitle;
         const personCount = parseInt(document.getElementById('planPersonCount').value || '2', 10) || 2;
         const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
 
         const btn = document.getElementById('btnSavePlan');
         btn.disabled = true;
-        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>Speichere...';
+        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span>' + boLoc.saving;
 
         try {
             const resp = await fetch('/WorldMiniApp/MealPlan/SaveMealPlanFromLayout', {
@@ -400,14 +429,14 @@
             });
             if (!resp.ok) {
                 const txt = await resp.text();
-                throw new Error(txt || 'Plan konnte nicht gespeichert werden.');
+                throw new Error(txt || boLoc.saveFailed);
             }
             const data = await resp.json();
             window.location.href = data?.redirectUrl || '/WorldMiniApp/Feed/MyProfile?tab=mealplans';
         } catch (e) {
-            alert(e?.message || 'Fehler beim Speichern.');
+            alert(e?.message || boLoc.saveError);
             btn.disabled = false;
-            btn.innerHTML = '<i class="bi bi-bag-check me-1"></i>Plan speichern';
+            btn.innerHTML = '<i class="bi bi-bag-check me-1"></i>' + boLoc.savePlan;
         }
     }
 

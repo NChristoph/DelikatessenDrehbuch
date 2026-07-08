@@ -1,4 +1,6 @@
 @using DelikatessenDrehbuch.Models
+@using Microsoft.Extensions.Localization
+@inject IStringLocalizer<DelikatessenDrehbuch.SharedResources> SharedLocalizer
 @model MealPlanerModel
 
 @{
@@ -46,7 +48,7 @@
                     <button class="btn btn-sm btn-outline-dark rounded-pill flex-grow-1 d-flex align-items-center justify-content-center gap-1"
                             data-name="@namePrefix" data-index="@dayIndex" data-id="@recipeId" data-category="@category"
                             onclick="ChangeOrAddRecipeMobile(this)">
-                        <i class="bi bi-shuffle"></i> Würfeln
+                        <i class="bi bi-shuffle"></i> @SharedLocalizer["MealCard.Shuffle"]
                     </button>
 
                     <button class="btn btn-sm btn-light rounded-pill border px-3"
@@ -67,11 +69,11 @@
             <div class="mb-3 text-muted opacity-50">
                 <i class="bi bi-plus-circle-dotted" style="font-size: 2.5rem;"></i>
             </div>
-            <h6 class="text-muted">Kein Gericht</h6>
+            <h6 class="text-muted">@SharedLocalizer["MealCard.NoDish"]</h6>
             <button class="btn btn-warning text-dark btn-sm rounded-pill mt-2 px-4 fw-bold"
                     data-name="@namePrefix" data-index="@dayIndex" data-id="0" data-category="@category"
                     onclick="ChangeOrAddRecipeMobile(this)">
-                Hinzufügen
+                @SharedLocalizer["MealCard.Add"]
             </button>
         </div>
     }

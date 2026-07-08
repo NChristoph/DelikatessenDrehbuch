@@ -16,7 +16,7 @@
         <a href="@Url.Action("Index", "Home", new { area = "WorldMiniApp" })" class="text-decoration-none text-muted mb-3 d-inline-block opacity-75">
             <i class="bi bi-arrow-left"></i> Zurück
         </a>
-        <h2 class="fw-bold mb-1" style="color: #2c3e50;">Dein Setup ⚙️</h2>
+        <h2 class="fw-bold mb-1" style="color: #2c3e50;">@SharedLocalizer["Generator.Title"] ⚙️</h2>
         <p class="text-muted small">@SharedLocalizer["MealPlan.WhatWouldYouLike"]</p>
     </div>
 
@@ -26,7 +26,7 @@
         <div class="container px-4">
 
             <div class="mb-5">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">Ernährungsweise</label>
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">@SharedLocalizer["Generator.DietLabel"]</label>
                 <div class="d-grid gap-3">
 
                     <input type="radio" class="btn-check toggle-radio" asp-for="DietType" name="DietType" id="dietAll" value="Alles">
@@ -37,7 +37,7 @@
                             </div>
                             <div class="text-content">
                                 <span class="d-block fw-bold title">@SharedLocalizer["MealPlan.EverythingAllowed"]</span>
-                                <small class="desc">Fleisch, Fisch & Gemüse</small>
+                                <small class="desc">@SharedLocalizer["Generator.AllDesc"]</small>
                             </div>
                             <i class="bi bi-check-circle-fill ms-auto check-icon"></i>
                         </div>
@@ -50,8 +50,8 @@
                                 <i class="bi bi-flower1"></i>
                             </div>
                             <div class="text-content">
-                                <span class="d-block fw-bold title">Vegetarisch</span>
-                                <small class="desc">Kein Fleisch/Fisch</small>
+                                <span class="d-block fw-bold title">@SharedLocalizer["Generator.Vegetarian"]</span>
+                                <small class="desc">@SharedLocalizer["Generator.VeggieDesc"]</small>
                             </div>
                             <i class="bi bi-check-circle-fill ms-auto check-icon"></i>
                         </div>
@@ -64,7 +64,7 @@
                                 <i class="bi bi-sprout"></i>
                             </div>
                             <div class="text-content">
-                                <span class="d-block fw-bold title">Vegan</span>
+                                <span class="d-block fw-bold title">@SharedLocalizer["Generator.Vegan"]</span>
                                 <small class="desc">@SharedLocalizer["MealPlan.PlantBased"]</small>
                             </div>
                             <i class="bi bi-check-circle-fill ms-auto check-icon"></i>
@@ -74,12 +74,12 @@
             </div>
 
             <div class="mb-5">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">Fokus (Mehrfachwahl)</label>
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">@SharedLocalizer["Generator.FocusLabel"]</label>
                 <div class="d-flex flex-wrap gap-2">
 
                     <input type="checkbox" class="btn-check" name="Filters" id="filterFast" value="CookingTimeOne">
                     <label class="filter-chip shadow-sm rounded-pill px-4 py-2 fw-bold" for="filterFast">
-                        ⚡ Schnell
+                        ⚡ @SharedLocalizer["Generator.Fast"]
                     </label>
 
                    @*  <input type="checkbox" class="btn-check" name="Filters" id="filterLowCarb" value="LowCarb">
@@ -89,13 +89,13 @@
 
                     <input type="checkbox" class="btn-check" name="Filters" id="filterBalance" value="BalancedDiet">
                     <label class="filter-chip shadow-sm rounded-pill px-4 py-2 fw-bold" for="filterBalance">
-                        ⚖️ Ausgewogen
+                        ⚖️ @SharedLocalizer["Generator.Balanced"]
                     </label>
                 </div>
             </div>
 
             <div class="mb-5">
-                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">Umfang</label>
+                <label class="fw-bold text-uppercase text-muted small mb-3 opacity-50" style="letter-spacing: 1px; font-size: 0.7rem;">@SharedLocalizer["Generator.Scope"]</label>
 
                 <div class="row g-3">
                     <div class="col-6">
@@ -135,7 +135,7 @@
 
                         <input name="title"
                                class="form-control border-0 bg-transparent py-3 fw-bold text-dark shadow-none"
-                               placeholder="z.B. Sommer-Diät"
+                               placeholder="@SharedLocalizer["Generator.TitlePlaceholder"]"
                                required
                                style="outline: none; box-shadow: none;" />
                     </div>

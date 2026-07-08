@@ -80,12 +80,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         // GET: Admin/Login
         public IActionResult Login(string returnUrl = "")
         {
-            if (!IsAdminAuthenticated())
-            {
-                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
-            }
-
-            // Wenn bereits eingeloggt, weiterleiten
+            // Already authenticated → go to the target (or the manager).
             if (IsAdminAuthenticated())
             {
                 if (!string.IsNullOrWhiteSpace(returnUrl))
@@ -95,6 +90,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return RedirectToAction(nameof(CreatorManager));
             }
 
+            // Not authenticated (or the 2h admin session expired) → SHOW the login form.
+            // (Previously this redirected to Login itself, which caused an infinite redirect loop.)
             ViewData["ReturnUrl"] = returnUrl;
             return View();
         }
@@ -325,6 +322,113 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return RedirectToAction(nameof(CreatorManager));
+        }
+
+        // POST: Admin/CreateClaimLink
+        // Generates a claim link so a content creator can take ownership of a pre-built channel.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateClaimLink(string sourceHash)
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
+            }
+
+            var channel = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == sourceHash);
+            if (channel == null)
+            {
+                TempData["Error"] = "Kanal nicht gefunden.";
+                return RedirectToAction(nameof(CreatorManager));
+            }
+
+            var token = Guid.NewGuid().ToString("N");
+            _context.ChannelClaims.Add(new ChannelClaim
+            {
+                Token = token,
+                SourceHash = sourceHash,
+                CreatorName = channel.UserName ?? string.Empty,
+                Status = "pending",
+                CreatedAtUtc = DateTime.UtcNow,
+                ExpiresAtUtc = DateTime.UtcNow.AddDays(14)
+            });
+            await _context.SaveChangesAsync();
+
+            var link = Url.Action("ClaimChannel", "Shared", new { area = "WorldMiniApp", token }, Request.Scheme);
+            TempData["ClaimLink"] = link;
+            TempData["Success"] = $"Claim-Link für '{channel.UserName}' erstellt (14 Tage gültig). Link an den Creator senden.";
+            _logger.LogInformation("Admin created claim link for channel {Hash} ({Name})", sourceHash, channel.UserName);
+
+            return RedirectToAction(nameof(CreatorManager));
+        }
+
+        // GET: Admin/RegenerateCaptions?postingId=123
+        // Repairs a video whose caption translations failed (e.g. bad API key): reads the existing
+        // de.vtt from Bunny and regenerates the translated tracks. de.vtt itself is left as-is.
+        [HttpGet]
+        public async Task<IActionResult> RegenerateCaptions(int postingId)
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
+            }
+
+            var posting = await _context.WorldUserPosting.FirstOrDefaultAsync(p => p.Id == postingId);
+            if (posting == null)
+            {
+                return CaptionResultPage(false, $"Posting {postingId} nicht gefunden.");
+            }
+
+            string? videoGuid = null;
+            if (!string.IsNullOrWhiteSpace(posting.Source)
+                && Uri.TryCreate(posting.Source, UriKind.Absolute, out var uri))
+            {
+                var seg = uri.AbsolutePath.Trim('/').Split('/');
+                if (seg.Length > 0 && Guid.TryParse(seg[0], out _))
+                {
+                    videoGuid = seg[0];
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(videoGuid))
+            {
+                return CaptionResultPage(false, $"Keine Video-GUID ermittelbar (evtl. Bild-Post?) für Posting {postingId}.");
+            }
+
+            var captionService = HttpContext.RequestServices
+                .GetRequiredService<DelikatessenDrehbuch.Areas.WorldMiniApp.Services.CaptionGenerationService>();
+            var result = await captionService.RegenerateTranslationsAsync(videoGuid);
+
+            if (!result.Found)
+            {
+                return CaptionResultPage(false, $"Keine deutsche Untertitelspur (de.vtt) für Posting {postingId} in Bunny gefunden. Zuerst hochladen/transkribieren.");
+            }
+
+            var ok = result.Succeeded == result.Total && result.Total > 0;
+            return CaptionResultPage(ok,
+                $"Untertitel für „{posting.Title}“ (Posting {postingId}): {result.Succeeded}/{result.Total} Sprachen neu erzeugt.");
+        }
+
+        private IActionResult CaptionResultPage(bool success, string message)
+        {
+            var color = success ? "#2f855a" : "#c53030";
+            var bg = success ? "#f0fff4" : "#fff5f5";
+            var icon = success ? "✓" : "⚠";
+            var profileUrl = Url.Action("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = GetCurrentUserHash() }) ?? "/";
+            var safeMessage = System.Net.WebUtility.HtmlEncode(message);
+
+            var html = $@"<!doctype html><html lang=""de""><head><meta charset=""utf-8"">
+<meta name=""viewport"" content=""width=device-width, initial-scale=1"">
+<title>Untertitel</title></head>
+<body style=""margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:#f5efe1;display:flex;min-height:100vh;align-items:center;justify-content:center;"">
+  <div style=""max-width:420px;width:90%;background:{bg};border:1px solid {color}33;border-radius:16px;padding:24px;text-align:center;box-shadow:0 8px 32px rgba(0,0,0,.08);"">
+    <div style=""font-size:40px;color:{color};line-height:1;"">{icon}</div>
+    <p style=""margin:14px 0 20px;color:#2d3748;font-size:15px;line-height:1.5;"">{safeMessage}</p>
+    <a href=""{profileUrl}"" style=""display:inline-block;padding:11px 22px;background:#2d4f1e;color:#fff;text-decoration:none;border-radius:10px;font-weight:600;font-size:14px;"">Zurück zum Profil</a>
+  </div>
+</body></html>";
+
+            return Content(html, "text/html");
         }
 
         // GET: Admin/ReportedContent

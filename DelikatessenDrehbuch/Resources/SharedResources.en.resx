@@ -1547,4 +1547,113 @@
   <data name="Swap.CommunityTested" xml:space="preserve"><value>Community-tested</value></data>
   <data name="Feed.Ad" xml:space="preserve"><value>Ad</value></data>
   <data name="Feed.AdCta" xml:space="preserve"><value>Learn more</value></data>
+  <data name="BuildOwn.Title" xml:space="preserve"><value>Create sales plan</value></data>
+  <data name="BuildOwn.BackToProfile" xml:space="preserve"><value>Back to profile</value></data>
+  <data name="BuildOwn.Intro" xml:space="preserve"><value>Build a meal plan exclusively from your own recipes – including private ones. You can then sell the finished plan in the marketplace.</value></data>
+  <data name="BuildOwn.NoOwnRecipes" xml:space="preserve"><value>No own recipes yet</value></data>
+  <data name="BuildOwn.NoOwnRecipesHint" xml:space="preserve"><value>Upload some recipes first (feel free to mark them "just for me"), then you can build your plan here.</value></data>
+  <data name="BuildOwn.PlanTitle" xml:space="preserve"><value>Plan title</value></data>
+  <data name="BuildOwn.PlanTitlePlaceholder" xml:space="preserve"><value>e.g. My high-protein week</value></data>
+  <data name="BuildOwn.People" xml:space="preserve"><value>People</value></data>
+  <data name="BuildOwn.Days" xml:space="preserve"><value>Days</value></data>
+  <data name="BuildOwn.NutritionTotal" xml:space="preserve"><value>Nutrition – total</value></data>
+  <data name="BuildOwn.NutritionPortion" xml:space="preserve"><value>Nutrition – per portion</value></data>
+  <data name="BuildOwn.Total" xml:space="preserve"><value>Total</value></data>
+  <data name="BuildOwn.PerPortion" xml:space="preserve"><value>Per portion</value></data>
+  <data name="BuildOwn.Fiber" xml:space="preserve"><value>Fiber</value></data>
+  <data name="BuildOwn.NoRecipes" xml:space="preserve"><value>No recipes</value></data>
+  <data name="BuildOwn.FillDays" xml:space="preserve"><value>Fill days &amp; meals</value></data>
+  <data name="BuildOwn.PaletteHint" xml:space="preserve"><value>Your recipes – tap to add to the active meal</value></data>
+  <data name="BuildOwn.SavePlan" xml:space="preserve"><value>Save plan</value></data>
+  <data name="BuildOwn.SlotStarter" xml:space="preserve"><value>Starter</value></data>
+  <data name="BuildOwn.SlotMain" xml:space="preserve"><value>Main course</value></data>
+  <data name="BuildOwn.SlotDessert" xml:space="preserve"><value>Dessert</value></data>
+  <data name="BuildOwn.RecipeShort" xml:space="preserve"><value>Recipe</value></data>
+  <data name="BuildOwn.Remove" xml:space="preserve"><value>Remove</value></data>
+  <data name="BuildOwn.RecipeSg" xml:space="preserve"><value>recipe</value></data>
+  <data name="BuildOwn.RecipePl" xml:space="preserve"><value>recipes</value></data>
+  <data name="BuildOwn.TapToActivate" xml:space="preserve"><value>tap to activate</value></data>
+  <data name="BuildOwn.Day" xml:space="preserve"><value>Day</value></data>
+  <data name="BuildOwn.ActivePrefix" xml:space="preserve"><value>Active:</value></data>
+  <data name="BuildOwn.Loading" xml:space="preserve"><value>Loading…</value></data>
+  <data name="BuildOwn.CurrentPortion" xml:space="preserve"><value>Current · per portion</value></data>
+  <data name="BuildOwn.CurrentPersons" xml:space="preserve"><value>Current · {0} ppl</value></data>
+  <data name="BuildOwn.LoginFirst" xml:space="preserve"><value>Please sign in first.</value></data>
+  <data name="BuildOwn.AddAtLeastOne" xml:space="preserve"><value>Please plan at least one recipe.</value></data>
+  <data name="BuildOwn.DefaultTitle" xml:space="preserve"><value>My sales plan</value></data>
+  <data name="BuildOwn.Saving" xml:space="preserve"><value>Saving...</value></data>
+  <data name="BuildOwn.SaveFailed" xml:space="preserve"><value>The plan could not be saved.</value></data>
+  <data name="BuildOwn.SaveError" xml:space="preserve"><value>Error while saving.</value></data>
+  <data name="ShareShoppingList.Title" xml:space="preserve"><value>Share shopping list</value></data>
+  <data name="ShareShoppingList.Heading" xml:space="preserve"><value>Shared shopping list</value></data>
+  <data name="ShareShoppingList.Editable" xml:space="preserve"><value>This list can be edited further.</value></data>
+  <data name="MealCard.Shuffle" xml:space="preserve"><value>Shuffle</value></data>
+  <data name="MealCard.NoDish" xml:space="preserve"><value>No dish</value></data>
+  <data name="MealCard.Add" xml:space="preserve"><value>Add</value></data>
+  <data name="Layout.Title" xml:space="preserve"><value>Mini Planner</value></data>
+  <data name="Landing.DefaultTitle" xml:space="preserve"><value>Shared content</value></data>
+  <data name="Landing.DefaultDescription" xml:space="preserve"><value>Open this content in the World App</value></data>
+  <data name="Landing.OpenInWorldApp" xml:space="preserve"><value>Open in World App</value></data>
+  <data name="Landing.CopyAndOpen" xml:space="preserve"><value>Copy link and open app</value></data>
+  <data name="Landing.CopyHint" xml:space="preserve"><value>Copies the link and opens the World App. Navigate to the Mini App there and paste the link.</value></data>
+  <data name="Landing.OpenInBrowser" xml:space="preserve"><value>Open in browser</value></data>
+  <data name="Landing.NoWorldApp" xml:space="preserve"><value>No World App yet?</value></data>
+  <data name="Landing.DownloadIos" xml:space="preserve"><value>Download for iOS</value></data>
+  <data name="Landing.DownloadAndroid" xml:space="preserve"><value>Download for Android</value></data>
+  <data name="Landing.OpeningWorldApp" xml:space="preserve"><value>Opening World App...</value></data>
+  <data name="Landing.TryAgain" xml:space="preserve"><value>Try again</value></data>
+  <data name="Landing.CouldNotOpen" xml:space="preserve"><value>World App could not be opened.</value></data>
+  <data name="Landing.CouldNotOpenHint" xml:space="preserve"><value>Open the content directly in the browser or install the app.</value></data>
+  <data name="Landing.OpenManually" xml:space="preserve"><value>Please open the World App manually or use the browser button directly.</value></data>
+  <data name="Landing.WorldAppOpening" xml:space="preserve"><value>World App is opening...</value></data>
+  <data name="Landing.BackToPage" xml:space="preserve"><value>Back to the page. You can try again or open directly in the browser.</value></data>
+  <data name="Landing.LinkCopiedOpening" xml:space="preserve"><value>Link copied. Now opening the World App...</value></data>
+  <data name="Landing.LinkCopiedClipboard" xml:space="preserve"><value>Link copied to clipboard!</value></data>
+  <data name="Landing.LinkCopiedPrefix" xml:space="preserve"><value>Link copied:</value></data>
+  <data name="Landing.LinkPrefix" xml:space="preserve"><value>Link:</value></data>
+  <data name="SharedList.BackToGroup" xml:space="preserve"><value>Back to group</value></data>
+  <data name="SharedList.SyncHint" xml:space="preserve"><value>Real-time sync — checkmarks are shared automatically.</value></data>
+  <data name="SharedList.Other" xml:space="preserve"><value>Other</value></data>
+  <data name="SharedList.LiveSyncActive" xml:space="preserve"><value>Live sync active</value></data>
+  <data name="SharedList.Done" xml:space="preserve"><value>done</value></data>
+  <data name="SharedList.SyncError" xml:space="preserve"><value>Sync error</value></data>
+  <data name="Generator.Title" xml:space="preserve"><value>Your setup</value></data>
+  <data name="Generator.DietLabel" xml:space="preserve"><value>Diet</value></data>
+  <data name="Generator.AllDesc" xml:space="preserve"><value>Meat, fish &amp; vegetables</value></data>
+  <data name="Generator.Vegetarian" xml:space="preserve"><value>Vegetarian</value></data>
+  <data name="Generator.VeggieDesc" xml:space="preserve"><value>No meat/fish</value></data>
+  <data name="Generator.Vegan" xml:space="preserve"><value>Vegan</value></data>
+  <data name="Generator.FocusLabel" xml:space="preserve"><value>Focus (multi-select)</value></data>
+  <data name="Generator.Fast" xml:space="preserve"><value>Fast</value></data>
+  <data name="Generator.Balanced" xml:space="preserve"><value>Balanced</value></data>
+  <data name="Generator.Scope" xml:space="preserve"><value>Scope</value></data>
+  <data name="Generator.TitlePlaceholder" xml:space="preserve"><value>e.g. Summer diet</value></data>
+  <data name="Generated.Title" xml:space="preserve"><value>Your plan</value></data>
+  <data name="Generated.Courses" xml:space="preserve"><value>Courses</value></data>
+  <data name="Generated.Meals" xml:space="preserve"><value>Meals</value></data>
+  <data name="Generated.Main" xml:space="preserve"><value>Main</value></data>
+  <data name="Generated.Breakfast" xml:space="preserve"><value>Breakfast</value></data>
+  <data name="Generated.Lunch" xml:space="preserve"><value>Lunch</value></data>
+  <data name="Generated.Dinner" xml:space="preserve"><value>Dinner</value></data>
+  <data name="Generated.FinishPlan" xml:space="preserve"><value>Finish plan</value></data>
+  <data name="Generated.LoadError" xml:space="preserve"><value>Error while loading.</value></data>
+  <data name="Generated.LoadingRecipes" xml:space="preserve"><value>Loading recipes...</value></data>
+  <data name="Generated.ListLoadError" xml:space="preserve"><value>Could not load the list.</value></data>
+  <data name="ShowRecipe.SearchPlaceholder" xml:space="preserve"><value>Search (title or description)...</value></data>
+  <data name="ShowRecipe.AdaptingSteps" xml:space="preserve"><value>Adapting the preparation to the swapped ingredients...</value></data>
+  <data name="ShowRecipe.WaitGenerating" xml:space="preserve"><value>Please wait: title/description are still being generated.</value></data>
+  <data name="ShowRecipe.Saving" xml:space="preserve"><value>Saving...</value></data>
+  <data name="ShowRecipe.VariantNoMeta" xml:space="preserve"><value>Variant has no title/description (AI). Please try again.</value></data>
+  <data name="ShowRecipe.SaveVariantFailed" xml:space="preserve"><value>Could not save the variant. Please try again.</value></data>
+  <data name="ShowRecipe.Loading" xml:space="preserve"><value>Loading...</value></data>
+  <data name="CreatePosting.LoadingData" xml:space="preserve"><value>Loading data...</value></data>
+  <data name="CreatePosting.OneMoment" xml:space="preserve"><value>One moment please</value></data>
+  <data name="CreatePosting.TitlePlaceholder" xml:space="preserve"><value>Title</value></data>
+  <data name="CreatePosting.MinutesPlaceholder" xml:space="preserve"><value>Minutes</value></data>
+  <data name="CreatePosting.IngredientSearchPlaceholder" xml:space="preserve"><value>Search ingredient...</value></data>
+  <data name="CreatePosting.MissingIngredientPlaceholder" xml:space="preserve"><value>e.g. green plantain</value></data>
+  <data name="CreatePosting.StepsPlaceholder" xml:space="preserve"><value>Write your preparation steps here (one step per line)...</value></data>
+  <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Ingredient</value></data>
+  <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Paste subtitles (optional)</value></data>
+  <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>Paste WEBVTT text here — used as the German source (instead of automatic transcription); translation is automatic. The header is added if missing.</value></data>
 </root>

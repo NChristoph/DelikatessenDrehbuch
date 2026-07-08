@@ -22,9 +22,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private readonly ApplicationDbContext _context;
         private readonly IWorldClipWatchService _worldClipWatchService;
         private readonly IWorldAdPreferenceService _worldAdPreferenceService;
-        private readonly IRecipeAiTransformService _recipeAiTransformService;
-        private readonly IRecipeAiVariantJobService _recipeAiVariantJobService;
-        private readonly IRecipeAiNutritionService _recipeAiNutritionService;
         private readonly RecipeTranslationService _recipeTranslationService;
         private readonly IStringLocalizer<SharedResources> _sharedLocalizer;
         private readonly ILogger<HomeController> _logger;
@@ -38,9 +35,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ApplicationDbContext context,
             IWorldClipWatchService worldClipWatchService,
             IWorldAdPreferenceService worldAdPreferenceService,
-            IRecipeAiTransformService recipeAiTransformService,
-            IRecipeAiVariantJobService recipeAiVariantJobService,
-            IRecipeAiNutritionService recipeAiNutritionService,
             RecipeTranslationService recipeTranslationService,
             IStringLocalizer<SharedResources> sharedLocalizer,
             ILogger<HomeController> logger)
@@ -48,9 +42,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             _context = context;
             _worldClipWatchService = worldClipWatchService;
             _worldAdPreferenceService = worldAdPreferenceService;
-            _recipeAiTransformService = recipeAiTransformService;
-            _recipeAiVariantJobService = recipeAiVariantJobService;
-            _recipeAiNutritionService = recipeAiNutritionService;
             _recipeTranslationService = recipeTranslationService;
             _sharedLocalizer = sharedLocalizer;
             _logger = logger;
@@ -588,34 +579,6 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             }
 
             return trimmed;
-        }
-
-        private IActionResult RecipeAiEditingDisabled()
-        {
-            return StatusCode(StatusCodes.Status410Gone, new
-            {
-                message = "Die AI-Rezeptbearbeitung ist vorerst deaktiviert."
-            });
-        }
-
-      
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> StartAiRecipeVariantJob([FromBody] RecipeAiTransformRequest request, CancellationToken cancellationToken)
-        {
-            return RecipeAiEditingDisabled();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAiRecipeVariantJobStatus(string jobId, CancellationToken cancellationToken)
-        {
-            return RecipeAiEditingDisabled();
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetAiRecipeVariantJobResult(string jobId, CancellationToken cancellationToken)
-        {
-            return RecipeAiEditingDisabled();
         }
 
         public sealed class WorldUserNotificationListItemDto

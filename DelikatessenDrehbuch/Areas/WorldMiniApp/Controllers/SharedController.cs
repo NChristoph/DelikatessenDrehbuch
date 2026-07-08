@@ -12,11 +12,13 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         private const string WorldMiniAppId = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa";
         private readonly ApplicationDbContext _context;
         private readonly ILogger<SharedController> _logger;
+        private readonly IChannelTransferService _channelTransferService;
 
-        public SharedController(ApplicationDbContext context, ILogger<SharedController> logger)
+        public SharedController(ApplicationDbContext context, ILogger<SharedController> logger, IChannelTransferService channelTransferService)
         {
             _context = context;
             _logger = logger;
+            _channelTransferService = channelTransferService;
         }
 
         [HttpGet]
@@ -107,6 +109,68 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(FeedLight), new { userHash, feedId = feed.Id });
+        }
+
+        // GET: Shared/ClaimChannel?token=...
+        // A content creator opens this link (in the World App) to take ownership of a channel the
+        // operator pre-built. Mirrors Invite: bounce through login so we capture the creator's real
+        // World ID hash, then migrate the channel to it.
+        [HttpGet]
+        public async Task<IActionResult> ClaimChannel(string token, string userHash = "")
+        {
+            if (string.IsNullOrWhiteSpace(token))
+            {
+                return NotFound();
+            }
+
+            userHash = ResolveUserHash(userHash);
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                var returnTo = $"/WorldMiniApp/Shared/ClaimChannel?token={Uri.EscapeDataString(token)}";
+                return RedirectToAction("Index", "Home", new { area = "WorldMiniApp", returnTo });
+            }
+
+            var claim = await _context.ChannelClaims.FirstOrDefaultAsync(c => c.Token == token);
+            if (claim == null)
+            {
+                return NotFound();
+            }
+
+            if (!string.Equals(claim.Status, "pending", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogWarning("ClaimChannel: token not pending (status={Status}).", claim.Status);
+                TempData["Error"] = "Dieser Link wurde bereits verwendet oder ist ungültig.";
+                return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+            }
+
+            if (claim.ExpiresAtUtc.HasValue && claim.ExpiresAtUtc.Value < DateTime.UtcNow)
+            {
+                TempData["Error"] = "Dieser Link ist abgelaufen.";
+                return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+            }
+
+            if (string.Equals(claim.SourceHash, userHash, StringComparison.OrdinalIgnoreCase))
+            {
+                TempData["Error"] = "Du bist bereits dieser Kanal.";
+                return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+            }
+
+            var result = await _channelTransferService.TransferChannelAsync(claim.SourceHash, userHash);
+            if (!result.Success)
+            {
+                _logger.LogError("ClaimChannel transfer failed: {Error}", result.Error);
+                TempData["Error"] = result.Error ?? "Übertragung fehlgeschlagen.";
+                return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
+            }
+
+            claim.Status = "claimed";
+            claim.ClaimedByHash = userHash;
+            claim.ClaimedAtUtc = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            _logger.LogInformation("Channel claimed: source={Source} by={New} postings={Postings}", claim.SourceHash, userHash, result.MovedPostings);
+            TempData["Success"] = "Kanal erfolgreich übernommen!";
+            return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
         }
 
         [HttpGet]
