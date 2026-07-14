@@ -927,6 +927,15 @@
             </div>
 
             <div class="tab-pane fade" id="preparation" role="tabpanel">
+                @if (ViewData["TtsAvailable"] as bool? == true)
+                {
+                    <div class="tts-bar">
+                        <button type="button" id="ttsPlayBtn" class="tts-play-btn" aria-live="polite">
+                            <i class="bi bi-volume-up-fill" id="ttsPlayIcon"></i>
+                            <span id="ttsPlayLabel">@SharedLocalizer["Recipe.ReadAloud"]</span>
+                        </button>
+                    </div>
+                }
                 <div class="step-container" id="preparationListContainer">
                     @{
                         var translatedSteps = GetTranslatedSteps();
@@ -1063,6 +1072,99 @@
 </div>
 
 <script src="~/js/ingredient-swap.js"></script>
+
+@if (ViewData["TtsAvailable"] as bool? == true)
+{
+    var ttsBaseUrl = $"{ViewData["TtsCdnBase"]}/{DelikatessenDrehbuch.Areas.WorldMiniApp.Services.RecipeTtsService.RecipeFolder((int)ViewData["TtsRecipeId"]!)}/{ViewData["TtsLanguage"]}";
+    <style>
+        .tts-bar { display: flex; justify-content: flex-end; margin: 0 0 10px; }
+        .tts-play-btn {
+            display: inline-flex; align-items: center; gap: 8px;
+            border: none; border-radius: 999px; cursor: pointer;
+            padding: 9px 16px; font-size: 14px; font-weight: 600;
+            background: #14391f; color: #fff;
+            box-shadow: 0 4px 14px rgba(20,57,31,0.22);
+            transition: background .15s ease, transform .1s ease;
+        }
+        .tts-play-btn:active { transform: scale(0.97); }
+        .tts-play-btn.is-playing { background: #b3402f; box-shadow: 0 4px 14px rgba(179,64,47,0.25); }
+        .tts-play-btn i { font-size: 16px; }
+        .step-card.tts-active {
+            outline: 2px solid #5fa052;
+            outline-offset: 0;
+            box-shadow: 0 6px 18px rgba(95,160,82,0.28);
+            transition: box-shadow .2s ease, outline-color .2s ease;
+        }
+    </style>
+    <script>
+    (function () {
+        const cfg = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new {
+            baseUrl = ttsBaseUrl,
+            playLabel = SharedLocalizer["Recipe.ReadAloud"].Value,
+            stopLabel = SharedLocalizer["Recipe.StopReading"].Value
+        }));
+
+        const btn = document.getElementById('ttsPlayBtn');
+        const label = document.getElementById('ttsPlayLabel');
+        const icon = document.getElementById('ttsPlayIcon');
+        if (!btn) return;
+
+        let audio = null;
+        let playing = false;
+
+        function cards() {
+            return Array.from(document.querySelectorAll('#preparationListContainer .step-card'));
+        }
+        function clearHighlight() {
+            cards().forEach(c => c.classList.remove('tts-active'));
+        }
+        function highlight(i) {
+            clearHighlight();
+            const el = cards()[i - 1];
+            if (el) { el.classList.add('tts-active'); el.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+        }
+        function reset() {
+            playing = false;
+            if (audio) { try { audio.pause(); } catch (e) {} audio = null; }
+            clearHighlight();
+            btn.classList.remove('is-playing');
+            if (label) label.textContent = cfg.playLabel;
+            if (icon) icon.className = 'bi bi-volume-up-fill';
+        }
+        // Spielt genau einen Schritt komplett ab; erst beim 'ended'-Event geht es weiter —
+        // so wird nie mitten im Satz abgebrochen.
+        function playStep(i) {
+            const list = cards();
+            if (!playing || i < 1 || i > list.length) { reset(); return; }
+            highlight(i);
+            audio = new Audio(`${cfg.baseUrl}/step-${i}.mp3`);
+            audio.addEventListener('ended', () => { if (playing) playStep(i + 1); });
+            audio.addEventListener('error', () => {
+                // Fehlende Audiodatei: bei Schritt 1 (nichts generiert) Button verstecken, sonst nur stoppen.
+                const wasFirst = (i === 1);
+                reset();
+                if (wasFirst) { btn.style.display = 'none'; }
+            });
+            audio.play().catch(() => {
+                const wasFirst = (i === 1);
+                reset();
+                if (wasFirst) { btn.style.display = 'none'; }
+            });
+        }
+        btn.addEventListener('click', () => {
+            if (playing) { reset(); return; }
+            if (cards().length === 0) return;
+            playing = true;
+            btn.classList.add('is-playing');
+            if (label) label.textContent = cfg.stopLabel;
+            if (icon) icon.className = 'bi bi-stop-fill';
+            playStep(1);
+        });
+        // Beim Verlassen der Seite Audio stoppen.
+        window.addEventListener('pagehide', reset);
+    })();
+    </script>
+}
 
 <style>
     .variant-card-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; max-width: 760px; margin: 0 auto; }

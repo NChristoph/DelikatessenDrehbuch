@@ -405,7 +405,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             var posting = await _context.WorldUserPosting
                 .Where(x => x.Recipe != null && x.Recipe.Id == id)
-                .Select(x => new { x.Id, x.ThumbnailUrl, x.Source, x.CreatorName })
+                .Select(x => new { x.Id, x.ThumbnailUrl, x.Source, x.CreatorName, x.CreatorId })
                 .FirstOrDefaultAsync();
 
             if (posting != null)
@@ -546,6 +546,33 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (stepsForLanguage != null && !string.IsNullOrWhiteSpace(stepsForLanguage.Text))
             {
                 ViewData["TranslatedSteps"] = stepsForLanguage.Text;
+            }
+
+            // TTS-Vorlesen: nur wenn der CREATOR Premium ist und es für die aktuelle Sprache Schritte gibt.
+            // Die mp3s liegen unter {CDN}/tts/recipe-{id}/{culture}/step-{n}.mp3. Der Player lädt sie
+            // client-seitig; fehlende Dateien (z.B. Premium seit dem Upload) fängt er per 404 ab.
+            var ttsAvailable = false;
+            // TTS-Vorlesen ist für den Start global deaktiviert (Kosten). Mit Tts:Enabled=true einschalten.
+            if (Configuration.GetValue<bool>("Tts:Enabled")
+                && posting != null && !string.IsNullOrWhiteSpace(posting.CreatorId)
+                && stepsForLanguage != null && !string.IsNullOrWhiteSpace(stepsForLanguage.Text))
+            {
+                var creatorPremiumUntil = await _context.WorldAppUser
+                    .AsNoTracking()
+                    .Where(u => u.UserHash == posting.CreatorId)
+                    .Select(u => u.PremiumUntil)
+                    .FirstOrDefaultAsync();
+                ttsAvailable = creatorPremiumUntil.HasValue && creatorPremiumUntil.Value > DateTime.UtcNow;
+            }
+
+            if (ttsAvailable)
+            {
+                var ttsService = HttpContext.RequestServices
+                    .GetRequiredService<DelikatessenDrehbuch.Areas.WorldMiniApp.Services.RecipeTtsService>();
+                ViewData["TtsAvailable"] = true;
+                ViewData["TtsRecipeId"] = id;
+                ViewData["TtsLanguage"] = language;
+                ViewData["TtsCdnBase"] = ttsService.GetCdnBaseUrl();
             }
 
             return View(model);

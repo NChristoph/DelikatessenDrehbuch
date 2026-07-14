@@ -1656,4 +1656,13 @@
   <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Bahan</value></data>
   <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Tempel subtitle (opsional)</value></data>
   <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>Tempel teks WEBVTT di sini — digunakan sebagai sumber bahasa Jerman (bukan transkripsi otomatis); terjemahan otomatis. Header ditambahkan jika tidak ada.</value></data>
+  <data name="Recipe.ReadAloud" xml:space="preserve">
+    <value>Bacakan</value>
+  </data>
+  <data name="Recipe.StopReading" xml:space="preserve">
+    <value>Berhenti</value>
+  </data>
+  <data name="Video.TooLong.Toast" xml:space="preserve">
+    <value>Video Anda {0} detik – maksimal 90 detik. Kreator Premium tanpa batas durasi.</value>
+  </data>
 </root>

@@ -136,7 +136,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 HttpContext.Session.SetString("WorldMiniAppAdminExpiry", expiryTime.ToString("o"));
 
                 TempData["Success"] = "Erfolgreich als Admin eingeloggt!";
-                _logger.LogInformation("Admin logged in: {UserHash}", GetCurrentUserHash());
+                _logger.LogInformation("Admin logged in: {UserHash}", MaskHash(GetCurrentUserHash()));
 
                 if (!string.IsNullOrWhiteSpace(returnUrl))
                 {
@@ -147,7 +147,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             else
             {
                 TempData["Error"] = "Falsches Passwort.";
-                _logger.LogWarning("Failed admin login attempt: {UserHash}", GetCurrentUserHash());
+                _logger.LogWarning("Failed admin login attempt: {UserHash}", MaskHash(GetCurrentUserHash()));
                 ViewData["ReturnUrl"] = returnUrl;
                 return View();
             }
@@ -160,7 +160,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             HttpContext.Session.Remove("WorldMiniAppAdminAuthenticated");
             TempData["Success"] = "Erfolgreich ausgeloggt.";
-            _logger.LogInformation("Admin logged out: {UserHash}", GetCurrentUserHash());
+            _logger.LogInformation("Admin logged out: {UserHash}", MaskHash(GetCurrentUserHash()));
             return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash = GetCurrentUserHash() });
         }
 
@@ -264,7 +264,7 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             await WorldMiniApp.Services.WorldMiniAppUserHashHelper.SignInAsync(HttpContext, targetHash, isPersistent: false);
 
             TempData["Success"] = $"Du bist jetzt als Creator {targetHash.Substring(0, 10)}... angemeldet!";
-            _logger.LogInformation("Admin logged in as creator: {Hash}", targetHash);
+            _logger.LogInformation("Admin logged in as creator: {Hash}", MaskHash(targetHash));
 
             return RedirectToAction("Index", "Home", new { area = "WorldMiniApp" });
         }
@@ -319,6 +319,54 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 _logger.LogError(ex, "Fehler beim Löschen des Creators {UserHash}", userHash);
                 // Keine rohe ex.Message in der UI – Details nur im Log.
                 TempData["Error"] = "Fehler beim Löschen des Creators.";
+            }
+
+            return RedirectToAction(nameof(CreatorManager));
+        }
+
+        // POST: Admin/SetPremium
+        // Sets or clears a creator's Premium status. months > 0 → Premium bis jetzt + months (Abo);
+        // months == 0 → Premium entfernen. Steuert den Zugang zu kostenpflichtigen Creator-Funktionen (TTS).
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetPremium(string userHash, int months)
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
+            }
+
+            var creator = await _context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
+            if (creator == null)
+            {
+                TempData["Error"] = "Creator nicht gefunden.";
+                return RedirectToAction(nameof(CreatorManager));
+            }
+
+            try
+            {
+                if (months <= 0)
+                {
+                    creator.PremiumUntil = null;
+                    TempData["Success"] = $"Premium für '{creator.UserName}' entfernt.";
+                }
+                else
+                {
+                    // Bei laufendem Abo verlängern, sonst ab jetzt.
+                    var start = (creator.PremiumUntil.HasValue && creator.PremiumUntil.Value > DateTime.UtcNow)
+                        ? creator.PremiumUntil.Value
+                        : DateTime.UtcNow;
+                    creator.PremiumUntil = start.AddMonths(months);
+                    TempData["Success"] = $"Premium für '{creator.UserName}' bis {creator.PremiumUntil:yyyy-MM-dd} gesetzt.";
+                }
+
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("Admin set premium for {UserName} ({Hash}) → {Until}", creator.UserName, MaskHash(userHash), creator.PremiumUntil);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Fehler beim Setzen des Premium-Status für {UserHash}", MaskHash(userHash));
+                TempData["Error"] = "Fehler beim Setzen des Premium-Status.";
             }
 
             return RedirectToAction(nameof(CreatorManager));
@@ -401,12 +449,88 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             if (!result.Found)
             {
-                return CaptionResultPage(false, $"Keine deutsche Untertitelspur (de.vtt) für Posting {postingId} in Bunny gefunden. Zuerst hochladen/transkribieren.");
+                // Noch keine de.vtt vorhanden → komplett neu transkribieren (Whisper) + übersetzen.
+                // So lässt sich ein bereits hochgeladenes Video ohne Neu-Upload nachträglich vertexten.
+                var transcribed = await captionService.GenerateCaptionsForVideoAsync(posting.Source, videoGuid);
+                if (!transcribed)
+                {
+                    return CaptionResultPage(false,
+                        $"Transkription für Posting {postingId} fehlgeschlagen (Video evtl. noch nicht fertig transcodiert oder Whisper lieferte nichts). Bitte in 1–2 Minuten erneut versuchen.");
+                }
+
+                return CaptionResultPage(true,
+                    $"Untertitel für „{posting.Title}“ (Posting {postingId}) neu transkribiert (Whisper) und in alle Sprachen übersetzt.");
             }
 
             var ok = result.Succeeded == result.Total && result.Total > 0;
             return CaptionResultPage(ok,
                 $"Untertitel für „{posting.Title}“ (Posting {postingId}): {result.Succeeded}/{result.Total} Sprachen neu erzeugt.");
+        }
+
+        // GET: Admin/TestVoiceover?postingId=123&lang=de
+        // Erzeugt (zum Testen, Flag-unabhängig) das Polly-Voiceover für ein Video in einer Sprache.
+        [HttpGet]
+        public async Task<IActionResult> TestVoiceover(int postingId, string lang = "de", string gender = "female")
+        {
+            if (!IsAdminAuthenticated())
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl = Request.Path });
+            }
+
+            var posting = await _context.WorldUserPosting.FirstOrDefaultAsync(p => p.Id == postingId);
+            if (posting == null)
+            {
+                return CaptionResultPage(false, $"Posting {postingId} nicht gefunden.");
+            }
+
+            string? videoGuid = null;
+            if (!string.IsNullOrWhiteSpace(posting.Source)
+                && Uri.TryCreate(posting.Source, UriKind.Absolute, out var uri))
+            {
+                var seg = uri.AbsolutePath.Trim('/').Split('/');
+                if (seg.Length > 0 && Guid.TryParse(seg[0], out _))
+                {
+                    videoGuid = seg[0];
+                }
+            }
+            if (string.IsNullOrWhiteSpace(videoGuid))
+            {
+                return CaptionResultPage(false, $"Keine Video-GUID ermittelbar für Posting {postingId} (Bild-Post?).");
+            }
+
+            var polly = HttpContext.RequestServices
+                .GetRequiredService<DelikatessenDrehbuch.Areas.WorldMiniApp.Services.PollyVoiceoverService>();
+
+            if (!polly.IsConfigured())
+            {
+                return CaptionResultPage(false, "AWS-Polly-Zugangsdaten fehlen (Aws:Polly:AccessKeyId / SecretAccessKey).");
+            }
+            if (!polly.SupportsLanguage(lang))
+            {
+                return CaptionResultPage(false, $"Sprache '{lang}' wird von Polly nicht unterstützt (z.B. id/ms). Unterstützt: de,en,es,pt,nl,sv,da,nb.");
+            }
+
+            bool ok;
+            try
+            {
+                ok = await polly.GenerateForLanguageAsync(videoGuid, lang, gender, force: true);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Voiceover-Test fehlgeschlagen. Posting={PostingId} Lang={Lang}", postingId, lang);
+                // Admin-only → konkrete Fehlermeldung ist hier hilfreich (Region/Key/IAM).
+                return CaptionResultPage(false, $"Polly-Fehler: {ex.Message}");
+            }
+            if (!ok)
+            {
+                return CaptionResultPage(false,
+                    $"Voiceover für Posting {postingId} ({lang}) fehlgeschlagen. Existiert die {lang}.vtt schon? Sonst zuerst Untertitel erzeugen. Details im Server-Log.");
+            }
+
+            var genderLabel = string.Equals(gender, "male", StringComparison.OrdinalIgnoreCase) ? "männlich" : "weiblich";
+            var manifestUrl = $"{polly.GetCdnBaseUrl()}/{DelikatessenDrehbuch.Areas.WorldMiniApp.Services.PollyVoiceoverService.ManifestPath(videoGuid, lang)}";
+            return CaptionResultPage(true,
+                $"Polly-Voiceover für „{posting.Title}“ ({lang}, {genderLabel}) erzeugt. Manifest: {manifestUrl}");
         }
 
         private IActionResult CaptionResultPage(bool success, string message)

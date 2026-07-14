@@ -1,4 +1,4 @@
-﻿
+﻿using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
 {
@@ -16,5 +16,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Models
         // Optionaler Link zum eigenen externen Store des Creators (nur Anzeige, keine bezahlte Werbung).
         public string? StoreUrl { get; set; }
         public DateTime? CreatedAt { get; set; }
+
+        // Premium-Creator-Status. Bildet ein (auch monatlich zahlbares) Abo ab: der Nutzer ist so lange
+        // Premium, wie PremiumUntil in der Zukunft liegt. Für Dauer-Premium ein fernes Datum setzen,
+        // für "kein Premium" null/Vergangenheit. Gate für kostenpflichtige Creator-Funktionen (z.B. TTS).
+        public DateTime? PremiumUntil { get; set; }
+
+        /// <summary>True, solange das Premium-Abo (noch) gültig ist. Nicht in der DB gespeichert.</summary>
+        [NotMapped]
+        public bool IsPremiumActive => PremiumUntil.HasValue && PremiumUntil.Value > DateTime.UtcNow;
     }
 }

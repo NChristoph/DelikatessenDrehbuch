@@ -1547,4 +1547,13 @@
   <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Ingrediënt</value></data>
   <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Ondertitels plakken (optioneel)</value></data>
   <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>Plak hier WEBVTT-tekst — gebruikt als Duitse bron (in plaats van automatische transcriptie); vertaling is automatisch. De koptekst wordt zo nodig toegevoegd.</value></data>
+  <data name="Recipe.ReadAloud" xml:space="preserve">
+    <value>Voorlezen</value>
+  </data>
+  <data name="Recipe.StopReading" xml:space="preserve">
+    <value>Stoppen</value>
+  </data>
+  <data name="Video.TooLong.Toast" xml:space="preserve">
+    <value>Je video duurt {0}s – max. 90 seconden. Premium-creators hebben geen lengtelimiet.</value>
+  </data>
 </root>

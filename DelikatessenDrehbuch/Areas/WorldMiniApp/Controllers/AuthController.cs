@@ -118,6 +118,11 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [IgnoreAntiforgeryToken]
         public async Task<IActionResult> VerifyAction([FromBody] VerifyRequestDto request)
         {
+            if (!DelikatessenDrehbuch.Areas.WorldMiniApp.Services.RateLimitGuard.TryConsume(HttpContext, "verify", 30, TimeSpan.FromMinutes(1)))
+            {
+                return StatusCode(429, new { status = "error", message = "Zu viele Anfragen. Bitte kurz warten." });
+            }
+
             if (request?.Payload == null || request.Payload.Status != "success")
             {
                 return BadRequest("Payload invalid.");

@@ -14,6 +14,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
         protected string SuperUserHash => Configuration["WorldMiniApp:SuperUserHash"] ?? string.Empty;
 
+        /// <summary>Masks a user/nullifier hash for logging (keeps enough to correlate, hides the secret).</summary>
+        protected static string MaskHash(string? hash)
+        {
+            if (string.IsNullOrWhiteSpace(hash)) return "(none)";
+            var h = hash.Trim();
+            return h.Length <= 12 ? "***" : $"{h.Substring(0, 6)}…{h.Substring(h.Length - 4)}";
+        }
+
         protected string ResolveUserHash(string userHash)
         {
             return WorldMiniAppUserHashHelper.Resolve(HttpContext, userHash);
@@ -38,17 +46,21 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return true;
             }
 
-            // While the operator is impersonating a creator ("Anmelden als" in the admin panel), the
-            // session hash is the channel's hash — which may be "device". Only the SuperUser can start
-            // impersonation, and doing so sets AdminOriginalHash = SuperUserHash (HttpOnly, server-side).
-            // Treat that as allowed so building a channel (upload + adding ingredients) works regardless
-            // of the placeholder creator's orb status.
-            var adminOriginalHash = HttpContext?.Request?.Cookies["AdminOriginalHash"];
-            if (!string.IsNullOrWhiteSpace(adminOriginalHash)
-                && !string.IsNullOrWhiteSpace(SuperUserHash)
-                && adminOriginalHash.Equals(SuperUserHash, StringComparison.OrdinalIgnoreCase))
+            // While the operator is impersonating a creator ("Anmelden als"), the session hash is the
+            // channel's hash (maybe "device"). Allow it based on the SERVER-SIDE admin session flag,
+            // which is set only after a successful SuperUser PIN login and is not client-forgeable.
+            // (Previously this trusted a client-sendable AdminOriginalHash cookie, whose only protection
+            // was the secrecy of SuperUserHash — replaced to remove that spoofing risk.)
+            try
             {
-                return true;
+                if (HttpContext?.Session?.GetString("WorldMiniAppAdminAuthenticated") == "true")
+                {
+                    return true;
+                }
+            }
+            catch
+            {
+                // Session may be unavailable in some contexts — fall through to the orb check.
             }
 
             var user = await context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);

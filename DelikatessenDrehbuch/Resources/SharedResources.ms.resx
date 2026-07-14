@@ -1547,4 +1547,13 @@
   <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Bahan</value></data>
   <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Tampal sari kata (pilihan)</value></data>
   <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>Tampal teks WEBVTT di sini — digunakan sebagai sumber bahasa Jerman (bukan transkripsi automatik); terjemahan automatik. Pengepala ditambah jika tiada.</value></data>
+  <data name="Recipe.ReadAloud" xml:space="preserve">
+    <value>Baca dengan kuat</value>
+  </data>
+  <data name="Recipe.StopReading" xml:space="preserve">
+    <value>Berhenti</value>
+  </data>
+  <data name="Video.TooLong.Toast" xml:space="preserve">
+    <value>Video anda {0}s – maksimum 90 saat. Pencipta Premium tiada had panjang.</value>
+  </data>
 </root>

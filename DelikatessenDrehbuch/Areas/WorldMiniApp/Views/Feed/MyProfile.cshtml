@@ -772,6 +772,28 @@
                         <i class="bi bi-badge-cc-fill"></i> Captions neu
                     </button>
                 </form>
+                <form method="get" action="@Url.Action("TestVoiceover", "Admin", new { area = "WorldMiniApp" })"
+                      style="display:flex;gap:6px;align-items:center;width:100%;grid-column:1 / -1;flex-wrap:wrap;">
+                    <input type="number" name="postingId" placeholder="Posting-ID" required min="1"
+                           style="flex:1;min-width:80px;padding:9px 10px;border:1px solid rgba(0,0,0,.15);border-radius:10px;font-size:13px;" />
+                    <select name="lang" style="flex:0 0 auto;padding:9px 8px;border:1px solid rgba(0,0,0,.15);border-radius:10px;font-size:13px;">
+                        <option value="de">de</option>
+                        <option value="en">en</option>
+                        <option value="es">es</option>
+                        <option value="pt">pt</option>
+                        <option value="nl">nl</option>
+                        <option value="sv">sv</option>
+                        <option value="da">da</option>
+                        <option value="nb">nb</option>
+                    </select>
+                    <select name="gender" style="flex:0 0 auto;padding:9px 8px;border:1px solid rgba(0,0,0,.15);border-radius:10px;font-size:13px;">
+                        <option value="female">weiblich</option>
+                        <option value="male">männlich</option>
+                    </select>
+                    <button type="submit" class="quick-link" style="border:none;cursor:pointer;white-space:nowrap;flex:0 0 auto;">
+                        <i class="bi bi-soundwave"></i> Voiceover
+                    </button>
+                </form>
                 <form method="post" action="@Url.Action("Logout", "Admin", new { area = "WorldMiniApp" })" style="display: inline;">
                     @Html.AntiForgeryToken()
                     <button type="submit" class="quick-link" style="background: linear-gradient(135deg, #ff416c 0%, #ff4b2b 100%); border: none; cursor: pointer; width: 100%;">

@@ -1601,16 +1601,28 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View();
         }
 
+        // Only the SuperUser may read/clear/mirror the debug log buffer — it contains user hashes,
+        // internal errors and the SuperUserHash itself. NotFound (not Forbid) hides the endpoint.
+        private bool IsSuperUser()
+        {
+            var uh = ResolveUserHash(string.Empty);
+            return !string.IsNullOrWhiteSpace(SuperUserHash)
+                   && string.Equals(uh, SuperUserHash, StringComparison.OrdinalIgnoreCase);
+        }
+
         [HttpGet]
         public IActionResult GetDebugLogs()
         {
+            if (!IsSuperUser()) return NotFound();
             var logs = DebugLogger.GetLogs();
             return Json(new { logs });
         }
 
         [HttpPost]
+        [IgnoreAntiforgeryToken]
         public IActionResult ClearDebugLogs()
         {
+            if (!IsSuperUser()) return NotFound();
             DebugLogger.Clear();
             return Ok();
         }
@@ -1619,6 +1631,12 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         [IgnoreAntiforgeryToken]
         public IActionResult LogFromClient([FromBody] ClientLogRequest request)
         {
+            // Silently ignore non-admin client logs so the buffer can't be flooded/poisoned by anyone.
+            if (!IsSuperUser())
+            {
+                return Ok();
+            }
+
             if (string.IsNullOrWhiteSpace(request.Message))
             {
                 return BadRequest();

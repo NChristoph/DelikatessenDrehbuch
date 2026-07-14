@@ -1622,4 +1622,13 @@
   <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Zutat</value></data>
   <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Untertitel einfügen (optional)</value></data>
   <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>WEBVTT-Text hier einfügen — wird als deutsche Quelle genutzt (statt automatischer Transkription); Übersetzung erfolgt automatisch. Kopfzeile wird bei Bedarf ergänzt.</value></data>
+  <data name="Recipe.ReadAloud" xml:space="preserve">
+    <value>Vorlesen</value>
+  </data>
+  <data name="Recipe.StopReading" xml:space="preserve">
+    <value>Stopp</value>
+  </data>
+  <data name="Video.TooLong.Toast" xml:space="preserve">
+    <value>Dein Video ist {0}s lang – erlaubt sind max. 90 Sekunden. Als Premium-Creator gibt es keine Längenbegrenzung.</value>
+  </data>
 </root>

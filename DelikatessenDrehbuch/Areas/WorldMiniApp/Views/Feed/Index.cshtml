@@ -143,7 +143,7 @@
             };
 
             function isInteractiveSwipeTarget(target) {
-                return !!target?.closest?.('button, a, input, textarea, select, [role="button"], .action-btn, .nav-item, .section-pill, .modal, .offcanvas');
+                return !!target?.closest?.('button, a, input, textarea, select, [role="button"], .action-btn, .nav-item, .section-pill, .modal, .offcanvas, .video-progress');
             }
 
             function isInsideFeed(target) {
@@ -320,6 +320,14 @@
                 || sourceLower.Contains(".webm")
                 || isHlsVideo;
             string thumbOrSource = !string.IsNullOrEmpty(item.ThumbnailUrl) ? item.ThumbnailUrl : item.Source;
+            // Video-GUID serverseitig aus der m3u8-URL (…/{guid}/playlist.m3u8) — zuverlässig, weil
+            // HLS.js die video.src client-seitig mit einer blob:-URL überschreibt.
+            string feedVideoGuid = string.Empty;
+            if (isHlsVideo && !string.IsNullOrEmpty(item.Source))
+            {
+                var __segs = item.Source.Split('/');
+                if (__segs.Length >= 2) feedVideoGuid = __segs[__segs.Length - 2];
+            }
             <div class="feed-item" data-id="@item.Recipe.Id" data-posting-id="@item.Id" data-creator-id="@item.CreatorId" data-creator-name="@item.CreatorName">
                 @if (isVideo)
                 {
@@ -331,6 +339,7 @@
                            preload="metadata"
                            @(isHlsVideo ? "crossorigin=\"anonymous\"" : "")
                            poster="@thumbOrSource"
+                           data-video-guid="@feedVideoGuid"
                            data-video-kind="@(isHlsVideo ? "hls" : "file")">
                     </video>
                     <div class="video-caption-overlay is-empty" aria-hidden="true">
@@ -1191,7 +1200,10 @@
             if (!overlay || !textEl) return;
 
             const setCaptionText = (value) => {
-                if (!subtitlesEnabled) {
+                // Solange Vorlesen (TTS) aktiv ist, KEINEN Untertitel anzeigen — der Ton kann dem
+                // Video etwas hinterherlaufen, ein am Video-Zeitpunkt hängender Untertitel würde dann
+                // nicht zum Gehörten passen (verwirrend).
+                if (!subtitlesEnabled || video._ttsActive) {
                     textEl.textContent = '';
                     overlay.classList.add('is-empty');
                     return;
@@ -1291,20 +1303,57 @@
         // TTS (Text-to-Speech) System for Multilingual Audio
         // ============================================================================
 
+        // Sichtbares On-Screen-Log direkt am Gerät (kein Server/SuperUser/Konsole nötig). Grünes
+        // Overlay unten; zum Ausblenden antippen. Zusätzlich best-effort an die Server-Debug-Konsole.
+        function voLog(message) {
+            const m = '[VO] ' + message;
+            try { console.log(m); } catch (e) {}
+            try {
+                let box = document.getElementById('voDebugBox');
+                if (!box) {
+                    box = document.createElement('div');
+                    box.id = 'voDebugBox';
+                    box.style.cssText = 'position:fixed;left:6px;right:6px;top:6px;max-height:40vh;overflow:auto;z-index:100000;background:rgba(0,0,0,.88);color:#0f0;font:11px/1.45 ui-monospace,Menlo,monospace;padding:8px 10px;border-radius:8px;white-space:pre-wrap;word-break:break-word;';
+                    box.addEventListener('click', function () { box.style.display = 'none'; });
+                    document.body.appendChild(box);
+                }
+                box.style.display = 'block';
+                const t = new Date().toLocaleTimeString();
+                box.textContent += t + '  ' + m + '\n';
+                box.scrollTop = box.scrollHeight;
+            } catch (e) {}
+            try {
+                fetch('/WorldMiniApp/Shared/LogFromClient', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: m, level: 'LOG' })
+                });
+            } catch (e) {}
+        }
+
         class TTSController {
             constructor(video, feedItem) {
                 this.video = video;
                 this.feedItem = feedItem;
                 this.cues = [];
                 this.currentCueIndex = -1;
+                this.nextCueIndex = 0;       // nächste zu sprechende Cue (streng der Reihe nach — nichts wird übersprungen)
+                this.isSpeaking = false;     // spricht gerade? → laufenden Satz NICHT abbrechen
                 this.isActive = false;
                 this.originalVolume = video.volume;
                 this.utterance = null;
-                this.language = 'de-DE';
+                this.pool = null;           // 2 HTMLAudioElemente (Doppel-Puffer: eins spielt, eins lädt vor)
+                this.activeEl = null;       // aktuell spielendes Pool-Element
+                this._targetRate = 1.0;
+                this._primed = false;       // wurden die Audio-Elemente per Tap-Geste entsperrt?
+                this.mode = 'browser';      // 'polly' (MP3-Voiceover) | 'browser' (speechSynthesis)
+                this.langCode = 'de';       // VTT-Sprachcode (de/en/es/…)
+                this.language = 'de-DE';    // BCP-47 für die Browser-Stimme
 
                 this.onTimeUpdate = this.onTimeUpdate.bind(this);
                 this.onPause = this.onPause.bind(this);
                 this.onPlay = this.onPlay.bind(this);
+                this.onSeeking = this.onSeeking.bind(this);
             }
 
             async parseVTT(vttUrl) {
@@ -1366,28 +1415,38 @@
                 if (DEBUG) console.log('TTS: Activating...');
                 this.isActive = true;
 
-                if (language) {
-                    this.language = this.mapLanguageCode(language);
+                // VTT-Sprachcode (de/en/es/…) für Manifest-/VTT-URLs; BCP-47 nur für die Browser-Stimme.
+                this.langCode = (language || currentSubtitleLanguage || 'de').toLowerCase();
+                this.language = this.mapLanguageCode(this.langCode);
+                if (DEBUG) console.log('TTS: Language:', this.langCode, '->', this.language);
+
+                // 1) Bevorzugt: hochwertiges Polly-Voiceover (Manifest mit MP3-Cues), falls vorhanden.
+                const manifest = await this.loadVoiceoverManifest();
+                voLog('activate lang=' + this.langCode + ' guid=' + this.getVideoGuid()
+                    + ' manifest=' + (manifest && manifest.cues ? ('cues:' + manifest.cues.length) : 'none')
+                    + ' primed=' + this._primed);
+                if (manifest && Array.isArray(manifest.cues) && manifest.cues.length) {
+                    this.mode = 'polly';
+                    this.cues = manifest.cues
+                        .filter(c => c && typeof c.i === 'number')
+                        .map(c => ({ start: c.start, end: c.end, url: this.buildCueUrl(c.i) }));
+                    voLog('mode=polly cues=' + this.cues.length + ' firstUrl=' + (this.cues[0] && this.cues[0].url));
                 } else {
-                    this.language = await this.detectLanguageFromSubtitles();
-                }
-
-                if (DEBUG) console.log('TTS: Language:', this.language);
-
-                const vttUrl = await this.getCurrentVTTUrl();
-                if (vttUrl) {
-                    if (DEBUG) console.log('TTS: Loading VTT from:', vttUrl);
+                    // 2) Fallback: kostenlose Browser-Stimme liest die VTT-Cues.
+                    this.mode = 'browser';
+                    const vttUrl = await this.getCurrentVTTUrl();
+                    if (!vttUrl) {
+                        console.error('TTS: No VTT URL found - captions may not be available for this video');
+                        this.isActive = false;
+                        return;
+                    }
                     this.cues = await this.parseVTT(vttUrl);
-                    if (DEBUG) console.log('TTS: Loaded', this.cues.length, 'cues');
                     if (this.cues.length === 0) {
                         console.warn('TTS: No cues found in VTT file');
                         this.isActive = false;
                         return;
                     }
-                } else {
-                    console.error('TTS: No VTT URL found - captions may not be available for this video');
-                    this.isActive = false;
-                    return;
+                    if (DEBUG) console.log('TTS: Using browser speechSynthesis,', this.cues.length, 'cues');
                 }
 
                 // Video muten - mehrere Methoden für Robustheit
@@ -1396,9 +1455,23 @@
                 this.video.muted = true;
                 if (DEBUG) console.log('TTS: Video muted, original volume was:', this.originalVolume);
 
+                // Untertitel ausblenden, solange vorgelesen wird (Ton läuft ggf. hinterher → passt sonst nicht).
+                this.video._ttsActive = true;
+                const ov = this.feedItem?.querySelector('.video-caption-overlay');
+                if (ov) {
+                    ov.classList.add('is-empty');
+                    const t = ov.querySelector('.video-caption-text');
+                    if (t) t.textContent = '';
+                }
+
+                this.currentCueIndex = -1;
+                this.nextCueIndex = 0;
+                this.isSpeaking = false;
+
                 this.video.addEventListener('timeupdate', this.onTimeUpdate);
                 this.video.addEventListener('pause', this.onPause);
                 this.video.addEventListener('play', this.onPlay);
+                this.video.addEventListener('seeking', this.onSeeking);
 
                 if (DEBUG) console.log('TTS: Activated successfully');
             }
@@ -1415,6 +1488,13 @@
                 this.video.removeEventListener('timeupdate', this.onTimeUpdate);
                 this.video.removeEventListener('pause', this.onPause);
                 this.video.removeEventListener('play', this.onPlay);
+                this.video.removeEventListener('seeking', this.onSeeking);
+
+                // Untertitel wieder erlauben und aktuellen Stand neu zeichnen.
+                this.video._ttsActive = false;
+                if (typeof this.video._subtitleRefreshHandler === 'function') {
+                    this.video._subtitleRefreshHandler();
+                }
 
                 if (DEBUG) console.log('TTS: Deactivated, volume restored to:', this.video.volume, 'muted:', this.video.muted);
             }
@@ -1482,49 +1562,206 @@
                 }
             }
 
-            onTimeUpdate() {
-                if (!this.isActive || !this.cues.length) return;
+            // MUSS synchron in der Tap-Geste laufen (VOR jedem await): entsperrt das Audio-Element auf
+            // Mobil (iOS/Android blockieren sonst spätere programmatische play()-Aufrufe). Danach kann
+            // dasselbe Element beliebig oft per src-Wechsel abgespielt werden.
+            ensurePool() {
+                if (!this.pool) {
+                    const make = () => {
+                        const a = new Audio();
+                        a.preload = 'auto';
+                        a.setAttribute('playsinline', '');
+                        a.playsInline = true;
+                        return a;
+                    };
+                    this.pool = [make(), make()];
+                }
+                return this.pool;
+            }
 
-                const currentTime = this.video.currentTime;
+            // MUSS synchron in der Tap-Geste laufen (VOR jedem await): entsperrt BEIDE Pool-Elemente auf
+            // Mobil (iOS/Android blockieren sonst spätere programmatische play()). Danach beliebig per
+            // src-Wechsel abspielbar.
+            prime() {
+                try {
+                    const pool = this.ensurePool();
+                    if (this._primed) return;
+                    const silent = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQAAAAA=';
+                    pool.forEach((el, idx) => {
+                        try {
+                            el.src = silent;
+                            const p = el.play();
+                            if (p && p.then) {
+                                p.then(() => { try { el.pause(); el.currentTime = 0; } catch (e) {} voLog('prime unlock OK el#' + idx); })
+                                 .catch(err => voLog('prime unlock BLOCKED el#' + idx + ': ' + (err && err.name)));
+                            }
+                        } catch (e) { voLog('prime threw: ' + e); }
+                    });
+                    this._primed = true;
+                } catch (e) { /* best effort */ }
+            }
 
-                // Starte TTS 0.4 Sekunden FRÜHER um Verzögerung zu kompensieren
-                const lookAheadTime = currentTime + 0.4;
-
-                const cue = this.cues.find(c => lookAheadTime >= c.start && currentTime < c.end);
-
-                if (cue) {
-                    const cueIndex = this.cues.indexOf(cue);
-                    if (cueIndex !== this.currentCueIndex) {
-                        this.currentCueIndex = cueIndex;
-                        this.speak(cue.text);
-                    }
-                } else {
-                    // Nur stoppen wenn wir wirklich außerhalb aller Cues sind
-                    const inAnyCue = this.cues.some(c => currentTime >= c.start && currentTime < c.end);
-                    if (!inAnyCue) {
-                        this.stopSpeaking();
-                    }
+            // Lädt eine Cue-URL schon mal ins freie Pool-Element (verzögerungsfreier Start).
+            preload(url) {
+                if (!url || !this.pool) return;
+                const spare = this.pool.find(el => el !== this.activeEl) || this.pool[0];
+                if (spare && spare.src !== url) {
+                    try { spare.pause(); } catch (e) {}
+                    spare.src = url;
+                    try { spare.load(); } catch (e) {}
                 }
             }
 
-            speak(text) {
+            getVideoGuid() {
+                // Bevorzugt das serverseitige data-Attribut — video.src ist bei HLS.js eine blob:-URL.
+                const fromData = this.video && this.video.dataset ? this.video.dataset.videoGuid : '';
+                if (fromData) return fromData;
+                const source = this.video.getAttribute('src') || this.video.src || '';
+                if (source.toLowerCase().indexOf('/playlist.m3u8') < 0) return null;
+                const parts = source.split('/');
+                return parts[parts.length - 2] || null;
+            }
+
+            buildCueUrl(i) {
+                const guid = this.getVideoGuid();
+                if (!guid || !bunnyStorageCaptionHost) return null;
+                return `https://${bunnyStorageCaptionHost}/tts/voiceover/${guid}/${this.langCode}/cue-${i}.mp3`;
+            }
+
+            // Lädt das Polly-Voiceover-Manifest der aktuellen Sprache (falls vorhanden). 404 → null → Fallback.
+            async loadVoiceoverManifest() {
+                try {
+                    const guid = this.getVideoGuid();
+                    if (!guid || !bunnyStorageCaptionHost) return null;
+                    const url = `https://${bunnyStorageCaptionHost}/tts/voiceover/${guid}/${this.langCode}.json`;
+                    const resp = await fetch(url, { cache: 'no-store' });
+                    if (!resp.ok) return null;
+                    return await resp.json();
+                } catch (e) {
+                    return null;
+                }
+            }
+
+            onTimeUpdate() {
+                if (!this.isActive || !this.cues.length) return;
+                this.trySpeakNext();
+            }
+
+            // Spricht die Cues STRENG DER REIHE NACH. Die nächste Cue startet erst, wenn (a) die
+            // vorige fertig gesprochen ist UND (b) das Video ihren Startzeitpunkt erreicht hat.
+            // Es wird NICHTS übersprungen → kein Kontextverlust. Bei dichter Sprache kann der Ton
+            // dem Video etwas hinterherlaufen; in den Sprech-Pausen des Videos holt er wieder auf.
+            trySpeakNext() {
+                if (this.isSpeaking) return;
+                if (this.nextCueIndex >= this.cues.length) return;
+
+                const cue = this.cues[this.nextCueIndex];
+                if (this.video.currentTime + 0.3 >= cue.start) {
+                    this.currentCueIndex = this.nextCueIndex;
+                    this.nextCueIndex++;
+                    this.speak(cue);
+                }
+            }
+
+            speak(cue) {
                 this.stopSpeaking();
 
-                if (!text || text.trim() === '') return;
+                if (this.mode === 'polly') {
+                    // Vorerzeugte Polly-MP3 aus dem Doppel-Puffer abspielen (mobil entsperrt + vorgeladen).
+                    if (!cue || !cue.url) { this.isSpeaking = false; return; }
+                    this.ensurePool();
+                    // Element wählen, das die Cue evtl. schon vorgeladen hat, sonst das freie.
+                    let audio = this.pool.find(el => el.src === cue.url) || this.pool.find(el => el !== this.activeEl) || this.pool[0];
+                    this.activeEl = audio;
+
+                    // Der Satz soll ins VTT-Fenster passen: länger → schneller, kürzer → langsamer;
+                    // gedeckelt auf 0.7x–2.0x. Rate mehrfach anwenden (manche Browser setzen sie beim Start zurück).
+                    const windowDur = (typeof cue.start === 'number' && typeof cue.end === 'number')
+                        ? (cue.end - cue.start) : 0;
+                    this._targetRate = 1.0;
+                    const applyRate = () => {
+                        if (windowDur > 0.3 && isFinite(audio.duration) && audio.duration > 0) {
+                            this._targetRate = Math.max(0.7, Math.min(audio.duration / windowDur, 2.0));
+                        }
+                        try { audio.playbackRate = this._targetRate; } catch (e) {}
+                    };
+                    audio.onloadedmetadata = applyRate;
+                    audio.oncanplay = applyRate;
+                    audio.onplaying = () => { try { audio.playbackRate = this._targetRate; } catch (e) {} };
+                    audio.onended = () => this.onUtteranceEnd();
+                    audio.onerror = () => {
+                        voLog('audio-error code=' + (audio.error && audio.error.code) + ' url=' + cue.url);
+                        this.onUtteranceEnd();
+                    };
+
+                    this.isSpeaking = true;
+                    try { audio.pause(); } catch (e) {}
+                    audio.playbackRate = 1.0;
+                    if (audio.src !== cue.url) audio.src = cue.url;
+                    try { audio.currentTime = 0; } catch (e) {}
+                    applyRate();
+                    voLog('play cue#' + this.currentCueIndex + ' url=' + cue.url);
+                    const p = audio.play();
+                    if (p && p.then) {
+                        p.then(() => voLog('playing OK cue#' + this.currentCueIndex + ' rate=' + audio.playbackRate.toFixed(2)))
+                         .catch(err => {
+                             voLog('play() BLOCKED/failed: ' + (err && err.name) + ' - ' + (err && err.message));
+                             this.onUtteranceEnd();
+                         });
+                    }
+
+                    // Nächste Cue schon vorladen → verzögerungsfreier Start (kein Nachhinken).
+                    const next = this.cues[this.nextCueIndex];
+                    if (next && next.url) this.preload(next.url);
+                    return;
+                }
+
+                // Fallback: Browser-Sprachausgabe des Cue-Textes.
+                const text = cue ? cue.text : '';
+                if (!text || text.trim() === '') { this.isSpeaking = false; return; }
 
                 this.utterance = new SpeechSynthesisUtterance(text);
                 this.utterance.lang = this.language;
-                this.utterance.rate = 1.8; // Sehr schnelle Sprechgeschwindigkeit für Video-Synchronisation
+                // Natürlichere Geschwindigkeit — der Satz darf jetzt komplett ausklingen, statt ins
+                // Zeitfenster gequetscht zu werden.
+                this.utterance.rate = 1.15;
                 this.utterance.pitch = 1.0;
                 this.utterance.volume = 1.0;
+                this.utterance.onend = () => this.onUtteranceEnd();
+                this.utterance.onerror = () => this.onUtteranceEnd();
 
+                this.isSpeaking = true;
                 speechSynthesis.speak(this.utterance);
             }
 
+            onUtteranceEnd() {
+                this.isSpeaking = false;
+                this.utterance = null;
+                if (!this.isActive) return;
+
+                // Satz fertig → sofort die nächste Cue der Reihe nach (falls ihr Startzeitpunkt schon
+                // erreicht ist). So wird nichts ausgelassen; in Video-Pausen holt der Ton auf.
+                this.trySpeakNext();
+            }
+
             stopSpeaking() {
+                this.isSpeaking = false;
                 if (this.utterance) {
-                    speechSynthesis.cancel();
+                    this.utterance.onend = null;
+                    this.utterance.onerror = null;
                     this.utterance = null;
+                }
+                speechSynthesis.cancel();
+                if (this.pool) {
+                    // Beide Elemente stoppen, Handler lösen, aber BEHALTEN (bleiben mobil entsperrt).
+                    this.pool.forEach(el => {
+                        try { el.pause(); } catch (e) {}
+                        el.onended = null;
+                        el.onerror = null;
+                        el.onloadedmetadata = null;
+                        el.oncanplay = null;
+                        el.onplaying = null;
+                    });
                 }
             }
 
@@ -1533,7 +1770,16 @@
             }
 
             onPlay() {
-                // Resume will be handled by onTimeUpdate
+                // Resume wird über onTimeUpdate gehandhabt.
+            }
+
+            onSeeking() {
+                // Nach einem Sprung: aktuellen Satz abbrechen und die Warteschlange an die neue
+                // Position setzen (erste Cue, die bei/nach der aktuellen Zeit noch läuft/beginnt).
+                this.stopSpeaking();
+                const t = this.video.currentTime;
+                const idx = this.cues.findIndex(c => t < c.end);
+                this.nextCueIndex = idx === -1 ? this.cues.length : idx;
             }
         }
 
@@ -1554,17 +1800,19 @@
             }
 
             const isActive = button.classList.contains('is-active');
-            if (DEBUG) console.log('TTS toggleTTS - current isActive:', isActive);
+            voLog('toggle TAP, wasActive=' + isActive);
 
             if (isActive) {
-                // Deactivate TTS
-                if (DEBUG) console.log('TTS: Deactivating...');
-                const controller = ttsControllers.get(video);
-                if (controller) {
-                    controller.deactivate();
-                }
+                // Deactivate TTS — Klasse ZUERST entfernen, damit der Button immer toggelt,
+                // selbst falls deactivate() wirft.
                 button.classList.remove('is-active');
                 button.setAttribute('aria-pressed', 'false');
+                try {
+                    const controller = ttsControllers.get(video);
+                    if (controller) controller.deactivate();
+                } catch (e) {
+                    voLog('deactivate error: ' + (e && e.message ? e.message : e));
+                }
             } else {
                 // Activate TTS
                 if (DEBUG) console.log('TTS: Activating...');
@@ -1574,6 +1822,10 @@
                     controller = new TTSController(video, feedItem);
                     ttsControllers.set(video, controller);
                 }
+
+                // WICHTIG: Audio SYNCHRON in dieser Tap-Geste entsperren (vor jedem await), sonst
+                // blockiert Mobil (iOS/Android) die späteren play()-Aufrufe → kein Ton am Handy.
+                controller.prime();
 
                 try {
                     await controller.activate();
@@ -1979,6 +2231,51 @@
             });
 
             video.addEventListener('ended', () => setVideoProgress(container, 1));
+
+            // Make the progress bar seekable: tap to jump, swipe/drag to scrub.
+            const bar = container.querySelector('.video-progress');
+            if (bar && bar.dataset.seekBound !== 'true') {
+                bar.dataset.seekBound = 'true';
+                let scrubbing = false;
+                let resumeAfter = false;
+
+                const fractionFromEvent = (e) => {
+                    const rect = bar.getBoundingClientRect();
+                    if (rect.width <= 0) return 0;
+                    return Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
+                };
+                const seekTo = (frac) => {
+                    const dur = Number.isFinite(video.duration) && video.duration > 0 ? video.duration : 0;
+                    if (dur <= 0) return;
+                    video.currentTime = frac * dur;
+                    setVideoProgress(container, frac);
+                };
+
+                bar.addEventListener('pointerdown', (e) => {
+                    scrubbing = true;
+                    resumeAfter = !video.paused;
+                    try { video.pause(); } catch { }
+                    container.classList.add('is-scrubbing');
+                    try { bar.setPointerCapture(e.pointerId); } catch { }
+                    seekTo(fractionFromEvent(e));
+                    e.preventDefault();
+                    e.stopPropagation();
+                });
+                bar.addEventListener('pointermove', (e) => {
+                    if (!scrubbing) return;
+                    seekTo(fractionFromEvent(e));
+                    e.preventDefault();
+                });
+                const endScrub = (e) => {
+                    if (!scrubbing) return;
+                    scrubbing = false;
+                    container.classList.remove('is-scrubbing');
+                    try { bar.releasePointerCapture(e.pointerId); } catch { }
+                    if (resumeAfter) { const p = video.play(); if (p && p.catch) p.catch(() => { }); }
+                };
+                bar.addEventListener('pointerup', endScrub);
+                bar.addEventListener('pointercancel', endScrub);
+            }
         }
 
         async function shareRecipeFromButton(btn) {
@@ -4984,7 +5281,7 @@
             feedContainer.addEventListener('touchstart', (event) => {
                 const touch = event.changedTouches?.[0];
                 if (!touch) return;
-                startedOnControl = !!event.target?.closest?.('button, a, input, textarea, select, [role="button"], .action-btn, .nav-item, .section-pill');
+                startedOnControl = !!event.target?.closest?.('button, a, input, textarea, select, [role="button"], .action-btn, .nav-item, .section-pill, .video-progress');
                 touchStartX = touch.clientX;
                 touchStartY = touch.clientY;
             }, { passive: true });

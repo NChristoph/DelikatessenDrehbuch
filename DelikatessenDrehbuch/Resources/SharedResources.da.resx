@@ -1654,4 +1654,13 @@
   <data name="CreatePosting.Ingredient" xml:space="preserve"><value>Ingrediens</value></data>
   <data name="CreatePosting.CaptionVttLabel" xml:space="preserve"><value>Indsæt undertekster (valgfrit)</value></data>
   <data name="CreatePosting.CaptionVttHint" xml:space="preserve"><value>Indsæt WEBVTT-tekst her — bruges som tysk kilde (i stedet for automatisk transskription); oversættelse sker automatisk. Overskriften tilføjes om nødvendigt.</value></data>
+  <data name="Recipe.ReadAloud" xml:space="preserve">
+    <value>Læs højt Stop</value>
+  </data>
+  <data name="Recipe.StopReading" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="Video.TooLong.Toast" xml:space="preserve">
+    <value>Din video er {0}s – maks. 90 sekunder. Premium-creators har ingen længdegrænse.</value>
+  </data>
 </root>

@@ -287,7 +287,7 @@
                             </label>
                             <textarea name="captionVttText" id="captionVttInput" rows="6" spellcheck="false"
                                       placeholder="00:00:00.000 --> 00:00:03.000&#10;Butter schmelzen.&#10;&#10;00:00:04.000 --> 00:00:06.000&#10;Zucker hinzufügen und verrühren."
-                                      style="width:100%;box-sizing:border-box;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--cp-ink-deep);border:1px solid rgba(20,57,31,0.2);border-radius:var(--cp-radius-md,10px);padding:10px;background:#fff;resize:vertical;"></textarea>
+                                      style="width:100%;box-sizing:border-box;font-size:13px;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--cp-ink-deep);border:1px solid rgba(20,57,31,0.2);border-radius:var(--cp-radius-md,10px);padding:10px;background:#fff;resize:vertical;">@(ViewData["EditCaptionVtt"] ?? "")</textarea>
                             <div style="font-size:12px;color:var(--cp-ink-mute);margin-top:4px;">
                                 @SharedLocalizer["CreatePosting.CaptionVttHint"]
                             </div>
@@ -785,12 +785,16 @@ button, input, select, textarea { touch-action: manipulation; }
             btnCollapseText: "@SharedLocalizer["AI.CollapseTextInput"]"
         };
 
+        // Premium-Creators haben keine Video-Längen-Grenze.
+        window.IsPremiumCreator = @((ViewData["IsPremiumCreator"] as bool? == true) ? "true" : "false");
+
         // Video Upload Validation i18n from SharedResources.resx
         window.VideoUploadI18n = {
             tooLongTitle: "@SharedLocalizer["Video.TooLong.Title"]",
             tooLongMaxLength: "@SharedLocalizer["Video.TooLong.MaxLength"]",
             tooLongYourLength: "@SharedLocalizer["Video.TooLong.YourLength"]",
             tooLongMessage: "@SharedLocalizer["Video.TooLong.Message"]",
+            tooLongToast: "@SharedLocalizer["Video.TooLong.Toast"]",
             loadError: "@SharedLocalizer["Video.LoadError"]"
         };
     </script>

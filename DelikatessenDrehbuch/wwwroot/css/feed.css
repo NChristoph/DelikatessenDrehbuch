@@ -129,15 +129,26 @@
             left: 12px;
             right: 12px;
             bottom: 90px;
-            z-index: 4;
+            z-index: 6;
             height: 4px;
             border-radius: 999px;
             background: rgba(255, 255, 255, 0.22);
-            overflow: hidden;
-            pointer-events: none;
+            pointer-events: auto;      /* seek/scrub by tap + swipe */
+            touch-action: none;        /* don't let the vertical feed scroll steal the drag */
+            cursor: pointer;
             opacity: 0;
             transform: translateY(6px);
-            transition: opacity 0.2s ease, transform 0.2s ease;
+            transition: opacity 0.2s ease, transform 0.2s ease, height 0.12s ease;
+        }
+
+        /* Invisible, larger grab area so the thin bar is easy to hit with a finger. */
+        .video-progress::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: -16px;
+            bottom: -16px;
         }
 
         .feed-item.has-video .video-progress {
@@ -145,13 +156,32 @@
             transform: translateY(0);
         }
 
+        /* While scrubbing: thicker bar + a playhead knob for feedback. */
+        .feed-item.is-scrubbing .video-progress {
+            height: 6px;
+        }
+
         .video-progress-fill {
+            position: relative;
             width: 0;
             height: 100%;
             border-radius: inherit;
             background: linear-gradient(90deg, #ff9966 0%, #ff5e62 100%);
             box-shadow: 0 0 12px rgba(255, 94, 98, 0.45);
             transform-origin: left center;
+        }
+
+        .feed-item.is-scrubbing .video-progress-fill::after {
+            content: "";
+            position: absolute;
+            right: -7px;
+            top: 50%;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #fff;
+            transform: translateY(-50%);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.45);
         }
 
         .video-caption-overlay {

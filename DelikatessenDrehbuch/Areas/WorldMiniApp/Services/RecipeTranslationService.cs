@@ -11,7 +11,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
     {
         private const string OpenAiEndpoint = "https://api.openai.com/v1/chat/completions";
         private const string DefaultModel = "gpt-4o-mini";
-        private const int TimeoutSeconds = 60;
+        // Übersetzung ALLER 10 Sprachen in einem Call (strict JSON, bis 8000 Tokens) kann bei großen
+        // Rezepten >60 s dauern → früher lief das in einen Timeout und nur die deutschen Schritte wurden
+        // gespeichert. Default auf 180 s angehoben, per Config übersteuerbar.
+        private const int DefaultTimeoutSeconds = 180;
 
         // Input caps: keep user-provided recipe content within a sane token budget so a huge
         // paste cannot blow past the output limit (which would truncate the JSON and fail silently).
@@ -33,7 +36,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             _httpClient = httpClient;
             _config = config;
             _logger = logger;
-            _httpClient.Timeout = TimeSpan.FromSeconds(TimeoutSeconds);
+            var timeoutSeconds = config.GetValue<int?>("OpenAI:TranslationTimeoutSeconds") ?? DefaultTimeoutSeconds;
+            if (timeoutSeconds < 30) timeoutSeconds = 30;
+            _httpClient.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
         }
 
         /// <summary>
@@ -170,9 +175,16 @@ Guidelines:
 - Use IMPERATIVE verb forms in all languages (e.g., German: ""Schneide"", English: ""Cut"", not infinitives).
 - Maintain proper grammar and natural phrasing for each language.
 - Keep cooking terminology accurate.
-- Preserve formatting (line breaks, numbering if present).
 - Be context-aware (consider the dish type for better translations).
-- If a section is empty, return an empty string for every language of that section.";
+- If a section is empty, return an empty string for every language of that section.
+
+STEP FORMATTING (very important — the app renders each line as its own numbered ""Step N"" card):
+- Split the cooking STEPS into clear, discrete, logical steps: put EXACTLY ONE step per line, separated by a single newline character (\n). Never merge the whole preparation into one paragraph.
+- Even if the input steps arrive as one continuous block of text, intelligently break them into sensible individual steps (one action, or a few closely related actions, per line).
+- Do NOT prefix lines with numbers, bullets, dashes, or markdown symbols (no ""1."", ""-"", ""*"", ""#"", ""**""). The app adds the ""Step N"" heading itself. Output plain instruction lines only.
+- Keep each step reasonably short and actionable.
+- Use the SAME number of steps (lines), in the same order, for EVERY language, so the languages stay aligned.
+- Do not add a heading, title, intro, or trailing notes — only the step lines.";
         }
 
         private static object BuildTranslationSchema()

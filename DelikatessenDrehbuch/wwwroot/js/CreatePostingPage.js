@@ -240,7 +240,9 @@
                     preferences: ($('select[name="Recipe.Preferences"]').val() || '').toString(),
                     personCount: ($('input[name="Recipe.PersonCount"]').val() || '').toString(),
                     preparationTime: ($('input[name="Recipe.PreparationTime"]').val() || '').toString(),
-                    ingredientSearch: ($('#ingredientSearch').val() || '').toString()
+                    ingredientSearch: ($('#ingredientSearch').val() || '').toString(),
+                    stepsText: ($('#stepsTextInput').val() || '').toString(),
+                    captionVtt: ($('#captionVttInput').val() || '').toString()
                 },
                 selectedIngredientsHtml: ($('#selectedIngredients').html() || '').toString(),
                 selectedStepsHtml: ($('#selectedSteps').html() || '').toString(),
@@ -275,6 +277,8 @@
                 (basics.preferences || '').toString().trim() ||
                 (basics.personCount || '').toString().trim() ||
                 (basics.preparationTime || '').toString().trim() ||
+                (basics.stepsText || '').toString().trim() ||
+                (basics.captionVtt || '').toString().trim() ||
                 (draft.selectedIngredientsHtml || '').toString().trim() ||
                 (draft.selectedStepsHtml || '').toString().trim() ||
                 (draft.selectedKeywordsHtml || '').toString().trim()
@@ -296,6 +300,8 @@
                 $('input[name="Recipe.PersonCount"]').val(basics.personCount || '');
                 $('input[name="Recipe.PreparationTime"]').val(basics.preparationTime || '');
                 $('#ingredientSearch').val(basics.ingredientSearch || '');
+                $('#stepsTextInput').val(basics.stepsText || '');
+                $('#captionVttInput').val(basics.captionVtt || '');
 
                 $('#selectedIngredients').html((draft.selectedIngredientsHtml || '').toString());
                 $('#selectedSteps').html((draft.selectedStepsHtml || '').toString());
@@ -3057,13 +3063,6 @@
             });
         }
 
-        function setMasterTemplateError(message) {
-            // OLD SYSTEM - SmartStep Template Builder removed
-            // No-op stub to prevent errors
-            console.log('Template error (old system):', message);
-            return;
-        }
-
         function refreshMasterTemplateBuilder() {
             // OLD SYSTEM - SmartStep Template Builder removed
             // No-op stub to prevent errors
@@ -3489,6 +3488,42 @@
 
         var _currentPreviewBlobUrl = null;
 
+        // Schöner, selbstständiger Toast (unten mittig) statt window.alert().
+        // type: 'warn' (grün, Hinweis) | 'error' (rot).
+        function showVideoNotice(message, type) {
+            let el = document.getElementById('videoNoticeToast');
+            if (!el) {
+                el = document.createElement('div');
+                el.id = 'videoNoticeToast';
+                el.setAttribute('role', 'alert');
+                el.setAttribute('aria-live', 'assertive');
+                document.body.appendChild(el);
+            }
+            const isError = type === 'error';
+            el.style.cssText = [
+                'position:fixed', 'left:50%', 'bottom:28px',
+                'transform:translateX(-50%) translateY(12px)',
+                'max-width:88%', 'width:max-content', 'z-index:20000',
+                'padding:14px 18px', 'border-radius:16px',
+                'font-size:14.5px', 'line-height:1.45', 'font-weight:600',
+                'color:#fff', 'text-align:center', 'white-space:normal',
+                'background:' + (isError ? '#b3402f' : '#14391f'),
+                'box-shadow:0 10px 30px rgba(0,0,0,0.28)',
+                'opacity:0', 'transition:opacity .25s ease, transform .25s ease',
+                'pointer-events:none'
+            ].join(';');
+            el.textContent = message;
+            requestAnimationFrame(function () {
+                el.style.opacity = '1';
+                el.style.transform = 'translateX(-50%) translateY(0)';
+            });
+            if (el._hideTimer) { clearTimeout(el._hideTimer); }
+            el._hideTimer = setTimeout(function () {
+                el.style.opacity = '0';
+                el.style.transform = 'translateX(-50%) translateY(12px)';
+            }, 5000);
+        }
+
         function handleVideoUpload(input) {
             if (input.files && input.files[0]) {
                 const file = input.files[0];
@@ -3508,14 +3543,15 @@
                         window.URL.revokeObjectURL(tempVideo.src);
                         const duration = tempVideo.duration;
 
-                        if (duration > 90) {
+                        // Premium-Creators haben KEINE Längen-Grenze — Prüfung nur für Nicht-Premium.
+                        if (!window.IsPremiumCreator && duration > 90) {
                             const i18n = window.VideoUploadI18n || {};
-                            const title = i18n.tooLongTitle || 'Video ist zu lang!';
-                            const maxLength = i18n.tooLongMaxLength || 'Maximale Länge: 90 Sekunden';
-                            const yourLength = (i18n.tooLongYourLength || 'Ihre Video-Länge: {0} Sekunden').replace('{0}', Math.round(duration));
-                            const message = i18n.tooLongMessage || 'Bitte wählen Sie ein kürzeres Video.';
+                            const seconds = Math.round(duration);
+                            const toastText = (i18n.tooLongToast
+                                || 'Dein Video ist {0}s lang – erlaubt sind max. 90 Sekunden. 💎 Als Premium-Creator gibt es keine Längenbegrenzung.')
+                                .replace('{0}', seconds);
 
-                            alert('❌ ' + title + '\n\n' + maxLength + '\n' + yourLength + '\n\n' + message);
+                            showVideoNotice(toastText, 'warn');
                             resetVideo();
                             input.value = '';
                             return;
@@ -3531,7 +3567,7 @@
                     tempVideo.onerror = function() {
                         const i18n = window.VideoUploadI18n || {};
                         const errorMsg = i18n.loadError || 'Fehler beim Laden des Videos. Bitte versuchen Sie es erneut.';
-                        alert('❌ ' + errorMsg);
+                        showVideoNotice(errorMsg, 'error');
                         resetVideo();
                         input.value = '';
                     };
@@ -6901,26 +6937,9 @@
 
             refreshDurationUnitControls();
             Promise.all([loadIngredientArticleRules(), loadIngredientTransforms()]).finally(() => {
-                const renderer = window.MasterStepRenderer;
-                if (!renderer || typeof renderer.load !== 'function') {
-                    setMasterTemplateError('Template-Fehler: MasterStepRenderer ist nicht geladen.');
-                    return;
-                }
-
-                renderer.load().then((result) => {
-                    if (!result) {
-                        const loadError = typeof renderer.getLastLoadError === 'function'
-                            ? renderer.getLastLoadError()
-                            : 'Template-Datei konnte nicht geladen werden.';
-                        setMasterTemplateError(`Template-Fehler: ${loadError}`);
-                        return;
-                    }
-                    refreshMasterTemplateBuilder();
-                    refreshIngredientProbabilityHints();
-                }).catch((error) => {
-                    const msg = error && error.message ? error.message : 'Unbekannter Fehler beim Laden.';
-                    setMasterTemplateError(`Template-Fehler: ${msg}`);
-                });
+                // OLD SYSTEM (MasterStepRenderer / SmartStep Template Builder) wurde entfernt — es gibt
+                // nichts mehr zu laden. Nur noch die Zutaten-Wahrscheinlichkeits-Hinweise aktualisieren.
+                refreshIngredientProbabilityHints();
             });
 
             // Page fully ready Ã¢â€ â€™ hide overlay, show content

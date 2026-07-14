@@ -89,6 +89,7 @@ namespace DelikatessenDrehbuch.Data
         // Trading Agents
         public DbSet<ChannelClaim> ChannelClaims { get; set; }
         public DbSet<IngredientSwapHint> IngredientSwapHints { get; set; }
+        public DbSet<PendingVideoUpload> PendingVideoUploads { get; set; }
 
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
             : base(options)
@@ -597,6 +598,18 @@ namespace DelikatessenDrehbuch.Data
                     .WithMany()
                     .HasForeignKey(x => x.BaseRecipeId)
                     .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            builder.Entity<PendingVideoUpload>(e =>
+            {
+                e.ToTable("PendingVideoUploads");
+                e.Property(x => x.UserHash).HasMaxLength(256);
+                e.Property(x => x.Title).HasMaxLength(256);
+                e.Property(x => x.VideoFilePath).HasMaxLength(500);
+                e.Property(x => x.Status).IsRequired().HasMaxLength(16);
+                e.Property(x => x.VideoGuid).HasMaxLength(128);
+                e.Property(x => x.Error).HasMaxLength(400);
+                e.HasIndex(x => x.Status);
             });
 
             builder.Entity<IngredientSwapHint>(e =>

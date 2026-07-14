@@ -211,7 +211,10 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             return View("~/Areas/WorldMiniApp/Views/Home/Personality.cshtml", model);
         }
 
-        [HttpGet]
+        // State-changing → POST + antiforgery (was [HttpGet], which was CSRF-able). Not referenced by
+        // the frontend (which uses SaveMealPlanFromLayout); kept POST for safety.
+        [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> SaveMealPlan(string mealPlanJson, int personCount, string userHash, string title)
         {
             var result = await ProcessMealPlanSaveAsync(mealPlanJson, personCount, userHash, title);

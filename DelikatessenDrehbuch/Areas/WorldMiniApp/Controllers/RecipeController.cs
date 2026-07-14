@@ -59,6 +59,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
         {
             userHash = ResolveUserHash(userHash);
 
+            // Premium-Creators haben keine Video-Längen-Grenze (Client-Check wird übersprungen).
+            ViewData["IsPremiumCreator"] = await IsCreatorPremiumAsync(userHash);
+
             var model = new WorldUserPosting()
             {
                 ToSelectIngredientsAndNutrients = await _context.IngredientsAndNutrients.Include(x => x.Group).ToListAsync(),
@@ -67,6 +70,22 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             };
 
             return View("~/Areas/WorldMiniApp/Views/Home/CreatePosting.cshtml", model);
+        }
+
+        /// <summary>True, wenn der Creator (userHash) ein gültiges Premium-Abo hat.</summary>
+        private async Task<bool> IsCreatorPremiumAsync(string? userHash)
+        {
+            if (string.IsNullOrWhiteSpace(userHash))
+            {
+                return false;
+            }
+
+            var until = await _context.WorldAppUser
+                .AsNoTracking()
+                .Where(u => u.UserHash == userHash)
+                .Select(u => u.PremiumUntil)
+                .FirstOrDefaultAsync();
+            return until.HasValue && until.Value > DateTime.UtcNow;
         }
 
         [HttpPost]
@@ -157,50 +176,65 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                     }
                 }
 
-                // 2. Copy all needed data (so we can access it after request ends)
-                // IMPORTANT: Extract simple data, not Entity objects to avoid DbContext tracking issues
-                var ingredientData = posting.IngredientMeasureQuantity?.Select(imq => new
+                // 2. Persist the upload durably BEFORE processing: video bytes to a temp file +
+                //    a PendingVideoUploads row with all metadata. If the process restarts/crashes
+                //    mid-upload, the startup resume service continues it (nothing is lost).
+                var ingredientData = posting.IngredientMeasureQuantity?.Select(imq => new UploadIngredientItem
                 {
                     IngredientId = imq.IngredientsAndNutrients?.Id ?? 0,
                     Quantity = imq.Quantity?.Quantitys ?? 0,
                     MeasureDe = imq.Measure?.Metrics_DE ?? ""
-                }).ToList();
+                }).ToList() ?? new List<UploadIngredientItem>();
 
-                var uploadData = new
+                var payload = new VideoUploadPayload
                 {
                     UserHash = userHash,
-                    Title = posting.Title,
+                    Title = posting.Title ?? string.Empty,
+                    FileName = posting.Content.FileName,
+                    ContentType = posting.Content.ContentType,
+                    StepsText = Request.Form["StepsText"].FirstOrDefault() ?? string.Empty,
                     Category = posting.Recipe.Category,
                     PersonCount = posting.Recipe.PersonCount,
                     PreparationTime = posting.Recipe.PreparationTime,
                     Preferences = posting.Recipe.Preferences,
-                    IngredientData = ingredientData,
-                    SelectedKeywordIds = posting.SelectedKeywordIds,
-                    StepsText = Request.Form["StepsText"].FirstOrDefault() ?? "",
                     IsOffline = posting.IsOffline,
-                    VideoBytes = videoBytes,
-                    FileName = posting.Content.FileName,
-                    ContentType = posting.Content.ContentType,
-                    ManualVttContent = manualVttContent
+                    ManualVttContent = manualVttContent,
+                    IngredientData = ingredientData,
+                    SelectedKeywordIds = posting.SelectedKeywordIds ?? new List<int>()
                 };
 
-                // Extract values for error logging (avoid dynamic in lambda)
-                var capturedUserHash = userHash;
-                var capturedTitle = posting.Title;
+                var videoFilePath = Path.Combine(
+                    DelikatessenDrehbuch.Areas.WorldMiniApp.Services.PendingUploadStorage.GetDirectory(),
+                    $"{Guid.NewGuid():N}.upload");
+                await System.IO.File.WriteAllBytesAsync(videoFilePath, videoBytes);
 
-                // 3. Start background task (Fire-and-Forget)
+                var pending = new PendingVideoUpload
+                {
+                    UserHash = userHash,
+                    Title = payload.Title,
+                    VideoFilePath = videoFilePath,
+                    PayloadJson = System.Text.Json.JsonSerializer.Serialize(payload),
+                    Status = "pending",
+                    CreatedAtUtc = DateTime.UtcNow,
+                    UpdatedAtUtc = DateTime.UtcNow
+                };
+                await _context.PendingVideoUploads.AddAsync(pending);
+                await _context.SaveChangesAsync();
+                var pendingId = pending.Id;
+
+                // 3. Start background processing (fire-and-forget). On crash, resume service takes over.
                 _ = Task.Run(async () =>
                 {
                     try
                     {
-                        await ProcessVideoUploadInBackgroundAsync(uploadData);
+                        using var scope = _serviceScopeFactory.CreateScope();
+                        var processor = scope.ServiceProvider
+                            .GetRequiredService<DelikatessenDrehbuch.Areas.WorldMiniApp.Services.IVideoUploadProcessor>();
+                        await processor.ProcessAsync(pendingId);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Background video upload failed for user {UserHash}", capturedUserHash);
-
-                        // Send error notification
-                        await SendUploadErrorNotificationAsync(capturedUserHash, capturedTitle, ex.Message);
+                        _logger.LogError(ex, "Background video upload dispatch failed for pending {PendingId}", pendingId);
                     }
                 });
 
@@ -400,7 +434,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return NotFound();
             }
 
-            if (!string.Equals(posting.CreatorId, userHash, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(posting.CreatorId, userHash, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(userHash, SuperUserHash, StringComparison.OrdinalIgnoreCase))
             {
                 return Forbid();
             }
@@ -416,6 +451,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             ViewData["IsEditMode"] = true;
             ViewData["PostingId"] = posting.Id;
             ViewData["RecipeId"] = posting.Recipe.Id;
+            // Premium-Creators haben keine Video-Längen-Grenze (basiert auf dem Kanal-Owner).
+            ViewData["IsPremiumCreator"] = await IsCreatorPremiumAsync(posting.CreatorId);
 
             var editData = new
             {
@@ -451,6 +488,18 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
 
             ViewData["EditStepsText"] = stepsForEdit?.Text ?? "";
             // SmartSteps REMOVED - using new simple translation system
+
+            // Existing German caption (de.vtt) so it can be edited in the form.
+            var editVideoGuid = TryExtractVideoGuid(posting.Source);
+            if (!string.IsNullOrEmpty(editVideoGuid))
+            {
+                var captionService = HttpContext.RequestServices.GetRequiredService<CaptionGenerationService>();
+                ViewData["EditCaptionVtt"] = await captionService.GetGermanCaptionAsync(editVideoGuid) ?? "";
+            }
+            else
+            {
+                ViewData["EditCaptionVtt"] = "";
+            }
 
             return View("~/Areas/WorldMiniApp/Views/Home/CreatePosting.cshtml", model);
         }
@@ -690,7 +739,8 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 return NotFound();
             }
 
-            if (!string.Equals(postingToEdit.CreatorId, userHash, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(postingToEdit.CreatorId, userHash, StringComparison.OrdinalIgnoreCase)
+                && !string.Equals(userHash, SuperUserHash, StringComparison.OrdinalIgnoreCase))
             {
                 return Forbid();
             }
@@ -889,6 +939,75 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
                 await transaction.CommitAsync();
 
                 _logger.LogInformation("Recipe {RecipeId} successfully updated by user {UserHash}.", postingToEdit.Recipe.Id, userHash);
+
+                // If the subtitle (WEBVTT) text was edited, overwrite de.vtt and re-translate all
+                // languages — in the background so the edit returns immediately, and only if it
+                // actually changed (avoid needless re-translation on every edit).
+                var editedVtt = (form["captionVttText"].FirstOrDefault() ?? string.Empty).Trim();
+                var vttVideoGuid = TryExtractVideoGuid(postingToEdit.Source);
+                if (!string.IsNullOrWhiteSpace(editedVtt)
+                    && (editedVtt.Contains("-->") || editedVtt.StartsWith("WEBVTT", StringComparison.OrdinalIgnoreCase))
+                    && !string.IsNullOrEmpty(vttVideoGuid))
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using var scope = _serviceScopeFactory.CreateScope();
+                            var captionService = scope.ServiceProvider.GetRequiredService<CaptionGenerationService>();
+                            var current = (await captionService.GetGermanCaptionAsync(vttVideoGuid) ?? string.Empty).Trim();
+                            if (!string.Equals(current, editedVtt, StringComparison.Ordinal))
+                            {
+                                await captionService.GenerateCaptionsFromSourceVttAsync(vttVideoGuid, editedVtt);
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Caption regeneration after edit failed. VideoGuid={VideoGuid}", vttVideoGuid);
+                        }
+                    });
+                }
+
+                // If the preparation steps changed AND the recipe's creator is Premium, re-voice the
+                // steps (TTS) in the background — mirrors the VTT re-translation above. Gating is on the
+                // CREATOR (posting owner), not the editor (a SuperUser may edit a foreign recipe).
+                if (!string.IsNullOrWhiteSpace(stepsText))
+                {
+                    var ttsRecipeId = postingToEdit.Recipe.Id;
+                    var ttsCreatorId = postingToEdit.CreatorId;
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            using var scope = _serviceScopeFactory.CreateScope();
+                            var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+                            var creator = await db.WorldAppUser
+                                .AsNoTracking()
+                                .FirstOrDefaultAsync(u => u.UserHash == ttsCreatorId);
+                            if (creator == null || !creator.IsPremiumActive)
+                            {
+                                return;
+                            }
+
+                            var freshSteps = await db.RecipeSteps
+                                .AsNoTracking()
+                                .Where(s => s.RecipeId == ttsRecipeId)
+                                .ToListAsync();
+                            if (freshSteps.Count == 0)
+                            {
+                                return;
+                            }
+
+                            var ttsService = scope.ServiceProvider.GetRequiredService<RecipeTtsService>();
+                            await ttsService.GenerateForRecipeAsync(ttsRecipeId, freshSteps);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "TTS regeneration after edit failed. RecipeId={RecipeId}", ttsRecipeId);
+                        }
+                    });
+                }
 
                 return RedirectToAction("MyProfile", "Feed", new { area = "WorldMiniApp", userHash });
             }
@@ -1434,282 +1553,17 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             };
         }
 
-        // Helper method for background video processing
-        private async Task ProcessVideoUploadInBackgroundAsync(dynamic uploadData)
+        // Extracts the Bunny Stream video GUID from a posting Source URL
+        // (e.g. https://vz-...b-cdn.net/{guid}/playlist.m3u8). Null for image posts.
+        private static string? TryExtractVideoGuid(string? source)
         {
-            // Extract all values from dynamic object to avoid dynamic binding issues
-            string title = uploadData.Title;
-            string userHash = uploadData.UserHash;
-            byte[] videoBytes = uploadData.VideoBytes;
-            string fileName = uploadData.FileName;
-            string contentType = uploadData.ContentType;
-            string stepsText = uploadData.StepsText;
-            string category = uploadData.Category;
-            int personCount = uploadData.PersonCount;
-            int preparationTime = uploadData.PreparationTime;
-            string preferences = uploadData.Preferences;
-            bool isOffline = uploadData.IsOffline;
-            var ingredientData = uploadData.IngredientData as IEnumerable<dynamic>;
-            List<int> selectedKeywordIds = uploadData.SelectedKeywordIds;
-            string? manualVttContent = uploadData.ManualVttContent;
-
-            // Create new scope (important for DbContext!)
-            using var scope = _serviceScopeFactory.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-            var blobUpload = scope.ServiceProvider.GetRequiredService<IBlobUploadService>();
-            var saveRecipeService = scope.ServiceProvider.GetRequiredService<ISaveNewRecipeService>();
-            var translationService = scope.ServiceProvider.GetRequiredService<RecipeTranslationService>();
-
-            _logger.LogInformation("Starting background upload for {Title} by {UserHash}", title, userHash);
-
-            // 1. Upload video to Bunny (BLOCKS 3-4 minutes, but in background)
-            var videoFile = CreateFormFileFromBytes(videoBytes, fileName, contentType);
-            var uploadResult = await blobUpload.UploadContentToBlob(videoFile);
-
-            _logger.LogInformation("Video uploaded to Bunny: {Url}", uploadResult.SourceUrl);
-
-            try
+            if (string.IsNullOrWhiteSpace(source) || !Uri.TryCreate(source, UriKind.Absolute, out var uri))
             {
-            // 2. AI translation (if steps provided)
-            List<RecipeSteps> recipeSteps = new();
-            if (!string.IsNullOrWhiteSpace(stepsText))
-            {
-                var translation = await translationService.TranslateRecipeAsync(
-                    title,
-                    stepsText,
-                    CancellationToken.None);
-
-                var now = DateTime.UtcNow;
-                var stepTranslations = new Dictionary<string, string>
-                {
-                    { "de", translation.Steps.De },
-                    { "en", translation.Steps.En },
-                    { "esp", translation.Steps.Esp },
-                    { "prt", translation.Steps.Prt },
-                    { "id", translation.Steps.Id },
-                    { "nl", translation.Steps.Nl },
-                    { "sv", translation.Steps.Sv },
-                    { "da", translation.Steps.Da },
-                    { "no", translation.Steps.No },
-                    { "ms", translation.Steps.Ms }
-                };
-
-                foreach (var kvp in stepTranslations)
-                {
-                    if (!string.IsNullOrWhiteSpace(kvp.Value))
-                    {
-                        recipeSteps.Add(new RecipeSteps
-                        {
-                            Culture = kvp.Key,
-                            Text = kvp.Value,
-                            CreatedAt = now
-                        });
-                    }
-                }
-
-                // Fallback: if the translation failed/returned nothing, keep at least the original
-                // German steps so a recipe is never saved completely without instructions.
-                if (!recipeSteps.Any(s => s.Culture == "de"))
-                {
-                    recipeSteps.Add(new RecipeSteps
-                    {
-                        Culture = "de",
-                        Text = stepsText.Trim(),
-                        CreatedAt = now
-                    });
-                    if (!translation.Success)
-                    {
-                        _logger.LogWarning("Recipe step translation failed for '{Title}'; saved original German steps only.", title);
-                    }
-                }
+                return null;
             }
-
-            // 3. Reconstruct IngredientMeasureQuantity from simple data (avoid DbContext tracking issues)
-            var ingredientMeasureQuantity = new List<IngredientMeasureQuantity>();
-            if (ingredientData != null)
-            {
-                foreach (var item in ingredientData)
-                {
-                    int ingredientId = item.IngredientId;
-                    double quantity = item.Quantity;
-                    string measureDe = item.MeasureDe;
-
-                    if (ingredientId > 0 && quantity > 0)
-                    {
-                        var ingredient = await context.IngredientsAndNutrients.FindAsync(ingredientId);
-                        var measure = await context.Metrics.FirstOrDefaultAsync(m => m.Metrics_DE == measureDe);
-
-                        if (ingredient != null && measure != null)
-                        {
-                            ingredientMeasureQuantity.Add(new IngredientMeasureQuantity
-                            {
-                                IngredientsAndNutrients = ingredient,
-                                Measure = measure,
-                                Quantity = new Quantity { Quantitys = quantity }
-                            });
-                        }
-                    }
-                }
-            }
-
-            // 4. Save recipe
-            var recipeModel = new SaveNewRecipeModel
-            {
-                Recipes = new Recipes
-                {
-                    Name = title,
-                    Category = category,
-                    RecipePersonCount = personCount,
-                    PreparationTime = preparationTime,
-                    // For videos, use thumbnail URL; for images, use the image itself
-                    ImagePath = !string.IsNullOrEmpty(uploadResult.ThumbnailUrl)
-                        ? uploadResult.ThumbnailUrl
-                        : uploadResult.SourceUrl
-                },
-                Querys = preferences,
-                IngredientMeasureQuantity = ingredientMeasureQuantity,
-                RecipeSteps = recipeSteps
-            };
-
-            var recipe = await saveRecipeService.SaveNewAsync(recipeModel, true);
-
-            if (recipe == null)
-            {
-                throw new InvalidOperationException("Recipe save failed");
-            }
-
-            // 5. Create WorldUserPosting
-            var user = await context.WorldAppUser.FirstOrDefaultAsync(u => u.UserHash == userHash);
-            var creatorName = user?.UserName ?? "Avocado";
-
-            var posting = new WorldUserPosting
-            {
-                CreationTime = DateTime.Now,
-                CreatorName = creatorName,
-                CreatorId = userHash,
-                Title = title,
-                Source = uploadResult.SourceUrl,
-                ThumbnailUrl = uploadResult.ThumbnailUrl,
-                IsOffline = isOffline,
-                Recipe = recipe
-            };
-
-            await context.WorldUserPosting.AddAsync(posting);
-            await context.SaveChangesAsync();
-
-            // If the creator pasted a source VTT, generate captions + translations now (right after a
-            // successful save) so they don't depend on the Bunny webhook firing. Runs ~10 OpenAI calls;
-            // isolated in its own try so a caption hiccup never fails the (already saved) upload.
-            if (!string.IsNullOrWhiteSpace(manualVttContent) && !string.IsNullOrEmpty(uploadResult.VideoGuid))
-            {
-                try
-                {
-                    var captionService = scope.ServiceProvider.GetRequiredService<CaptionGenerationService>();
-                    await captionService.GenerateCaptionsFromSourceVttAsync(uploadResult.VideoGuid, manualVttContent);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Caption generation from pasted VTT failed. VideoGuid={VideoGuid}", uploadResult.VideoGuid);
-                }
-            }
-
-            // 6. Link keywords
-            if (selectedKeywordIds != null && selectedKeywordIds.Count > 0)
-            {
-                var keywordLinks = selectedKeywordIds
-                    .Distinct()
-                    .Select(keywordId => new RecipeBaseKeyword
-                    {
-                        RecipeBaseDataId = recipe.Id,
-                        KeywordId = keywordId
-                    })
-                    .ToList();
-
-                await context.RecipeBaseKeywords.AddRangeAsync(keywordLinks);
-                await context.SaveChangesAsync();
-            }
-
-            // 7. Track pending video for transcoding notifications
-            if (!string.IsNullOrEmpty(uploadResult.VideoGuid))
-            {
-                var pendingVideo = new WorldUserPendingVideo
-                {
-                    PostingId = posting.Id,
-                    VideoGuid = uploadResult.VideoGuid,
-                    UserHash = userHash,
-                    CreatedAt = DateTime.UtcNow
-                };
-                await context.WorldUserPendingVideos.AddAsync(pendingVideo);
-                await context.SaveChangesAsync();
-
-                _logger.LogInformation("Pending video tracked: {VideoGuid} for posting {PostingId}",
-                    uploadResult.VideoGuid, posting.Id);
-            }
-
-            // 8. Send success notification
-            var notification = new WorldUserNotification
-            {
-                UserHash = userHash,
-                Description = $"Dein Video \"{title}\" wurde hochgeladen!",
-                CreatedAtUtc = DateTime.UtcNow,
-                IsSeen = false,
-                EventType = "upload-complete",
-                Icon = "bi-check-circle-fill",
-                Sender = "system",
-                Href = $"/WorldMiniApp/Feed/Index?postingId={posting.Id}",
-                NotificationKey = $"upload-complete:{posting.Id}",
-                ContextText = title
-            };
-
-            await context.WorldUserNotifications.AddAsync(notification);
-            await context.SaveChangesAsync();
-
-            _logger.LogInformation("Upload completed successfully. Posting {PostingId} for user {UserHash}",
-                posting.Id, userHash);
-            }
-            catch
-            {
-                // Something after the Bunny upload failed (recipe/ingredient save, DB, …). Remove the
-                // now-orphaned Bunny video so unreferenced uploads don't pile up, then let the caller's
-                // handler send the error notification.
-                await blobUpload.DeleteVideoAsync(uploadResult.VideoGuid);
-                throw;
-            }
+            var seg = uri.AbsolutePath.Trim('/').Split('/');
+            return seg.Length > 0 && Guid.TryParse(seg[0], out _) ? seg[0] : null;
         }
 
-        // Helper to create IFormFile from bytes
-        private IFormFile CreateFormFileFromBytes(byte[] bytes, string fileName, string contentType)
-        {
-            var stream = new MemoryStream(bytes);
-            return new FormFile(stream, 0, bytes.Length, "Content", fileName)
-            {
-                Headers = new HeaderDictionary(),
-                ContentType = contentType
-            };
-        }
-
-        // Helper to send error notification
-        private async Task SendUploadErrorNotificationAsync(string userHash, string title, string errorMessage)
-        {
-            using var scope = _serviceScopeFactory.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-
-            var notification = new WorldUserNotification
-            {
-                UserHash = userHash,
-                Description = $"Upload von \"{title}\" fehlgeschlagen. Bitte erneut versuchen.",
-                CreatedAtUtc = DateTime.UtcNow,
-                IsSeen = false,
-                EventType = "upload-failed",
-                Icon = "bi-exclamation-triangle-fill",
-                Sender = "system",
-                Href = "/WorldMiniApp/Home/Upload",
-                NotificationKey = $"upload-failed:{Guid.NewGuid()}",
-                ContextText = errorMessage.Length > 200 ? errorMessage.Substring(0, 200) : errorMessage
-            };
-
-            await context.WorldUserNotifications.AddAsync(notification);
-            await context.SaveChangesAsync();
-        }
     }
 }

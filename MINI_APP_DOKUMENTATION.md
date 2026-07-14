@@ -2,8 +2,8 @@
 
 **Projekt:** DelikatessenDrehbuch
 **Bereich:** WorldMiniApp Area
-**Version:** 1.0
-**Stand:** Mai 2026
+**Version:** 1.1
+**Stand:** Juli 2026
 
 ---
 
@@ -32,10 +32,11 @@ Die WorldMiniApp ist eine TikTok-ähnliche soziale Plattform für Rezepte, die i
 
 - **World ID Authentifizierung** (biometrisch oder Gerät-basiert)
 - **Wallet-Authentifizierung** (SIWE - Sign In With Ethereum)
-- **Video/Bild-Feed** mit Rezepten
-- **KI-gestützter Essensplaner**
-- **Marketplace** mit Blockchain-Zahlungen
-- **Social Features** (Likes, Kommentare, Profile)
+- **Video/Bild-Feed** mit Rezepten, mehrsprachigen Untertiteln und **TTS-Vorlesen** der Schritte (Premium)
+- **KI-gestützter Essensplaner** + KI-Zutaten-Tausch
+- **Marketplace** mit World-MiniKit-Zahlungen (WLD/USDC) + Payouts
+- **Premium-Creator** (kostenpflichtige Funktionen, z.B. TTS)
+- **Social Features** (Likes, Kommentare, Profile, Follows, Werbung)
 
 ### 1.2 Technologie-Stack
 
@@ -43,11 +44,11 @@ Die WorldMiniApp ist eine TikTok-ähnliche soziale Plattform für Rezepte, die i
 |------------|-------------|
 | Backend | ASP.NET Core MVC (.NET 8) |
 | Frontend | Razor Views + JavaScript (ES6+) |
-| Datenbank | Azure SQL Server + Entity Framework Core |
-| Blockchain | World Chain (EVM-kompatibel, Chain ID: 480) |
+| Datenbank | Azure SQL Server + Entity Framework Core (Schema-Änderungen via manuelle SQL-Skripte, KEINE EF-Migrationen) |
+| Blockchain / Zahlung | World Chain (Chain ID 480) via World MiniKit (WLD/USDC) |
 | Authentifizierung | Worldcoin World ID + SIWE |
-| Storage | Azure Blob Storage + Bunny.net CDN |
-| AI | OpenAI API |
+| Storage | **Bunny.net** — Stream (Video-Transcoding) + Storage (Bilder/Untertitel/TTS) |
+| AI | OpenAI API (GPT-4o-mini, Whisper, gpt-4o-mini-tts) |
 | Styling | Bootstrap 5 + Custom CSS |
 
 ### 1.3 Verzeichnisstruktur
@@ -56,17 +57,17 @@ Die WorldMiniApp ist eine TikTok-ähnliche soziale Plattform für Rezepte, die i
 DelikatessenDrehbuch/
 ├── Areas/
 │   └── WorldMiniApp/
-│       ├── Controllers/        # MVC-Controller (10 Dateien)
+│       ├── Controllers/        # MVC-Controller (17 Dateien)
 │       ├── Models/             # Datenmodelle (60+ Dateien)
-│       ├── Services/           # Business-Logik (20+ Dateien)
+│       ├── Services/           # Business-Logik (25+ Dateien)
 │       ├── Views/              # Razor-Templates (30+ Dateien)
-│       ├── Exceptions/         # Custom Exceptions (6 Dateien)
+│       ├── Sql/                # Manuelle Deploy-Skripte (KEINE EF-Migrationen)
+│       ├── Exceptions/         # Custom Exceptions
 │       └── Extensions/         # Query-Extensions
-├── Contracts/                  # Smart Contracts (Solidity)
 ├── Data/                       # EF Core DbContext
+├── Resources/                  # SharedResources*.resx (11 Sprachen)
 ├── wwwroot/js/                 # Frontend JavaScript
-├── sql/                        # Datenbank-Migrationen
-├── appsettings.json           # Konfiguration
+├── appsettings.json           # Konfiguration (Secrets: Platzhalter → echte Werte in Azure)
 └── Program.cs                  # DI-Container Setup
 ```
 
@@ -90,8 +91,9 @@ DelikatessenDrehbuch/
                     ↓
 ┌─────────────────────────────────────────────┐
 │         Service Layer                        │
-│  (AuthService, WildCoinService,             │
-│   BlobUploadService, etc.)                  │
+│  (AuthService, MarketplaceService,          │
+│   BunnyUploadService, CaptionGeneration-    │
+│   Service, RecipeTtsService, etc.)          │
 └─────────────────────────────────────────────┘
                     ↓
 ┌─────────────────────────────────────────────┐
@@ -115,8 +117,8 @@ Alle Services werden im DI-Container registriert:
 // Service-Registrierung
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IUserManager, UserManager>();
-builder.Services.AddScoped<IWildCoinService, WildCoinService>();
-builder.Services.AddScoped<IBlobUploadService, BlobUploadService>();
+builder.Services.AddScoped<IMarketplaceService, MarketplaceService>();
+builder.Services.AddScoped<IBlobUploadService, BunnyUploadService>();
 builder.Services.AddScoped<IWorldAppMealPlanService, WorldAppMealPlanService>();
 // ... weitere Services
 ```
@@ -322,13 +324,14 @@ public int MaxMealPlans => VerificationLevel == "orb" ? int.MaxValue : 1;
 
 Das Bezahlsystem verwendet eine hybride Architektur:
 
-1. **Off-chain:** WildCoin (interne Währung) für Belohnungen
-2. **On-chain:** World Chain (Blockchain) für Marketplace-Transaktionen
+1. **Off-chain:** WildCoin (internes Guthaben `WildCoinBalance`) für Einnahmen/Payouts
+2. **On-chain:** World Chain für Marketplace-Zahlungen — über **World MiniKit** (`pay`)
 
-**Unterstützte Tokens:**
-- **WLD** (World Token) - Native Currency
-- **USDT** (Tether USD)
-- **USDCE** (USD Coin Ethereum)
+**Unterstützte Tokens:** WLD, USDC(E).
+
+> **⚠️ Aktueller Live-Pfad (wichtig):** Die Zahlung wird im Client via **World MiniKit `pay`** ausgelöst und **serverseitig** durch `MarketplaceService.VerifyMiniKitPaymentAsync` geprüft: Bindung an `reference` (`listing-{id}-…`), Empfänger-Adresse und **Replay-Schutz** (`ReferenceTxHash` unique). Der Solidity-Contract in `Contracts/MealPlanMarketplaceWorldChain.sol` und `VerifyTransactionOnChainAsync` sind **ergänzend/legacy** und NICHT das primäre Zahlungs-Gate.
+> **Offen (Security-Review):** Betrags-/Token-Höhe wird noch nicht serverseitig gegen den Listing-Preis geprüft (Unterbezahlung theoretisch möglich).
+> **Hinweis:** Zeilennummern in diesem Kapitel sind Richtwerte und können vom aktuellen Code abweichen.
 
 ### 4.2 Marketplace-Architektur
 
@@ -368,7 +371,7 @@ Verkäufer                                           Käufer
     │                                                  │
     │                                       7. Finalisiert Kauf
     │                                          POST /FinalizeWorldChainPurchase
-    │                                          └─> WildCoinService
+    │                                          └─> MarketplaceService
     │                                                  │
     ├─────────────────────────────────────────────────┤
     │        DATABASE TRANSAKTION                      │
@@ -403,9 +406,9 @@ Views/Marketplace/Sell.cshtml
         │   ├─ Wallet-Adresse Format: ^0x[a-fA-F0-9]{40}$
         │   └─ Meal Plan gehört dem User
         │
-        ├─> 2. IWildCoinService.CreateListingAsync()
+        ├─> 2. IMarketplaceService.CreateListingAsync()
         │   │
-        │   └─> WildCoinService.cs:CreateListingAsync()  [Zeile 234]
+        │   └─> MarketplaceService.cs:CreateListingAsync()  [Zeile 234]
         │       │
         │       ├─> Prüfe alle Rezepte gehören Verkäufer
         │       │   (via RecipeBaseData.CreatorHash)
@@ -434,7 +437,7 @@ Views/Marketplace/Sell.cshtml
 1. **View:** `Areas/WorldMiniApp/Views/Marketplace/Sell.cshtml`
 2. **JavaScript:** `wwwroot/js/worldchain-marketplace.js`
 3. **Controller:** `Areas/WorldMiniApp/Controllers/MarketplaceController.cs:CreateListing()` (Zeile 156)
-4. **Service:** `Areas/WorldMiniApp/Services/WildCoinService.cs:CreateListingAsync()` (Zeile 234)
+4. **Service:** `Areas/WorldMiniApp/Services/MarketplaceService.cs:CreateListingAsync()` (Zeile 234)
 5. **Model:** `Areas/WorldMiniApp/Models/MealPlanListing.cs`
 6. **DbContext:** `Data/ApplicationDbContext.cs`
 
@@ -473,9 +476,9 @@ Views/Marketplace/Index.cshtml
         │   ├─ Wallet aus Session = Request Wallet?
         │   └─ PaymentToken valid? (WLD/USDT/USDCE)
         │
-        ├─> 2. IWildCoinService.FinalizeWorldChainPurchaseAsync()
+        ├─> 2. IMarketplaceService.FinalizeWorldChainPurchaseAsync()
         │   │
-        │   └─> WildCoinService.cs:FinalizeWorldChainPurchaseAsync()  [Zeile 456]
+        │   └─> MarketplaceService.cs:FinalizeWorldChainPurchaseAsync()  [Zeile 456]
         │       │
         │       ├─> a) Listing laden
         │       │   var listing = await _context.MealPlanListings
@@ -540,7 +543,7 @@ Views/Marketplace/Index.cshtml
 1. **View:** `Areas/WorldMiniApp/Views/Marketplace/Index.cshtml`
 2. **JavaScript:** `wwwroot/js/worldchain-marketplace.js:purchaseMealPlan()`
 3. **Controller:** `Areas/WorldMiniApp/Controllers/MarketplaceController.cs:FinalizeWorldChainPurchase()` (Zeile 412)
-4. **Service:** `Areas/WorldMiniApp/Services/WildCoinService.cs:FinalizeWorldChainPurchaseAsync()` (Zeile 456)
+4. **Service:** `Areas/WorldMiniApp/Services/MarketplaceService.cs:FinalizeWorldChainPurchaseAsync()` (Zeile 456)
 5. **Service:** `Areas/WorldMiniApp/Services/WorldAppMealPlanService.cs:CopyMealPlanAsync()`
 6. **Models:**
    - `Areas/WorldMiniApp/Models/MealPlanPurchase.cs`
@@ -551,7 +554,7 @@ Views/Marketplace/Index.cshtml
 
 **Zweck:** On-Chain-Transaktion validieren (asynchron, nicht-blockierend)
 
-**Datei:** `Areas/WorldMiniApp/Services/WildCoinService.cs:VerifyTransactionOnChainAsync()` (Zeile 789)
+**Datei:** `Areas/WorldMiniApp/Services/MarketplaceService.cs:VerifyTransactionOnChainAsync()` (Zeile 789)
 
 ```csharp
 private async Task<bool> VerifyTransactionOnChainAsync(string txHash)
@@ -1141,22 +1144,30 @@ public class ApplicationDbContext : DbContext
 |---------|-------|-------|
 | **IAuthService** | `Services/AuthService.cs` | Worldcoin World ID Verifizierung |
 | **IUserManager** | `Services/UserManager.cs` | User CRUD, Duplicate Handling |
-| **IWildCoinService** | `Services/WildCoinService.cs` | Marketplace, Payments, Listings |
-| **IBlobUploadService** | `Services/BlobUploadService.cs` | Azure Blob Storage Upload |
+| **IMarketplaceService** | `Services/MarketplaceService.cs` | Marketplace, Payments, Listings |
+| **IBlobUploadService** | `Services/BunnyUploadService.cs` | Bunny.net Storage Upload |
 | **IWorldAppMealPlanService** | `Services/WorldAppMealPlanService.cs` | Meal Plan CRUD |
 | **IFeedAlgorithmService** | `Services/FeedAlgorithmService.cs` | Feed Personalisierung |
 | **ISaveNewRecipeService** | `Services/SaveNewRecipeService.cs` | Rezept speichern |
-| **IRecipeAiTransformService** | `Services/RecipeAiTransformService.cs` | KI-Rezept-Varianten |
 | **IMarketplaceRankingService** | `Services/MarketplaceRankingService.cs` | Listing-Ranking |
+| **RecipeTranslationService** | `Services/RecipeTranslationService.cs` | Rezept-Schritte in 10 Sprachen übersetzen (OpenAI) |
+| **CaptionGenerationService** | `Services/CaptionGenerationService.cs` | Untertitel: Whisper + Übersetzung → Bunny `captions/…` |
+| **RecipeTtsService** | `Services/RecipeTtsService.cs` | TTS-Vorlesen der Schritte (gpt-4o-mini-tts) → Bunny `tts/…`, nur Premium |
+| **VideoUploadProcessingService** | `Services/VideoUploadProcessingService.cs` | Durabler Upload (Resume nach Neustart) |
+| **IIngredientSwapAiService** | `Services/IngredientSwapAiService.cs` | KI-Zutaten-Tausch |
+| **ChannelTransferService** | `Services/ChannelTransferService.cs` | Kanal-Übergabe (Claim-Link) |
+| **AdInjectionService** | `Services/AdInjectionService.cs` | Werbung in den Feed einfügen |
 
-### 6.2 IWildCoinService (Kern des Bezahlsystems)
+> **Hinweis:** `IWildCoinService`/`IBlobUploadService` sind Legacy-Interface-Namen; die Implementierungen heißen `MarketplaceService` bzw. `BunnyUploadService`. Das entfernte KI-Transform-Feature (`RecipeAiTransformService`) existiert nicht mehr.
 
-**Datei:** `Areas/WorldMiniApp/Services/WildCoinService.cs`
+### 6.2 IMarketplaceService (Kern des Bezahlsystems)
+
+**Datei:** `Areas/WorldMiniApp/Services/MarketplaceService.cs`
 
 **Interface:**
 
 ```csharp
-public interface IWildCoinService
+public interface IMarketplaceService
 {
     // Marketplace Listings
     Task<MealPlanListing> CreateListingAsync(
@@ -1622,7 +1633,7 @@ public async Task<IActionResult> CreateListing(
         return BadRequest("Ungültige Wallet-Adresse");
 
     // Service aufrufen
-    var listing = await _wildCoinService.CreateListingAsync(
+    var listing = await _marketplaceService.CreateListingAsync(
         sellerHash: userHash,
         mealPlanId: request.MealPlanId,
         title: request.Title,
@@ -1685,7 +1696,7 @@ public async Task<IActionResult> FinalizeWorldChainPurchase(
 
     try
     {
-        var purchase = await _wildCoinService.FinalizeWorldChainPurchaseAsync(
+        var purchase = await _marketplaceService.FinalizeWorldChainPurchaseAsync(
             buyerHash: userHash,
             listingId: request.ListingId,
             txHash: request.TxHash,
@@ -1736,7 +1747,7 @@ public async Task<IActionResult> MyListings()
     if (userHash == null)
         return RedirectToAction("Login", "Auth");
 
-    var listings = await _wildCoinService.GetMyListingsAsync(userHash);
+    var listings = await _marketplaceService.GetMyListingsAsync(userHash);
 
     return View(listings);
 }
@@ -2323,66 +2334,29 @@ document.addEventListener('DOMContentLoaded', () => {
 - **Adresse:** `0x163f8C2467924be0ae7B5347228CABF260318753`
 - **Decimals:** 18
 
-**Integration:** `Areas/WorldMiniApp/Services/WildCoinService.cs:VerifyTransactionOnChainAsync()`
+**Integration:** `Areas/WorldMiniApp/Services/MarketplaceService.cs:VerifyTransactionOnChainAsync()`
 
-### 9.3 Azure Blob Storage
+### 9.3 Bunny.net Storage (Bilder, Untertitel, TTS)
 
-**Zweck:** Bild- und Video-Uploads
+**Zweck:** Bilder (WEBP), Untertitel (`captions/{videoGuid}/{lang}.vtt`) und TTS-Audio (`tts/recipe-{id}/{lang}/step-{n}.mp3`).
 
-**Connection String:** Aus `appsettings.json`
+**Config-Keys (appsettings/Azure):**
+- `Bunny_Net_Storage_Adres` – Storage-Endpoint (PUT/DELETE)
+- `Bunny_Net_Passwort_Lager` – Storage-AccessKey
+- `Bunny_net_host_name` – öffentlicher CDN-Host (Abruf-URLs)
 
-```json
-{
-  "AzureBlobStorage": {
-    "ConnectionString": "DefaultEndpointsProtocol=https;AccountName=...",
-    "ContainerName": "worldminiapp-media",
-    "CdnUrl": "https://DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net"
-  }
-}
-```
+**Service:** `Areas/WorldMiniApp/Services/BunnyUploadService.cs` (implementiert `IBlobUploadService`). Upload via HTTP `PUT` mit Header `AccessKey`; Rückgabe = CDN-URL. Bilder werden mit ImageSharp zu WEBP konvertiert (1080×1920 Source + 400×711 Thumbnail). KEIN Azure-`BlobServiceClient` mehr.
 
-**Service:** `Areas/WorldMiniApp/Services/BlobUploadService.cs`
+### 9.4 Bunny.net Stream (Video)
 
-```csharp
-public async Task<string> UploadImageAsync(
-    IFormFile file,
-    string userHash)
-{
-    // Container-Client erstellen
-    var blobServiceClient = new BlobServiceClient(_connectionString);
-    var containerClient = blobServiceClient.GetBlobContainerClient(_containerName);
+**Zweck:** Video-Upload mit automatischem Transcoding + Thumbnails (ersetzt den früheren Azure-Queue/FFmpeg-Pfad).
 
-    // Eindeutigen Dateinamen generieren
-    var fileName = $"{userHash}/{Guid.NewGuid()}{Path.GetExtension(file.FileName)}";
-    var blobClient = containerClient.GetBlobClient(fileName);
+**Config-Keys:**
+- `Bunny_Net_Api_Stream` – Stream-API-Key
+- `Bunny_Net_Stream_ID` – Library-ID
+- `Bunny_Net_Stream_Host_Name` – Stream-CDN-Host
 
-    // Upload
-    await blobClient.UploadAsync(file.OpenReadStream(), overwrite: true);
-
-    // CDN-URL zurückgeben
-    return $"{_cdnUrl}/{fileName}";
-}
-```
-
-### 9.4 Bunny.net CDN
-
-**Zweck:** Video-Hosting und Streaming
-
-**Configuration:**
-
-```json
-{
-  "BunnyNet": {
-    "ApiKey": "...",
-    "LibraryId": "12345",
-    "StreamBaseUrl": "https://vz-12345.b-cdn.net"
-  }
-}
-```
-
-**Service:** `Areas/WorldMiniApp/Services/BunnyUploadService.cs`
-
-**Webhook:** `Areas/WorldMiniApp/Controllers/BunnyWebhookController.cs` - Wird aufgerufen, wenn Video-Encoding abgeschlossen ist
+**Ablauf:** `BunnyUploadService` legt ein Video an → lädt hoch → Bunny transcodiert. Wenn fertig, ruft **`BunnyWebhookController`** den Webhook auf → `CaptionGenerationService` erzeugt (Whisper-)Untertitel + Übersetzungen. Playlist-URL: `https://{host}/{videoGuid}/playlist.m3u8`.
 
 ---
 
@@ -2423,10 +2397,10 @@ public async Task<string> UploadImageAsync(
            └─> Session-Wallet vergleichen
 
        3b. Service aufrufen
-           └─> Service: IWildCoinService.FinalizeWorldChainPurchaseAsync()
+           └─> Service: IMarketplaceService.FinalizeWorldChainPurchaseAsync()
 
 4. WILDCOINS-SERVICE
-   └─> Service: WildCoinService.cs:FinalizeWorldChainPurchaseAsync() (Zeile 456)
+   └─> Service: MarketplaceService.cs:FinalizeWorldChainPurchaseAsync() (Zeile 456)
 
        4a. Listing laden
            └─> DbContext: _context.MealPlanListings
@@ -2467,7 +2441,7 @@ public async Task<string> UploadImageAsync(
            └─> Task.Run(() => VerifyTransactionOnChainAsync(txHash))
 
 5. BLOCKCHAIN-VERIFIZIERUNG (ASYNC)
-   └─> Service: WildCoinService.cs:VerifyTransactionOnChainAsync() (Zeile 789)
+   └─> Service: MarketplaceService.cs:VerifyTransactionOnChainAsync() (Zeile 789)
 
        Retry-Loop (3 Versuche):
        └─> HTTP Client: POST https://worldchain-mainnet.g.alchemy.com/public
@@ -2569,10 +2543,10 @@ public async Task<string> UploadImageAsync(
            └─> Wallet Format: ^0x[a-fA-F0-9]{40}$
 
        3b. Service aufrufen
-           └─> Service: IWildCoinService.CreateListingAsync()
+           └─> Service: IMarketplaceService.CreateListingAsync()
 
 4. WILDCOINS-SERVICE
-   └─> Service: WildCoinService.cs:CreateListingAsync() (Zeile 234)
+   └─> Service: MarketplaceService.cs:CreateListingAsync() (Zeile 234)
 
        4a. Meal Plan laden
            └─> DbContext: _context.WorldUserMealPlans
@@ -2704,17 +2678,17 @@ public AuthService(IConfiguration configuration)
 
 ```json
 {
-  "Worldcoin": {
-    "AppId": "${WORLDCOIN_APP_ID}",
-    "ActionId": "${WORLDCOIN_ACTION_ID}"
-  },
-  "WorldChain": {
-    "RpcUrl": "${WORLDCHAIN_RPC_URL}",
-    "MarketplaceContractAddress": "${MARKETPLACE_CONTRACT}"
-  },
-  "AzureBlobStorage": {
-    "ConnectionString": "${AZURE_STORAGE_CONNECTION}"
-  }
+  "WorldId": { "AppId": "${WORLDID_APPID}" },
+  "WorldApiKey": "${WORLD_API_KEY}",
+  "WorldMiniApp": { "SuperUserHash": "${SUPERUSER_HASH}" },
+  "Marketplace": { "VerifyPayments": true },
+  "SecretKeyOpenAi": "${OPENAI_KEY}",
+  "Bunny_Net_Storage_Adres": "${BUNNY_STORAGE_ADDR}",
+  "Bunny_Net_Passwort_Lager": "${BUNNY_STORAGE_KEY}",
+  "Bunny_net_host_name": "${BUNNY_CDN_HOST}",
+  "Bunny_Net_Api_Stream": "${BUNNY_STREAM_KEY}",
+  "Bunny_Net_Stream_ID": "${BUNNY_STREAM_LIB}",
+  "Bunny_Net_Stream_Host_Name": "${BUNNY_STREAM_HOST}"
 }
 ```
 
@@ -2722,7 +2696,7 @@ public AuthService(IConfiguration configuration)
 
 **Video-Upload:**
 ```csharp
-// BlobUploadService.cs
+// BunnyUploadService.cs
 public async Task<string> UploadVideoAsync(...)
 {
     // Max 5 Uploads pro 10 Minuten
@@ -2752,32 +2726,20 @@ public async Task<string> UploadVideoAsync(...)
 - [ ] Super Admin Hash → appsettings.json
 - [ ] CDN Domains → appsettings.json
 
-**Test-Mode deaktivieren:**
-```json
-{
-  "WorldChain": {
-    "TestMode": false,
-    "AllowSelfPurchaseForTesting": false
-  }
-}
-```
+**Prod-Flags (Security-Review – MUSS):**
+- [ ] `ASPNETCORE_ENVIRONMENT=Production` (sonst ist `SetTestHash` = Auth-Bypass)
+- [ ] `Marketplace:VerifyPayments` ≠ `false` (Kill-Switch = Gratis-Käufe)
+- [ ] `WorldId:DebugVerify` ≠ `true`
+- [ ] `WorldChain:TestMode=false`, `AllowSelfPurchaseForTesting=false`
+- [ ] Secrets (SuperUserHash, Bunny/OpenAI/DB/World-API) nur in Azure, `appsettings.json` nur Platzhalter
 
-**Datenbank:**
-- [ ] Alle Migrationen ausgeführt (001-005)
-- [ ] Indexes erstellt
-- [ ] Backups konfiguriert
-- [ ] Connection String mit SSL
+**Datenbank (manuelle SQL-Skripte, KEINE EF-Migrationen):**
+- [ ] Alle Skripte aus `Areas/WorldMiniApp/Sql/` ausgeführt — u.a. `premium_until.sql`, `channel_claims.sql`, `ingredient_swap_hints.sql`, `pending_video_uploads.sql`, `marketplace_*.sql`, `worlduser_notifications.sql`, `CreateAdTables.sql`
+- [ ] Backups konfiguriert, Connection String mit SSL
 
-**Azure Services:**
-- [ ] Blob Storage Container erstellt
-- [ ] CDN konfiguriert
-- [ ] Queue für Video-Processing
-- [ ] CORS richtig gesetzt
-
-**Blockchain:**
-- [ ] Smart Contract deployed (World Chain Mainnet)
-- [ ] Contract-Adresse in Config
-- [ ] Alchemy RPC Account (mit Rate Limits)
+**Bunny.net:**
+- [ ] Storage-Zone + Stream-Library angelegt, Keys in Config
+- [ ] CDN-Host(s) gesetzt, CORS/Hotlink-Schutz geprüft
 
 **Monitoring:**
 - [ ] Application Insights aktiviert
@@ -2786,19 +2748,17 @@ public async Task<string> UploadVideoAsync(...)
 
 ### 12.2 Environment Variables
 
-**Windows (PowerShell):**
-```powershell
-$env:WORLDCOIN_APP_ID = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa"
-$env:WORLDCHAIN_RPC_URL = "https://worldchain-mainnet.g.alchemy.com/public"
-$env:AZURE_STORAGE_CONNECTION = "DefaultEndpointsProtocol=https;..."
-```
+Wichtige Keys (in Azure App Settings): `WorldId:AppId`, `WorldApiKey`, `WorldMiniApp:SuperUserHash`,
+`SecretKeyOpenAi`, `Bunny_Net_Storage_Adres`, `Bunny_Net_Passwort_Lager`, `Bunny_net_host_name`,
+`Bunny_Net_Api_Stream`, `Bunny_Net_Stream_ID`, `Bunny_Net_Stream_Host_Name`, DB-Connection-String,
+`Marketplace:VerifyPayments`.
 
-**Linux/Mac:**
-```bash
-export WORLDCOIN_APP_ID="app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa"
-export WORLDCHAIN_RPC_URL="https://worldchain-mainnet.g.alchemy.com/public"
-export AZURE_STORAGE_CONNECTION="DefaultEndpointsProtocol=https;..."
+```powershell
+$env:WorldId__AppId = "app_a8d8e00858f1e44ac3dcb9b2f6dfa1aa"
+$env:SecretKeyOpenAi = "sk-..."
+$env:Bunny_Net_Passwort_Lager = "..."
 ```
+(Kein `AZURE_STORAGE_CONNECTION` mehr — Storage läuft über Bunny.net.)
 
 **Azure App Service:**
 - Configuration → Application Settings
@@ -2809,30 +2769,18 @@ export AZURE_STORAGE_CONNECTION="DefaultEndpointsProtocol=https;..."
 **SQL-Dateien in Reihenfolge:**
 
 ```bash
-# 1. Marketplace-Tables erstellen
-sqlcmd -S your-server.database.windows.net -d DelikatessenDB -U admin -P password -i sql/001_add_wildcoin_marketplace.sql
-
-# 2. WorldChain Purchase Fields
-sqlcmd -S your-server.database.windows.net -d DelikatessenDB -U admin -P password -i sql/002_add_worldchain_purchase_fields.sql
-
-# 3. Payment Token Field
-sqlcmd -S your-server.database.windows.net -d DelikatessenDB -U admin -P password -i sql/003_add_payment_token_field.sql
-
-# 4. USDT Wallet
-sqlcmd -S your-server.database.windows.net -d DelikatessenDB -U admin -P password -i sql/004_add_listing_usdt_wallet.sql
-
-# 5. Audit Columns
-sqlcmd -S your-server.database.windows.net -d DelikatessenDB -U admin -P password -i sql/005_add_missing_purchase_audit_columns.sql
+# Skripte liegen in Areas/WorldMiniApp/Sql/ und sind idempotent (einmalig ausführen).
+sqlcmd -S your-server.database.windows.net -d DelikatessenDB -U admin -P password \
+  -i DelikatessenDrehbuch/Areas/WorldMiniApp/Sql/premium_until.sql
+# ... analog für die übrigen Skripte (marketplace_*, channel_claims, ingredient_swap_hints,
+#     pending_video_uploads, worlduser_notifications, CreateAdTables, dataprotection_keys, …)
 ```
 
-**Oder mit EF Core Migrations:**
+> **Wichtig:** Es werden **KEINE EF-Core-Migrationen** verwendet (`dotnet ef database update` gilt hier NICHT). Schema-Änderungen ausschließlich über die manuellen Skripte in `Areas/WorldMiniApp/Sql/`. Beim nächsten Migration-Scaffold müssen diese manuellen Spalten/Tabellen berücksichtigt werden.
 
-```bash
-cd DelikatessenDrehbuch
-dotnet ef database update
-```
+### 12.4 Smart Contract Deployment (optional/legacy)
 
-### 12.4 Smart Contract Deployment
+> **Hinweis:** Der Live-Kaufpfad läuft über **World MiniKit** (Client-`pay` + serverseitige `VerifyMiniKitPaymentAsync`), NICHT über diesen Contract. Der Solidity-Contract in `Contracts/` ist optional/historisch; ein Deployment ist für den regulären Marktplatz-Betrieb nicht erforderlich.
 
 **Datei:** `Contracts/scripts/deploy-worldchain-marketplace.js`
 
@@ -2895,16 +2843,13 @@ module.exports = {
     "TestMode": false,
     "AllowSelfPurchaseForTesting": false
   },
-  "AzureBlobStorage": {
-    "ConnectionString": "${AZURE_STORAGE_CONNECTION}",
-    "ContainerName": "worldminiapp-media",
-    "CdnUrl": "https://DelekatesenDrehbuchCdn-beecexhdaghhacab.z01.azurefd.net"
-  },
-  "BunnyNet": {
-    "ApiKey": "${BUNNY_API_KEY}",
-    "LibraryId": "${BUNNY_LIBRARY_ID}",
-    "StreamBaseUrl": "https://vz-${BUNNY_LIBRARY_ID}.b-cdn.net"
-  },
+  "Bunny_Net_Storage_Adres": "${BUNNY_STORAGE_ADDR}",
+  "Bunny_Net_Passwort_Lager": "${BUNNY_STORAGE_KEY}",
+  "Bunny_net_host_name": "${BUNNY_CDN_HOST}",
+  "Bunny_Net_Api_Stream": "${BUNNY_STREAM_KEY}",
+  "Bunny_Net_Stream_ID": "${BUNNY_STREAM_LIB}",
+  "Bunny_Net_Stream_Host_Name": "${BUNNY_STREAM_HOST}",
+  "SecretKeyOpenAi": "${OPENAI_KEY}",
   "Redis": {
     "Configuration": "${REDIS_CONNECTION_STRING}"
   }
@@ -2949,7 +2894,7 @@ Areas/WorldMiniApp/
 ├── Services/
 │   ├── AuthService.cs                    (World ID Verifizierung) ⭐
 │   ├── BackgroundTaskQueue.cs            (Async Jobs)
-│   ├── BlobUploadService.cs              (Azure Blob Storage)
+│   ├── BunnyUploadService.cs              (Bunny.net Storage)
 │   ├── BunnyUploadService.cs             (Bunny.net CDN)
 │   ├── FeedAlgorithmService.cs           (Feed-Personalisierung)
 │   ├── MarketplaceRankingService.cs      (Listing-Ranking)
@@ -2957,7 +2902,7 @@ Areas/WorldMiniApp/
 │   ├── RecipeAiTransformService.cs       (KI-Rezept-Varianten)
 │   ├── SaveNewRecipeService.cs           (Rezept speichern)
 │   ├── UserManager.cs                    (User CRUD)
-│   ├── WildCoinService.cs                (Marketplace & Payments) ⭐
+│   ├── MarketplaceService.cs                (Marketplace & Payments) ⭐
 │   ├── WorldAppMealPlanService.cs        (Meal Plan CRUD)
 │   └── Interfaces/ (10+ Service-Interfaces)
 └── Views/
@@ -2991,12 +2936,15 @@ Contracts/
 Data/
 └── ApplicationDbContext.cs               (EF Core DbContext) ⭐
 
-sql/
-├── 001_add_wildcoin_marketplace.sql      (Marketplace Tables) ⭐
-├── 002_add_worldchain_purchase_fields.sql
-├── 003_add_payment_token_field.sql
-├── 004_add_listing_usdt_wallet.sql
-└── 005_add_missing_purchase_audit_columns.sql
+Areas/WorldMiniApp/Sql/    (manuelle Deploy-Skripte, KEINE EF-Migrationen)
+├── marketplace_*.sql                     (Marketplace-Tabellen/-Felder) ⭐
+├── premium_until.sql                     (Premium-Creator)
+├── channel_claims.sql                    (Kanal-Übergabe)
+├── ingredient_swap_hints.sql
+├── pending_video_uploads.sql             (durabler Upload)
+├── worlduser_notifications.sql
+├── CreateAdTables.sql
+└── dataprotection_keys.sql
 
 wwwroot/js/
 ├── worldchain-marketplace.js             (Web3 Integration) ⭐

@@ -32,6 +32,7 @@
   <!-- ✅ NUGET: sauber & net6-kompatibel -->
   <ItemGroup>
     <!-- Azure Storage -->
+    <PackageReference Include="AWSSDK.Polly" Version="4.0.100.3" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.27.0" />
     <!-- DataProtection-Keys persistent in SQL (überlebt Neustart / mehrere Instanzen) -->
     <PackageReference Include="Microsoft.AspNetCore.DataProtection.EntityFrameworkCore" Version="8.0.23" />

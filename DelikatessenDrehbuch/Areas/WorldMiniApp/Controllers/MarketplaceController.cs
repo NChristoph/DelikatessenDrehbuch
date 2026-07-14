@@ -379,6 +379,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, error = "Nicht eingeloggt." });
 
+            if (!DelikatessenDrehbuch.Areas.WorldMiniApp.Services.RateLimitGuard.TryConsume(HttpContext, "payout", 8, TimeSpan.FromHours(1), userHash))
+                return Json(new { success = false, error = "Zu viele Auszahlungsanfragen. Bitte später erneut versuchen." });
+
             var (success, error, request) = await _coinService.RequestPayoutAsync(userHash, amount, token, walletAddress);
             if (!success)
                 return Json(new { success = false, error });
@@ -564,6 +567,9 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Controllers
             var userHash = GetUserHash();
             if (string.IsNullOrWhiteSpace(userHash))
                 return Json(new { success = false, error = "Nicht eingeloggt." });
+
+            if (!DelikatessenDrehbuch.Areas.WorldMiniApp.Services.RateLimitGuard.TryConsume(HttpContext, "purchase", 20, TimeSpan.FromMinutes(1), userHash))
+                return Json(new { success = false, error = "Zu viele Anfragen. Bitte kurz warten." });
 
             if (string.IsNullOrWhiteSpace(request.TxHash))
                 return Json(new { success = false, error = "TxHash fehlt." });

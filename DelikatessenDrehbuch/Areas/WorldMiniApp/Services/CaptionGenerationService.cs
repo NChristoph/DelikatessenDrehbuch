@@ -159,12 +159,15 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
             try
             {
                 var candidateUrls = BuildVideoDownloadCandidates(videoUrl).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+                _logger.LogWarning("Caption download: trying {Count} candidate URL(s) for VideoGuid={VideoGuid}. Source={Source}. Candidates=[{Candidates}]",
+                    candidateUrls.Count, videoGuid, videoUrl, string.Join(" | ", candidateUrls));
                 if (candidateUrls.Count == 0)
                 {
                     return null;
                 }
 
                 var client = _httpClientFactory.CreateClient();
+                var tooLarge = false;
                 foreach (var candidateUrl in candidateUrls)
                 {
                     try
@@ -172,21 +175,64 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                         using var response = await client.GetAsync(candidateUrl, HttpCompletionOption.ResponseHeadersRead);
                         if (!response.IsSuccessStatusCode)
                         {
-                            _logger.LogWarning("Video download candidate failed. StatusCode={StatusCode} Url={Url}", response.StatusCode, candidateUrl);
+                            _logger.LogWarning("Caption download candidate FAILED. StatusCode={StatusCode} Url={Url}", (int)response.StatusCode, candidateUrl);
+                            continue;
+                        }
+
+                        var contentType = response.Content.Headers.ContentType?.MediaType ?? "";
+                        var contentLength = response.Content.Headers.ContentLength ?? -1;
+                        // Eine m3u8-Playlist ist KEIN Video (Whisper kann sie nicht nutzen) → überspringen.
+                        if (candidateUrl.EndsWith(".m3u8", StringComparison.OrdinalIgnoreCase)
+                            || contentType.Contains("mpegurl", StringComparison.OrdinalIgnoreCase))
+                        {
+                            _logger.LogWarning("Caption download candidate is an HLS playlist, not a video file — skipping. Url={Url}", candidateUrl);
+                            continue;
+                        }
+
+                        // OpenAI Whisper: hartes 25-MB-Limit. Vorab per Header überspringen, wenn bekannt.
+                        const long whisperMaxBytes = 24_500_000;
+                        if (contentLength > whisperMaxBytes)
+                        {
+                            _logger.LogWarning("Caption download candidate too large for Whisper (header {Bytes} bytes) — trying a smaller rendition. Url={Url}", contentLength, candidateUrl);
+                            tooLarge = true;
                             continue;
                         }
 
                         var tempPath = Path.Combine(Path.GetTempPath(), $"{videoGuid}.mp4");
-                        await using var fileStream = File.Create(tempPath);
-                        await response.Content.CopyToAsync(fileStream);
+                        await using (var fileStream = File.Create(tempPath))
+                        {
+                            await response.Content.CopyToAsync(fileStream);
+                        }
+
+                        // Echte Größe prüfen (Content-Length-Header fehlt bei Bunny oft → chunked).
+                        var actualBytes = new FileInfo(tempPath).Length;
+                        if (actualBytes > whisperMaxBytes)
+                        {
+                            _logger.LogWarning("Caption download too large for Whisper: {Bytes} bytes (>25 MB) at {Url} — skipping.", actualBytes, candidateUrl);
+                            try { File.Delete(tempPath); } catch { /* best effort */ }
+                            tooLarge = true;
+                            continue;
+                        }
+
+                        _logger.LogWarning("Caption download OK for Whisper. Url={Url} ContentType={ContentType} Bytes={Bytes}", candidateUrl, contentType, actualBytes);
                         return tempPath;
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Video download candidate failed.");
+                        _logger.LogWarning(ex, "Caption download candidate threw. Url={Url}", candidateUrl);
                     }
                 }
 
+                if (tooLarge)
+                {
+                    _logger.LogError("Caption download: alle verfügbaren Renditions sind >25 MB (Whisper-Limit). VideoGuid={VideoGuid}. Das Video ist zu lang/hochauflösend — es fehlt eine kleine Rendition (z.B. play_240p.mp4). In Bunny Stream MP4-Fallback mit niedriger Auflösung aktivieren/re-encodieren.",
+                        videoGuid);
+                }
+                else
+                {
+                    _logger.LogError("Caption download: ALL candidates failed for VideoGuid={VideoGuid}. Source={Source}. Prüfe in Bunny Stream: MP4-Fallback aktiv? Token-Authentifizierung aus? Video fertig transcodiert?",
+                        videoGuid, videoUrl);
+                }
                 return null;
             }
             catch (Exception ex)
@@ -207,12 +253,14 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
                 && uri.AbsolutePath.EndsWith("/playlist.m3u8", StringComparison.OrdinalIgnoreCase))
             {
                 var baseUrl = uri.AbsoluteUri.Substring(0, uri.AbsoluteUri.Length - "/playlist.m3u8".Length);
-                yield return $"{baseUrl}/original";
-                yield return $"{baseUrl}/play_1080p.mp4";
-                yield return $"{baseUrl}/play_720p.mp4";
-                yield return $"{baseUrl}/play_480p.mp4";
-                yield return $"{baseUrl}/play_360p.mp4";
+                // KLEINSTE Rendition zuerst: Whisper braucht nur die Tonspur, und die OpenAI-Whisper-API
+                // hat ein hartes 25-MB-Limit. Original/1080p sprengen das schnell (Verbindung bricht ab),
+                // 240p hat dieselbe Audiospur bei Bruchteil der Größe → bewusst KEIN original/1080p.
                 yield return $"{baseUrl}/play_240p.mp4";
+                yield return $"{baseUrl}/play_360p.mp4";
+                yield return $"{baseUrl}/play_480p.mp4";
+                yield return $"{baseUrl}/play_720p.mp4";
+                yield break;
             }
 
             yield return videoUrl;
@@ -232,36 +280,100 @@ namespace DelikatessenDrehbuch.Areas.WorldMiniApp.Services
 
                 var client = _httpClientFactory.CreateClient();
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                // "Expect: 100-continue" beim Upload abschalten — dieser Header ist die häufigste Ursache
+                // für einen Verbindungsabbruch (SocketException 10054) mitten im Datei-Upload zu OpenAI
+                // (Proxy/AV/Server verwerfen ihn). Der Body wird dann direkt gesendet.
+                client.DefaultRequestHeaders.ExpectContinue = false;
+                client.Timeout = TimeSpan.FromMinutes(5);
 
-                using var content = new MultipartFormDataContent();
-                var fileContent = new ByteArrayContent(await File.ReadAllBytesAsync(videoPath));
-                fileContent.Headers.ContentType = new MediaTypeHeaderValue("video/mp4");
-                content.Add(fileContent, "file", Path.GetFileName(videoPath));
-                content.Add(new StringContent("whisper-1"), "model");
-                content.Add(new StringContent("vtt"), "response_format");
-
-                // Source language for transcription. Defaults to German (the app is German-first and
-                // the downstream translation step assumes a German source VTT). Set
-                // "OpenAI:WhisperLanguage" to another ISO code, or to "auto"/empty to let Whisper
-                // auto-detect. NOTE: if you switch away from "de", the "translate from German" step
-                // in TranslateVttWithOpenAiAsync must be revisited.
+                var videoBytes = await File.ReadAllBytesAsync(videoPath);
                 var whisperLanguage = (_config["OpenAI:WhisperLanguage"] ?? "de").Trim();
-                if (!string.IsNullOrWhiteSpace(whisperLanguage) &&
-                    !string.Equals(whisperLanguage, "auto", StringComparison.OrdinalIgnoreCase))
+
+                const int maxAttempts = 3;
+                for (var attempt = 1; attempt <= maxAttempts; attempt++)
                 {
-                    content.Add(new StringContent(whisperLanguage), "language");
+                    try
+                    {
+                        using var content = new MultipartFormDataContent();
+                        var fileContent = new ByteArrayContent(videoBytes);
+                        fileContent.Headers.ContentType = new MediaTypeHeaderValue("video/mp4");
+                        content.Add(fileContent, "file", Path.GetFileName(videoPath));
+                        content.Add(new StringContent("whisper-1"), "model");
+                        content.Add(new StringContent("vtt"), "response_format");
+
+                        // Source language for transcription. Defaults to German (the app is German-first
+                        // and the downstream translation step assumes a German source VTT). Set
+                        // "OpenAI:WhisperLanguage" to another ISO code, or to "auto"/empty to auto-detect.
+                        if (!string.IsNullOrWhiteSpace(whisperLanguage) &&
+                            !string.Equals(whisperLanguage, "auto", StringComparison.OrdinalIgnoreCase))
+                        {
+                            content.Add(new StringContent(whisperLanguage), "language");
+                        }
+
+                        // Erzwinge HTTP/1.1 (HTTP/2-Multipart-Uploads werden von manchen Netzen/Proxys gekappt).
+                        using var request = new HttpRequestMessage(HttpMethod.Post, "https://api.openai.com/v1/audio/transcriptions")
+                        {
+                            Content = content,
+                            Version = System.Net.HttpVersion.Version11,
+                            VersionPolicy = HttpVersionPolicy.RequestVersionOrLower
+                        };
+
+                        _logger.LogWarning("Whisper request attempt {Attempt}/{Max}: sending {Bytes} bytes.", attempt, maxAttempts, videoBytes.Length);
+                        using var response = await client.SendAsync(request);
+                        if (!response.IsSuccessStatusCode)
+                        {
+                            var err = await response.Content.ReadAsStringAsync();
+                            _logger.LogError("Whisper HTTP {Status}: {Body}", (int)response.StatusCode, Truncate(err, 400));
+                            response.EnsureSuccessStatusCode();
+                        }
+
+                        return await response.Content.ReadAsStringAsync();
+                    }
+                    catch (Exception ex) when (attempt < maxAttempts)
+                    {
+                        _logger.LogWarning(ex, "Whisper attempt {Attempt}/{Max} failed — retrying.", attempt, maxAttempts);
+                        await Task.Delay(TimeSpan.FromSeconds(2 * attempt));
+                    }
                 }
 
-                using var response = await client.PostAsync("https://api.openai.com/v1/audio/transcriptions", content);
-                response.EnsureSuccessStatusCode();
-
-                var vttContent = await response.Content.ReadAsStringAsync();
-                return vttContent;
+                return null;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Whisper transcription failed.");
                 return null;
+            }
+        }
+
+        /// <summary>
+        /// Sendet einen JSON-POST an OpenAI mit gehärtetem Transport: „Expect: 100-continue" aus und
+        /// HTTP/1.1 erzwungen (beides häufige Ursachen für Verbindungsabbrüche beim Upload hinter
+        /// Proxys/AV), plus Retry. Wird von den Caption-Übersetzungen genutzt.
+        /// </summary>
+        private async Task<HttpResponseMessage> SendOpenAiJsonWithRetryAsync(string url, string jsonBody, string apiKey, int maxAttempts = 3)
+        {
+            for (var attempt = 1; ; attempt++)
+            {
+                try
+                {
+                    var client = _httpClientFactory.CreateClient();
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+                    client.DefaultRequestHeaders.ExpectContinue = false;
+                    client.Timeout = TimeSpan.FromMinutes(3);
+
+                    var request = new HttpRequestMessage(HttpMethod.Post, url)
+                    {
+                        Content = new StringContent(jsonBody, Encoding.UTF8, "application/json"),
+                        Version = System.Net.HttpVersion.Version11,
+                        VersionPolicy = HttpVersionPolicy.RequestVersionOrLower
+                    };
+                    return await client.SendAsync(request);
+                }
+                catch (Exception ex) when (attempt < maxAttempts)
+                {
+                    _logger.LogWarning(ex, "OpenAI POST attempt {Attempt}/{Max} failed — retrying. Url={Url}", attempt, maxAttempts, url);
+                    await Task.Delay(TimeSpan.FromSeconds(2 * attempt));
+                }
             }
         }
 
@@ -304,11 +416,10 @@ Rules:
                 temperature = 0.3
             };
 
-            var client = _httpClientFactory.CreateClient();
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
-
-            using var content = new StringContent(JsonSerializer.Serialize(requestBody), Encoding.UTF8, "application/json");
-            using var response = await client.PostAsync("https://api.openai.com/v1/chat/completions", content);
+            using var response = await SendOpenAiJsonWithRetryAsync(
+                "https://api.openai.com/v1/chat/completions",
+                JsonSerializer.Serialize(requestBody),
+                apiKey);
             response.EnsureSuccessStatusCode();
 
             var responseJson = await response.Content.ReadAsStringAsync();
@@ -357,6 +468,9 @@ Rules:
                 Environment.GetEnvironmentVariable("OPENAI_API_KEY"),
                 _config["OPENAI_API_KEY"]);
         }
+
+        private static string Truncate(string? value, int max) =>
+            string.IsNullOrEmpty(value) || value.Length <= max ? (value ?? string.Empty) : value.Substring(0, max);
 
         private static string? FirstNonBlank(params string?[] values)
         {
@@ -430,6 +544,9 @@ Rules:
         /// (de.vtt) in Bunny — used to repair videos whose translations failed (e.g. a bad API key).
         /// Reads the existing de.vtt and re-runs the translation loop.
         /// </summary>
+        /// <summary>Returns the current German caption (de.vtt) for a video, or null if none exists.</summary>
+        public Task<string?> GetGermanCaptionAsync(string videoGuid) => TryDownloadManualSourceCaptionAsync(videoGuid);
+
         public async Task<(bool Found, int Succeeded, int Total)> RegenerateTranslationsAsync(string videoGuid)
         {
             var germanVtt = await TryDownloadManualSourceCaptionAsync(videoGuid);

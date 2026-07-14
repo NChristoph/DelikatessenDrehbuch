@@ -545,6 +545,10 @@
                                     {
                                         <span class="badge badge-device">📱 Device</span>
                                     }
+                                    @if (creator.IsPremiumActive)
+                                    {
+                                        <span class="badge" style="background:#14391f;color:#fff;">⭐ Premium bis @creator.PremiumUntil!.Value.ToString("dd.MM.yyyy")</span>
+                                    }
                                 </div>
                                 <div class="hash-display" title="@creator.UserHash" style="margin-top: 4px;">
                                     @creator.UserHash
@@ -570,6 +574,15 @@
                                     <input type="hidden" name="sourceHash" value="@creator.UserHash" />
                                     <button type="submit" class="btn btn-warning btn-sm">
                                         <i class="bi bi-link-45deg"></i> Übergeben
+                                    </button>
+                                </form>
+                                <form asp-action="SetPremium" method="post" style="margin: 0; display: inline-flex; gap: 4px; align-items: center;"
+                                      title="Premium-Monate setzen (0 = entfernen)">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="userHash" value="@creator.UserHash" />
+                                    <input type="number" name="months" value="1" min="0" max="120" style="width: 52px; padding: 4px; border-radius: 6px; border: 1px solid #cbd5e0;" />
+                                    <button type="submit" class="btn btn-sm" style="background:#14391f; color:#fff;">
+                                        <i class="bi bi-star-fill"></i> Premium
                                     </button>
                                 </form>
                                 <form asp-action="DeleteCreator" method="post" style="margin: 0; display: inline;" onsubmit="return confirm('Creator @creator.UserName wirklich löschen?')">
